@@ -1,0 +1,4 @@
+2026-04-15 10:00:00 INFO  Starting application
+2026-04-15 10:00:01 DEBUG Successfully connected to database
+2026-04-15 10:00:02 ERROR Failed to process request abc123
+2026-04-15 10:00:03 INFO  Shutting down gracefully
