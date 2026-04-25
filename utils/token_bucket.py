@@ -1,5 +1,6 @@
 import time
 import threading
+# from llm import logger
 
 class TokenBucket:
     token_per_call = 10
@@ -21,4 +22,5 @@ class TokenBucket:
         if self.tokens >= self.token_per_call:
             self.tokens -= self.token_per_call
         else:
+            # logger.info("Out of tokens")
             print("Request rejected")

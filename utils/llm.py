@@ -1,13 +1,15 @@
 import json
 import time
 from google import genai
-from google.genai.errors import ServerError, ClientError
+from google.genai.errors import ServerError, ClientError, APIError
 import random
 from google.genai import types
 from threading import *
 import requests
 import logging
 from token_bucket import TokenBucket
+import logfire
+import os
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -16,6 +18,10 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+
+os.environ['OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT'] = 'true'
+logfire.configure()
+logfire.instrument_google_genai()
 
 class LLMParser:
     SAFE_TO_RETRY = [429, 500, 503]
@@ -48,31 +54,32 @@ class LLMParser:
             return response.text
 
 
-        except (ServerError, ClientError) as e:
-            logger.error('Rate limiting')
-            status_code, error_message = self.extract_error(e)
+        except (ServerError, ClientError, APIError) as e:
+            status_code, error_message = self.extract_message(e)
+            logger.error(f'{error_message}')
             if status_code in self.SAFE_TO_RETRY:
                 """Server side errors & rate limiting, safe to retry"""
                 if self.count < self.MAX_RETRY:
                     jitter = random.random() * 10
                     delay_time = self.BASE_DELAY * (2 ** self.count) + jitter
                     time.sleep(delay_time)
-                    self.call_llm(prompt)
                     logger.info('LLM Retry')
+                    self.call_llm(prompt)
                 else:
                     logger.info('Out of retries')
 
 
     def load_template(self, text):
-        with open('template.txt','w') as f:
-            print(text, file=f)
-        logger.info('Load templates')
+        if text:
+            with open('template.txt','w') as in_file:
+                print(text, file=in_file)
+            logger.info('Load templates')
 
-    def extract_error(self, e):
+    def extract_message(self, e):
         status_code = e.code
         print(f"HTTP error code: {status_code}")
         error_message =e.status
-        print(f"Error message {error_message}")
+        print(f"Error message: {error_message}")
         return status_code, error_message
 
 
