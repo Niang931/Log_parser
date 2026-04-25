@@ -1,0 +1,135 @@
+[project]
+name = "deepparse-artifact"
+version = "1.0.0"
+description = "DeepParse: hybrid log parsing with LLM-synthesised regex masks (EASE 2026 artifact)."
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Amir Shetaia",  email = "a.shetaia@queensu.ca"},
+    {name = "Sean Kauffman", email = "sean.k@queensu.ca"},
+]
+maintainers = [
+    {name = "Amir Shetaia", email = "a.shetaia@queensu.ca"},
+]
+keywords = [
+    "log parsing", "loghub", "drain", "large language models",
+    "deepseek", "lora", "AIOps", "anomaly detection",
+    "empirical software engineering",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Logging",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+    "click>=8.1",
+]
+
+[project.urls]
+Homepage   = "https://github.com/NightBaRron1412/DeepParse"
+Repository = "https://github.com/NightBaRron1412/DeepParse"
+Issues     = "https://github.com/NightBaRron1412/DeepParse/issues"
+Changelog  = "https://github.com/NightBaRron1412/DeepParse/blob/main/CHANGELOG.md"
+Thesis     = "https://hdl.handle.net/1974/36138"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "hypothesis>=6.92",
+]
+lint = [
+    "ruff>=0.1",
+    "mypy>=1.7",
+]
+# Inference-only LLM stack (required when synth_masks(mode="hf") is used).
+hf = [
+    "torch>=2.1",
+    "transformers>=4.36",
+    "accelerate>=0.24",
+    "peft>=0.7",
+]
+# Adds the fine-tuning toolchain on top of `hf` extras.
+train = [
+    "torch>=2.1",
+    "transformers>=4.36",
+    "accelerate>=0.24",
+    "peft>=0.7",
+    "datasets>=2.14",
+    "trl>=0.7",
+]
+
+[project.scripts]
+deepparse = "deepparse.cli:cli"
+
+[tool.setuptools.packages.find]
+include = ["deepparse*"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+markers = [
+    "integration: end-to-end tests that require fetched LogHub data (deselect with '-m \"not integration\"')",
+    "slow: tests that take more than ~1s",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["deepparse"]
+omit = [
+    "deepparse/training/*",      # exercised on GPU only
+    "deepparse/synth/hf_*.py",   # exercised when transformers + torch installed
+    "deepparse/tools/fetch_loghub.py",  # exercised by integration tests
+    "deepparse/cli.py",          # exercised by tests/test_cli_e2e.py via subprocess
+    "deepparse/seeds.py",        # mostly torch/cuda branches not reachable on CI
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict = false
+warn_unused_ignores = false  # torch / numpy guards trigger spurious unused-ignore
+warn_redundant_casts = true
+ignore_missing_imports = true
+files = ["deepparse"]
+# Heavy third-party paths intentionally untyped (transformers/peft/torch
+# return loosely-typed objects that mypy can't follow without massive
+# stubs). They're tested at runtime via the hf-mode integration path.
+exclude = [
+    "^deepparse/training/",
+    "^deepparse/tools/",
+    "^deepparse/synth/hf_",
+]
+
+[[tool.mypy.overrides]]
+module = ["yaml"]
+ignore_missing_imports = true

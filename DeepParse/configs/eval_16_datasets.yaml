@@ -1,0 +1,23 @@
+# Evaluation config covering every system shipped in the corrected
+# LogHub-2k benchmark (logpai/loghub-2.0).  The paper evaluates on 16
+# systems; the public corrected mirror provides 14 (Windows and Android
+# are missing from loghub-2.0/2k_dataset).  Matches the paper's reporting
+# convention: one row per system + one MacroAvg row.
+base_config: configs/default.yaml
+datasets:
+  - Apache
+  - BGL
+  - HDFS
+  - HPC
+  - Hadoop
+  - HealthApp
+  - Linux
+  - Mac
+  - OpenSSH
+  - OpenStack
+  - Proxifier
+  - Spark
+  - Thunderbird
+  - Zookeeper
+output_csv: artifacts/outputs/table_I_ga_pa.csv
+timing_csv: artifacts/outputs/table_II_timing.csv

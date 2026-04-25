@@ -1,0 +1,7 @@
+[project]
+name = "log-parser"
+version = "0.1.0"
+description = "Log parser with anomoly detection and schema insertion for visualization"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
