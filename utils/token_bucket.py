@@ -1,10 +1,17 @@
 import time
 import threading
-# from llm import logger
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler('test.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 class TokenBucket:
     token_per_call = 10
-    def __init__(self, max_capacity=100, refill_rate=10):
+    def __init__(self, max_capacity=100, refill_rate=1):
         self.max_capacity = max_capacity
         self.refill_rate = refill_rate
         self.last_refill = time.time()
@@ -22,5 +29,5 @@ class TokenBucket:
         if self.tokens >= self.token_per_call:
             self.tokens -= self.token_per_call
         else:
-            # logger.info("Out of tokens")
+            logger.info("Out of tokens")
             print("Request rejected")
