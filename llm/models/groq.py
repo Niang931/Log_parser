@@ -29,8 +29,14 @@ class GroqParser(LLMBase):
         return completion.choices[0].message.content
 
     def extract_message(self, e):
-        status_code = e.code
+        if e.__class__.__name__ == "RateLimitError":
+            print("Hit rate limit. Retrying might help.")
+            return 429, str(e)
+
+        status_code = getattr(e, "status_code", None)
+        error_message = str(e)
+
         print(f"HTTP error code: {status_code}")
-        error_message = e.status
         print(f"Error message: {error_message}")
+
         return status_code, error_message

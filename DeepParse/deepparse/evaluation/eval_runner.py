@@ -124,10 +124,12 @@ class EvaluationRunner:
         if not mask_path.exists():
             LOGGER.info("Masks missing for %s; synthesising", dataset.name)
             synthesize_masks(dataset, self.k, mask_path, mode=self.mode, strict=self.strict)
+        LOGGER.info(f"Masks for {dataset.name}, skipping ...")
         return mask_path
 
     def evaluate_dataset(self, dataset_name: str) -> Dict[str, float | str]:
         # Loading dataset and loading drain engine
+        LOGGER.info(f"Evaluating {dataset_name} ...")
         dataset = load_dataset(dataset_name, self.paths)
         mask_path = self._ensure_masks(dataset)
         masks = _load_masks(mask_path)
