@@ -20,7 +20,7 @@ class LLMBase(ABC):
         self.max_parallel_call = max_parallel_call
         self.timeout = timeout
 
-        self.semaphore = Semaphore(self.MAX_PARALLEL_CALL)
+        self.semaphore = Semaphore(self.max_parallel_call)
 
     def handle_request(self, prompt):
         for i in range(self.max_retry):

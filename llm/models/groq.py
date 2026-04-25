@@ -8,7 +8,7 @@ class GroqParser(LLMBase):
         super().__init__(**kwargs)
         self.client = Groq(api_key=setting.GROQ_API_KEY)
 
-    def generate(self, prompt):
+    def generate(self, prompt, temperature=1, max_token=512):
 
         completion = self.client.chat.completions.create(
             model="openai/gpt-oss-120b",
@@ -18,8 +18,8 @@ class GroqParser(LLMBase):
                     "content": prompt
                 }
             ],
-            temperature=1,
-            max_completion_tokens=4000,
+            temperature=temperature,
+            max_completion_tokens=max_token,
             top_p=1,
             reasoning_effort="medium",
             stream=False,

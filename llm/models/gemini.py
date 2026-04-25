@@ -1,7 +1,7 @@
 from .llm_base import LLMBase
 from google import genai
 from google.genai import types
-from setting import setting
+from utils.setting import setting
 
 
 class GeminiParser(LLMBase):

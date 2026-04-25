@@ -4,4 +4,10 @@ version = "0.1.0"
 description = "Log parser with anomoly detection and schema insertion for visualization"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "dotenv>=0.9.9",
+    "google>=3.0.0",
+    "google-genai>=1.73.1",
+    "groq>=1.2.0",
+    "pydantic>=2.13.3",
+]

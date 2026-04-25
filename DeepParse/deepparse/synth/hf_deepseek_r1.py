@@ -106,7 +106,7 @@ def _build_label(pattern: str, index: int) -> str:
 
 
 def _to_masks(patterns: Sequence[str]) -> List[Mask]:
-    # only add unseen paterns and validate the regex before creating mask instances 
+    # only add unseen paterns and validate the regex before creating mask instances
     masks: List[Mask] = []
     seen_pattern: set[str] = set()
     for idx, pattern in enumerate(patterns):
@@ -256,7 +256,8 @@ def synthesize_hf(
             if patterns:
                 break
 
-            LOGGER.debug("self-consistency retry %d for line: %r", attempt + 1, line[:80])
+            LOGGER.debug("self-consistency retry %d for line: %r",
+                         attempt + 1, line[:80])
 
         # NOTE: not sure what the seen here is used for ? the aggregated make sense though
         # Add brand new patterns to seen
@@ -294,3 +295,71 @@ def synthesize_hf_from_checkpoint(checkpoint_dir: str | Path,
             **kwargs,
         )
     return synthesize_hf(logs, model_name=str(checkpoint_dir), **kwargs)
+
+
+def synthesize_online(
+    logs: Sequence[str],
+    *,
+    llm,
+    temperature: float = 0.0,
+    max_length: int = 512,
+    self_consistency_attempts: int = 2,
+) -> List[Mask]:
+    """Synthesize a regex mask bundle using an online LLM."""
+
+    LOGGER.info("using online LLM: %s", llm.__class__.__name__)
+
+    aggregated: list[str] = []
+    seen: set[str] = set()
+
+    for line in logs:
+        base_prompt = PROMPT_TEMPLATE.format(
+            instruction=INSTRUCTION,
+            input=line
+        )
+
+        patterns: list[str] = []
+
+        for attempt in range(self_consistency_attempts):
+
+            if attempt == 0:
+                prompt = base_prompt
+                temp = temperature
+            else:
+                # Retry with stricter formatting guidance
+                prompt = (
+                    base_prompt
+                    + "Return ONLY a Python list of raw regex strings, e.g. "
+                      '[r"\\d+", r"\\b[A-Z]+\\b"]. '
+                      "No prose, no markdown.\n\n### Output:\n"
+                )
+                temp = 0.3  # introduce variation
+
+            try:
+                decoded = llm.generate(prompt, temp, max_length)
+            except Exception as e:
+                llm.extract_message(e)
+                continue
+
+            patterns = _parse_regex_list(decoded)
+
+            if patterns:
+                break
+
+            LOGGER.debug(
+                "self-consistency retry %d for line: %r",
+                attempt + 1,
+                line[:80],
+            )
+
+        for pattern in patterns:
+            if pattern not in seen:
+                aggregated.append(pattern)
+                seen.add(pattern)
+
+    masks = _to_masks(aggregated)
+    masks = _ensure_core_classes(masks)
+    validate_regexes([m.pattern for m in masks])
+
+    LOGGER.info("synthesized %d unique masks", len(masks))
+    return masks
