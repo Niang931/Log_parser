@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Sequence
+from llm.registry import init_llm
 
 from ..dataset_loader import Dataset
 from ..logging_utils import get_logger
@@ -11,6 +12,7 @@ from ..masks_types import Mask, MaskBundle
 from ..utils.regex_library import validate_regexes
 from ..utils.sampling import deterministic_sample
 from .r1_deepseek_stub import synthesize_offline
+from .hf_deepseek_r1 import synthesize_online
 
 LOGGER = get_logger(__name__)
 
@@ -33,6 +35,12 @@ def synthesize_masks(
     masks: Sequence[Mask]
     if mode == "offline":
         masks = synthesize_offline(sample)
+
+    elif mode == "online":
+        # TODO: hard coded bs here
+        llm = init_llm(provider='groq')
+        masks = synthesize_online(logs=sample, llm=llm)
+
     elif mode == "hf":
         from .hf_deepseek_r1 import synthesize_hf, synthesize_hf_from_checkpoint
 
