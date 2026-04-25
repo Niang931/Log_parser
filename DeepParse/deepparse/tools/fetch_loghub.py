@@ -46,12 +46,14 @@ DEFAULT_SYSTEMS = [
 ]
 
 
+# This just download the file from the url
 def _fetch(url: str, timeout: float = 30.0) -> str:
     request = urllib.request.Request(url, headers={"User-Agent": "deepparse-fetch/1.0"})
     with urllib.request.urlopen(request, timeout=timeout) as resp:
         return resp.read().decode("utf-8")
 
 
+# Read the entire csv file into logs, entries lists (entries has cluster_id and template)
 def _convert(csv_text: str) -> tuple[list[str], list[dict]]:
     """Convert a ``*_structured_corrected.csv`` payload to (logs, entries)."""
     reader = csv.DictReader(StringIO(csv_text))
@@ -69,6 +71,7 @@ def _convert(csv_text: str) -> tuple[list[str], list[dict]]:
     return logs, entries
 
 
+# Just writing what we got from _convert into files and also a manifest file for metadata 
 def _write_dataset(out_dir: Path, name: str, logs: list[str], entries: list[dict]) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "raw.log").write_text("\n".join(logs) + "\n", encoding="utf-8")
@@ -85,6 +88,7 @@ def _write_dataset(out_dir: Path, name: str, logs: list[str], entries: list[dict
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
 
+# Write the files only if they do not exists, if not then ignore them
 def fetch_systems(systems: Iterable[str], out_dir: Path, force: bool = False) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     for system in systems:

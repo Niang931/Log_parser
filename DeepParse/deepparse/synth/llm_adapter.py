@@ -36,6 +36,7 @@ def synthesize_masks(
     elif mode == "hf":
         from .hf_deepseek_r1 import synthesize_hf, synthesize_hf_from_checkpoint
 
+        # Either synth from a fine-tuned model or just the original DeepSeekModel
         if adapter_path and not model_name:
             # Read the base model name from the saved adapter config so
             # the user doesn't have to repeat it on every invocation.

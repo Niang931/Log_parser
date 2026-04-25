@@ -15,6 +15,7 @@ sys_logs = [
 
 # Step 1 — synthesise a regex bundle from a small sample (offline = no LLM).
 patterns = synth_masks(sys_logs, sample_size=50, temperature=0, max_length=512)
+print(patterns)
 print(f"synthesised {len(patterns)} masks: {[p['label'] for p in patterns]}")
 
 # Step 2 — load the bundle into Drain and parse every line.

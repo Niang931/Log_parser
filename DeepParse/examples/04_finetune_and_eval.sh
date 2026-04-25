@@ -19,6 +19,10 @@ CHECKPOINT_DIR="artifacts/checkpoints/deepparse-r1-8b"
 
 ./scripts/prepare_paths.sh
 python -m deepparse.tools.fetch_loghub --out artifacts/data
+# It builds out training sets in the format instruction: , input: , output: 
+# So receiving a log line, it output regex that match variable parts
+# The template.json file that goes with each dataset only has <*> placeholder
+# This module is supposed to convert those placeholders into actual regex expressions to fine tune the LLM
 python -m deepparse.tools.build_training_set \
     --entropy-k 50 \
     --out artifacts/training/train_paper.jsonl
@@ -27,6 +31,7 @@ python -m deepparse.training.finetune \
     --output-dir "$CHECKPOINT_DIR" \
     "$@"
 
+# TODO: check on this LLM adapter module
 ./scripts/synth_all_with_adapter.sh "$CHECKPOINT_DIR"
 deepparse eval  --config configs/eval_16_datasets.yaml --deterministic
 deepparse table --inputs artifacts/outputs/table_I_ga_pa.csv \

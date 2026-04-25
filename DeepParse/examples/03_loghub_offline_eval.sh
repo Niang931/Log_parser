@@ -17,6 +17,7 @@ else
 fi
 
 ./scripts/prepare_paths.sh
+# Fetch the log files and template.json and write manifest file for further processing
 python -m deepparse.tools.fetch_loghub --systems "${SYSTEMS[@]}"
 
 # Build a one-shot eval config covering the requested systems.
@@ -30,6 +31,7 @@ TMPCFG="$(mktemp -t deepparse_eval_XXXXXX.yaml)"
 } > "$TMPCFG"
 
 deepparse eval  --config "$TMPCFG" --deterministic
+# The table command just format the csv to be better looking
 deepparse table --inputs artifacts/outputs/loghub_eval.csv \
                 --out artifacts/outputs/tables/
 

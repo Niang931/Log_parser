@@ -48,6 +48,8 @@ def _ground_truth_from_canonical(dataset: Dataset) -> Tuple[List[str], List[int]
     bundle through Drain.  This is the reference behaviour when no
     annotated ground truth file is available.
     """
+
+    # Load the simple predfined masks and re-use the drain engine with these templates for eval
     engine = DrainEngine(masks=canonical_masks())
     pairs = engine.parse_with_ids(dataset.logs)
     cluster_ids = [pair[0] for pair in pairs]
@@ -59,8 +61,11 @@ def _ground_truth_from_file(dataset: Dataset) -> Tuple[List[str], List[int]] | N
     gt_path = dataset.path / "templates.json"
     if not gt_path.exists():
         return None
+
     payload = json.loads(gt_path.read_text(encoding="utf-8"))
     entries = payload.get("entries") if isinstance(payload, dict) else payload
+
+    # If the number of entries inside ground truth label is not the same as number of logs in dataset
     if entries is None or len(entries) != len(dataset.logs):
         LOGGER.warning(
             "Ground truth length mismatch for %s (entries=%s logs=%d); falling back to canonical",
@@ -69,6 +74,8 @@ def _ground_truth_from_file(dataset: Dataset) -> Tuple[List[str], List[int]] | N
             len(dataset.logs),
         )
         return None
+
+    # Return both the template and cluster id if no problem
     templates = [entry["template"] for entry in entries]
     cluster_ids = [int(entry["cluster_id"]) for entry in entries]
     return templates, cluster_ids
@@ -112,6 +119,7 @@ class EvaluationRunner:
         self.strict = bool(base_data.get("strict", False))
 
     def _ensure_masks(self, dataset: Dataset) -> Path:
+        # load the synthesized mask template or do it anyway if not exists here
         mask_path = self.paths.mask_dir / f"{dataset.name}.json"
         if not mask_path.exists():
             LOGGER.info("Masks missing for %s; synthesising", dataset.name)
@@ -119,14 +127,20 @@ class EvaluationRunner:
         return mask_path
 
     def evaluate_dataset(self, dataset_name: str) -> Dict[str, float | str]:
+        # Loading dataset and loading drain engine
         dataset = load_dataset(dataset_name, self.paths)
         mask_path = self._ensure_masks(dataset)
         masks = _load_masks(mask_path)
         engine = DrainEngine(masks=masks)
+
+        # predicted_pairs has both the cluster_id and the template
         predicted_pairs = engine.parse_with_ids(dataset.logs)
+
+        # separating them into 2 lists
         predicted_ids = [pair[0] for pair in predicted_pairs]
         predicted_templates = [pair[1] for pair in predicted_pairs]
 
+        # extracting ground truth label from dataset
         ground = _ground_truth_from_file(dataset) or _ground_truth_from_canonical(dataset)
         gt_templates, gt_ids = ground
 

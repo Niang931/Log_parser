@@ -79,6 +79,9 @@ def _as_raw_literal(pattern: str) -> str:
 
 
 def _classify_value(value: str) -> str:
+    # Match the values extrated from _align_template to retrieve accurate regex for each variable
+    # Its essentially just matching the common data type variables that appear in logs like IPv4, paths, numbers, etc
+
     for detector, pattern in _SHAPE_DETECTORS:
         if detector.match(value):
             return pattern
@@ -105,6 +108,8 @@ def _align_template(line: str, template: str) -> List[str] | None:
     """
     # Build a regex by escaping literal segments and replacing each <*>
     # with a non-greedy capture group that matches at least one char.
+
+    # this just replace all the placeholders <*> with (.+?) or valid regex expression to try and extract the values first
     parts = template.split("<*>")
     pattern = "(.+?)".join(re.escape(p) for p in parts)
     pattern = "^" + pattern + "$"

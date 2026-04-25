@@ -45,6 +45,8 @@ def _shannon_entropy(line: str) -> float:
     if not tokens:
         return 0.0
     counts = Counter(tokens)
+
+    # Just plain old entropy formula
     total = sum(counts.values())
     return -sum((c / total) * math.log2(c / total) for c in counts.values())
 
@@ -69,22 +71,33 @@ def entropy_greedy_sample(logs: Sequence[str], k: int) -> List[int]:
     if k >= len(logs):
         return list(range(len(logs)))
 
+    # Normalize the log lines first
     normalised = [_normalise(line) for line in logs]
     entropies: List[Tuple[float, int]] = []
+
     for idx, norm in enumerate(normalised):
         entropies.append((_shannon_entropy(norm), idx))
-    # Sort by (-entropy, idx) so ties break deterministically by index.
+
+    # Sort by (-entropy, idx) so ties break deterministically by index., which mean smaller index get chosen for tie break
     entropies.sort(key=lambda pair: (-pair[0], pair[1]))
 
     selected: List[int] = []
     selected_token_sets: List[set[str]] = []
+
     for _entropy, idx in entropies:
         candidate = _token_set(normalised[idx])
+
         if all(_jaccard(candidate, ts) < _JACCARD_THRESHOLD for ts in selected_token_sets):
+            # If all canddicate jaccard value pass then append to candidate index list
             selected.append(idx)
+
+            # Appeend the value itself for next iteration comparison
             selected_token_sets.append(candidate)
+
+            # Break the moment the number of samples has been reached
             if len(selected) >= k:
                 break
+
     # Paper Algorithm 1 returns S where |S| ≤ k.  If the corpus is so
     # homogeneous that the Jaccard < 0.8 constraint cannot be satisfied
     # k times, we deliberately return fewer than k items rather than
@@ -96,6 +109,7 @@ def entropy_greedy_sample(logs: Sequence[str], k: int) -> List[int]:
 
 def deterministic_sample(logs: Sequence[str], k: int) -> List[str]:
     """Return ``k`` *original* log lines selected by the entropy algorithm."""
+    # In case sample size is bigger than number of logs then just return everything
     if k >= len(logs):
         return list(logs)
     indices = entropy_greedy_sample(logs, k)

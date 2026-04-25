@@ -106,6 +106,7 @@ def _build_label(pattern: str, index: int) -> str:
 
 
 def _to_masks(patterns: Sequence[str]) -> List[Mask]:
+    # only add unseen paterns and validate the regex before creating mask instances 
     masks: List[Mask] = []
     seen_pattern: set[str] = set()
     for idx, pattern in enumerate(patterns):
@@ -158,10 +159,14 @@ def synthesize_hf(
 
     LOGGER.info("loading base model %s%s", model_name,
                 f" + adapter {adapter_path}" if adapter_path else "")
-    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+
+    # Loading the tokenizer, apparently the tokenizer can also be retrieved from the LLM model
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    # Initializing the model
     dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
@@ -169,6 +174,7 @@ def synthesize_hf(
         trust_remote_code=True,
         low_cpu_mem_usage=True,
     )
+    # TODO: not sure about this LORA one
     if adapter_path:
         try:
             from peft import PeftModel
@@ -183,6 +189,7 @@ def synthesize_hf(
     model.to(target_device)
     model.eval()
 
+    # Setting all of the configuration
     aggregated: list[str] = []
     seen: set[str] = set()
     do_sample = temperature > 0
@@ -196,8 +203,13 @@ def synthesize_hf(
     }
 
     for line in logs:
-        base_prompt = PROMPT_TEMPLATE.format(instruction=INSTRUCTION, input=line)
+        # fill in the instruction and input first
+        base_prompt = PROMPT_TEMPLATE.format(
+            instruction=INSTRUCTION, input=line)
+
         patterns: list[str] = []
+
+        # Default seems to have 2 attempts
         for attempt in range(self_consistency_attempts):
             # Paper, Section "Prompt Engineering and Inference": the
             # self-consistency loop re-prompts with targeted feedback
@@ -210,7 +222,9 @@ def synthesize_hf(
             if attempt == 0:
                 prompt = base_prompt
                 attempt_kwargs = gen_kwargs
+
             else:
+                # Second attempt seems to set it more strict with lower temperature
                 prompt = (
                     base_prompt
                     + "Return ONLY a Python list of raw regex strings, e.g. "
@@ -220,25 +234,42 @@ def synthesize_hf(
                 attempt_kwargs = dict(gen_kwargs)
                 attempt_kwargs["do_sample"] = True
                 attempt_kwargs["temperature"] = 0.3
+
+            # Tokenize the prompt
             inputs = tokenizer(prompt, return_tensors="pt").to(target_device)
+
+            # TODO: add an online module here
+            # Generation is performed here tokenized prompt and the kwargs
             with torch.no_grad():
                 out_ids = model.generate(**inputs, **attempt_kwargs)
+
+            # Decode the output from the LLM
             decoded = tokenizer.decode(
                 out_ids[0][inputs["input_ids"].shape[-1]:],
                 skip_special_tokens=True,
             )
+
+            # Validate by running regex evaluation on the result
             patterns = _parse_regex_list(decoded)
+
+            # If successful ten no need to retry
             if patterns:
                 break
+
             LOGGER.debug("self-consistency retry %d for line: %r", attempt + 1, line[:80])
+
+        # NOTE: not sure what the seen here is used for ? the aggregated make sense though
+        # Add brand new patterns to seen
         for pattern in patterns:
             if pattern not in seen:
                 aggregated.append(pattern)
                 seen.add(pattern)
 
+    # return the masks after inference was complete
     masks = _to_masks(aggregated)
     masks = _ensure_core_classes(masks)
     validate_regexes([m.pattern for m in masks])
+
     LOGGER.info("synthesised %d unique masks", len(masks))
     return masks
 
@@ -250,6 +281,8 @@ def synthesize_hf_from_checkpoint(checkpoint_dir: str | Path,
     and delegate to :func:`synthesize_hf`.
     """
     import json
+
+    # Just a wrapper around synthesize_hf for loading the check point model
     checkpoint_dir = Path(checkpoint_dir)
     cfg_path = checkpoint_dir / "deepparse_finetune_config.json"
     if cfg_path.exists():

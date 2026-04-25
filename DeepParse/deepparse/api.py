@@ -67,6 +67,7 @@ def synth_masks(
     if sample_size <= 0:
         raise ValueError("sample_size must be positive")
 
+    # This function is for performing greedy entropy for sample selection
     sample = deterministic_sample(logs, min(sample_size, len(logs)))
     if mode == "offline":
         masks = synthesize_offline(sample)

@@ -99,6 +99,8 @@ def classify_token(token: str) -> str | None:
 
 def canonical_masks() -> List[Mask]:
     """Return the canonical mask bundle used as ground-truth oracle."""
+
+    # This is the same as the offline mode where it simulates an LLM
     return [
         Mask(
             label=cls.name,

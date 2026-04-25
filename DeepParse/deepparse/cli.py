@@ -50,6 +50,8 @@ def synth(ctx: click.Context, dataset: Optional[str], config: Optional[str], k: 
           out: Optional[str], mode: str, model_name: Optional[str], adapter: Optional[str],
           strict: bool, seed: Optional[int]) -> None:
     base = _load_base_config("configs/default.yaml")
+
+    # Config here means the config yaml file path
     if config:
         conf_data = load_yaml(config)
         if "base_config" in conf_data:
@@ -57,11 +59,17 @@ def synth(ctx: click.Context, dataset: Optional[str], config: Optional[str], k: 
         datasets = conf_data.get("datasets", [])
     else:
         datasets = [dataset or "DemoTiny"]
+
+    # Do perform the 16 dataset evaluation
     if dataset == "ALL":
         conf_data = load_yaml(config or "configs/eval_16_datasets.yaml")
         datasets = conf_data.get("datasets", [])
+
     seed = resolve_seed(seed or base.get("seed"))
     set_global_seed(seed)
+
+    # TODO: question now is that what happens when we do not want to regenerate everything while appendng to the template list
+    # Set the path and log sample size before synthesizing the masks for all datasets
     paths = build_paths(base["dataset_dir"], base["mask_dir"], base["output_dir"], base["log_dir"])
     k = k or base.get("k", 50)
     for name in datasets:
