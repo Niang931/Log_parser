@@ -1,0 +1,5 @@
+base_config: configs/default.yaml
+datasets:
+  - DemoTiny
+output_csv: artifacts/outputs/demo_metrics.csv
+timing_csv: artifacts/outputs/demo_timing.csv

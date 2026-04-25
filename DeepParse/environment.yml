@@ -1,0 +1,6 @@
+name: deepparse-artifact
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - -e .[test,lint]
