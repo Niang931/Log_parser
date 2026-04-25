@@ -1,0 +1,11 @@
+seed: 1337
+k: 50
+mode: online
+strict: false
+workers: 0
+output_dir: ./artifacts/outputs
+mask_dir: ./artifacts/masks
+dataset_dir: ./DeepParse/artifacts/data
+log_dir: ./artifacts/outputs/logs
+device: cpu
+deterministic: true

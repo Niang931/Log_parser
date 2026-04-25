@@ -1,0 +1,18 @@
+base_config: base.yaml
+datasets:
+  - Apache
+  - BGL
+  - HDFS
+  - HPC
+  - Hadoop
+  - HealthApp
+  - Linux
+  - Mac
+  - OpenSSH
+  - OpenStack
+  - Proxifier
+  - Spark
+  - Thunderbird
+  - Zookeeper
+output_csv: artifacts/outputs/table_I_ga_pa.csv
+timing_csv: artifacts/outputs/table_II_timing.csv

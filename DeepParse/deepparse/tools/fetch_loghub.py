@@ -48,7 +48,8 @@ DEFAULT_SYSTEMS = [
 
 # This just download the file from the url
 def _fetch(url: str, timeout: float = 30.0) -> str:
-    request = urllib.request.Request(url, headers={"User-Agent": "deepparse-fetch/1.0"})
+    request = urllib.request.Request(
+        url, headers={"User-Agent": "deepparse-fetch/1.0"})
     with urllib.request.urlopen(request, timeout=timeout) as resp:
         return resp.read().decode("utf-8")
 
@@ -71,7 +72,7 @@ def _convert(csv_text: str) -> tuple[list[str], list[dict]]:
     return logs, entries
 
 
-# Just writing what we got from _convert into files and also a manifest file for metadata 
+# Just writing what we got from _convert into files and also a manifest file for metadata
 def _write_dataset(out_dir: Path, name: str, logs: list[str], entries: list[dict]) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "raw.log").write_text("\n".join(logs) + "\n", encoding="utf-8")
@@ -94,9 +95,11 @@ def fetch_systems(systems: Iterable[str], out_dir: Path, force: bool = False) ->
     for system in systems:
         target = out_dir / system
         if (target / "raw.log").exists() and (target / "templates.json").exists() and not force:
-            print(f"[fetch_loghub] {system}: already present, skipping (use --force to refetch)")
+            print(f"[fetch_loghub] {
+                  system}: already present, skipping (use --force to refetch)")
             continue
-        url = LOGHUB_BASE.format(system=system) + f"{system}_2k.log_structured_corrected.csv"
+        url = LOGHUB_BASE.format(system=system) + \
+            f"{system}_2k.log_structured_corrected.csv"
         print(f"[fetch_loghub] {system}: downloading...")
         try:
             csv_text = _fetch(url)
@@ -105,16 +108,37 @@ def fetch_systems(systems: Iterable[str], out_dir: Path, force: bool = False) ->
             continue
         logs, entries = _convert(csv_text)
         if not logs:
-            print(f"[fetch_loghub] {system}: empty content; skipping", file=sys.stderr)
+            print(f"[fetch_loghub] {
+                  system}: empty content; skipping", file=sys.stderr)
             continue
         _write_dataset(target, system, logs, entries)
         templates = len({e["cluster_id"] for e in entries})
-        print(f"[fetch_loghub] {system}: wrote {len(logs)} logs / {templates} templates")
+        print(f"[fetch_loghub] {system}: wrote {
+              len(logs)} logs / {templates} templates")
+
+
+def download_logs(
+    systems: list[str] | None = DEFAULT_SYSTEMS,
+    out: Path | str = "artifacts/data",
+    force: bool = False,
+) -> None:
+    """
+    Core logic that can be imported and reused.
+    """
+    if systems is None:
+        systems = DEFAULT_SYSTEMS
+
+    out_path = Path(out)
+    fetch_systems(systems, out_path, force=force)
 
 
 def main(argv: list[str] | None = None) -> int:
+    """
+    CLI entrypoint.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out", default="artifacts/data", type=Path, help="Output directory")
+    parser.add_argument("--out", default="artifacts/data",
+                        type=Path, help="Output directory")
     parser.add_argument(
         "--systems",
         nargs="*",
@@ -124,10 +148,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--force", action="store_true", help="Re-download even if files already exist"
     )
+
     args = parser.parse_args(argv)
-    fetch_systems(args.systems, args.out, force=args.force)
+    download_logs(systems=args.systems, out=args.out, force=args.force)
     return 0
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     raise SystemExit(main())
