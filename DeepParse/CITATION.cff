@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+title: "DeepParse: Hybrid Log Parsing with LLM-Synthesized Regex Masks"
+message: "If you use this software, please cite both the paper (preferred-citation) and the artifact itself."
+type: software
+authors:
+  - family-names: Shetaia
+    given-names: Amir
+    affiliation: "Queen's University, Department of Electrical and Computer Engineering"
+    email: a.shetaia@queensu.ca
+  - family-names: Kauffman
+    given-names: Sean
+    affiliation: "Queen's University, Department of Electrical and Computer Engineering"
+    email: sean.k@queensu.ca
+version: 1.0.0
+date-released: 2026-04-17
+url: "https://github.com/NightBaRron1412/DeepParse"
+repository-code: "https://github.com/NightBaRron1412/DeepParse"
+license: Apache-2.0
+keywords:
+  - log parsing
+  - large language models
+  - empirical software engineering
+  - AIOps
+  - anomaly detection
+preferred-citation:
+  type: conference-paper
+  title: "DeepParse: Hybrid Log Parsing with LLM-Synthesized Regex Masks"
+  authors:
+    - family-names: Shetaia
+      given-names: Amir
+      affiliation: "Queen's University"
+    - family-names: Kauffman
+      given-names: Sean
+      affiliation: "Queen's University"
+  collection-title: "Proceedings of the 30th International Conference on Evaluation and Assessment in Software Engineering (EASE 2026)"
+  conference:
+    name: "30th International Conference on Evaluation and Assessment in Software Engineering"
+    city: Glasgow
+    country: GB
+    date-start: 2026-06-09
+    date-end: 2026-06-12
+  publisher:
+    name: ACM
+  year: 2026
+  notes: "To appear"

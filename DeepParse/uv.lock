@@ -1,0 +1,14 @@
+# Lockfile generated for uv sync. Contains pinned dependencies for reproducible installs.
+[[package]]
+name = "deepparse-artifact"
+version = "1.0.0"
+dependencies = [
+    "pyyaml==6.0.1",
+    "click==8.1.7",
+    "tqdm==4.66.1",
+    "torch==2.1.2",
+    "transformers==4.36.2",
+    "accelerate==0.24.1",
+    "pytest==7.4.4",
+    "ruff==0.1.9",
+]
