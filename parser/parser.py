@@ -1,5 +1,6 @@
 import re
 import uuid
+import os
 from template_cache import TemplateCache
 from ingestion.format_detector import Ingestor, Record
 
@@ -93,7 +94,7 @@ ingestor = Ingestor()
 parser = LogParser()
 
 
-for record in ingestor.walk('/Users/meiloudong/Desktop/AI_Competition/mvp_product/logs'):
+for record in ingestor.walk(os.environ['LOGS_PATH']):
     print(record)
     enriched = parser.process(record)
 
