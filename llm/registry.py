@@ -7,5 +7,6 @@ MODELS = {
 }
 
 
+# TODO: maybe turn this into an enum
 def init_llm(provider="groq", **kwargs):
     return MODELS[provider](**kwargs)

@@ -31,7 +31,7 @@ from typing import List, Sequence
 from ..logging_utils import get_logger
 from ..masks_types import Mask
 from ..utils.regex_library import canonical_masks, validate_regexes
-from .prompt_templates import MASK_SYNTH_PROMPT  # noqa: F401  (kept for backwards compat)
+# from .prompt_templates import MASK_SYNTH_PROMPT  # noqa: F401  (kept for backwards compat)
 
 LOGGER = get_logger(__name__)
 

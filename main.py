@@ -19,9 +19,7 @@ def eval(config: str, deterministic: bool = True, seed: int | None = None):
 
 
 def test() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--max-length", type=int, default=128)
-    args = parser.parse_args()
+    max_length = 128
 
     sys_logs = [
         "PacketResponder 1 for block blk_38865049064139660 terminating",
@@ -35,7 +33,7 @@ def test() -> None:
     masks = synthesize_online(
         logs=sys_logs,
         llm=llm,
-        max_length=args.max_length,
+        max_length=max_length,
         self_consistency_attempts=1,
     )
     print(f"\nsynthesised {len(masks)} masks:")
@@ -61,7 +59,6 @@ def run(mode: str, root_dir: Path) -> None:
     if mode == "eval":
         out_folder = root_dir / "artifacts" / "data"
         download_logs(out=out_folder)
-
         config = root_dir / "eval.yaml"
         eval(config)
         return

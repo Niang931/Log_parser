@@ -13,6 +13,8 @@ class Setting(BaseModel):
     POSTGRES_PASSWORD: str = os.getenv('POSTGRES_PASSWORD', '')
     POSTGRES_DB: str = os.getenv('POSTGRES_DB', '')
     DATABASE_URL: str = os.getenv('DATABASE_URL', '')
+    POSTGRES_HOST: str = os.getenv('POSTGRES_HOST', '')
+    POSTGRES_PORT: str = os.getenv('POSTGRES_PORT', '')
     GROQ_API_KEY: str = os.getenv('GROQ_API_KEY', '')
     API_KEY_gemini: str = os.getenv('API_KEY_gemini', '')
     LOG_PATH: str | Path = ROOT_DIR / 'knn.log'

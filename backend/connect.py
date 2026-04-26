@@ -10,19 +10,20 @@ from utils.logger import logger
 def get_connection():
     try:
         return psycopg2.connect(
-            dbname = setting.POSTGRES_DB,
-            user = setting.POSTGRES_USER,
-            password = setting.POSTGRES_PASSWORD,
-            host = setting.POSTGRES_HOST,
-            port = setting.POSTGRES_PORT
+            dbname=setting.POSTGRES_DB,
+            user=setting.POSTGRES_USER,
+            password=setting.POSTGRES_PASSWORD,
+            host=setting.POSTGRES_HOST,
+            port=setting.POSTGRES_PORT
         )
     except psycopg2.OperationalError as e:
         logger.error(e)
 
+
 @contextmanager
-def get_cursor(commit:bool = True,
-               dict_cursor:bool = False,
-               host:Optional[str] = None)-> Iterator[psycopg2.extensions.cursor]:
+def get_cursor(commit: bool = True,
+               dict_cursor: bool = False,
+               host: Optional[str] = None) -> Iterator[psycopg2.extensions.cursor]:
     conn = get_connection()
     cur = None
     try:

@@ -4,7 +4,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Sequence
-from llm.registry import init_llm
+try:
+    from llm.registry import init_llm
+except:
+    pass
 
 from ..dataset_loader import Dataset
 from ..logging_utils import get_logger

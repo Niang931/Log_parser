@@ -34,6 +34,7 @@ class LLMBase(ABC):
                 return response
 
             except Exception as e:
+                # TODO: implement wait in case we get rate limited
                 status_code, error_message = self.extract_message(e)
                 logger.error(f'{error_message}')
 

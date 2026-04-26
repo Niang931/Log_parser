@@ -23,10 +23,10 @@ python -m deepparse.tools.fetch_loghub --out artifacts/data
 # So receiving a log line, it output regex that match variable parts
 # The template.json file that goes with each dataset only has <*> placeholder
 # This module is supposed to convert those placeholders into actual regex expressions to fine tune the LLM
-python -m deepparse.tools.build_training_set \
+uv run python -m deepparse.tools.build_training_set \
     --entropy-k 50 \
     --out artifacts/training/train_paper.jsonl
-python -m deepparse.training.finetune \
+uv run python -m deepparse.training.finetune \
     --train artifacts/training/train_paper.jsonl \
     --output-dir "$CHECKPOINT_DIR" \
     "$@"
