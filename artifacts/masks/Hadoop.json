@@ -1,0 +1,162 @@
+[
+  {
+    "label": "VAR0",
+    "pattern": "Before Scheduling:\\s*PendingReds:(?P<PendingReds>\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR1",
+    "pattern": "ScheduledMaps:(?P<ScheduledMaps>\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR2",
+    "pattern": "ScheduledReds:(?P<ScheduledReds>\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR3",
+    "pattern": "AssignedMaps:(?P<AssignedMaps>\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR4",
+    "pattern": "\\[DFSClient_NONMAPREDUCE_\\d+_\\d+\\]",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR5",
+    "pattern": "\\d+(?= seconds)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR6",
+    "pattern": "^Emitting (.+) to the (.+) is not enabled$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR7",
+    "pattern": "Adding (\\d+) tokens and (\\d+) secret keys for NM use for launching container",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR8",
+    "pattern": "^Input size for job (?P<job_id>job_\\d+_\\d+) = (?P<input_size>\\d+)\\. Number of splits = (?P<num_splits>\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR9",
+    "pattern": "^Upper limit on the thread pool size is (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR10",
+    "pattern": "^The job-conf file on the remote FS is /tmp/hadoop-yarn/staging/(?P<user>[^/]+)/\\.staging/(?P<job_id>job_\\d+_\\d+)/job\\.xml$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR11",
+    "pattern": "^Shuffle port returned by ContainerManager for (attempt_\\d+_\\d+_m_\\d+_\\d+) : (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "jvm_\\d+_\\d+_m_\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "attempt_\\d+_\\d+_m_\\d+_\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR14",
+    "pattern": "^Scheduled snapshot period at (\\d+) second\\(s\\)\\.$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR15",
+    "pattern": "^Http request log for (?P<component>\\S+) is not defined$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR16",
+    "pattern": "Added filter (?P<filter_name>\\S+) \\(class=[^\\)]+\\) to context \\S+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR17",
+    "pattern": "^Reduce slow start threshold not met\\. completedMapsForReduceSlowstart (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR18",
+    "pattern": "\\d{13}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "TIMESTAMP",
+    "pattern": "\\d{4}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR20",
+    "pattern": "\\d{2}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR21",
+    "pattern": "\\d{6}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR22",
+    "pattern": "^All maps assigned\\. Ramping up all remaining reduces:(\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR23",
+    "pattern": "Adding job token for (job_\\d+_\\d+) to jobTokenSecretManager",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR24",
+    "pattern": "Adding job token for job_(\\d+)_(\\d+) to jobTokenSecretManager",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR25",
+    "pattern": "^MRAppMaster launching normal, non-uberized, multi-container job (job_\\d+_\\d+)\\.$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR26",
+    "pattern": "Added global filter ",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR27",
+    "pattern": "\\d",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR28",
+    "pattern": "^Progress of TaskAttempt (attempt_\\d+_\\d+_[mr]_\\d+_\\d+) is : ([0-9]*\\.?[0-9]+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR29",
+    "pattern": "TaskAttempt Transitioned from \\w+ to \\w+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "LOGLEVEL",
+    "pattern": "\\b(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)\\b",
+    "justification": "Log level token"
+  },
+  {
+    "label": "IPV4",
+    "pattern": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d+)?\\b",
+    "justification": "IPv4 address with optional port"
+  }
+]

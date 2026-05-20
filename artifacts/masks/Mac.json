@@ -1,0 +1,22 @@
+[
+  {
+    "label": "LOGLEVEL",
+    "pattern": "\\b(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)\\b",
+    "justification": "Log level token"
+  },
+  {
+    "label": "IPV4",
+    "pattern": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d+)?\\b",
+    "justification": "IPv4 address with optional port"
+  },
+  {
+    "label": "TIMESTAMP",
+    "pattern": "\\d{4}[-/]\\d{2}[-/]\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?",
+    "justification": "ISO8601 timestamp"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "(?<![\\w.])-?\\d+(?:\\.\\d+)?(?![\\w.])",
+    "justification": "Numeric literal"
+  }
+]

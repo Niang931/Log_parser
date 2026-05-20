@@ -1,0 +1,217 @@
+[
+  {
+    "label": "VAR0",
+    "pattern": "^NIFF: node (?P<node>[\\w-]+) detected a failed network connection on network (?P<network>\\d{1,3}(?:\\.\\d{1,3}){3}) via interface (?P<interface>\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR1",
+    "pattern": "node-\\w+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR2",
+    "pattern": "\\[\\d+-\\d+\\]",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR4",
+    "pattern": "^ClusterFileSystem: There is no server for (?P<domain>\\w+) domain storage(?P<id>\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR5",
+    "pattern": "^ServerFileSystem: An ServerFileSystem domain panic has occurred on (?P<storage>\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR6",
+    "pattern": "Link error on broadcast tree Interconnect-(?P<interconnect_id>\\d+T\\d+:\\d+:\\d+:\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR7",
+    "pattern": "^ServerFileSystem: ServerFileSystem domain (?P<domain>\\S+) is full$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR8",
+    "pattern": "^Temperature \\((?P<temperature>\\d+\\s*[CF])\\) exceeds warning threshold$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "D\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR10",
+    "pattern": "\\d+(?:\\\\\\s\\d+)*",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR11",
+    "pattern": "(?P<command>\\w+)\\s+has\\s+completed\\s+(?P<status>\\w+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR12",
+    "pattern": "(?<=domains:)[^ ]+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR13",
+    "pattern": "(?<=nodes:)[^ ]+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR14",
+    "pattern": "psu failure\\\\ ambient=(\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR15",
+    "pattern": "^(?P<command>.+?) has been aborted$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR16",
+    "pattern": "(?P<error>\\w+)\\s+event interval expired",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR17",
+    "pattern": "(?P<error>[^ ]+)\\s+event interval expired",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR18",
+    "pattern": "(?P<full>(?P<error>\\w+)\\s+event interval expired)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR19",
+    "pattern": "^link errors remain current$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR20",
+    "pattern": "^clusterAddMember\\s+\\(command (\\d+)\\)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR21",
+    "pattern": "^risBoot\\s+\\(command\\s+(\\d+)\\)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR22",
+    "pattern": "^(?P<command>\\w+)\\s+\\(command\\s+(?P<id>\\d+)\\)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR23",
+    "pattern": "^boot\\s+\\(command (\\d+)\\)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR24",
+    "pattern": "^wait\\s+\\(command (\\d+)\\)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR25",
+    "pattern": "^halt\\s+\\(command (\\d+)\\)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR26",
+    "pattern": "Link in (\\w+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR27",
+    "pattern": "Link in (?P<state>\\w+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR28",
+    "pattern": "^Failed subcommands (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR29",
+    "pattern": "(?P<category>\\w+)/(?P<sub_category>\\w+) (?P<detail>\\w+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR30",
+    "pattern": "(?P<category>[\\w-]+)/(?P<sub_category>[\\w-]+) (?P<detail>.+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR31",
+    "pattern": "(?P<component>\\w+)\\s+error",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR32",
+    "pattern": "^Link (\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR33",
+    "pattern": "^configured out$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR34",
+    "pattern": "ambient=(\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR35",
+    "pattern": "^active$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR36",
+    "pattern": "^(?P<part1>\\w+)-(?P<part2>\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR37",
+    "pattern": "^starting$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR38",
+    "pattern": "^warning$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR39",
+    "pattern": "^critical$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "LOGLEVEL",
+    "pattern": "\\b(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)\\b",
+    "justification": "Log level token"
+  },
+  {
+    "label": "IPV4",
+    "pattern": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d+)?\\b",
+    "justification": "IPv4 address with optional port"
+  },
+  {
+    "label": "TIMESTAMP",
+    "pattern": "\\d{4}[-/]\\d{2}[-/]\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?",
+    "justification": "ISO8601 timestamp"
+  }
+]

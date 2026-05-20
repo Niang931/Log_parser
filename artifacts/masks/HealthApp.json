@@ -1,0 +1,287 @@
+[
+  {
+    "label": "VAR0",
+    "pattern": "^checkCurrentDay a new day comes , reset basicSyncCondition, currentDay is (\\d{8}) oldDay is (\\d{8})$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR1",
+    "pattern": "size = (\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR2",
+    "pattern": "app = (\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR3",
+    "pattern": "One Data Type = (\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR4",
+    "pattern": "packageName = ([\\w\\.]+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR5",
+    "pattern": "writeStatType = (\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR6",
+    "pattern": "^checkFirstSyncByType no such data in db ,type is (\\d+) deviceCode is (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR7",
+    "pattern": "saveStatData\\(\\) type =(?P<type>\\d+),time = (?P<time>\\d+),statClient = (?P<statClient>\\d+),who is (?P<who>\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR8",
+    "pattern": "getAppContext\\(\\) isAppValid (\\w+(?: or \\w+)?)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR10",
+    "pattern": "[A-Z_]+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR11",
+    "pattern": "^startInsertSportSync start auto sync,app is (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR12",
+    "pattern": "^startInsertSportSync first (\\d+) steps sync,do all sync$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR13",
+    "pattern": "\\b(?:true|false)\\b",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR14",
+    "pattern": "(?<=^checkInsertStatus )\\w+(?= or)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR15",
+    "pattern": "(?<= or )\\w+(?= is enough$)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR16",
+    "pattern": "(?<=checkInsertStatus\\s)\\w+(?=\\sor)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR17",
+    "pattern": "(?<=or\\s)\\w+(?=\\sis enough)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR18",
+    "pattern": "\\w+(?=\\(\\))",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR19",
+    "pattern": "\\w+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR20",
+    "pattern": "\\d{8}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "\\d+\\.\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR22",
+    "pattern": "^(?P<command>\\w+)\\s+the\\s+(?P<key>\\w+)\\s+is\\s+(?P<value>\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR23",
+    "pattern": "^(\\w+)\\s+the\\s+(\\w+)\\s+is\\s+(\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR24",
+    "pattern": "^initUserPrivacy the userPrivacy is (\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "(?<=basicStandardStep=)\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "(?<=restartSteps=)\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR27",
+    "pattern": "reload\\s*:\\s*(\\d+)\\s+restar\\s+(\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR30",
+    "pattern": "^screen status (?P<status>\\w+),think screen (?P<state>\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR31",
+    "pattern": "stepSyncOrNot appSynTimes is (\\d+), statsyncTimes is (\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR32",
+    "pattern": "saveHealthDetailData\\(\\) deviceID = (?P<deviceID>\\d+),clientID=(?P<clientID>\\d+),id=(?P<id>\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "(?<=totalSteps=)\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "(?<=Calories:)\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "(?<=Floor:)\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR36",
+    "pattern": "insertHiHealthData\\(\\) end totalTime = (\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR37",
+    "pattern": "uploadStaticsToDB failed message=(\\w+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR38",
+    "pattern": "^InsertEvent success begin:(?P<begin>\\d+) end:(?P<end>\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR39",
+    "pattern": "^InsertEvent success begin:(?P<begin>\\d+) end:\\d+$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "TIMESTAMP",
+    "pattern": "timeStamp back,extendReportTimeStamp=(\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR41",
+    "pattern": "^insertHiHealthData\\(\\) checkAppType\\s+(\\d+)\\s+appID = (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "bulkSaveDetailHiHealthData\\(\\) size = (\\d+),totalTime = \\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR43",
+    "pattern": "bulkSaveDetailHiHealthData\\(\\) size = \\d+,totalTime = (\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR44",
+    "pattern": "^saveRealTimeHealthDatasStat\\(\\) size = (\\d+),totalTime = (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR45",
+    "pattern": "^onReceive action: (?P<action>[\\w\\.]+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR46",
+    "pattern": "^\\s*flush\\s+(?P<sensor>\\S+)\\s+data\\s*$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR47",
+    "pattern": "^calculateCaloriesWithCache totalCalories=(\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR48",
+    "pattern": "^calculateAltitudeWithCache totalAltitude=(\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR49",
+    "pattern": "onReceive action: (?P<action>[\\w\\.]+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR50",
+    "pattern": "^flushTempCacheToDB by (?P<dynamic>\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR51",
+    "pattern": "^writeDataToDB size (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR52",
+    "pattern": "^getBinderPackageName packageName = (?P<packageName>[\\w\\.]+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR53",
+    "pattern": "^startListenerChange subscribeList = \\[(?P<list>[^]]+)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR54",
+    "pattern": "^flush(\\d+)DB result (\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR55",
+    "pattern": "(?<=startTimer start )\\w+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR56",
+    "pattern": "^getTodaySportData mStepsRecordManager=([a-zA-Z0-9_.]+)@([0-9a-fA-F]+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "LOGLEVEL",
+    "pattern": "\\b(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)\\b",
+    "justification": "Log level token"
+  },
+  {
+    "label": "IPV4",
+    "pattern": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d+)?\\b",
+    "justification": "IPv4 address with optional port"
+  }
+]

@@ -1,0 +1,197 @@
+[
+  {
+    "label": "VAR0",
+    "pattern": "\\d{1,3}(?:\\.\\d{1,3}){3}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR2",
+    "pattern": "\\S*",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR3",
+    "pattern": "Failed password for invalid user (\\w+) from \\d+\\.\\d+\\.\\d+\\.\\d+ port \\d+ ssh2",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR4",
+    "pattern": "Failed password for invalid user \\w+ from (\\d+\\.\\d+\\.\\d+\\.\\d+) port \\d+ ssh2",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR5",
+    "pattern": ".+?(?=\\s\\[\\w+\\])",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR6",
+    "pattern": "\\w+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR7",
+    "pattern": "\\S+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "IPV4",
+    "pattern": "(?:\\d{1,3}\\.){3}\\d{1,3}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR9",
+    "pattern": "pam_unix\\(sshd:session\\): session opened for user (?P<user>\\w+) by \\(uid=(?P<uid>\\d+)\\)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR10",
+    "pattern": "[^\\]]+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR11",
+    "pattern": "^Failed password for (?P<user>\\w+) from (?P<ip>\\d{1,3}(?:\\.\\d{1,3}){3}) port (?P<port>\\d+) ssh2$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR12",
+    "pattern": "Accepted password for (?P<user>\\w+) from (?P<ip>\\d{1,3}(?:\\.\\d{1,3}){3}) port (?P<port>\\d+) ssh2",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR13",
+    "pattern": "^Disconnecting: Too many authentication failures for (?P<user>\\S+) \\[(?P<stage>[^\\]]+)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR14",
+    "pattern": "^Received disconnect from (?P<ip>\\d{1,3}(?:\\.\\d{1,3}){3}): (?P<code>\\d+): disconnected by user$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR15",
+    "pattern": "^pam_unix\\(sshd:session\\): session closed for user (?P<user>\\S+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR16",
+    "pattern": "^fatal: (?P<operation>[^:]+): (?P<error>.+?) \\[(?P<tag>[^\\]]+)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR17",
+    "pattern": "[^)]+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR18",
+    "pattern": "[^;]+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR19",
+    "pattern": "Did not receive identification string from (?P<ip>\\d{1,3}(?:\\.\\d{1,3}){3})",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR20",
+    "pattern": "PAM service\\((?P<service>[^\\)]+)\\) ignoring max retries; (?P<current>\\d+) > (?P<max>\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR21",
+    "pattern": "\\b\\w+\\b",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "IPV4",
+    "pattern": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR23",
+    "pattern": "^input_userauth_request: invalid user (?P<username>\\S+) \\[(?P<state>\\w+)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR24",
+    "pattern": "^Connection closed by (?P<ip>\\d{1,3}(?:\\.\\d{1,3}){3}) \\[(?P<tag>\\w+)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR25",
+    "pattern": "^Invalid user (?P<username>\\w+) from (?P<ip>\\d{1,3}(?:\\.\\d{1,3}){3})$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR26",
+    "pattern": "^input_userauth_request: invalid user (?P<username>\\S+) \\[preauth\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR27",
+    "pattern": "^input_userauth_request: invalid user (?P<user>\\S+) \\[preauth\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR28",
+    "pattern": "^Invalid user (?P<user>\\S+) from (?P<ip>\\d{1,3}(?:\\.\\d{1,3}){3})$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR29",
+    "pattern": "^input_userauth_request: invalid user (?P<user>\\S+) \\[(?P<state>\\w+)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR30",
+    "pattern": "^Invalid user support from (?P<ip>\\d{1,3}(?:\\.\\d{1,3}){3})$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR31",
+    "pattern": "^Invalid user\\s+(\\d+)\\s+from\\s+(\\d{1,3}(?:\\.\\d{1,3}){3})$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR32",
+    "pattern": "Invalid user (\\d+) from (\\d+\\.\\d+\\.\\d+\\.\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR33",
+    "pattern": "^input_userauth_request: invalid user (?P<user_id>\\d+) \\[(?P<status>\\w+)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR34",
+    "pattern": "^input_userauth_request: invalid user (?P<username>\\S+) \\[(?P<status>\\w+)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR35",
+    "pattern": "(?<=invalid user )\\S+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR36",
+    "pattern": "\\[[^\\]]+\\]",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "TIMESTAMP",
+    "pattern": "\\d{4}[-/]\\d{2}[-/]\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?",
+    "justification": "ISO8601 timestamp"
+  },
+  {
+    "label": "LOGLEVEL",
+    "pattern": "\\b(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)\\b",
+    "justification": "Log level token"
+  }
+]

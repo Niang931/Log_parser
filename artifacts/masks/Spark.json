@@ -1,0 +1,192 @@
+[
+  {
+    "label": "NUMBER",
+    "pattern": "broadcast_\\d+_piece\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR1",
+    "pattern": "\\d+(?:\\.\\d+)?\\s*B",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR2",
+    "pattern": "\\d+(?:\\.\\d+)?\\s*KB",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR3",
+    "pattern": "SecurityManager: authentication (?P<auth_status>\\w+);",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR4",
+    "pattern": "ui acls (?P<ui_status>\\w+);",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR5",
+    "pattern": "^Registered signal handlers for \\[(?P<signals>.*?)\\]$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR6",
+    "pattern": "Successfully started service '(?P<service_name>[^']+)' on port (?P<port>\\d+)\\.",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR7",
+    "pattern": "^Starting executor ID (\\d+) on host ([\\w-]+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR8",
+    "pattern": "Successfully started service '(?P<service>[^']+)' on port (?P<port>\\d+)\\.",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR9",
+    "pattern": "^File Output Committer Algorithm version is (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "\\d+\\.\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "\\d+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR12",
+    "pattern": "^Running task (?P<task>\\d+\\.\\d+) in stage (?P<stage>\\d+\\.\\d+) \\(TID (?P<tid>\\d+)\\)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "NUMBER",
+    "pattern": "^Times: total = (?P<total>-?\\d+), boot = (?P<boot>-?\\d+), init = (?P<init>-?\\d+), finish = (?P<finish>-?\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR14",
+    "pattern": "^Changing view acls to: (?P<acls>[\\w,]+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR15",
+    "pattern": "^Changing modify acls to: (?P<acls>.+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR16",
+    "pattern": "^MemoryStore started with capacity (?P<capacity>\\d+(?:\\.\\d+)?) GB$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR17",
+    "pattern": "^Partition\\s+(?P<partition>\\S+)\\s+not found, computing it$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR18",
+    "pattern": "(?P<old>[\\w\\.]+) is deprecated\\. Instead, use (?P<new>[\\w\\.]+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR19",
+    "pattern": "(?P<deprecated_key>[\\w\\.]+) is deprecated\\. Instead, use (?P<new_key>[\\w\\.]+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR20",
+    "pattern": "(?P<old>\\w+(?:\\.\\w+)*) is deprecated\\. Instead, use (?P<new>\\w+(?:\\.\\w+)*)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR21",
+    "pattern": "^(?P<old>[\\w\\.]+) is deprecated\\. Instead, use (?P<new>[\\w\\.]+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR22",
+    "pattern": "^Reading broadcast variable (\\d+) took (\\d+) ms$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR23",
+    "pattern": "Started reading broadcast variable (\\d+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR24",
+    "pattern": "\\w+",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR25",
+    "pattern": "\\d{1,3}(?:\\.\\d{1,3}){3}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR26",
+    "pattern": "^Successfully registered with driver$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR27",
+    "pattern": "^Server created on (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR28",
+    "pattern": "Trying to register (\\w+)",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR29",
+    "pattern": "^Got assigned task (\\d+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR30",
+    "pattern": "^Found block (\\S+) locally$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR31",
+    "pattern": "^Starting remoting$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR32",
+    "pattern": "^Registered\\s+(?P<component>\\w+)$",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR33",
+    "pattern": "\\d{12}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "TIMESTAMP",
+    "pattern": "\\d{4}",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "VAR35",
+    "pattern": "[a-z]",
+    "justification": "LLM-synthesised"
+  },
+  {
+    "label": "IPV4",
+    "pattern": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d+)?\\b",
+    "justification": "IPv4 address with optional port"
+  },
+  {
+    "label": "LOGLEVEL",
+    "pattern": "\\b(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)\\b",
+    "justification": "Log level token"
+  }
+]

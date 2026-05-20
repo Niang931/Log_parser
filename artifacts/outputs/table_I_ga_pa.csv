@@ -1,0 +1,16 @@
+dataset,method,GA,PA
+Apache,DeepParse,0.2905,0.0
+BGL,DeepParse,0.8215,0.749
+HDFS,DeepParse,0.6965,0.1655
+HPC,DeepParse,0.8815,0.448
+Hadoop,DeepParse,0.796,0.1805
+HealthApp,DeepParse,0.487,0.0
+Linux,DeepParse,0.1715,0.154
+Mac,DeepParse,0.7075,0.409
+OpenSSH,DeepParse,0.0,0.0
+OpenStack,DeepParse,0.441,0.0
+Proxifier,DeepParse,0.0,0.0
+Spark,DeepParse,0.5825,0.0
+Thunderbird,DeepParse,0.6315,0.4265
+Zookeeper,DeepParse,0.942,0.6445
+MacroAvg,DeepParse,0.5321,0.2269
