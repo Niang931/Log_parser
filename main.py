@@ -8,7 +8,12 @@ from DeepParse.deepparse import Drain
 from DeepParse.deepparse.synth.hf_deepseek_r1 import synthesize_online
 from DeepParse.deepparse.evaluation.eval_runner import EvaluationRunner
 from DeepParse.deepparse.tools.fetch_loghub import download_logs
+import re
 
+def template_to_regex(template):
+    escaped = re.escape(template)
+    regex = escaped.replace(r'<\*>', r'(.*?)')
+    return f"^{regex}$"
 
 def eval(config: str, deterministic: bool = True, seed: int | None = None):
     runner = EvaluationRunner(Path(config))
@@ -27,6 +32,7 @@ def test() -> None:
         "BLOCK* NameSystem.addStoredBlock: blockMap updated: 10.251.73.220:50010",
         "workerEnv.init() ok /etc/httpd/conf/workers2.properties",
         "mod_jk child workerEnv in error state 6",
+
     ]
 
     llm = init_llm(provider='groq')
@@ -43,9 +49,16 @@ def test() -> None:
     drain = Drain()
     drain.load_masks([m.to_dict() for m in masks])
     print("\nparsed templates:")
-    for line, template in zip(sys_logs, drain.parse_all(sys_logs)):
+    templates = drain.parse_all(sys_logs)
+    for line, template in zip(sys_logs, templates):
         print(f"  {line}")
-        print(f"  -> {template}\n")
+        print(f"  -> {template}")
+        regex = template_to_regex(template)
+        print(f"   --> {regex}")
+        match = re.search(template, line)
+        if match:
+            print(f'     --->{match.group(1)}\n')
+
 
 
 def run(mode: str, root_dir: Path) -> None:
