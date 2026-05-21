@@ -180,6 +180,43 @@ def _build_synthesis_prompt(
         "Return JSON array now:"
     )
 
+
+# ---------------------------------------------------------------------------
+# JSON extraction
+# ---------------------------------------------------------------------------
+
+_JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
+_ARRAY_RE = re.compile(r"\[.*\]", re.DOTALL)
+
+
+def _extract_json_array(raw: str) -> list[dict]:
+    m = _JSON_FENCE_RE.search(raw)
+    if m:
+        raw = m.group(1).strip()
+    m2 = _ARRAY_RE.search(raw)
+    if m2:
+        raw = m2.group(0)
+    try:
+        result = json.loads(raw)
+        if isinstance(result, list):
+            return result
+        if isinstance(result, dict) and "masks" in result:
+            return result["masks"]
+    except json.JSONDecodeError:
+        pass
+    # Line-by-line fallback
+    objects = []
+    for line in raw.splitlines():
+        line = line.strip().rstrip(",")
+        if line.startswith("{") and line.endswith("}"):
+            try:
+                obj = json.loads(line)
+                if "regex" in obj and "mask_with" in obj:
+                    objects.append(obj)
+            except json.JSONDecodeError:
+                pass
+    return objects
+
 # ---------------------------------------------------------------------------
 # Validation helpers
 # ---------------------------------------------------------------------------
