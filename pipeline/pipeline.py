@@ -190,6 +190,13 @@ def run(
                      elapsed_s=round(time.monotonic() - t_start, 3))
     TELEMETRY.write(tel_file)
 
+    # Ship metrics to Loki/Grafana (non-fatal if Loki is down)
+    try:
+        from pipeline.loki_logger import push_run_metrics
+        push_run_metrics(run_meta, eval_metrics, tel_summary)
+    except Exception:
+        pass
+
     # Optional PostgreSQL write
     pg_url = os.environ.get("POSTGRES_URL")
     if pg_url:
