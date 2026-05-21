@@ -1,0 +1,60 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:05.763138+00:00,# ============================================================,# ============================================================,{},0,0
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:05.763138+00:00,# Recipe File - IonBeam Technologies,# Recipe File - IonBeam Technologies,{},0,0
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:05.822168+00:00,# RecipeID     : RCP_IB_001,# RecipeID : <RECIPE_ID>,"{""var_0"": ""<RECIPE_ID>""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:05.822168+00:00,# RecipeName   : BF2_PWELL_1E13_60keV,# RecipeName : BF2_<FAB_TOKEN>keV,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:05.887926+00:00,# EquipmentID  : EQP_IB_001,# EquipmentID : <EQP_ID>,"{""var_0"": ""<EQP_ID>""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:05.887926+00:00,# LotID        : LOT_IB_001,# LotID : <LOT_ID>,"{""var_0"": ""<LOT_ID>""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:05.947867+00:00,# Layer        : P-Well,# Layer : P-Well,{},0,0
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:05.947867+00:00,# FileType     : Recipe,# FileType : Recipe,{},0,0
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.011086+00:00,# SW_Version   : VER_IB_5.0.2,# <FAB_TOKEN>ersion : <VERSION>,"{""var_0"": ""<FAB_TOKEN>"", ""var_1"": ""<VERSION>""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.011086+00:00,# Created      : 2026-01-20T08:00:00Z,# Created : <ISO_TS>,"{""var_0"": ""<ISO_TS>""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.072050+00:00,# ApprovedBy   : ENG_CHIEF_001,# ApprovedBy : <FAB_ID>,"{""var_0"": ""<FAB_ID>""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.072050+00:00,# Expiration   : 2027-01-20T08:00:00Z,# Expiration : <ISO_TS>,"{""var_0"": ""<ISO_TS>""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.135300+00:00,[RECIPE_HEADER],<INI_SECTION>,"{""INI_SECTION"": ""[RECIPE_HEADER]""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.135300+00:00,RECIPE_ID            = RCP_IB_001,<FAB_TOKEN> = <RECIPE_ID>,"{""FAB_TOKEN"": ""RECIPE_ID           "", ""RECIPE_ID"": ""RCP_IB_001""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.198741+00:00,RECIPE_NAME          = BF2_PWELL_1E13_60keV,<INI_KV>,"{""INI_KV"": ""RECIPE_NAME          = BF2_PWELL_1E13_60keV""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.198741+00:00,RECIPE_FORMAT        = 3.1,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""RECIPE_FORMAT       "", ""*"": ""3.1""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.252676+00:00,TARGET_WAFER_SIZE    = 300,<INI_KV>,"{""INI_KV"": ""TARGET_WAFER_SIZE    = 300""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.252676+00:00,TARGET_MATERIAL      = Si_100,<INI_KV>,"{""INI_KV"": ""TARGET_MATERIAL      = Si_100""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.313221+00:00,ION_SPECIES          = BF2,<INI_KV>,"{""INI_KV"": ""ION_SPECIES          = BF2""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.313221+00:00,ATOMIC_MASS          = 49,<INI_KV>,"{""INI_KV"": ""ATOMIC_MASS          = 49""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.374826+00:00,CHARGE_STATE         = 1+,<FAB_TOKEN> = 1+,"{""FAB_TOKEN"": ""CHARGE_STATE        ""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.374826+00:00,[STEP_0_SETUP],<INI_SECTION>,"{""INI_SECTION"": ""[STEP_0_SETUP]""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.438933+00:00,STEP_ID              = SETUP,<INI_KV>,"{""INI_KV"": ""STEP_ID              = SETUP""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.438933+00:00,STEP_NAME            = Tool Setup and Verification,<INI_KV>,"{""INI_KV"": ""STEP_NAME            = Tool Setup and Verification""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.499988+00:00,MAX_TIME_S           = 120,<INI_KV>,"{""INI_KV"": ""MAX_TIME_S           = 120""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.499988+00:00,VACUUM_CHECK         = true,<INI_KV>,"{""INI_KV"": ""VACUUM_CHECK         = true""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.562433+00:00,VACUUM_LIMIT_TORR    = 5.0e-7,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""VACUUM_LIMIT_TORR   "", ""*"": ""5.0e-7""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.562433+00:00,FARADAY_CAL          = true,<INI_KV>,"{""INI_KV"": ""FARADAY_CAL          = true""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.625762+00:00,[STEP_1_DOSE_CAL],<INI_SECTION>,"{""INI_SECTION"": ""[STEP_1_DOSE_CAL]""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.625762+00:00,STEP_ID              = DOSE_CAL,<INI_KV>,"{""INI_KV"": ""STEP_ID              = DOSE_CAL""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.685487+00:00,STEP_NAME            = Dose Rate Calibration,<INI_KV>,"{""INI_KV"": ""STEP_NAME            = Dose Rate Calibration""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.685487+00:00,MAX_TIME_S           = 60,<INI_KV>,"{""INI_KV"": ""MAX_TIME_S           = 60""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.756431+00:00,ENERGY_KEV           = 60.0,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""ENERGY_KEV          "", ""*"": ""60.0""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.756431+00:00,BEAM_CURRENT_MA      = 2.0,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""BEAM_CURRENT_MA     "", ""*"": ""2.0""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.827060+00:00,FARADAY_CUP          = FC_001,<INI_KV>,"{""INI_KV"": ""FARADAY_CUP          = FC_001""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.827060+00:00,TOLERANCE_PCT        = 1.0,TOL<FAB_TOKEN> = <FLOAT>,"{""FAB_TOKEN"": ""ERANCE_PCT       "", ""FLOAT"": ""1.0""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.883918+00:00,[STEP_2_IMPLANT],<INI_SECTION>,"{""INI_SECTION"": ""[STEP_2_IMPLANT]""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.883918+00:00,STEP_ID              = IMPLANT,<INI_KV>,"{""INI_KV"": ""STEP_ID              = IMPLANT""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.946640+00:00,STEP_NAME            = Main Implant,<INI_KV>,"{""INI_KV"": ""STEP_NAME            = Main Implant""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:06.946640+00:00,MAX_TIME_S           = 240,<INI_KV>,"{""INI_KV"": ""MAX_TIME_S           = 240""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.009799+00:00,DOSE_ATOMS_CM2       = 1.0e13,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""DOSE_ATOMS_CM2      "", ""*"": ""1.0e13""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.009799+00:00,BEAM_CURRENT_MA      = 5.0,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""BEAM_CURRENT_MA     "", ""*"": ""5.0""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.071584+00:00,TILT_DEGREES         = 7.0,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""TILT_DEGREES        "", ""*"": ""7.0""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.071584+00:00,ROTATION_DEGREES     = 22.0,RO<FAB_TOKEN> = <FLOAT>,"{""FAB_TOKEN"": ""TATION_DEGREES    "", ""FLOAT"": ""22.0""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.133787+00:00,SCAN_MODE            = Raster,<INI_KV>,"{""INI_KV"": ""SCAN_MODE            = Raster""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.133787+00:00,SCAN_SPEED_MM_S      = 50.0,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""SCAN_SPEED_MM_S     "", ""*"": ""50.0""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.197935+00:00,UNIFORMITY_SPEC_PCT  = 0.5,UNIF<FAB_TOKEN> = <FLOAT>,"{""FAB_TOKEN"": ""ORMITY_SPEC_PCT "", ""FLOAT"": ""0.5""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.197935+00:00,WAFER_TEMP_C         = 25.0,<FAB_TOKEN> = <*>,"{""FAB_TOKEN"": ""WAFER_TEMP_C        "", ""*"": ""25.0""}",1,2
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.264403+00:00,ESC_VOLTAGE_V        = 2000,<INI_KV>,"{""INI_KV"": ""ESC_VOLTAGE_V        = 2000""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.264403+00:00,[STEP_3_PURGE],<INI_SECTION>,"{""INI_SECTION"": ""[STEP_3_PURGE]""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.337413+00:00,STEP_ID              = PURGE,<INI_KV>,"{""INI_KV"": ""STEP_ID              = PURGE""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.337413+00:00,STEP_NAME            = End Station Purge,<INI_KV>,"{""INI_KV"": ""STEP_NAME            = End Station Purge""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.399870+00:00,MAX_TIME_S           = 30,<INI_KV>,"{""INI_KV"": ""MAX_TIME_S           = 30""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:07.399870+00:00,N2_FLOW_SCCM         = 100,<INI_KV>,"{""INI_KV"": ""N2_FLOW_SCCM         = 100""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:08.076784+00:00,[STEP_4_UNLOAD],<INI_SECTION>,"{""INI_SECTION"": ""[STEP_4_UNLOAD]""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:08.076784+00:00,STEP_ID              = UNLOAD,<INI_KV>,"{""INI_KV"": ""STEP_ID              = UNLOAD""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:08.148405+00:00,STEP_NAME            = Wafer Unload,<INI_KV>,"{""INI_KV"": ""STEP_NAME            = Wafer Unload""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:08.148405+00:00,ROBOT_SPEED          = NORMAL,<INI_KV>,"{""INI_KV"": ""ROBOT_SPEED          = NORMAL""}",1,1
+run_vendor5_ionbeam_recipe_details_20260521T055205_42,2026-05-21T05:52:08.212645+00:00,VACUUM_VENT          = true,<INI_KV>,"{""INI_KV"": ""VACUUM_VENT          = true""}",1,1

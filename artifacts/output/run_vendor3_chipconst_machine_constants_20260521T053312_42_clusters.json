@@ -1,0 +1,164 @@
+{
+  "run_id": "run_vendor3_chipconst_machine_constants_20260521T053312_42",
+  "total_clusters": 17,
+  "template_fingerprint": "237a1bb0d4ef7628",
+  "drain_stats": {
+    "new_cluster": 17,
+    "matched": 50
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 8,
+      "template": "<Name><NAME_TOKEN></Name>",
+      "template_tokens": [
+        "<Name><NAME_TOKEN></Name>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 9,
+      "template": "<ConstantID><EC_ID></ConstantID>",
+      "template_tokens": [
+        "<ConstantID><EC_ID></ConstantID>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 13,
+      "template": "<DESCRIPTION>",
+      "template_tokens": [
+        "<DESCRIPTION>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 12,
+      "template": "<Value><FLOAT></Value>",
+      "template_tokens": [
+        "<Value><FLOAT></Value>"
+      ],
+      "size": 10,
+      "stability": 0.45
+    },
+    {
+      "cluster_id": 10,
+      "template": "<Units><FILE_PATH></Units>",
+      "template_tokens": [
+        "<Units><FILE_PATH></Units>"
+      ],
+      "size": 7,
+      "stability": 0.3
+    },
+    {
+      "cluster_id": 11,
+      "template": "<DataType><FILE_PATH></DataType>",
+      "template_tokens": [
+        "<DataType><FILE_PATH></DataType>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 15,
+      "template": "<Value><*></Value>",
+      "template_tokens": [
+        "<Value><*></Value>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "<ToolID><EQP_ID></ToolID>",
+      "template_tokens": [
+        "<ToolID><EQP_ID></ToolID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "<VENDOR></Vendor>",
+      "template_tokens": [
+        "<VENDOR></Vendor>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<ProcessType><FILE_PATH></ProcessType>",
+      "template_tokens": [
+        "<ProcessType><FILE_PATH></ProcessType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<SoftwareVersion><VERSION></SoftwareVersion>",
+      "template_tokens": [
+        "<SoftwareVersion><VERSION></SoftwareVersion>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<NetworkAddress><NET_ID></NetworkAddress>",
+      "template_tokens": [
+        "<NetworkAddress><NET_ID></NetworkAddress>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<ExpirationDate><DATE></ExpirationDate>",
+      "template_tokens": [
+        "<ExpirationDate><DATE></ExpirationDate>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+      "template_tokens": [
+        "<CreatedBy><CREATOR_ID></CreatedBy>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<CreateTime><ISO_TS></CreateTime>",
+      "template_tokens": [
+        "<CreateTime><ISO_TS></CreateTime>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "<Units>\u00b0<FILE_PATH></Units>",
+      "template_tokens": [
+        "<Units>\u00b0<FILE_PATH></Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "<Units>%</Units>",
+      "template_tokens": [
+        "<Units>%</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

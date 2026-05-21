@@ -1,0 +1,87 @@
+# ============================================================
+# Machine Constants File - IonBeam Technologies
+# ToolID       : EQP_IB_001
+# ProcessType  : Ion Implantation
+# Vendor       : IonBeam Technologies Inc.
+# SW_Version   : VER_IB_5.0.2
+# Network      : NET_IB_001
+# Expiration   : 2027-06-30
+# Generated    : 2026-02-18T09:00:00Z
+# ============================================================
+
+[TOOL_INFO]
+TOOL_ID              = EQP_IB_001
+TOOL_TYPE            = Medium_Current_Implanter
+BEAM_LINE_ID         = BL_001
+MANUFACTURER_ID      = MFGR_IB_001
+
+[EQUIPMENT_CONSTANTS]
+EC_IB_001_NAME       = NAME_0001
+EC_IB_001_CONST_ID   = 31920001
+EC_IB_001_UNITS      = keV
+EC_IB_001_DATATYPE   = Float
+EC_IB_001_VALUE      = 60.0
+EC_IB_001_DESC       = Beam Energy Maximum
+
+EC_IB_002_NAME       = NAME_0002
+EC_IB_002_CONST_ID   = 31920002
+EC_IB_002_UNITS      = mA
+EC_IB_002_DATATYPE   = Float
+EC_IB_002_VALUE      = 20.0
+EC_IB_002_DESC       = Beam Current Maximum
+
+EC_IB_003_NAME       = NAME_0003
+EC_IB_003_CONST_ID   = 31920003
+EC_IB_003_UNITS      = atoms/cm2
+EC_IB_003_DATATYPE   = Float
+EC_IB_003_VALUE      = 1.0e16
+EC_IB_003_DESC       = Dose Uniformity Calibration Factor
+
+EC_IB_004_NAME       = NAME_0004
+EC_IB_004_CONST_ID   = 31920004
+EC_IB_004_UNITS      = None
+EC_IB_004_DATATYPE   = String
+EC_IB_004_VALUE      = Boron_BF3
+EC_IB_004_DESC       = Default Ion Species
+
+EC_IB_005_NAME       = NAME_0005
+EC_IB_005_CONST_ID   = 31920005
+EC_IB_005_UNITS      = cycles
+EC_IB_005_DATATYPE   = Integer
+EC_IB_005_VALUE      = 5000
+EC_IB_005_DESC       = Faraday Cup Calibration Interval
+
+EC_IB_006_NAME       = NAME_0006
+EC_IB_006_CONST_ID   = 31920006
+EC_IB_006_UNITS      = %
+EC_IB_006_DATATYPE   = Float
+EC_IB_006_VALUE      = 0.5
+EC_IB_006_DESC       = Dose Uniformity Spec (1-sigma)
+
+EC_IB_007_NAME       = NAME_0007
+EC_IB_007_CONST_ID   = 31920007
+EC_IB_007_UNITS      = Torr
+EC_IB_007_DATATYPE   = Float
+EC_IB_007_VALUE      = 5.0e-7
+EC_IB_007_DESC       = Beam Line Vacuum Limit
+
+EC_IB_008_NAME       = NAME_0008
+EC_IB_008_CONST_ID   = 31920008
+EC_IB_008_UNITS      = degrees
+EC_IB_008_DATATYPE   = Float
+EC_IB_008_VALUE      = 7.0
+EC_IB_008_DESC       = Tilt Angle Default
+
+EC_IB_009_NAME       = NAME_0009
+EC_IB_009_CONST_ID   = 31920009
+EC_IB_009_UNITS      = degrees
+EC_IB_009_DATATYPE   = Float
+EC_IB_009_VALUE      = 22.0
+EC_IB_009_DESC       = Rotation Angle Default
+
+EC_IB_010_NAME       = NAME_0010
+EC_IB_010_CONST_ID   = 31920010
+EC_IB_010_UNITS      = mm/s
+EC_IB_010_DATATYPE   = Float
+EC_IB_010_VALUE      = 50.0
+EC_IB_010_DESC       = Scan Speed Maximum

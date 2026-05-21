@@ -1,0 +1,85 @@
+{
+  "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T044828_42",
+  "total_clusters": 7,
+  "template_fingerprint": "6f73e10a24c40dd5",
+  "drain_stats": {
+    "new_cluster": 7,
+    "matched": 14
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 6,
+      "template": "<EC_ID>: <NAME_TOKEN>",
+      "template_tokens": [
+        "<EC_ID>:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 15,
+      "stability": 0.7
+    },
+    {
+      "cluster_id": 0,
+      "template": "Vendor: ThermalDyn Systems",
+      "template_tokens": [
+        "Vendor:",
+        "ThermalDyn",
+        "Systems"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "ProcessType: Thermal Oxidation / Diffusion",
+      "template_tokens": [
+        "ProcessType:",
+        "Thermal",
+        "Oxidation",
+        "/",
+        "Diffusion"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "SoftwareVersion: <VERSION>",
+      "template_tokens": [
+        "SoftwareVersion:",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "NetworkAddress: <NET_ID>",
+      "template_tokens": [
+        "NetworkAddress:",
+        "<NET_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "ExpirationDate: <DATE>",
+      "template_tokens": [
+        "ExpirationDate:",
+        "<DATE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "ConstantID: Name",
+      "template_tokens": [
+        "ConstantID:",
+        "Name"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

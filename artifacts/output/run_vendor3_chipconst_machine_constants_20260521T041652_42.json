@@ -1,0 +1,731 @@
+[
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<MachineConstants>",
+    "template": "<MachineConstants>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Header>",
+    "template": "<Header>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ToolID>EQP_CHIPCONST_001</ToolID>",
+    "template": "<ToolID><EQP_ID></ToolID>",
+    "variables": {
+      "EQP_ID": "EQP_CHIPCONST_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Vendor>ChipConst Technologies</Vendor>",
+    "template": "<Vendor>ChipConst Technologies</Vendor>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ProcessType>LPCVD</ProcessType>",
+    "template": "<ProcessType>LPCVD</ProcessType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<SoftwareVersion>VER_CVD_4.2.1</SoftwareVersion>",
+    "template": "<SoftwareVersion><VERSION></SoftwareVersion>",
+    "variables": {
+      "VERSION": "VER_CVD_4.2.1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<NetworkAddress>NET_CC_001</NetworkAddress>",
+    "template": "<NetworkAddress><NET_ID></NetworkAddress>",
+    "variables": {
+      "NET_ID": "NET_CC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ExpirationDate>2027-12-31</ExpirationDate>",
+    "template": "<ExpirationDate><DATE></ExpirationDate>",
+    "variables": {
+      "DATE": "2027-12-31"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<CreatedBy>CREATOR_CC_001</CreatedBy>",
+    "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+    "variables": {
+      "CREATOR_ID": "CREATOR_CC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<CreateTime>2026-01-15T06:00:00+00:00</CreateTime>",
+    "template": "<CreateTime><ISO_TS></CreateTime>",
+    "variables": {
+      "ISO_TS": "2026-01-15T06:00:00+00:00"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<EquipmentConstants>",
+    "template": "<EquipmentConstants>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Constant>",
+    "template": "<Constant>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0001</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_001</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>Torr</Units>",
+    "template": "<Units>Torr</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<DataType>Float</DataType>",
+    "template": "<DataType>Float</DataType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>0.35</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "0.35"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Process Pressure Setpoint</Description>",
+    "template": "<Description>Process Pressure Setpoint</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0002</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_002</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>°C</Units>",
+    "template": "<Units>°C</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>750.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "750.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Furnace Zone 1 Temperature</Description>",
+    "template": "<Description>Furnace Zone <NUM> Temperature</Description>",
+    "variables": {
+      "NUM": "1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0003</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0003"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_003</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_003"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>755.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "755.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Furnace Zone 2 Temperature</Description>",
+    "template": "<Description>Furnace Zone <NUM> Temperature</Description>",
+    "variables": {
+      "NUM": "2"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0004</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0004"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_004</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_004"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>748.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "748.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Furnace Zone 3 Temperature</Description>",
+    "template": "<Description>Furnace Zone <NUM> Temperature</Description>",
+    "variables": {
+      "NUM": "3"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0005</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0005"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_005</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_005"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>sccm</Units>",
+    "template": "<Units>sccm</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>100.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "100.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>SiH2Cl2 (DCS) Flow Rate</Description>",
+    "template": "<Description>SiH2Cl2 (DCS) Flow Rate</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0006</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0006"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_006</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_006"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>20.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "20.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>NH3 Flow Rate</Description>",
+    "template": "<Description>NH3 Flow Rate</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0007</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0007"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_007</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_007"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>nm/min</Units>",
+    "template": "<Units>nm/min</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>5.8</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "5.8"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Deposition Rate Target</Description>",
+    "template": "<Description>Deposition Rate Target</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0008</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0008"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_008</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_008"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>wafers</Units>",
+    "template": "<Units>wafers</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<DataType>Integer</DataType>",
+    "template": "<DataType>Integer</DataType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>150</Value>",
+    "template": "<Value><*></Value>",
+    "variables": {
+      "*": "150"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Batch Size Maximum</Description>",
+    "template": "<Description>Batch Size Maximum</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0009</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0009"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_009</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_009"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>cycles</Units>",
+    "template": "<Units>cycles</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>50</Value>",
+    "template": "<Value><*></Value>",
+    "variables": {
+      "*": "50"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>PM Cycle Interval</Description>",
+    "template": "<Description>PM Cycle Interval</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0010</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0010"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_010</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_010"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>nm</Units>",
+    "template": "<Units>nm</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>5.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "5.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Deposition Thickness Tolerance</Description>",
+    "template": "<Description>Deposition Thickness Tolerance</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0011</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0011"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_011</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_011"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>%</Units>",
+    "template": "<Units>%</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>1.5</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "1.5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Uniformity Spec Within-Wafer</Description>",
+    "template": "<Description>Uniformity Spec Within-Wafer</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Name>NAME_0012</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0012"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<ConstantID>CC_EC_012</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "CC_EC_012"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Units>MPa</Units>",
+    "template": "<Units>MPa</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Value>-200.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "-200.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.461583+00:00",
+    "raw": "<Description>Film Stress Target</Description>",
+    "template": "<Description>Film Stress Target</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  }
+]

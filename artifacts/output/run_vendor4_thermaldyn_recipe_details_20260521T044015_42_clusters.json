@@ -1,0 +1,148 @@
+{
+  "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T044015_42",
+  "total_clusters": 13,
+  "template_fingerprint": "9a0afd3c843ab877",
+  "drain_stats": {
+    "new_cluster": 13
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "RecipeName: SiO2_<FAB_TOKEN>",
+      "template_tokens": [
+        "RecipeName:",
+        "SiO2_<FAB_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "EquipmentID: <EQP_ID>",
+      "template_tokens": [
+        "EquipmentID:",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "LotID: <LOT_ID>",
+      "template_tokens": [
+        "LotID:",
+        "<LOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "LayerName: GateOxide",
+      "template_tokens": [
+        "LayerName:",
+        "GateOxide"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "TargetThickness_A: <NUM>",
+      "template_tokens": [
+        "TargetThickness_A:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "StepID: StepName",
+      "template_tokens": [
+        "StepID:",
+        "StepName"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<FAB_TOKEN>: Inert Load",
+      "template_tokens": [
+        "<FAB_TOKEN>:",
+        "Inert",
+        "Load"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<FAB_TOKEN>: Temperature Ramp",
+      "template_tokens": [
+        "<FAB_TOKEN>:",
+        "Temperature",
+        "Ramp"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<FAB_TOKEN>: Dry Oxidation",
+      "template_tokens": [
+        "<FAB_TOKEN>:",
+        "Dry",
+        "Oxidation"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "<FAB_TOKEN>: Wet Oxidation",
+      "template_tokens": [
+        "<FAB_TOKEN>:",
+        "Wet",
+        "Oxidation"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "ANNEAL: Post-Ox Anneal",
+      "template_tokens": [
+        "ANNEAL:",
+        "Post-Ox",
+        "Anneal"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "<FAB_TOKEN>: Temperature Ramp Down",
+      "template_tokens": [
+        "<FAB_TOKEN>:",
+        "Temperature",
+        "Ramp",
+        "Down"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "<FAB_TOKEN>: Inert Unload",
+      "template_tokens": [
+        "<FAB_TOKEN>:",
+        "Inert",
+        "Unload"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,[RECIPE_IDENTIFICATION],[<FAB_TOKEN>],"{""FAB_TOKEN"": ""RECIPE_IDENTIFICATION""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,RecipeID            = RCP_CT_001,RecipeID = <RECIPE_ID>,"{""var_0"": ""<RECIPE_ID>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,RecipeName          = POST_ETCH_CLEAN_STD_v4,RecipeName = <FAB_TOKEN>v4,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,EquipmentID         = EQP_CT_001,EquipmentID = <EQP_ID>,"{""var_0"": ""<EQP_ID>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,FileType            = Recipe,FileType = Recipe,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,SoftwareVersion     = VER_WC_6.1.3,SoftwareVersion = <VERSION>,"{""var_0"": ""<VERSION>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,TargetProcess       = Post_Metal_Etch_Residue_Removal,TargetProcess = Post_Metal_Etch_Residue_Removal,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,LotID               = LOT_CT_001,LotID = <LOT_ID>,"{""var_0"": ""<LOT_ID>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,LayerName           = Metal_Clean_Post_Etch,LayerName = Metal_Clean_Post_Etch,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,CreatedBy           = CREATOR_CT_001,CreatedBy = <CREATOR_ID>,"{""var_0"": ""<CREATOR_ID>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,ApprovedBy          = CREATOR_CT_002,ApprovedBy = <CREATOR_ID>,"{""var_0"": ""<CREATOR_ID>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,CreatedAt           = 2026-01-25T07:00:00Z,CreatedAt = <ISO_TS>,"{""var_0"": ""<ISO_TS>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,ExpiresAt           = 2027-01-25T07:00:00Z,ExpiresAt = <ISO_TS>,"{""var_0"": ""<ISO_TS>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,[STEP_01_DIW_PREWET],[<FAB_TOKEN>],"{""FAB_TOKEN"": ""STEP_01_DIW_PREWET""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepID              = DIW_PREWET,StepID = <FAB_TOKEN>,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepName            = DIW Pre-Wet,StepName = DIW Pre-Wet,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,MaxTime_s           = 30,MaxTime_s = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,SpinSpeed_rpm       = 300,SpinSpeed_rpm = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,DIW_Flow_ml_min     = 1000,<FAB_TOKEN>low_ml_min = <NUM>,"{""var_0"": ""<FAB_TOKEN>"", ""var_1"": ""<NUM>""}",1,2
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,MegasonicPower_W    = 0,MegasonicPower_W = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,Temperature_C       = 25,Temperature_C = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,[STEP_02_SC1_CLEAN],[<FAB_TOKEN>],"{""FAB_TOKEN"": ""STEP_02_SC1_CLEAN""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepID              = SC1_CLEAN,StepID = SC1_CLEAN,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepName            = SC1 Particle Remove (NH4OH:H2O2:H2O),StepName = SC1 Particle Remove (NH4OH:H2O2:H2O),{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,MaxTime_s           = 120,MaxTime_s = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,SpinSpeed_rpm       = 500,SpinSpeed_rpm = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,ChemicalFlow_ml_min = 500,ChemicalFlow_ml_min = <NUM>,"{""NUM"": ""500""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,MegasonicPower_W    = 600,MegasonicPower_W = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,MegasonicFreq_kHz   = 1000,MegasonicFreq_kHz = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,Temperature_C       = 65,Temperature_C = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,NH4OH_pct           = 29.0,NH4OH_pct = <FLOAT>,"{""var_0"": ""<FLOAT>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,H2O2_pct            = 30.0,H2O2_pct = <FLOAT>,"{""var_0"": ""<FLOAT>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,Ratio               = 1:1:5,Ratio = 1:1:5,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,[STEP_03_DIW_RINSE1],[<FAB_TOKEN>],"{""FAB_TOKEN"": ""STEP_03_DIW_RINSE1""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepID              = DIW_RINSE1,StepID = <FAB_TOKEN>,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepName            = DIW Overflow Rinse 1,StepName = DIW Overflow Rinse <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,MaxTime_s           = 60,MaxTime_s = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,DIW_Flow_ml_min     = 1500,<FAB_TOKEN>low_ml_min = <NUM>,"{""var_0"": ""<FAB_TOKEN>"", ""var_1"": ""<NUM>""}",1,2
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,ResistivityTarget_MOhm_cm = 17.0,ResistivityTarget_MOhm_cm = <FLOAT>,"{""FLOAT"": ""17.0""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,[STEP_04_HF_OXIDE_STRIP],[<FAB_TOKEN>],"{""FAB_TOKEN"": ""STEP_04_HF_OXIDE_STRIP""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepID              = HF_STRIP,StepID = <FAB_TOKEN>,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepName            = Dilute HF Native Oxide Strip (1:200),StepName = Dilute HF Native Oxide Strip (1:200),{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,ChemicalFlow_ml_min = 300,ChemicalFlow_ml_min = <NUM>,"{""NUM"": ""300""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,HF_pct              = 0.5,HF_pct = <FLOAT>,"{""var_0"": ""<FLOAT>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,EPD_Enabled         = false,<FAB_TOKEN>nabled = false,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,[STEP_05_DIW_RINSE2],[<FAB_TOKEN>],"{""FAB_TOKEN"": ""STEP_05_DIW_RINSE2""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepID              = DIW_RINSE2,StepID = <FAB_TOKEN>,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepName            = DIW Overflow Rinse 2,StepName = DIW Overflow Rinse <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,ResistivityTarget_MOhm_cm = 18.0,ResistivityTarget_MOhm_cm = <FLOAT>,"{""FLOAT"": ""18.0""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,[STEP_06_ISOPROPANOL_DRY],[<FAB_TOKEN>],"{""FAB_TOKEN"": ""STEP_06_ISOPROPANOL_DRY""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepID              = IPA_DRY,StepID = <FAB_TOKEN>,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepName            = IPA Marangoni Dry,StepName = IPA Marangoni Dry,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,SpinSpeed_rpm_ramp  = 0-2000,SpinSpeed_rpm_ramp = 0-2000,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,IPA_N2_Carrier      = true,<FAB_TOKEN>arrier = true,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,IPA_Flow_sccm       = 200,<*> = <NUM>,"{""*"": ""IPA_Flow_sccm      "", ""NUM"": ""200""}",1,2
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,N2_Flow_slm         = 10,N2_Flow_slm = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,[STEP_07_SPIN_DRY],[<FAB_TOKEN>],"{""FAB_TOKEN"": ""STEP_07_SPIN_DRY""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepID              = SPIN_DRY,StepID = <FAB_TOKEN>,"{""var_0"": ""<FAB_TOKEN>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,StepName            = Final Spin Dry,StepName = Final Spin Dry,{},0,0
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,SpinSpeed_rpm       = 3000,SpinSpeed_rpm = <NUM>,"{""var_0"": ""<NUM>""}",1,1
+run_vendor8_cleantech_recipe_details_20260521T041653_42,2026-05-21T04:16:53.600438+00:00,N2_Purge            = true,N2_Purge = true,{},0,0

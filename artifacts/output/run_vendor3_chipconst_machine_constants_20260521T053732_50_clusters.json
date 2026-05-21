@@ -1,0 +1,331 @@
+{
+  "run_id": "run_vendor3_chipconst_machine_constants_20260521T053732_50",
+  "total_clusters": 33,
+  "template_fingerprint": "923d94e476230b17",
+  "drain_stats": {
+    "new_cluster": 33,
+    "matched": 34
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 8,
+      "template": "<Name><NAME_TOKEN></Name>",
+      "template_tokens": [
+        "<Name><NAME_TOKEN></Name>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 9,
+      "template": "<ConstantID><EC_ID></ConstantID>",
+      "template_tokens": [
+        "<ConstantID><EC_ID></ConstantID>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 12,
+      "template": "<Value><FLOAT></Value>",
+      "template_tokens": [
+        "<Value><FLOAT></Value>"
+      ],
+      "size": 10,
+      "stability": 0.45
+    },
+    {
+      "cluster_id": 15,
+      "template": "<Description>Furnace Zone <NUM> Temperature</Description>",
+      "template_tokens": [
+        "<Description>Furnace",
+        "Zone",
+        "<NUM>",
+        "Temperature</Description>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 23,
+      "template": "<Value><*></Value>",
+      "template_tokens": [
+        "<Value><*></Value>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "<ToolID><EQP_ID></ToolID>",
+      "template_tokens": [
+        "<ToolID><EQP_ID></ToolID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "<Vendor>ChipConst Technologies</Vendor>",
+      "template_tokens": [
+        "<Vendor>ChipConst",
+        "Technologies</Vendor>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<ProcessType>LPCVD</ProcessType>",
+      "template_tokens": [
+        "<ProcessType>LPCVD</ProcessType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<SoftwareVersion><VERSION></SoftwareVersion>",
+      "template_tokens": [
+        "<SoftwareVersion><VERSION></SoftwareVersion>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<NetworkAddress><NET_ID></NetworkAddress>",
+      "template_tokens": [
+        "<NetworkAddress><NET_ID></NetworkAddress>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<ExpirationDate><DATE></ExpirationDate>",
+      "template_tokens": [
+        "<ExpirationDate><DATE></ExpirationDate>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+      "template_tokens": [
+        "<CreatedBy><CREATOR_ID></CreatedBy>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<CreateTime><ISO_TS></CreateTime>",
+      "template_tokens": [
+        "<CreateTime><ISO_TS></CreateTime>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "<Units>Torr</Units>",
+      "template_tokens": [
+        "<Units>Torr</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "<DataType>Float</DataType>",
+      "template_tokens": [
+        "<DataType>Float</DataType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "<Description>Process Pressure Setpoint</Description>",
+      "template_tokens": [
+        "<Description>Process",
+        "Pressure",
+        "Setpoint</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "<Units>\u00b0C</Units>",
+      "template_tokens": [
+        "<Units>\u00b0C</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "<Units>sccm</Units>",
+      "template_tokens": [
+        "<Units>sccm</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "<Description>SiH2Cl2 (DCS) Flow Rate</Description>",
+      "template_tokens": [
+        "<Description>SiH2Cl2",
+        "(DCS)",
+        "Flow",
+        "Rate</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "<Description>NH3 Flow Rate</Description>",
+      "template_tokens": [
+        "<Description>NH3",
+        "Flow",
+        "Rate</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "<Units>nm/min</Units>",
+      "template_tokens": [
+        "<Units>nm/min</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "<Description>Deposition Rate Target</Description>",
+      "template_tokens": [
+        "<Description>Deposition",
+        "Rate",
+        "Target</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "<Units>wafers</Units>",
+      "template_tokens": [
+        "<Units>wafers</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "<DataType>Integer</DataType>",
+      "template_tokens": [
+        "<DataType>Integer</DataType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "<Description>Batch Size Maximum</Description>",
+      "template_tokens": [
+        "<Description>Batch",
+        "Size",
+        "Maximum</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "<Units>cycles</Units>",
+      "template_tokens": [
+        "<Units>cycles</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "<Description>PM Cycle Interval</Description>",
+      "template_tokens": [
+        "<Description>PM",
+        "Cycle",
+        "Interval</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "<Units>nm</Units>",
+      "template_tokens": [
+        "<Units>nm</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "<Description>Deposition Thickness Tolerance</Description>",
+      "template_tokens": [
+        "<Description>Deposition",
+        "Thickness",
+        "Tolerance</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "<Units>%</Units>",
+      "template_tokens": [
+        "<Units>%</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "<Description>Uniformity Spec Within-Wafer</Description>",
+      "template_tokens": [
+        "<Description>Uniformity",
+        "Spec",
+        "Within-Wafer</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "<Units>MPa</Units>",
+      "template_tokens": [
+        "<Units>MPa</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "<Description>Film Stress Target</Description>",
+      "template_tokens": [
+        "<Description>Film",
+        "Stress",
+        "Target</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

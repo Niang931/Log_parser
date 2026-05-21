@@ -1,0 +1,49 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<Recipe>,<RECIPE>,"{""RECIPE"": ""<Recipe>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<Header>,<HEADER>,"{""HEADER"": ""<Header>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<RecipeID>RCP_CC_001</RecipeID>,<RecipeID><RECIPE_ID></RecipeID>,"{""RECIPE_ID"": ""RCP_CC_001""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<RecipeName>Si3N4_LPCVD_75nm_v2</RecipeName>,<RecipeName>Si3N4_<FAB_TOKEN>nm_v2</RecipeName>,"{""FAB_TOKEN"": ""LPCVD_75""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<EquipmentID>EQP_CHIPCONST_001</EquipmentID>,<EquipmentID><EQP_ID></EquipmentID>,"{""EQP_ID"": ""EQP_CHIPCONST_001""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<FileType>Recipe</FileType>,<FILE_TYPE>,"{""FILE_TYPE"": ""<FileType>Recipe</FileType>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<FileGeneratorVersion>CVD_4.2.1</FileGeneratorVersion>,<FileGeneratorVersion>CVD_<FLOAT>.1</FileGeneratorVersion>,"{""FLOAT"": ""4.2""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<CreatedBy>CREATOR_CC_001</CreatedBy>,<CreatedBy><CREATOR_ID></CreatedBy>,"{""CREATOR_ID"": ""CREATOR_CC_001""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<ApprovedBy>CREATOR_CC_002</ApprovedBy>,<ApprovedBy><CREATOR_ID></ApprovedBy>,"{""CREATOR_ID"": ""CREATOR_CC_002""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<CreateTime>2026-01-15T06:00:00+00:00</CreateTime>,<CreateTime><ISO_TS></CreateTime>,"{""ISO_TS"": ""2026-01-15T06:00:00+00:00""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<ExpirationTime>2027-01-15T06:00:00+00:00</ExpirationTime>,<ExpirationTime><ISO_TS></ExpirationTime>,"{""ISO_TS"": ""2027-01-15T06:00:00+00:00""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<TargetFilmMaterial>Si3N4</TargetFilmMaterial>,<TARGET_FILM_MATERIAL>,"{""TARGET_FILM_MATERIAL"": ""<TargetFilmMaterial>Si3N4</TargetFilmMaterial>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<TargetThickness_nm>75</TargetThickness_nm>,<TARGET_THICKNESS_NM>,"{""TARGET_THICKNESS_NM"": ""<TargetThickness_nm>75</TargetThickness_nm>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<TargetMachineID>EQP_CHIPCONST_001</TargetMachineID>,<TargetMachineID><EQP_ID></TargetMachineID>,"{""EQP_ID"": ""EQP_CHIPCONST_001""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<ControlJob>,<CONTROL_JOB>,"{""CONTROL_JOB"": ""<ControlJob>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<CtrlJobID>CJOB_CC_001</CtrlJobID>,<CtrlJobID><CJOB_ID></CtrlJobID>,"{""CJOB_ID"": ""CJOB_CC_001""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<ProcessJobs>,<PROCESS_JOBS>,"{""PROCESS_JOBS"": ""<ProcessJobs>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<ProcessJob>,<PROCESS_JOB>,"{""PROCESS_JOB"": ""<ProcessJob>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<PRJobID>PRJOB_CC_001</PRJobID>,<PRJobID><PRJOB_ID></PRJobID>,"{""PRJOB_ID"": ""PRJOB_CC_001""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<LotID>LOT_CC_001</LotID>,<LotID><LOT_ID></LotID>,"{""LOT_ID"": ""LOT_CC_001""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<RecipeSteps>,<RECIPE_STEPS>,"{""RECIPE_STEPS"": ""<RecipeSteps>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<Step>,<STEP>,"{""STEP"": ""<Step>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<StepName>Pump Down</StepName>,<STEP_NAME>,"{""STEP_NAME"": ""<StepName>Pump Down</StepName>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<MaxTime_s>600</MaxTime_s>,<MAX_TIME_S>,"{""MAX_TIME_S"": ""<MaxTime_s>600</MaxTime_s>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<PressureTarget_Torr>0.001</PressureTarget_Torr>,<PressureTarget_Torr><FLOAT></PressureTarget_Torr>,"{""FLOAT"": ""0.001""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<GasFlows>,<GAS_FLOWS>,"{""GAS_FLOWS"": ""<GasFlows>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<RFPower_W>0</RFPower_W>,<RF_POWER_W>,"{""RF_POWER_W"": ""<RFPower_W>0</RFPower_W>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<StepName>Temperature Ramp</StepName>,<STEP_NAME>,"{""STEP_NAME"": ""<StepName>Temperature Ramp</StepName>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<MaxTime_s>1800</MaxTime_s>,<MAX_TIME_S>,"{""MAX_TIME_S"": ""<MaxTime_s>1800</MaxTime_s>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<Zone1Temp_C>750</Zone1Temp_C>,<ZONE_TEMP_C>,"{""ZONE_TEMP_C"": ""<Zone1Temp_C>750</Zone1Temp_C>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<Zone2Temp_C>755</Zone2Temp_C>,<ZONE_TEMP_C>,"{""ZONE_TEMP_C"": ""<Zone2Temp_C>755</Zone2Temp_C>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<Zone3Temp_C>748</Zone3Temp_C>,<ZONE_TEMP_C>,"{""ZONE_TEMP_C"": ""<Zone3Temp_C>748</Zone3Temp_C>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<RampRate_C_per_min>5.0</RampRate_C_per_min>,<RampRate_C_per_min><FLOAT></RampRate_C_per_min>,"{""FLOAT"": ""5.0""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<PressureTarget_Torr>0.35</PressureTarget_Torr>,<PressureTarget_Torr><FLOAT></PressureTarget_Torr>,"{""FLOAT"": ""0.35""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<StabilizeTime_s>300</StabilizeTime_s>,<STABILIZE_TIME_S>,"{""STABILIZE_TIME_S"": ""<StabilizeTime_s>300</StabilizeTime_s>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<StepName>Deposition</StepName>,<STEP_NAME>,"{""STEP_NAME"": ""<StepName>Deposition</StepName>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<MaxTime_s>777</MaxTime_s>,<MAX_TIME_S>,"{""MAX_TIME_S"": ""<MaxTime_s>777</MaxTime_s>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<Gas>,<GAS>,"{""GAS"": ""<Gas>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<DepositRate_nm_per_min>5.8</DepositRate_nm_per_min>,<DepositRate_nm_per_min><FLOAT></DepositRate_nm_per_min>,"{""FLOAT"": ""5.8""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<EPD_Enabled>false</EPD_Enabled>,<EPD_Enabled>false</EPD_Enabled>,{},0,0
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<StepName>Gas Purge</StepName>,<STEP_NAME>,"{""STEP_NAME"": ""<StepName>Gas Purge</StepName>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<MaxTime_s>300</MaxTime_s>,<MAX_TIME_S>,"{""MAX_TIME_S"": ""<MaxTime_s>300</MaxTime_s>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<PressureTarget_Torr>0.5</PressureTarget_Torr>,<PressureTarget_Torr><FLOAT></PressureTarget_Torr>,"{""FLOAT"": ""0.5""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<StepName>Cool Down</StepName>,<STEP_NAME>,"{""STEP_NAME"": ""<StepName>Cool Down</StepName>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<MaxTime_s>2400</MaxTime_s>,<MAX_TIME_S>,"{""MAX_TIME_S"": ""<MaxTime_s>2400</MaxTime_s>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<TargetTemp_C>100</TargetTemp_C>,<TARGET_TEMP_C>,"{""TARGET_TEMP_C"": ""<TargetTemp_C>100</TargetTemp_C>""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<CoolRate_C_per_min>3.0</CoolRate_C_per_min>,<CoolRate_C_per_min><FLOAT></CoolRate_C_per_min>,"{""FLOAT"": ""3.0""}",1,1
+run_vendor3_chipconst_recipe_details_20260521T044818_42,2026-05-21T04:48:28.344735+00:00,<N2Flow_sccm>200</N2Flow_sccm>,<N2_FLOW_SCCM>,"{""N2_FLOW_SCCM"": ""<N2Flow_sccm>200</N2Flow_sccm>""}",1,1

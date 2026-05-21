@@ -1,0 +1,126 @@
+{
+  "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+  "total_clusters": 12,
+  "template_fingerprint": "e9c1815dc5ae3245",
+  "drain_stats": {
+    "new_cluster": 12
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "SiO2_<FAB_TOKEN>",
+      "template_tokens": [
+        "SiO2_<FAB_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "<EQP_ID>",
+      "template_tokens": [
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<LOT_ID>",
+      "template_tokens": [
+        "<LOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "GateOxide",
+      "template_tokens": [
+        "GateOxide"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "StepName",
+      "template_tokens": [
+        "StepName"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "Inert Load",
+      "template_tokens": [
+        "Inert",
+        "Load"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "Temperature Ramp",
+      "template_tokens": [
+        "Temperature",
+        "Ramp"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "Dry Oxidation",
+      "template_tokens": [
+        "Dry",
+        "Oxidation"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "Wet Oxidation",
+      "template_tokens": [
+        "Wet",
+        "Oxidation"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "Post-Ox Anneal",
+      "template_tokens": [
+        "Post-Ox",
+        "Anneal"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "Temperature Ramp Down",
+      "template_tokens": [
+        "Temperature",
+        "Ramp",
+        "Down"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "Inert Unload",
+      "template_tokens": [
+        "Inert",
+        "Unload"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

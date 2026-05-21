@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MachineConstants xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://www.metrovision.com/schema/MachineConstants/v2.0">
+  <Header>
+    <ToolID>EQP_MV_001</ToolID>
+    <Vendor>MetroVision Analytics</Vendor>
+    <ProcessType>Optical_CD_SEM_Metrology</ProcessType>
+    <SoftwareRelease>6.5.2</SoftwareRelease>
+    <NetworkAddress>NET_MV_001</NetworkAddress>
+    <ExpirationDate>2027-12-31</ExpirationDate>
+    <CreatedBy>CREATOR_MV_001</CreatedBy>
+    <CreateTime>2026-02-18T12:00:00+00:00</CreateTime>
+    <DocumentType>MachineConstants</DocumentType>
+    <DocumentTypeVersion>v2.0</DocumentTypeVersion>
+  </Header>
+  <EquipmentConstants>
+    <Constant>
+      <Name>NAME_0001</Name><ConstantID>MV_EC_001</ConstantID>
+      <Units>nm</Units><DataType>Float</DataType><Value>0.1</Value>
+      <Description>XY Stage Precision (3-sigma)</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0002</Name><ConstantID>MV_EC_002</ConstantID>
+      <Units>nm</Units><DataType>Float</DataType><Value>0.3</Value>
+      <Description>CD Measurement Accuracy (3-sigma)</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0003</Name><ConstantID>MV_EC_003</ConstantID>
+      <Units>nm</Units><DataType>Float</DataType><Value>193.0</Value>
+      <Description>Measurement Wavelength</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0004</Name><ConstantID>MV_EC_004</ConstantID>
+      <Units>None</Units><DataType>Float</DataType><Value>0.70</Value>
+      <Description>Numerical Aperture</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0005</Name><ConstantID>MV_EC_005</ConstantID>
+      <Units>wafers/hr</Units><DataType>Float</DataType><Value>120.0</Value>
+      <Description>Throughput Maximum</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0006</Name><ConstantID>MV_EC_006</ConstantID>
+      <Units>sites/wafer</Units><DataType>Integer</DataType><Value>9</Value>
+      <Description>Default Site Count OCD</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0007</Name><ConstantID>MV_EC_007</ConstantID>
+      <Units>nm</Units><DataType>Float</DataType><Value>0.05</Value>
+      <Description>Film Thickness Repeatability</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0008</Name><ConstantID>MV_EC_008</ConstantID>
+      <Units>degrees</Units><DataType>Float</DataType><Value>0.005</Value>
+      <Description>Wafer Alignment Accuracy</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0009</Name><ConstantID>MV_EC_009</ConstantID>
+      <Units>None</Units><DataType>Integer</DataType><Value>7</Value>
+      <Description>Maximum Targets Per Site</Description>
+    </Constant>
+    <Constant>
+      <Name>NAME_0010</Name><ConstantID>MV_EC_010</ConstantID>
+      <Units>hours</Units><DataType>Float</DataType><Value>8760.0</Value>
+      <Description>Lamp Lifetime</Description>
+    </Constant>
+  </EquipmentConstants>
+  <SensorDefinitions>
+    <Sensor id="S001"><Name>Stage_Temp</Name><Unit>°C</Unit><NominalValue>22.0</NominalValue><Tolerance>0.1</Tolerance></Sensor>
+    <Sensor id="S002"><Name>Lamp_Intensity</Name><Unit>%</Unit><NominalValue>100.0</NominalValue><Tolerance>2.0</Tolerance></Sensor>
+    <Sensor id="S003"><Name>Focus_Error</Name><Unit>nm</Unit><NominalValue>0.0</NominalValue><Tolerance>5.0</Tolerance></Sensor>
+  </SensorDefinitions>
+</MachineConstants>

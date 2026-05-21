@@ -1,0 +1,991 @@
+{
+  "run_id": "run_BGL_sample_20260521T041417_42",
+  "total_clusters": 142,
+  "template_fingerprint": "53ddaaad35add4af",
+  "drain_stats": {
+    "new_cluster": 142,
+    "matched": 358
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 111,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS KERNEL <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "KERNEL",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 156,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 121,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS KERNEL <*> <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "KERNEL",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 96,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 90,
+      "template": "KERNDTLB <LARGE_INT> <FLOAT>.11 R30-M0-N9-C:J16-U01 <DATE><FLOAT>.<FLOAT> R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB erro",
+      "template_tokens": [
+        "KERNDTLB",
+        "<LARGE_INT>",
+        "<FLOAT>.11",
+        "R30-M0-N9-C:J16-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R30-M0-N9-C:J16-U01",
+        "RAS",
+        "KERNEL",
+        "FATAL",
+        "data",
+        "TLB",
+        "erro"
+      ],
+      "size": 60,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 0,
+      "template": "- <LARGE_INT> <*> R02-M1-N0-C:J12-U11 <DATE><FLOAT>.<FLOAT> R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache par",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "R02-M1-N0-C:J12-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R02-M1-N0-C:J12-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "instruction",
+        "cache",
+        "par"
+      ],
+      "size": 30,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "- <LARGE_INT> <*> R16-M1-N2-C:J17-U01 <DATE><FLOAT>.<FLOAT> R16-M1-N2-C:J17-U01 RAS KERNEL INFO CE sym <*> at <HEX_ADDR>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "R16-M1-N2-C:J17-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R16-M1-N2-C:J17-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "CE",
+        "sym",
+        "<*>",
+        "at",
+        "<HEX_ADDR>"
+      ],
+      "size": 9,
+      "stability": 0.2
+    },
+    {
+      "cluster_id": 135,
+      "template": "- <LARGE_INT> <FLOAT>.14 <*> <DATE><FLOAT>.<FLOAT> <*> RAS KERNEL FATAL floating pt ex mode",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.14",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "KERNEL",
+        "FATAL",
+        "floating",
+        "pt",
+        "ex",
+        "mode"
+      ],
+      "size": 5,
+      "stability": 0.15
+    },
+    {
+      "cluster_id": 136,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS KERNEL INFO <*> <*> <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 4,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 138,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS APP FATAL ciod: Error <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "APP",
+        "FATAL",
+        "ciod:",
+        "Error",
+        "<*>",
+        "<*>"
+      ],
+      "size": 4,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 54,
+      "template": "- <LARGE_INT> <*> R01-M1-ND-C:J15-U11 <DATE><FLOAT>.<FLOAT> R01-M1-ND-C:J15-U11 RAS KERNEL INFO CE sym 5, at <HEX_ADDR>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "R01-M1-ND-C:J15-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R01-M1-ND-C:J15-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "CE",
+        "sym",
+        "5,",
+        "at",
+        "<HEX_ADDR>"
+      ],
+      "size": 2,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 91,
+      "template": "- <LARGE_INT> <*> R26-M0-NB-C:J07-U01 <DATE><FLOAT>.<FLOAT> R26-M0-NB-C:J07-U01 RAS KERNEL INFO CE sym 10, at <HEX_ADDR>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "R26-M0-NB-C:J07-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R26-M0-NB-C:J07-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "CE",
+        "sym",
+        "10,",
+        "at",
+        "<HEX_ADDR>"
+      ],
+      "size": 2,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "- <LARGE_INT> <FLOAT>.03 R23-M0-NE-C:J05-U01 <DATE><FLOAT>.<FLOAT> R23-M0-NE-C:J05-U01 RAS KERNEL INFO <LARGE_INT> double-hummer a",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.03",
+        "R23-M0-NE-C:J05-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R23-M0-NE-C:J05-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "<LARGE_INT>",
+        "double-hummer",
+        "a"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "- <LARGE_INT> <FLOAT>.03 R24-M0-N1-C:J13-U11 <DATE><FLOAT>.<FLOAT> R24-M0-N1-C:J13-U11 RAS KERNEL INFO <NUM> double-hummer ali",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.03",
+        "R24-M0-N1-C:J13-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R24-M0-N1-C:J13-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "<NUM>",
+        "double-hummer",
+        "ali"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "- <LARGE_INT> <FLOAT>.03 R21-M1-N6-C:J08-U11 <DATE><FLOAT>.<FLOAT> R21-M1-N6-C:J08-U11 RAS KERNEL INFO <NUM> double-hummer ali",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.03",
+        "R21-M1-N6-C:J08-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R21-M1-N6-C:J08-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "<NUM>",
+        "double-hummer",
+        "ali"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "APPREAD <LARGE_INT> <FLOAT>.04 R04-M1-N4-I:J18-U11 <DATE><FLOAT>.<FLOAT> R04-M1-N4-I:J18-U11 RAS APP FATAL ciod: failed to r",
+      "template_tokens": [
+        "APPREAD",
+        "<LARGE_INT>",
+        "<FLOAT>.04",
+        "R04-M1-N4-I:J18-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R04-M1-N4-I:J18-U11",
+        "RAS",
+        "APP",
+        "FATAL",
+        "ciod:",
+        "failed",
+        "to",
+        "r"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "APPREAD <LARGE_INT> <FLOAT>.04 R27-M1-N4-I:J18-U01 <DATE><FLOAT>.<FLOAT> R27-M1-N4-I:J18-U01 RAS APP FATAL ciod: failed to r",
+      "template_tokens": [
+        "APPREAD",
+        "<LARGE_INT>",
+        "<FLOAT>.04",
+        "R27-M1-N4-I:J18-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R27-M1-N4-I:J18-U01",
+        "RAS",
+        "APP",
+        "FATAL",
+        "ciod:",
+        "failed",
+        "to",
+        "r"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "- <LARGE_INT> <FLOAT>.04 R30-M0-N7-C:J08-U01 <DATE><FLOAT>.<FLOAT> R30-M0-N7-C:J08-U01 RAS KERNEL INFO CE sym 20, at <HEX_ADDR>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.04",
+        "R30-M0-N7-C:J08-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R30-M0-N7-C:J08-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "CE",
+        "sym",
+        "20,",
+        "at",
+        "<HEX_ADDR>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "- <LARGE_INT> <FLOAT>.05 R25-M0-N7-C:J02-U01 <DATE><FLOAT>.<FLOAT> R25-M0-N7-C:J02-U01 RAS KERNEL INFO generating core.2275",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R25-M0-N7-C:J02-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R25-M0-N7-C:J02-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.2275"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "- <LARGE_INT> <FLOAT>.05 R24-M1-N8-C:J09-U11 <DATE><FLOAT>.<FLOAT> R24-M1-N8-C:J09-U11 RAS KERNEL INFO generating core.862",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R24-M1-N8-C:J09-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R24-M1-N8-C:J09-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.862"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "- <LARGE_INT> <FLOAT>.05 R24-M1-NB-C:J15-U11 <DATE><FLOAT>.<FLOAT> R24-M1-NB-C:J15-U11 RAS KERNEL INFO generating core.728",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R24-M1-NB-C:J15-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R24-M1-NB-C:J15-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.728"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "- <LARGE_INT> <FLOAT>.05 R20-M1-N8-C:J04-U01 <DATE><FLOAT>.<FLOAT> R20-M1-N8-C:J04-U01 RAS KERNEL INFO generating core.775",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R20-M1-N8-C:J04-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R20-M1-N8-C:J04-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.775"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "- <LARGE_INT> <FLOAT>.05 R24-M0-NE-C:J14-U11 <DATE><FLOAT>.<FLOAT> R24-M0-NE-C:J14-U11 RAS KERNEL INFO generating core.3276",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R24-M0-NE-C:J14-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R24-M0-NE-C:J14-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.3276"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "- <LARGE_INT> <FLOAT>.05 R21-M1-N2-C:J11-U01 <DATE><FLOAT>.<FLOAT> R21-M1-N2-C:J11-U01 RAS KERNEL INFO generating core.1717",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R21-M1-N2-C:J11-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R21-M1-N2-C:J11-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.1717"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "- <LARGE_INT> <FLOAT>.05 R24-M0-N8-C:J04-U11 <DATE><FLOAT>.<FLOAT> R24-M0-N8-C:J04-U11 RAS KERNEL INFO generating core.3919",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R24-M0-N8-C:J04-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R24-M0-N8-C:J04-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.3919"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "- <LARGE_INT> <FLOAT>.05 R31-M0-NE-C:J05-U11 <DATE><FLOAT>.<FLOAT> R31-M0-NE-C:J05-U11 RAS KERNEL INFO generating core.2079",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R31-M0-NE-C:J05-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R31-M0-NE-C:J05-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.2079"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "- <LARGE_INT> <FLOAT>.05 R36-M0-NA-C:J06-U01 <DATE><FLOAT>.<FLOAT> R36-M0-NA-C:J06-U01 RAS KERNEL INFO generating core.1414",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R36-M0-NA-C:J06-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R36-M0-NA-C:J06-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.1414"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "- <LARGE_INT> <FLOAT>.05 R33-M0-N4-C:J02-U11 <DATE><FLOAT>.<FLOAT> R33-M0-N4-C:J02-U11 RAS KERNEL INFO generating core.3055",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R33-M0-N4-C:J02-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R33-M0-N4-C:J02-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.3055"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "- <LARGE_INT> <FLOAT>.05 R22-M0-ND-C:J10-U11 <DATE><FLOAT>.<FLOAT> R22-M0-ND-C:J10-U11 RAS KERNEL INFO generating core.201",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R22-M0-ND-C:J10-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R22-M0-ND-C:J10-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.201"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "- <LARGE_INT> <FLOAT>.05 R27-M0-N6-C:J10-U01 <DATE><FLOAT>.<FLOAT> R27-M0-N6-C:J10-U01 RAS KERNEL INFO generating core.1125",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R27-M0-N6-C:J10-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R27-M0-N6-C:J10-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.1125"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "- <LARGE_INT> <FLOAT>.05 R26-M1-N8-C:J17-U11 <DATE><FLOAT>.<FLOAT> R26-M1-N8-C:J17-U11 RAS KERNEL INFO generating core.412",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R26-M1-N8-C:J17-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R26-M1-N8-C:J17-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.412"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "- <LARGE_INT> <FLOAT>.05 R36-M1-N8-C:J17-U01 <DATE><FLOAT>.<FLOAT> R36-M1-N8-C:J17-U01 RAS KERNEL INFO generating core.7828",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R36-M1-N8-C:J17-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R36-M1-N8-C:J17-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.7828"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "- <LARGE_INT> <FLOAT>.05 R33-M1-NB-C:J06-U01 <DATE><FLOAT>.<FLOAT> R33-M1-NB-C:J06-U01 RAS KERNEL INFO generating core.5570",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R33-M1-NB-C:J06-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R33-M1-NB-C:J06-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.5570"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "- <LARGE_INT> <FLOAT>.05 R01-M1-N7-C:J04-U11 <DATE><FLOAT>.<FLOAT> R01-M1-N7-C:J04-U11 RAS KERNEL INFO generating core.8275",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R01-M1-N7-C:J04-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R01-M1-N7-C:J04-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.8275"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "- <LARGE_INT> <FLOAT>.05 R35-M1-NE-C:J05-U01 <DATE><FLOAT>.<FLOAT> R35-M1-NE-C:J05-U01 RAS KERNEL INFO generating core.4183",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R35-M1-NE-C:J05-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R35-M1-NE-C:J05-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.4183"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "- <LARGE_INT> <FLOAT>.05 R36-M1-NF-C:J11-U01 <DATE><FLOAT>.<FLOAT> R36-M1-NF-C:J11-U01 RAS KERNEL INFO generating core.6545",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R36-M1-NF-C:J11-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R36-M1-NF-C:J11-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.6545"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "- <LARGE_INT> <FLOAT>.05 R37-M1-NE-C:J13-U01 <DATE><FLOAT>.<FLOAT> R37-M1-NE-C:J13-U01 RAS KERNEL INFO generating core.4245",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R37-M1-NE-C:J13-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R37-M1-NE-C:J13-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.4245"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "- <LARGE_INT> <FLOAT>.05 R32-M1-N4-C:J16-U01 <DATE><FLOAT>.<FLOAT> R32-M1-N4-C:J16-U01 RAS KERNEL INFO generating core.6884",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R32-M1-N4-C:J16-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R32-M1-N4-C:J16-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.6884"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "- <LARGE_INT> <FLOAT>.05 R30-M1-N3-C:J02-U01 <DATE><FLOAT>.<FLOAT> R30-M1-N3-C:J02-U01 RAS KERNEL FATAL force load/store ali",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R30-M1-N3-C:J02-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R30-M1-N3-C:J02-U01",
+        "RAS",
+        "KERNEL",
+        "FATAL",
+        "force",
+        "load/store",
+        "ali"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "- <LARGE_INT> <FLOAT>.05 R34-M1-NE-C:J02-U01 <DATE><FLOAT>.<FLOAT> R34-M1-NE-C:J02-U01 RAS KERNEL INFO generating core.6471",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R34-M1-NE-C:J02-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R34-M1-NE-C:J02-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.6471"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "- <LARGE_INT> <FLOAT>.05 R31-M1-N7-C:J05-U11 <DATE><FLOAT>.<FLOAT> R31-M1-N7-C:J05-U11 RAS KERNEL INFO generating core.4155",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R31-M1-N7-C:J05-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R31-M1-N7-C:J05-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.4155"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "- <LARGE_INT> <FLOAT>.05 R32-M0-NF-C:J10-U01 <DATE><FLOAT>.<FLOAT> R32-M0-NF-C:J10-U01 RAS KERNEL INFO generating core.449",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R32-M0-NF-C:J10-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R32-M0-NF-C:J10-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.449"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "- <LARGE_INT> <FLOAT>.05 R34-M1-NC-C:J06-U11 <DATE><FLOAT>.<FLOAT> R34-M1-NC-C:J06-U11 RAS KERNEL INFO generating core.6990",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R34-M1-NC-C:J06-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R34-M1-NC-C:J06-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.6990"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "- <LARGE_INT> <FLOAT>.05 R31-M1-NC-C:J14-U11 <DATE><FLOAT>.<FLOAT> R31-M1-NC-C:J14-U11 RAS KERNEL INFO generating core.4876",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R31-M1-NC-C:J14-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R31-M1-NC-C:J14-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.4876"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "- <LARGE_INT> <FLOAT>.05 R37-M0-N7-C:J08-U11 <DATE><FLOAT>.<FLOAT> R37-M0-N7-C:J08-U11 RAS KERNEL INFO generating core.2218",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R37-M0-N7-C:J08-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R37-M0-N7-C:J08-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.2218"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "- <LARGE_INT> <FLOAT>.05 R34-M1-NA-C:J07-U11 <DATE><FLOAT>.<FLOAT> R34-M1-NA-C:J07-U11 RAS KERNEL INFO generating core.7518",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R34-M1-NA-C:J07-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R34-M1-NA-C:J07-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.7518"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 36,
+      "template": "- <LARGE_INT> <FLOAT>.05 R33-M1-N8-C:J09-U11 <DATE><FLOAT>.<FLOAT> R33-M1-N8-C:J09-U11 RAS KERNEL INFO generating core.5854",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R33-M1-N8-C:J09-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R33-M1-N8-C:J09-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.5854"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 37,
+      "template": "- <LARGE_INT> <FLOAT>.05 R30-M1-N3-C:J10-U01 <DATE><FLOAT>.<FLOAT> R30-M1-N3-C:J10-U01 RAS KERNEL INFO generating core.7457",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R30-M1-N3-C:J10-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R30-M1-N3-C:J10-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.7457"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 38,
+      "template": "- <LARGE_INT> <FLOAT>.05 R32-M1-N5-C:J17-U01 <DATE><FLOAT>.<FLOAT> R32-M1-N5-C:J17-U01 RAS KERNEL INFO generating core.6896",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R32-M1-N5-C:J17-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R32-M1-N5-C:J17-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.6896"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 39,
+      "template": "- <LARGE_INT> <FLOAT>.05 R37-M0-N3-C:J14-U01 <DATE><FLOAT>.<FLOAT> R37-M0-N3-C:J14-U01 RAS KERNEL INFO generating core.3488",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R37-M0-N3-C:J14-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R37-M0-N3-C:J14-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.3488"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 40,
+      "template": "- <LARGE_INT> <FLOAT>.05 R36-M0-NA-C:J17-U01 <DATE><FLOAT>.<FLOAT> R36-M0-NA-C:J17-U01 RAS KERNEL INFO generating core.1172",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R36-M0-NA-C:J17-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R36-M0-NA-C:J17-U01",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.1172"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 41,
+      "template": "- <LARGE_INT> <FLOAT>.05 R33-M0-N6-C:J08-U11 <DATE><FLOAT>.<FLOAT> R33-M0-N6-C:J08-U11 RAS KERNEL INFO generating core.2286",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<FLOAT>.05",
+        "R33-M0-N6-C:J08-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R33-M0-N6-C:J08-U11",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "generating",
+        "core.2286"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

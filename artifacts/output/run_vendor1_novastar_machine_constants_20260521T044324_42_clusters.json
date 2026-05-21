@@ -1,0 +1,40 @@
+{
+  "run_id": "run_vendor1_novastar_machine_constants_20260521T044324_42",
+  "total_clusters": 2,
+  "template_fingerprint": "5b5be53e73cac58e",
+  "drain_stats": {
+    "new_cluster": 2
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': None, 'ToolID': '<EQP_ID>', 'DateTime': '<DATE>T08:00:<FLOAT>Z'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "None,",
+        "'ToolID':",
+        "'<EQP_ID>',",
+        "'DateTime':",
+        "'<DATE>T08:00:<FLOAT>Z'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'Vendor': '<VENDOR_ID>', 'FileGeneratorSoftwareVersion': '<VERSION>', 'ToolID': '<EQP_ID>', 'NetworkAddress': '<NET_ID>",
+      "template_tokens": [
+        "{'Vendor':",
+        "'<VENDOR_ID>',",
+        "'FileGeneratorSoftwareVersion':",
+        "'<VERSION>',",
+        "'ToolID':",
+        "'<EQP_ID>',",
+        "'NetworkAddress':",
+        "'<NET_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

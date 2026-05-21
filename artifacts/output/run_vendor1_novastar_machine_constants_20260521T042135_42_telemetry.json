@@ -1,0 +1,322 @@
+{
+  "summary": {
+    "llm_calls": 0,
+    "total_latency_s": 0,
+    "est_tokens_out": 0,
+    "events": 48
+  },
+  "events": [
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:21:34.074083+00:00",
+      "run_id": "run_BGL_sample_20260521T042134_42",
+      "input": "artifacts\\data\\BGL_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:21:34.078326+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:21:34.085423+00:00",
+      "kept": 500,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:21:34.113732+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:21:34.118445+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:21:34.743992+00:00",
+      "records": 500,
+      "templates": 157,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:21:34.744926+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 157,
+      "avg_wildcard_ratio": 0.49222917082917084
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:21:34.775490+00:00",
+      "elapsed_s": 0.702
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:21:34.779606+00:00",
+      "run_id": "run_HDFS_sample_20260521T042134_42",
+      "input": "artifacts\\data\\HDFS_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:21:34.781489+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:21:34.784538+00:00",
+      "kept": 500,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:21:34.791174+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:21:34.795880+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:21:35.183425+00:00",
+      "records": 500,
+      "templates": 20,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:21:35.184454+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 20,
+      "avg_wildcard_ratio": 0.4922256798756799
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:21:35.210350+00:00",
+      "elapsed_s": 0.431
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:21:35.212937+00:00",
+      "run_id": "run_synthetic_fab_20260521T042135_42",
+      "input": "artifacts\\data\\synthetic_fab.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:21:35.213818+00:00",
+      "lines": 300
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:21:35.214879+00:00",
+      "kept": 276,
+      "empty": 0,
+      "short": 0,
+      "dup": 24,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:21:35.216740+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:21:35.218056+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:21:35.403809+00:00",
+      "records": 276,
+      "templates": 13,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:21:35.404479+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 13,
+      "avg_wildcard_ratio": 0.35535139176443525
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:21:35.424811+00:00",
+      "elapsed_s": 0.212
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:21:35.428992+00:00",
+      "run_id": "run_vendor10_annealtech_machine_constants_20260521T042135_42",
+      "input": "artifacts\\data\\vendor10_annealtech_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:21:35.476389+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:21:35.476833+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:21:35.479411+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:21:35.481505+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:21:35.488302+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:21:35.488337+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:21:35.502042+00:00",
+      "elapsed_s": 0.073
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:21:35.508846+00:00",
+      "run_id": "run_vendor10_annealtech_recipe_details_20260521T042135_42",
+      "input": "artifacts\\data\\vendor10_annealtech_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:21:35.518078+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:21:35.518319+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:21:35.519956+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:21:35.521755+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:21:35.531512+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:21:35.531555+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:21:35.541765+00:00",
+      "elapsed_s": 0.033
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:21:35.547758+00:00",
+      "run_id": "run_vendor1_novastar_machine_constants_20260521T042135_42",
+      "input": "artifacts\\data\\vendor1_novastar_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:21:35.552649+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:21:35.552933+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:21:35.556246+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:21:35.559091+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:21:35.565993+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:21:35.566016+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:21:35.576427+00:00",
+      "elapsed_s": 0.029
+    }
+  ]
+}

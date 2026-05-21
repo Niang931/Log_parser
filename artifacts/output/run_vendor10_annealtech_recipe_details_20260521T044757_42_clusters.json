@@ -1,0 +1,52 @@
+{
+  "run_id": "run_vendor10_annealtech_recipe_details_20260521T044757_42",
+  "total_clusters": 3,
+  "template_fingerprint": "8def6d7b0b8c4593",
+  "drain_stats": {
+    "new_cluster": 3
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "'<CJOB_ID>',",
+        "'EquipmentID':",
+        "'<EQP_ID>'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'FileGeneratorSoftwareVersion': '<VERSION>', 'FileType': 'Recipe'}",
+      "template_tokens": [
+        "{'FileGeneratorSoftwareVersion':",
+        "'<VERSION>',",
+        "'FileType':",
+        "'Recipe'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "[{'Keys': {'PRJobID': '<PRJOB_ID>', 'RecipeID': '<RECIPE_ID>'}, 'Attributes': {'LotID': '<LOT_ID>', 'LayerName': 'Source_Drai",
+      "template_tokens": [
+        "[{'Keys':",
+        "{'PRJobID':",
+        "'<PRJOB_ID>',",
+        "'RecipeID':",
+        "'<RECIPE_ID>'},",
+        "'Attributes':",
+        "{'LotID':",
+        "'<LOT_ID>',",
+        "'LayerName':",
+        "'Source_Drai"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

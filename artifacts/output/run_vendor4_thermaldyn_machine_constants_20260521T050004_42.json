@@ -1,0 +1,242 @@
+[
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:04.836035+00:00",
+    "raw": "Vendor: ThermalDyn Systems",
+    "template": "Vendor: ThermalDyn Systems",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:04.896130+00:00",
+    "raw": "ProcessType: Thermal Oxidation / Diffusion",
+    "template": "ProcessType: Thermal Oxidation / Diffusion",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:04.957774+00:00",
+    "raw": "SoftwareVersion: VER_TD_3.9",
+    "template": "SoftwareVersion: <VERSION>",
+    "variables": {
+      "VERSION": "VER_TD_3.9"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.019978+00:00",
+    "raw": "NetworkAddress: NET_TD_001",
+    "template": "NetworkAddress: <NET_ID>",
+    "variables": {
+      "NET_ID": "NET_TD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.082649+00:00",
+    "raw": "ExpirationDate: 2027-09-30",
+    "template": "ExpirationDate: <DATE>",
+    "variables": {
+      "DATE": "2027-09-30"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.146072+00:00",
+    "raw": "ConstantID: Name",
+    "template": "ConstantID: Name",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.206216+00:00",
+    "raw": "TD_EC_001: NAME_0001",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_001",
+      "NAME_TOKEN": "NAME_0001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.269315+00:00",
+    "raw": "TD_EC_002: NAME_0002",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_002",
+      "NAME_TOKEN": "NAME_0002"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.331486+00:00",
+    "raw": "TD_EC_003: NAME_0003",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_003",
+      "NAME_TOKEN": "NAME_0003"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.392313+00:00",
+    "raw": "TD_EC_004: NAME_0004",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_004",
+      "NAME_TOKEN": "NAME_0004"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.455002+00:00",
+    "raw": "TD_EC_005: NAME_0005",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_005",
+      "NAME_TOKEN": "NAME_0005"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.515974+00:00",
+    "raw": "TD_EC_006: NAME_0006",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_006",
+      "NAME_TOKEN": "NAME_0006"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.578858+00:00",
+    "raw": "TD_EC_007: NAME_0007",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_007",
+      "NAME_TOKEN": "NAME_0007"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.642597+00:00",
+    "raw": "TD_EC_008: NAME_0008",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_008",
+      "NAME_TOKEN": "NAME_0008"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.704017+00:00",
+    "raw": "TD_EC_009: NAME_0009",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_009",
+      "NAME_TOKEN": "NAME_0009"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.768660+00:00",
+    "raw": "TD_EC_010: NAME_0010",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_010",
+      "NAME_TOKEN": "NAME_0010"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.829447+00:00",
+    "raw": "TD_EC_011: NAME_0011",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_011",
+      "NAME_TOKEN": "NAME_0011"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.891251+00:00",
+    "raw": "TD_EC_012: NAME_0012",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_012",
+      "NAME_TOKEN": "NAME_0012"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:05.953816+00:00",
+    "raw": "TD_EC_013: NAME_0013",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_013",
+      "NAME_TOKEN": "NAME_0013"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:06.017164+00:00",
+    "raw": "TD_EC_014: NAME_0014",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_014",
+      "NAME_TOKEN": "NAME_0014"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T050004_42",
+    "timestamp_utc": "2026-05-21T05:00:06.079451+00:00",
+    "raw": "TD_EC_015: NAME_0015",
+    "template": "<EC_ID>: <NAME_TOKEN>",
+    "variables": {
+      "EC_ID": "TD_EC_015",
+      "NAME_TOKEN": "NAME_0015"
+    },
+    "parsed": 1,
+    "var_count": 2
+  }
+]

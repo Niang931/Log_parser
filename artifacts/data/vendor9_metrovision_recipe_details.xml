@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Recipe xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://www.metrovision.com/schema/Recipe/v2.0">
+  <Header>
+    <RecipeID>RCP_MV_001</RecipeID>
+    <RecipeName>CD_OCD_M1_POLY_MEASURE_v3</RecipeName>
+    <MachineID>EQP_MV_001</MachineID>
+    <MachineCustomerName>CUST_MV_001</MachineCustomerName>
+    <MachineType>MTYPE_OCD_001</MachineType>
+    <SoftwareRelease>6.5.2</SoftwareRelease>
+    <CreatedBy>CREATOR_MV_001</CreatedBy>
+    <CreateTime>2026-01-10T00:00:00+00:00</CreateTime>
+    <DocumentID>DOC_MV_001</DocumentID>
+    <DocumentType>Recipe</DocumentType>
+    <DocumentTypeVersion>v2.0</DocumentTypeVersion>
+  </Header>
+  <RecipeName>CD_OCD_M1_POLY_MEASURE_v3</RecipeName>
+  <ApprovedBy>CREATOR_MV_002</ApprovedBy>
+  <ExpirationTime>2027-01-10T00:00:00+00:00</ExpirationTime>
+  <TargetMachineID>EQP_MV_001</TargetMachineID>
+  <TargetMachineCustomerName>CUST_MV_001</TargetMachineCustomerName>
+  <MeasurementSites>
+    <Site id="1"><X_mm>0.0</X_mm><Y_mm>0.0</Y_mm><Name>Center</Name></Site>
+    <Site id="2"><X_mm>-50.0</X_mm><Y_mm>0.0</Y_mm><Name>Mid_Left</Name></Site>
+    <Site id="3"><X_mm>50.0</X_mm><Y_mm>0.0</Y_mm><Name>Mid_Right</Name></Site>
+    <Site id="4"><X_mm>0.0</X_mm><Y_mm>-50.0</Y_mm><Name>Mid_Bottom</Name></Site>
+    <Site id="5"><X_mm>0.0</X_mm><Y_mm>50.0</Y_mm><Name>Mid_Top</Name></Site>
+    <Site id="6"><X_mm>-100.0</X_mm><Y_mm>0.0</Y_mm><Name>Edge_Left</Name></Site>
+    <Site id="7"><X_mm>100.0</X_mm><Y_mm>0.0</Y_mm><Name>Edge_Right</Name></Site>
+    <Site id="8"><X_mm>0.0</X_mm><Y_mm>-100.0</Y_mm><Name>Edge_Bottom</Name></Site>
+    <Site id="9"><X_mm>0.0</X_mm><Y_mm>100.0</Y_mm><Name>Edge_Top</Name></Site>
+  </MeasurementSites>
+  <TargetList>
+    <Target id="TGT_001">
+      <TargetName>Poly_CD_H</TargetName>
+      <MeasurementType>OCD</MeasurementType>
+      <Wavelength_nm>193</Wavelength_nm>
+      <NumericalAperture>0.70</NumericalAperture>
+      <ModelName>PolyGate_Model_v2</ModelName>
+      <FloatingParameters>
+        <Param name="CDtop" target_nm="22.0" tolerance_nm="2.0"/>
+        <Param name="CDmid" target_nm="26.0" tolerance_nm="2.0"/>
+        <Param name="Height" target_nm="80.0" tolerance_nm="5.0"/>
+        <Param name="SWA" target_deg="88.0" tolerance_deg="1.0"/>
+      </FloatingParameters>
+      <Sites>1 2 3 4 5 6 7 8 9</Sites>
+    </Target>
+    <Target id="TGT_002">
+      <TargetName>OxideThickness</TargetName>
+      <MeasurementType>Reflectometry</MeasurementType>
+      <Wavelength_nm>193</Wavelength_nm>
+      <ModelName>SiO2_on_Si_Model</ModelName>
+      <FloatingParameters>
+        <Param name="Thickness_A" target_A="22.0" tolerance_A="0.5"/>
+      </FloatingParameters>
+      <Sites>1 5 9</Sites>
+    </Target>
+  </TargetList>
+</Recipe>

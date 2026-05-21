@@ -1,0 +1,370 @@
+{
+  "run_id": "run_vendor6_sputterpro_machine_constants_20260521T053732_43",
+  "total_clusters": 33,
+  "template_fingerprint": "ee451bc56cf5809a",
+  "drain_stats": {
+    "new_cluster": 33,
+    "matched": 48
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 9,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].n<UNITS>me: <NAME_TOKEN>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].n<UNITS>me:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 10,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].const<UNITS>nt_id: <EC_ID>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].const<UNITS>nt_id:",
+        "<EC_ID>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 13,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].<UNITS><UNITS>lue: <*>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].<UNITS><UNITS>lue:",
+        "<*>"
+      ],
+      "size": 12,
+      "stability": 0.4
+    },
+    {
+      "cluster_id": 12,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].d<UNITS>t<UNITS>_type: Flo<UNITS>t",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].d<UNITS>t<UNITS>_type:",
+        "Flo<UNITS>t"
+      ],
+      "size": 11,
+      "stability": 0.5
+    },
+    {
+      "cluster_id": 11,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units: <UNITS>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units:",
+        "<UNITS>"
+      ],
+      "size": 5,
+      "stability": 0.2
+    },
+    {
+      "cluster_id": 14,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: <DESCRIPTION_TOKEN> Power Supply <DESCRIPTION_TOKEN><UNITS>ximum (<UNITS><UNITS>rget <INTEGER_VALUE>)",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "<DESCRIPTION_TOKEN>",
+        "Power",
+        "Supply",
+        "<DESCRIPTION_TOKEN><UNITS>ximum",
+        "(<UNITS><UNITS>rget",
+        "<INTEGER_VALUE>)"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.keys.ctrl_job_id: None",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.keys.ctrl_job_id:",
+        "None"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.keys.tool_id: <EQP_ID>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.keys.tool_id:",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.keys.d<UNITS>te_time: <DATE>T10:<INTEGER_VALUE>:<FLOAT><DESCRIPTION_TOKEN>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.keys.d<UNITS>te_time:",
+        "<DATE>T10:<INTEGER_VALUE>:<FLOAT><DESCRIPTION_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.<UNITS>endor: <VENDOR_ID>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.<UNITS>endor:",
+        "<VENDOR_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.file_gener<UNITS>tor_<UNITS>ersion: <VERSION>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.file_gener<UNITS>tor_<UNITS>ersion:",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.process_type: <DESCRIPTION_TOKEN><UNITS><DESCRIPTION_TOKEN><UNITS>gnetron_Sputter",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.process_type:",
+        "<DESCRIPTION_TOKEN><UNITS><DESCRIPTION_TOKEN><UNITS>gnetron_Sputter"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.network_<UNITS>ddress: <NET_ID>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.network_<UNITS>ddress:",
+        "<NET_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.expir<UNITS>tion_d<UNITS>te: <DATE>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.expir<UNITS>tion_d<UNITS>te:",
+        "<DATE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.ch<UNITS>mber_config: Multi_T<UNITS>rget_6",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.ch<UNITS>mber_config:",
+        "Multi_T<UNITS>rget_6"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: Process Pressure Setpo<DATA_TYPE>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "Process",
+        "Pressure",
+        "Setpo<DATA_TYPE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: <UNITS><UNITS> <DESCRIPTION_TOKEN><UNITS><UNITS> Flow Setpo<DATA_TYPE>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "<UNITS><UNITS>",
+        "<DESCRIPTION_TOKEN><UNITS><UNITS>",
+        "Flow",
+        "Setpo<DATA_TYPE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: N2 Re<UNITS>cti<UNITS>e <DESCRIPTION_TOKEN><UNITS><UNITS> Flow Setpo<DATA_TYPE>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "N2",
+        "Re<UNITS>cti<UNITS>e",
+        "<DESCRIPTION_TOKEN><UNITS><UNITS>",
+        "Flow",
+        "Setpo<DATA_TYPE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units: \u00b0<DESCRIPTION_TOKEN>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units:",
+        "\u00b0<DESCRIPTION_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: Substr<UNITS>te Temper<UNITS>ture Setpo<DATA_TYPE>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "Substr<UNITS>te",
+        "Temper<UNITS>ture",
+        "Setpo<DATA_TYPE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units: rpm",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units:",
+        "rpm"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: Substr<UNITS>te Rot<UNITS>tion Speed",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "Substr<UNITS>te",
+        "Rot<UNITS>tion",
+        "Speed"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units: \u00c5/<UNITS>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units:",
+        "\u00c5/<UNITS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: Deposition <DESCRIPTION_TOKEN><UNITS>te <UNITS><UNITS>rget (Ti)",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "Deposition",
+        "<DESCRIPTION_TOKEN><UNITS>te",
+        "<UNITS><UNITS>rget",
+        "(Ti)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units: mm",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units:",
+        "mm"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: <UNITS><UNITS>rget-to-Substr<UNITS>te Dist<UNITS>nce",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "<UNITS><UNITS>rget-to-Substr<UNITS>te",
+        "Dist<UNITS>nce"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units: kWh",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units:",
+        "kWh"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: <UNITS><UNITS>rget Lifetime (<UNITS>ccumul<UNITS>ted power)",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "<UNITS><UNITS>rget",
+        "Lifetime",
+        "(<UNITS>ccumul<UNITS>ted",
+        "power)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units: cycles",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units:",
+        "cycles"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].d<UNITS>t<UNITS>_type: <DATA_TYPE>",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].d<UNITS>t<UNITS>_type:",
+        "<DATA_TYPE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: Pre-sputter Cle<UNITS>n Inter<UNITS><UNITS>l",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "Pre-sputter",
+        "Cle<UNITS>n",
+        "Inter<UNITS><UNITS>l"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units: Torr",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].units:",
+        "Torr"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description: <DESCRIPTION_TOKEN><UNITS>se Pressure Requirement",
+      "template_tokens": [
+        "<UNITS><UNITS>chine_const<UNITS>nts.<UNITS>ttributes.equipment_const<UNITS>nts[<INTEGER_VALUE>].description:",
+        "<DESCRIPTION_TOKEN><UNITS>se",
+        "Pressure",
+        "Requirement"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

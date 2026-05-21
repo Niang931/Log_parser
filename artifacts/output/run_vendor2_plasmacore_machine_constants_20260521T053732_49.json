@@ -1,0 +1,29 @@
+[
+  {
+    "run_id": "run_vendor2_plasmacore_machine_constants_20260521T053732_49",
+    "timestamp_utc": "2026-05-21T05:38:19.628579+00:00",
+    "raw": "{'CtrlJobID': 'CJOB_PC_001', 'EquipmentID': 'EQP_PC_001'}",
+    "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_001",
+      "EQP_ID": "EQP_PC_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor2_plasmacore_machine_constants_20260521T053732_49",
+    "timestamp_utc": "2026-05-21T05:38:19.692511+00:00",
+    "raw": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '3.1', 'FileType': 'Recipe', 'Version': {'RecipeID': 'RCP_PC_001', 'Type': 'SYSTEM'}, 'Sensors': {'SensorDefinitions': [{'SensorID': 'SENSOR_0001', 'SVIDMonitor': 201001, 'SVIDSetting': 20",
+    "template": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '<FLOAT>', 'FileType': 'Recipe', 'Version': {'RecipeID': '<RECIPE_ID>', 'Type': 'SYSTEM'}, 'Sensors': {'SensorDefinitions': [{'SensorID': '<SENSOR_ID>', 'SVIDMonitor': <LARGE_INT>, 'SVIDSetting': <NUM>",
+    "variables": {
+      "FLOAT": "3.1",
+      "RECIPE_ID": "RCP_PC_001",
+      "SENSOR_ID": "SENSOR_0001",
+      "LARGE_INT": "201001",
+      "NUM": "20"
+    },
+    "parsed": 1,
+    "var_count": 5
+  }
+]

@@ -1,0 +1,93 @@
+# ============================================================
+# Recipe Details - SputterPro Manufacturing
+# RecipeID: RCP_SP_001
+# ProcessType: TiN Barrier Layer PVD
+# ============================================================
+control_job:
+  keys:
+    ctrl_job_id: CJOB_SP_001
+    equipment_id: EQP_SP_001
+
+  attributes:
+    file_generator_version: "VER_PVD_2.8.0"
+    file_type: Recipe
+
+  process_jobs:
+    - keys:
+        pr_job_id: PRJOB_SP_001
+        recipe_id: RCP_SP_001
+
+      attributes:
+        lot_id: LOT_SP_001
+        wafer_size_mm: 300
+        layer_name: TiN_Barrier
+        target_thickness_nm: 15
+
+      module_process_reports:
+        - keys:
+            module_id: MOD_PVD_001
+            recipe_step_id: "PUMP"
+            wafer_id: ""
+          attributes:
+            slot_id: null
+            step_name: Pump Down
+            max_time_s: 300
+            target_pressure_torr: 5.0e-8
+            heater_on: false
+
+        - keys:
+            module_id: MOD_PVD_001
+            recipe_step_id: "PREHEAT"
+            wafer_id: "WFR_SP_001"
+          attributes:
+            slot_id: SLOT_001
+            step_name: Substrate Preheat
+            max_time_s: 600
+            substrate_temp_c: 250
+            ar_flow_sccm: 10
+            process_pressure_mtorr: 5.0
+            rotation_rpm: 20
+
+        - keys:
+            module_id: MOD_PVD_001
+            recipe_step_id: "PRE_SPUTTER"
+            wafer_id: "WFR_SP_001"
+          attributes:
+            slot_id: SLOT_001
+            step_name: Pre-Sputter Clean
+            max_time_s: 60
+            dc_power_w: 1000
+            ar_flow_sccm: 50
+            process_pressure_mtorr: 3.0
+            shutter: CLOSED
+            rotation_rpm: 20
+
+        - keys:
+            module_id: MOD_PVD_001
+            recipe_step_id: "DEPOSIT_TIN"
+            wafer_id: "WFR_SP_001"
+          attributes:
+            slot_id: SLOT_001
+            step_name: TiN Deposition
+            max_time_s: 60
+            dc_power_w: 5000
+            ar_flow_sccm: 50
+            n2_flow_sccm: 5
+            process_pressure_mtorr: 3.0
+            substrate_temp_c: 250
+            rotation_rpm: 20
+            deposition_rate_angstrom_per_s: 2.5
+            target_thickness_nm: 15
+            shutter: OPEN
+
+        - keys:
+            module_id: MOD_PVD_001
+            recipe_step_id: "COOL"
+            wafer_id: "WFR_SP_001"
+          attributes:
+            slot_id: SLOT_001
+            step_name: Cool Down
+            max_time_s: 300
+            target_temp_c: 50
+            ar_flow_sccm: 0
+            heater_on: false

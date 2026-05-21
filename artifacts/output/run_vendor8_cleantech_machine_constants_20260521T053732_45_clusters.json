@@ -1,0 +1,83 @@
+{
+  "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+  "total_clusters": 4,
+  "template_fingerprint": "10c1e2b730edd593",
+  "drain_stats": {
+    "new_cluster": 4,
+    "matched": 24
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "<XML_ATTR_LINE>",
+      "template_tokens": [
+        "<XML_ATTR_LINE>"
+      ],
+      "size": 13,
+      "stability": 0.6
+    },
+    {
+      "cluster_id": 1,
+      "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | <*> | <*> | <*> <*> <*> <*>",
+      "template_tokens": [
+        "EQUIPMENT_CONSTANTS.<EC_ID>",
+        "=",
+        "<NAME_TOKEN>",
+        "|",
+        "<*>",
+        "|",
+        "<*>",
+        "|",
+        "<*>",
+        "|",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 6,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 3,
+      "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*>",
+      "template_tokens": [
+        "EQUIPMENT_CONSTANTS.<EC_ID>",
+        "=",
+        "<NAME_TOKEN>",
+        "|",
+        "<*>",
+        "|",
+        "Float",
+        "|",
+        "<FLOAT>",
+        "|",
+        "<*>",
+        "<*>"
+      ],
+      "size": 5,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 2,
+      "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*> <*>",
+      "template_tokens": [
+        "EQUIPMENT_CONSTANTS.<EC_ID>",
+        "=",
+        "<NAME_TOKEN>",
+        "|",
+        "<*>",
+        "|",
+        "Float",
+        "|",
+        "<FLOAT>",
+        "|",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 4,
+      "stability": 0.05
+    }
+  ]
+}

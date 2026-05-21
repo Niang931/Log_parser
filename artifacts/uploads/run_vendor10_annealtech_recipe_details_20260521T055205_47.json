@@ -1,0 +1,277 @@
+{
+  "ControlJob": {
+    "Keys": {
+      "CtrlJobID": "CJOB_AT_001",
+      "EquipmentID": "EQP_AT_001"
+    },
+    "Attributes": {
+      "FileGeneratorSoftwareVersion": "VER_RTP_3.3.0",
+      "FileType": "Recipe"
+    },
+    "ProcessJobs": [
+      {
+        "Keys": {
+          "PRJobID": "PRJOB_AT_001",
+          "RecipeID": "RCP_AT_001"
+        },
+        "Attributes": {
+          "LotID": "LOT_AT_001",
+          "LayerName": "Source_Drain_Activation",
+          "TargetProcess": "RTP_Spike_Anneal"
+        },
+        "ModuleProcessReports": [
+          {
+            "Keys": {
+              "ModuleID": "MOD_RTP_001",
+              "RecipeStepID": "0",
+              "WaferID": "WFR_AT_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_AT_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\RECIPE.Format",
+                    "Name": "NAME_0001",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "3.3"
+                  },
+                  {
+                    "Key": "\\\\RECIPE.Name",
+                    "Name": "NAME_0002",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "RTP_SPIKE_1050_SD_ACT_v2"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\PASSPORT.ChamberType",
+                    "Name": "NAME_0005",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "RTP_WH_SingleWafer"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_RTP_001",
+              "RecipeStepID": "PURGE",
+              "WaferID": "WFR_AT_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_AT_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\STEP.Name",
+                    "Name": "NAME_S1",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "N2_Purge"
+                  },
+                  {
+                    "Key": "\\\\STEP.N2_Flow",
+                    "Name": "NAME_S1_F",
+                    "Unit": "slm",
+                    "Type": "Float",
+                    "Value": "5.0"
+                  },
+                  {
+                    "Key": "\\\\STEP.Duration",
+                    "Name": "NAME_S1_D",
+                    "Unit": "s",
+                    "Type": "Float",
+                    "Value": "30"
+                  },
+                  {
+                    "Key": "\\\\STEP.Temp",
+                    "Name": "NAME_S1_T",
+                    "Unit": "\u00b0C",
+                    "Type": "Float",
+                    "Value": "25"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_RTP_001",
+              "RecipeStepID": "RAMP1",
+              "WaferID": "WFR_AT_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_AT_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\STEP.Name",
+                    "Name": "NAME_S2",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "Ramp_to_Spike"
+                  },
+                  {
+                    "Key": "\\\\STEP.StartTemp",
+                    "Name": "NAME_S2_ST",
+                    "Unit": "\u00b0C",
+                    "Type": "Float",
+                    "Value": "600"
+                  },
+                  {
+                    "Key": "\\\\STEP.EndTemp",
+                    "Name": "NAME_S2_ET",
+                    "Unit": "\u00b0C",
+                    "Type": "Float",
+                    "Value": "1050"
+                  },
+                  {
+                    "Key": "\\\\STEP.RampRate",
+                    "Name": "NAME_S2_RR",
+                    "Unit": "\u00b0C/s",
+                    "Type": "Float",
+                    "Value": "100"
+                  },
+                  {
+                    "Key": "\\\\STEP.N2_Flow",
+                    "Name": "NAME_S2_F",
+                    "Unit": "slm",
+                    "Type": "Float",
+                    "Value": "5.0"
+                  },
+                  {
+                    "Key": "\\\\STEP.MaxTime",
+                    "Name": "NAME_S2_MT",
+                    "Unit": "s",
+                    "Type": "Float",
+                    "Value": "5"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_RTP_001",
+              "RecipeStepID": "SPIKE",
+              "WaferID": "WFR_AT_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_AT_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\STEP.Name",
+                    "Name": "NAME_S3",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "Spike_Anneal"
+                  },
+                  {
+                    "Key": "\\\\STEP.PeakTemp",
+                    "Name": "NAME_S3_PT",
+                    "Unit": "\u00b0C",
+                    "Type": "Float",
+                    "Value": "1050"
+                  },
+                  {
+                    "Key": "\\\\STEP.HoldTime",
+                    "Name": "NAME_S3_HT",
+                    "Unit": "s",
+                    "Type": "Float",
+                    "Value": "0"
+                  },
+                  {
+                    "Key": "\\\\STEP.N2_Flow",
+                    "Name": "NAME_S3_F",
+                    "Unit": "slm",
+                    "Type": "Float",
+                    "Value": "5.0"
+                  },
+                  {
+                    "Key": "\\\\STEP.MaxTime",
+                    "Name": "NAME_S3_MT",
+                    "Unit": "s",
+                    "Type": "Float",
+                    "Value": "2"
+                  },
+                  {
+                    "Key": "\\\\STEP.SlipDetect",
+                    "Name": "NAME_S3_SD",
+                    "Unit": null,
+                    "Type": "bool",
+                    "Value": "true"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_RTP_001",
+              "RecipeStepID": "COOLDOWN",
+              "WaferID": "WFR_AT_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_AT_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\STEP.Name",
+                    "Name": "NAME_S4",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "Controlled_Cooldown"
+                  },
+                  {
+                    "Key": "\\\\STEP.StartTemp",
+                    "Name": "NAME_S4_ST",
+                    "Unit": "\u00b0C",
+                    "Type": "Float",
+                    "Value": "1050"
+                  },
+                  {
+                    "Key": "\\\\STEP.EndTemp",
+                    "Name": "NAME_S4_ET",
+                    "Unit": "\u00b0C",
+                    "Type": "Float",
+                    "Value": "400"
+                  },
+                  {
+                    "Key": "\\\\STEP.CoolRate",
+                    "Name": "NAME_S4_CR",
+                    "Unit": "\u00b0C/s",
+                    "Type": "Float",
+                    "Value": "-50"
+                  },
+                  {
+                    "Key": "\\\\STEP.N2_Flow",
+                    "Name": "NAME_S4_F",
+                    "Unit": "slm",
+                    "Type": "Float",
+                    "Value": "5.0"
+                  },
+                  {
+                    "Key": "\\\\STEP.MaxTime",
+                    "Name": "NAME_S4_MT",
+                    "Unit": "s",
+                    "Type": "Float",
+                    "Value": "15"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

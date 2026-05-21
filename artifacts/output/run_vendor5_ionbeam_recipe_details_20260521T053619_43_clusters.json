@@ -1,0 +1,316 @@
+{
+  "run_id": "run_vendor5_ionbeam_recipe_details_20260521T053619_43",
+  "total_clusters": 27,
+  "template_fingerprint": "5a5232aa84d683da",
+  "drain_stats": {
+    "new_cluster": 27,
+    "matched": 32
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 14,
+      "template": "<INI_KV>",
+      "template_tokens": [
+        "<INI_KV>"
+      ],
+      "size": 27,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "<INI_SECTION>",
+      "template_tokens": [
+        "<INI_SECTION>"
+      ],
+      "size": 6,
+      "stability": 0.25
+    },
+    {
+      "cluster_id": 19,
+      "template": "BEAM_CURRENT_MA = <FLOAT>",
+      "template_tokens": [
+        "BEAM_CURRENT_MA",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "# ============================================================",
+      "template_tokens": [
+        "#",
+        "============================================================"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "# Recipe File - IonBeam Technologies",
+      "template_tokens": [
+        "#",
+        "Recipe",
+        "File",
+        "-",
+        "IonBeam",
+        "Technologies"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "# RecipeID : <RECIPE_ID>",
+      "template_tokens": [
+        "#",
+        "RecipeID",
+        ":",
+        "<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "# RecipeName : BF2_PWELL_1E13_60keV",
+      "template_tokens": [
+        "#",
+        "RecipeName",
+        ":",
+        "BF2_PWELL_1E13_60keV"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "# EquipmentID : <EQP_ID>",
+      "template_tokens": [
+        "#",
+        "EquipmentID",
+        ":",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "# LotID : <LOT_ID>",
+      "template_tokens": [
+        "#",
+        "LotID",
+        ":",
+        "<LOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "# Layer : P-Well",
+      "template_tokens": [
+        "#",
+        "Layer",
+        ":",
+        "P-Well"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "# FileType : Recipe",
+      "template_tokens": [
+        "#",
+        "FileType",
+        ":",
+        "Recipe"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "# SW_Version : <VERSION>",
+      "template_tokens": [
+        "#",
+        "SW_Version",
+        ":",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "# Created : <ISO_TS>",
+      "template_tokens": [
+        "#",
+        "Created",
+        ":",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "# ApprovedBy : <FAB_ID>",
+      "template_tokens": [
+        "#",
+        "ApprovedBy",
+        ":",
+        "<FAB_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "# Expiration : <ISO_TS>",
+      "template_tokens": [
+        "#",
+        "Expiration",
+        ":",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "RECIPE_ID = <RECIPE_ID>",
+      "template_tokens": [
+        "RECIPE_ID",
+        "=",
+        "<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "RECIPE_FORMAT = <FLOAT>",
+      "template_tokens": [
+        "RECIPE_FORMAT",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "CHARGE_STATE = 1+",
+      "template_tokens": [
+        "CHARGE_STATE",
+        "=",
+        "1+"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "VACUUM_LIMIT_TORR = <SCI_NUM>",
+      "template_tokens": [
+        "VACUUM_LIMIT_TORR",
+        "=",
+        "<SCI_NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "ENERGY_KEV = <FLOAT>",
+      "template_tokens": [
+        "ENERGY_KEV",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "TOLERANCE_PCT = <FLOAT>",
+      "template_tokens": [
+        "TOLERANCE_PCT",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "DOSE_ATOMS_CM2 = <SCI_NUM>",
+      "template_tokens": [
+        "DOSE_ATOMS_CM2",
+        "=",
+        "<SCI_NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "TILT_DEGREES = <FLOAT>",
+      "template_tokens": [
+        "TILT_DEGREES",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "ROTATION_DEGREES = <FLOAT>",
+      "template_tokens": [
+        "ROTATION_DEGREES",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "SCAN_SPEED_MM_S = <FLOAT>",
+      "template_tokens": [
+        "SCAN_SPEED_MM_S",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "UNIFORMITY_SPEC_PCT = <FLOAT>",
+      "template_tokens": [
+        "UNIFORMITY_SPEC_PCT",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "WAFER_TEMP_C = <FLOAT>",
+      "template_tokens": [
+        "WAFER_TEMP_C",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

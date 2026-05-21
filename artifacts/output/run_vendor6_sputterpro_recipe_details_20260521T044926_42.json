@@ -1,0 +1,692 @@
+[
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.keys.ctrl_job_id: CJOB_SP_001",
+    "template": "control_job.keys.ctrl_job_id: <CJOB_ID>",
+    "variables": {
+      "CJOB_ID": "CJOB_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.keys.equipment_id: EQP_SP_001",
+    "template": "control_job.keys.equipment_id: <EQP_ID>",
+    "variables": {
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.attributes.file_generator_version: VER_PVD_2.8.0",
+    "template": "control_job.attributes.file_generator_version: <VERSION>",
+    "variables": {
+      "VERSION": "VER_PVD_2.8.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.attributes.file_type: Recipe",
+    "template": "<FILE_TYPE>",
+    "variables": {
+      "FILE_TYPE": "control_job.attributes.file_type: Recipe"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].keys.pr_job_id: PRJOB_SP_001",
+    "template": "control_job.process_jobs[0].keys.pr_job_id: <PRJOB_ID>",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].keys.recipe_id: RCP_SP_001",
+    "template": "control_job.process_jobs[0].keys.recipe_id: <RECIPE_ID>",
+    "variables": {
+      "RECIPE_ID": "RCP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].attributes.lot_id: LOT_SP_001",
+    "template": "control_job.process_jobs[0].attributes.lot_id: <LOT_ID>",
+    "variables": {
+      "LOT_ID": "LOT_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].attributes.wafer_size_mm: 300",
+    "template": "<WAFER_SIZE_MM>",
+    "variables": {
+      "WAFER_SIZE_MM": "control_job.process_jobs[0].attributes.wafer_size_mm: 300"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].attributes.layer_name: TiN_Barrier",
+    "template": "<LAYER_NAME>",
+    "variables": {
+      "LAYER_NAME": "control_job.process_jobs[0].attributes.layer_name: TiN_Barrier"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].attributes.target_thickness_nm: 15",
+    "template": "<TARGET_THICKNESS_NM>",
+    "variables": {
+      "TARGET_THICKNESS_NM": "control_job.process_jobs[0].attributes.target_thickness_nm: 15"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[0].keys.module_id: MOD_PVD_001",
+    "template": "control_job.process_jobs[0].module_process_reports[0].keys.module_id: <MODULE_ID>",
+    "variables": {
+      "MODULE_ID": "MOD_PVD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[0].keys.recipe_step_id: PUMP",
+    "template": "<RECIPE_STEP_ID>",
+    "variables": {
+      "RECIPE_STEP_ID": "control_job.process_jobs[0].module_process_reports[0].keys.recipe_step_id: PUMP"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[0].keys.wafer_id:",
+    "template": "control_job.process_jobs[0].module_process_reports[0].keys.wafer_id:",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[0].attributes.slot_id: None",
+    "template": "control_job.process_jobs[0].module_process_reports[0].attributes.slot_id: <LOT_ID>one",
+    "variables": {
+      "LOT_ID": "N"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[0].attributes.step_name: Pump Down",
+    "template": "<STEP_NAME>",
+    "variables": {
+      "STEP_NAME": "control_job.process_jobs[0].module_process_reports[0].attributes.step_name: Pump Down"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[0].attributes.max_time_s: 300",
+    "template": "<MAX_TIME_S>",
+    "variables": {
+      "MAX_TIME_S": "control_job.process_jobs[0].module_process_reports[0].attributes.max_time_s: 300"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[0].attributes.target_pressure_torr: 5e-08",
+    "template": "<TARGET_PRESSURE_TORR>",
+    "variables": {
+      "TARGET_PRESSURE_TORR": "control_job.process_jobs[0].module_process_reports[0].attributes.target_pressure_torr: 5e-08"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[0].attributes.heater_on: False",
+    "template": "<HEATER_ON>",
+    "variables": {
+      "HEATER_ON": "control_job.process_jobs[0].module_process_reports[0].attributes.heater_on: False"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].keys.module_id: MOD_PVD_001",
+    "template": "control_job.process_jobs[0].module_process_reports[1].keys.module_id: <MODULE_ID>",
+    "variables": {
+      "MODULE_ID": "MOD_PVD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].keys.recipe_step_id: PREHEAT",
+    "template": "<RECIPE_STEP_ID>",
+    "variables": {
+      "RECIPE_STEP_ID": "control_job.process_jobs[0].module_process_reports[1].keys.recipe_step_id: PREHEAT"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].keys.wafer_id: WFR_SP_001",
+    "template": "control_job.process_jobs[0].module_process_reports[1].keys.wafer_id: <WAFER_ID>",
+    "variables": {
+      "WAFER_ID": "WFR_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].attributes.slot_id: SLOT_001",
+    "template": "control_job.process_jobs[0].module_process_reports[1].attributes.slot_id: <SLOT_ID>",
+    "variables": {
+      "SLOT_ID": "SLOT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].attributes.step_name: Substrate Preheat",
+    "template": "<STEP_NAME>",
+    "variables": {
+      "STEP_NAME": "control_job.process_jobs[0].module_process_reports[1].attributes.step_name: Substrate Preheat"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].attributes.max_time_s: 600",
+    "template": "<MAX_TIME_S>",
+    "variables": {
+      "MAX_TIME_S": "control_job.process_jobs[0].module_process_reports[1].attributes.max_time_s: 600"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].attributes.substrate_temp_c: 250",
+    "template": "<SUBSTRATE_TEMP_C>",
+    "variables": {
+      "SUBSTRATE_TEMP_C": "control_job.process_jobs[0].module_process_reports[1].attributes.substrate_temp_c: 250"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].attributes.ar_flow_sccm: 10",
+    "template": "<AR_FLOW_SCCM>",
+    "variables": {
+      "AR_FLOW_SCCM": "control_job.process_jobs[0].module_process_reports[1].attributes.ar_flow_sccm: 10"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].attributes.process_pressure_mtorr: 5.0",
+    "template": "control_job.process_jobs[0].module_process_reports[1].attributes.process_pressure_mtorr: <FLOAT>",
+    "variables": {
+      "FLOAT": "5.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[1].attributes.rotation_rpm: 20",
+    "template": "<ROTATION_RPM>",
+    "variables": {
+      "ROTATION_RPM": "control_job.process_jobs[0].module_process_reports[1].attributes.rotation_rpm: 20"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].keys.module_id: MOD_PVD_001",
+    "template": "control_job.process_jobs[0].module_process_reports[2].keys.module_id: <MODULE_ID>",
+    "variables": {
+      "MODULE_ID": "MOD_PVD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].keys.recipe_step_id: PRE_SPUTTER",
+    "template": "control_job.process_jobs[0].module_process_reports[2].keys.recipe_step_id: <FAB_TOKEN>",
+    "variables": {
+      "FAB_TOKEN": "PRE_SPUTTER"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].keys.wafer_id: WFR_SP_001",
+    "template": "control_job.process_jobs[0].module_process_reports[2].keys.wafer_id: <WAFER_ID>",
+    "variables": {
+      "WAFER_ID": "WFR_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].attributes.slot_id: SLOT_001",
+    "template": "control_job.process_jobs[0].module_process_reports[2].attributes.slot_id: <SLOT_ID>",
+    "variables": {
+      "SLOT_ID": "SLOT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].attributes.step_name: Pre-Sputter Clean",
+    "template": "control_job.process_jobs[0].module_process_reports[2].attributes.step_name: Pre-Sputter Clean",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].attributes.max_time_s: 60",
+    "template": "<MAX_TIME_S>",
+    "variables": {
+      "MAX_TIME_S": "control_job.process_jobs[0].module_process_reports[2].attributes.max_time_s: 60"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].attributes.dc_power_w: 1000",
+    "template": "<DC_POWER_W>",
+    "variables": {
+      "DC_POWER_W": "control_job.process_jobs[0].module_process_reports[2].attributes.dc_power_w: 1000"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].attributes.ar_flow_sccm: 50",
+    "template": "<AR_FLOW_SCCM>",
+    "variables": {
+      "AR_FLOW_SCCM": "control_job.process_jobs[0].module_process_reports[2].attributes.ar_flow_sccm: 50"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].attributes.process_pressure_mtorr: 3.0",
+    "template": "control_job.process_jobs[0].module_process_reports[2].attributes.process_pressure_mtorr: <FLOAT>",
+    "variables": {
+      "FLOAT": "3.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].attributes.shutter: CLOSED",
+    "template": "<SHUTTER>",
+    "variables": {
+      "SHUTTER": "control_job.process_jobs[0].module_process_reports[2].attributes.shutter: CLOSED"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[2].attributes.rotation_rpm: 20",
+    "template": "<ROTATION_RPM>",
+    "variables": {
+      "ROTATION_RPM": "control_job.process_jobs[0].module_process_reports[2].attributes.rotation_rpm: 20"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].keys.module_id: MOD_PVD_001",
+    "template": "control_job.process_jobs[0].module_process_reports[3].keys.module_id: <MODULE_ID>",
+    "variables": {
+      "MODULE_ID": "MOD_PVD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].keys.recipe_step_id: DEPOSIT_TIN",
+    "template": "<RECIPE_STEP_ID><FAB_TOKEN>",
+    "variables": {
+      "RECIPE_STEP_ID": "c",
+      "FAB_TOKEN": "ontrol_job.process_jobs[0].module_process_reports[3].keys.recipe_step_id: DEPOSIT_TIN"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].keys.wafer_id: WFR_SP_001",
+    "template": "control_job.process_jobs[0].module_process_reports[3].keys.wafer_id: <WAFER_ID>",
+    "variables": {
+      "WAFER_ID": "WFR_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.slot_id: SLOT_001",
+    "template": "control_job.process_jobs[0].module_process_reports[3].attributes.slot_id: <SLOT_ID>",
+    "variables": {
+      "SLOT_ID": "SLOT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.step_name: TiN Deposition",
+    "template": "<STEP_NAME>",
+    "variables": {
+      "STEP_NAME": "control_job.process_jobs[0].module_process_reports[3].attributes.step_name: TiN Deposition"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.max_time_s: 60",
+    "template": "<MAX_TIME_S>",
+    "variables": {
+      "MAX_TIME_S": "control_job.process_jobs[0].module_process_reports[3].attributes.max_time_s: 60"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.dc_power_w: 5000",
+    "template": "<DC_POWER_W>",
+    "variables": {
+      "DC_POWER_W": "control_job.process_jobs[0].module_process_reports[3].attributes.dc_power_w: 5000"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.ar_flow_sccm: 50",
+    "template": "<AR_FLOW_SCCM>",
+    "variables": {
+      "AR_FLOW_SCCM": "control_job.process_jobs[0].module_process_reports[3].attributes.ar_flow_sccm: 50"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.n2_flow_sccm: 5",
+    "template": "<N2_FLOW_SCCM>",
+    "variables": {
+      "N2_FLOW_SCCM": "control_job.process_jobs[0].module_process_reports[3].attributes.n2_flow_sccm: 5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.process_pressure_mtorr: 3.0",
+    "template": "control_job.process_jobs[0].module_process_reports[3].attributes.process_pressure_mtorr: <FLOAT>",
+    "variables": {
+      "FLOAT": "3.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.substrate_temp_c: 250",
+    "template": "<SUBSTRATE_TEMP_C>",
+    "variables": {
+      "SUBSTRATE_TEMP_C": "control_job.process_jobs[0].module_process_reports[3].attributes.substrate_temp_c: 250"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.rotation_rpm: 20",
+    "template": "<ROTATION_RPM>",
+    "variables": {
+      "ROTATION_RPM": "control_job.process_jobs[0].module_process_reports[3].attributes.rotation_rpm: 20"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.deposition_rate_angstrom_per_s: 2.5",
+    "template": "control_job.process_jobs[0].module_process_reports[3].attributes.deposition_rate_angstrom_per_s: <FLOAT>",
+    "variables": {
+      "FLOAT": "2.5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.target_thickness_nm: 15",
+    "template": "control_job.process_jobs[0].module_process_reports[3].attributes.target_thickness_nm: <NUM>",
+    "variables": {
+      "NUM": "15"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[3].attributes.shutter: OPEN",
+    "template": "<SHUTTER>",
+    "variables": {
+      "SHUTTER": "control_job.process_jobs[0].module_process_reports[3].attributes.shutter: OPEN"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].keys.module_id: MOD_PVD_001",
+    "template": "control_job.process_jobs[0].module_process_reports[4].keys.module_id: <MODULE_ID>",
+    "variables": {
+      "MODULE_ID": "MOD_PVD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].keys.recipe_step_id: COOL",
+    "template": "<RECIPE_STEP_ID>",
+    "variables": {
+      "RECIPE_STEP_ID": "control_job.process_jobs[0].module_process_reports[4].keys.recipe_step_id: COOL"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].keys.wafer_id: WFR_SP_001",
+    "template": "control_job.process_jobs[0].module_process_reports[4].keys.wafer_id: <WAFER_ID>",
+    "variables": {
+      "WAFER_ID": "WFR_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].attributes.slot_id: SLOT_001",
+    "template": "control_job.process_jobs[0].module_process_reports[4].attributes.slot_id: <SLOT_ID>",
+    "variables": {
+      "SLOT_ID": "SLOT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].attributes.step_name: Cool Down",
+    "template": "<STEP_NAME>",
+    "variables": {
+      "STEP_NAME": "control_job.process_jobs[0].module_process_reports[4].attributes.step_name: Cool Down"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].attributes.max_time_s: 300",
+    "template": "<MAX_TIME_S>",
+    "variables": {
+      "MAX_TIME_S": "control_job.process_jobs[0].module_process_reports[4].attributes.max_time_s: 300"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].attributes.target_temp_c: 50",
+    "template": "control_job.process_jobs[0].module_process_reports[4].attributes.target_temp_c: <NUM>",
+    "variables": {
+      "NUM": "50"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].attributes.ar_flow_sccm: 0",
+    "template": "<AR_FLOW_SCCM>",
+    "variables": {
+      "AR_FLOW_SCCM": "control_job.process_jobs[0].module_process_reports[4].attributes.ar_flow_sccm: 0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+    "timestamp_utc": "2026-05-21T04:49:50.860506+00:00",
+    "raw": "control_job.process_jobs[0].module_process_reports[4].attributes.heater_on: False",
+    "template": "<HEATER_ON>",
+    "variables": {
+      "HEATER_ON": "control_job.process_jobs[0].module_process_reports[4].attributes.heater_on: False"
+    },
+    "parsed": 1,
+    "var_count": 1
+  }
+]

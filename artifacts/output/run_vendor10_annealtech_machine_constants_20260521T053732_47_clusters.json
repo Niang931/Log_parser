@@ -1,0 +1,45 @@
+{
+  "run_id": "run_vendor10_annealtech_machine_constants_20260521T053732_47",
+  "total_clusters": 2,
+  "template_fingerprint": "83508481d287e4d3",
+  "drain_stats": {
+    "new_cluster": 2
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': None, 'ToolID': '<EQP_ID>', 'DateTime': '<DATE>T13:00:<FLOAT>Z'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "None,",
+        "'ToolID':",
+        "'<EQP_ID>',",
+        "'DateTime':",
+        "'<DATE>T13:00:<FLOAT>Z'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'Vendor': '<VENDOR_ID>', 'FileGeneratorSoftwareVersion': '<VERSION>', 'ProcessType': 'Rapid_Thermal_Processing', 'NetworkAddress': '<NET_ID>', 'ExpirationDate': '<DATE>', 'ChamberConfig': 'Single_Wafer_Tungsten_Halogen', 'EquipmentConstant",
+      "template_tokens": [
+        "{'Vendor':",
+        "'<VENDOR_ID>',",
+        "'FileGeneratorSoftwareVersion':",
+        "'<VERSION>',",
+        "'ProcessType':",
+        "'Rapid_Thermal_Processing',",
+        "'NetworkAddress':",
+        "'<NET_ID>',",
+        "'ExpirationDate':",
+        "'<DATE>',",
+        "'ChamberConfig':",
+        "'Single_Wafer_Tungsten_Halogen',",
+        "'EquipmentConstant"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

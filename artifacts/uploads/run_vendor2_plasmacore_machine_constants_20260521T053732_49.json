@@ -1,0 +1,163 @@
+{
+  "MachineConstants": {
+    "Keys": {
+      "CtrlJobID": "CJOB_PC_001",
+      "EquipmentID": "EQP_PC_001"
+    },
+    "Attributes": {
+      "FileGeneratorSoftwareVersion": "Process",
+      "FileGeneratorVersion": "3.1",
+      "FileType": "Recipe",
+      "Version": {
+        "RecipeID": "RCP_PC_001",
+        "Type": "SYSTEM"
+      },
+      "Sensors": {
+        "SensorDefinitions": [
+          {
+            "SensorID": "SENSOR_0001",
+            "SVIDMonitor": 201001,
+            "SVIDSetting": 201002,
+            "SVIDSubstrate": 201003,
+            "SVIDPV": 201004,
+            "Unit": "mTorr",
+            "DataType": "Float",
+            "Description": "Chamber Pressure"
+          },
+          {
+            "SensorID": "SENSOR_0002",
+            "SVIDMonitor": 201005,
+            "SVIDSetting": 201006,
+            "SVIDSubstrate": 201007,
+            "SVIDPV": 201008,
+            "Unit": "W",
+            "DataType": "Float",
+            "Description": "RF Power Source"
+          },
+          {
+            "SensorID": "SENSOR_0003",
+            "SVIDMonitor": 201009,
+            "SVIDSetting": 201010,
+            "SVIDSubstrate": 201011,
+            "SVIDPV": 201012,
+            "Unit": "W",
+            "DataType": "Float",
+            "Description": "RF Power Bias"
+          },
+          {
+            "SensorID": "SENSOR_0004",
+            "SVIDMonitor": 201013,
+            "SVIDSetting": 201014,
+            "SVIDSubstrate": 201015,
+            "SVIDPV": 201016,
+            "Unit": "kHz",
+            "DataType": "Float",
+            "Description": "RF Frequency"
+          },
+          {
+            "SensorID": "SENSOR_0005",
+            "SVIDMonitor": 201017,
+            "SVIDSetting": 201018,
+            "SVIDSubstrate": 201019,
+            "SVIDPV": 201020,
+            "Unit": "\u00b0C",
+            "DataType": "Float",
+            "Description": "ESC Temperature"
+          },
+          {
+            "SensorID": "SENSOR_0006",
+            "SVIDMonitor": 201021,
+            "SVIDSetting": 201022,
+            "SVIDSubstrate": 201023,
+            "SVIDPV": 201024,
+            "Unit": "sccm",
+            "DataType": "Float",
+            "Description": "CF4 Flow"
+          },
+          {
+            "SensorID": "SENSOR_0007",
+            "SVIDMonitor": 201025,
+            "SVIDSetting": 201026,
+            "SVIDSubstrate": 201027,
+            "SVIDPV": 201028,
+            "Unit": "sccm",
+            "DataType": "Float",
+            "Description": "CHF3 Flow"
+          },
+          {
+            "SensorID": "SENSOR_0008",
+            "SVIDMonitor": 201029,
+            "SVIDSetting": 201030,
+            "SVIDSubstrate": 201031,
+            "SVIDPV": 201032,
+            "Unit": "sccm",
+            "DataType": "Float",
+            "Description": "Ar Flow"
+          },
+          {
+            "SensorID": "SENSOR_0009",
+            "SVIDMonitor": 201033,
+            "SVIDSetting": 201034,
+            "SVIDSubstrate": 201035,
+            "SVIDPV": 201036,
+            "Unit": "sccm",
+            "DataType": "Float",
+            "Description": "O2 Flow"
+          },
+          {
+            "SensorID": "SENSOR_0010",
+            "SVIDMonitor": 201037,
+            "SVIDSetting": 201038,
+            "SVIDSubstrate": 201039,
+            "SVIDPV": 201040,
+            "Unit": "V",
+            "DataType": "Float",
+            "Description": "DC Bias Voltage"
+          }
+        ]
+      },
+      "EquipmentConstants": [
+        {
+          "Name": "EC_PLASMA_001",
+          "ConstantID": "PC_EC_001",
+          "Units": "cycles",
+          "DataType": "Integer",
+          "Value": "200000",
+          "Description": "PM Maintenance Interval"
+        },
+        {
+          "Name": "EC_PLASMA_002",
+          "ConstantID": "PC_EC_002",
+          "Units": "hours",
+          "DataType": "Float",
+          "Value": "8760.0",
+          "Description": "Max Tool Lifetime"
+        },
+        {
+          "Name": "EC_PLASMA_003",
+          "ConstantID": "PC_EC_003",
+          "Units": null,
+          "DataType": "String",
+          "Value": "CCP_Type_B",
+          "Description": "Chamber Configuration"
+        },
+        {
+          "Name": "EC_PLASMA_004",
+          "ConstantID": "PC_EC_004",
+          "Units": "%",
+          "DataType": "Float",
+          "Value": "2.5",
+          "Description": "Pressure Control Tolerance"
+        },
+        {
+          "Name": "EC_PLASMA_005",
+          "ConstantID": "PC_EC_005",
+          "Units": "mTorr",
+          "DataType": "Float",
+          "Value": "0.5",
+          "Description": "Base Pressure Threshold"
+        }
+      ]
+    }
+  }
+}

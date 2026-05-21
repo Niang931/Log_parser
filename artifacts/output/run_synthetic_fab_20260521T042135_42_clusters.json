@@ -1,0 +1,197 @@
+{
+  "run_id": "run_synthetic_fab_20260521T042135_42",
+  "total_clusters": 13,
+  "template_fingerprint": "cbf6c8e3fb50f9c7",
+  "drain_stats": {
+    "new_cluster": 13,
+    "matched": 263
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+      "template_tokens": [
+        "Machine:<MCH_ID>",
+        "<EC_ID>",
+        "Lot",
+        "<LOT_ID>",
+        "Wafer",
+        "<WAFER_ID>",
+        "temperature",
+        "<FLOAT>",
+        "C"
+      ],
+      "size": 38,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+      "template_tokens": [
+        "Lot",
+        "<LOT_ID>",
+        "wafer",
+        "<WAFER_ID>",
+        "slot",
+        "<SLOT_ID>",
+        "exposure_handle=<EXP_HANDLE>"
+      ],
+      "size": 35,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+      "template_tokens": [
+        "Network",
+        "<NET_ID>",
+        "connected",
+        "to",
+        "<EQP_ID>",
+        "version",
+        "<VERSION>"
+      ],
+      "size": 27,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+      "template_tokens": [
+        "Control",
+        "job",
+        "<CJOB_ID>",
+        "state",
+        "transition:",
+        "ACTIVE",
+        "->",
+        "COMPLETE"
+      ],
+      "size": 26,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+      "template_tokens": [
+        "Machine:<MCH_ID>",
+        "<ERROR_CODE>",
+        "alarm",
+        "triggered",
+        "on",
+        "<EQP_ID>"
+      ],
+      "size": 26,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+      "template_tokens": [
+        "Sensor",
+        "<SENSOR_ID>",
+        "reading",
+        "<FLOAT>",
+        "at",
+        "<ISO_TS>"
+      ],
+      "size": 25,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+      "template_tokens": [
+        "Machine:<MCH_ID>",
+        "Recipe",
+        "<RECIPE_ID>",
+        "started",
+        "on",
+        "<EQP_ID>"
+      ],
+      "size": 23,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+      "template_tokens": [
+        "<DW_CODE>",
+        "event",
+        "on",
+        "<MCH_ID>:",
+        "module",
+        "<MODULE_ID>",
+        "de_err=<FLOAT>"
+      ],
+      "size": 21,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+      "template_tokens": [
+        "Process",
+        "job",
+        "<PRJOB_ID>",
+        "completed",
+        "in",
+        "<FLOAT>s"
+      ],
+      "size": 19,
+      "stability": 0.9
+    },
+    {
+      "cluster_id": 12,
+      "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+      "template_tokens": [
+        "Recipe",
+        "step",
+        "\\RECIPE\\STEPS\\STEP.Power",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 11,
+      "stability": 0.5
+    },
+    {
+      "cluster_id": 7,
+      "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+      "template_tokens": [
+        "Recipe",
+        "step",
+        "\\RECIPE\\STEPS\\STEP.Flow",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 9,
+      "stability": 0.4
+    },
+    {
+      "cluster_id": 10,
+      "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+      "template_tokens": [
+        "Recipe",
+        "step",
+        "\\RECIPE\\STEPS\\STEP.MaxTime",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 9,
+      "stability": 0.4
+    },
+    {
+      "cluster_id": 11,
+      "template": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = <FLOAT>",
+      "template_tokens": [
+        "Recipe",
+        "step",
+        "\\RECIPE\\STEPS\\STEP.Pressure",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 7,
+      "stability": 0.3
+    }
+  ]
+}

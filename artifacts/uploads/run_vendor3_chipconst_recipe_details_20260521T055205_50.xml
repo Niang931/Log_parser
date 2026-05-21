@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Recipe xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Header>
+    <RecipeID>RCP_CC_001</RecipeID>
+    <RecipeName>Si3N4_LPCVD_75nm_v2</RecipeName>
+    <EquipmentID>EQP_CHIPCONST_001</EquipmentID>
+    <FileType>Recipe</FileType>
+    <FileGeneratorVersion>CVD_4.2.1</FileGeneratorVersion>
+    <CreatedBy>CREATOR_CC_001</CreatedBy>
+    <ApprovedBy>CREATOR_CC_002</ApprovedBy>
+    <CreateTime>2026-01-15T06:00:00+00:00</CreateTime>
+    <ExpirationTime>2027-01-15T06:00:00+00:00</ExpirationTime>
+    <TargetFilmMaterial>Si3N4</TargetFilmMaterial>
+    <TargetThickness_nm>75</TargetThickness_nm>
+    <TargetMachineID>EQP_CHIPCONST_001</TargetMachineID>
+  </Header>
+  <ControlJob>
+    <CtrlJobID>CJOB_CC_001</CtrlJobID>
+    <ProcessJobs>
+      <ProcessJob>
+        <PRJobID>PRJOB_CC_001</PRJobID>
+        <LotID>LOT_CC_001</LotID>
+        <RecipeID>RCP_CC_001</RecipeID>
+        <RecipeSteps>
+          <Step id="PUMP_DOWN">
+            <StepName>Pump Down</StepName>
+            <MaxTime_s>600</MaxTime_s>
+            <PressureTarget_Torr>0.001</PressureTarget_Torr>
+            <GasFlows/>
+            <RFPower_W>0</RFPower_W>
+          </Step>
+          <Step id="RAMP_TEMP">
+            <StepName>Temperature Ramp</StepName>
+            <MaxTime_s>1800</MaxTime_s>
+            <Zone1Temp_C>750</Zone1Temp_C>
+            <Zone2Temp_C>755</Zone2Temp_C>
+            <Zone3Temp_C>748</Zone3Temp_C>
+            <RampRate_C_per_min>5.0</RampRate_C_per_min>
+            <PressureTarget_Torr>0.35</PressureTarget_Torr>
+            <StabilizeTime_s>300</StabilizeTime_s>
+          </Step>
+          <Step id="DEPOSIT">
+            <StepName>Deposition</StepName>
+            <MaxTime_s>777</MaxTime_s>
+            <Zone1Temp_C>750</Zone1Temp_C>
+            <Zone2Temp_C>755</Zone2Temp_C>
+            <Zone3Temp_C>748</Zone3Temp_C>
+            <PressureTarget_Torr>0.35</PressureTarget_Torr>
+            <GasFlows>
+              <Gas name="DCS"  flow_sccm="100.0"/>
+              <Gas name="NH3"  flow_sccm="20.0"/>
+              <Gas name="N2"   flow_sccm="0.0"/>
+            </GasFlows>
+            <DepositRate_nm_per_min>5.8</DepositRate_nm_per_min>
+            <TargetThickness_nm>75</TargetThickness_nm>
+            <EPD_Enabled>false</EPD_Enabled>
+          </Step>
+          <Step id="PURGE">
+            <StepName>Gas Purge</StepName>
+            <MaxTime_s>300</MaxTime_s>
+            <GasFlows>
+              <Gas name="N2" flow_sccm="500.0"/>
+            </GasFlows>
+            <PressureTarget_Torr>0.5</PressureTarget_Torr>
+          </Step>
+          <Step id="COOL_DOWN">
+            <StepName>Cool Down</StepName>
+            <MaxTime_s>2400</MaxTime_s>
+            <TargetTemp_C>100</TargetTemp_C>
+            <CoolRate_C_per_min>3.0</CoolRate_C_per_min>
+            <N2Flow_sccm>200</N2Flow_sccm>
+          </Step>
+        </RecipeSteps>
+      </ProcessJob>
+    </ProcessJobs>
+  </ControlJob>
+</Recipe>

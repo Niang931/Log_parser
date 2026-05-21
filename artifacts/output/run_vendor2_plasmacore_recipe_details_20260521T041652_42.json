@@ -1,0 +1,38 @@
+[
+  {
+    "run_id": "run_vendor2_plasmacore_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.426232+00:00",
+    "raw": "{'CtrlJobID': 'CJOB_PC_001', 'EquipmentID': 'EQP_PC_001'}",
+    "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_001",
+      "EQP_ID": "EQP_PC_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor2_plasmacore_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.426232+00:00",
+    "raw": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '3.1', 'FileType': 'Recipe'}",
+    "template": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '<FLOAT>', 'FileType': 'Recipe'}",
+    "variables": {
+      "FLOAT": "3.1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor2_plasmacore_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.426232+00:00",
+    "raw": "[{'Keys': {'PRJobID': 'PRJOB_PC_001', 'RecipeID': 'RCP_PC_001'}, 'Attributes': {'LotID': 'LOT_PC_001', 'LayerName': 'SiO2_Etch',",
+    "template": "[{'Keys': {'PRJobID': '<PRJOB_ID>', 'RecipeID': '<RECIPE_ID>'}, 'Attributes': {'LotID': '<LOT_ID>', 'LayerName': 'SiO2_Etch',",
+    "variables": {
+      "PRJOB_ID": "PRJOB_PC_001",
+      "RECIPE_ID": "RCP_PC_001",
+      "LOT_ID": "LOT_PC_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  }
+]

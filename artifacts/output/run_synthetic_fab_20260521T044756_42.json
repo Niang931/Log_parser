@@ -1,0 +1,3579 @@
+[
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_018 Lot LOT_TD_001 Wafer WFR_AT_001 temperature 218.6 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_018",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "218.6"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_069 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_069"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0004 reading 163.2399 at 2026-03-27T07:43:20Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0004",
+      "FLOAT": "163.2399",
+      "ISO_TS": "2026-03-27T07:43:20Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_001 connected to EQP_CT_001 version VER_PVD_2.2.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_001",
+      "EQP_ID": "EQP_CT_001",
+      "VERSION": "VER_PVD_2.2.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3411 event on MCH0002: module MOD_ETCH_001 de_err=0.018696",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3411",
+      "MCH_ID": "MCH0002",
+      "MODULE_ID": "MOD_ETCH_001",
+      "FLOAT": "0.018696"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_AT_001 slot SLOT_025 exposure_handle=4295",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_025",
+      "EXP_HANDLE": "4295"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0001 reading 70.9230 at 2026-01-20T02:32:15Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0001",
+      "FLOAT": "70.9230",
+      "ISO_TS": "2026-01-20T02:32:15Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_SP_053 completed in 96.27s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_053",
+      "FLOAT": "96.27"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 164.473",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "164.473"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_CT_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_SP_097 completed in 32.56s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_097",
+      "FLOAT": "32.56"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_CT_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_PVD_001",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 ER-4102 alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "ERROR_CODE": "ER-4102",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-OFFF alarm triggered on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-OFFF",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_SP_001 slot SLOT_022 exposure_handle=6409",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_022",
+      "EXP_HANDLE": "6409"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_003 connected to EQP_NOVA_001 version VER_PVD_2.6.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_003",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_2.6.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 224.417",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "224.417"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 916.553",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "916.553"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = 319.391",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = <FLOAT>",
+    "variables": {
+      "FLOAT": "319.391"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 Recipe RCP_CC_001 started on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "RECIPE_ID": "RCP_CC_001",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 327.026",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "327.026"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_020 Lot LOT_TD_001 Wafer WFR_AT_001 temperature 736.8 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_020",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "736.8"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_002 connected to EQP_SP_001 version VER_PVD_4.2.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_002",
+      "EQP_ID": "EQP_SP_001",
+      "VERSION": "VER_PVD_4.2.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_003 connected to EQP_RTP_001 version VER_PVD_3.9.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_003",
+      "EQP_ID": "EQP_RTP_001",
+      "VERSION": "VER_PVD_3.9.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_009 exposure_handle=6023",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_009",
+      "EXP_HANDLE": "6023"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0010 reading 975.6304 at 2026-01-16T09:14:23Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0010",
+      "FLOAT": "975.6304",
+      "ISO_TS": "2026-01-16T09:14:23Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_AT_001 slot SLOT_003 exposure_handle=5066",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_003",
+      "EXP_HANDLE": "5066"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_017 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 872.1 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_017",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "872.1"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 660.522",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "660.522"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 733.800",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "733.800"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0007 reading 692.9803 at 2026-03-11T14:05:20Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0007",
+      "FLOAT": "692.9803",
+      "ISO_TS": "2026-03-11T14:05:20Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 121.306",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "121.306"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 507.733",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "507.733"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-OFFF alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-OFFF",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_014 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 796.2 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_014",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "796.2"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_AT_089 completed in 30.06s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_AT_089",
+      "FLOAT": "30.06"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 73.789",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "73.789"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_003 connected to EQP_CT_001 version VER_PVD_4.0.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_003",
+      "EQP_ID": "EQP_CT_001",
+      "VERSION": "VER_PVD_4.0.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_005 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 527.8 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_005",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "527.8"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_001 connected to EQP_CT_001 version VER_PVD_2.8.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_001",
+      "EQP_ID": "EQP_CT_001",
+      "VERSION": "VER_PVD_2.8.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_004 exposure_handle=8450",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_004",
+      "EXP_HANDLE": "8450"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_002 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 769.1 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_002",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "769.1"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 Recipe RCP_PVD_001 started on EQP_SP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "RECIPE_ID": "RCP_PVD_001",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_003 Lot LOT_TD_001 Wafer WFR_SP_001 temperature 755.2 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_003",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_SP_001",
+      "FLOAT": "755.2"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-20E2 event on MCH0003: module MOD_LITHO_001 de_err=0.043680",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-20E2",
+      "MCH_ID": "MCH0003",
+      "MODULE_ID": "MOD_LITHO_001",
+      "FLOAT": "0.043680"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 Recipe RCP_CC_001 started on EQP_CT_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "RECIPE_ID": "RCP_CC_001",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_012 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_012"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-20E2 event on MCH0002: module MOD_ETCH_001 de_err=0.008785",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-20E2",
+      "MCH_ID": "MCH0002",
+      "MODULE_ID": "MOD_ETCH_001",
+      "FLOAT": "0.008785"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_AT_059 completed in 115.98s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_AT_059",
+      "FLOAT": "115.98"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_006 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 302.5 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_006",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "302.5"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_065 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_065"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_065 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_065"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0007 reading 642.8501 at 2026-03-26T02:41:42Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0007",
+      "FLOAT": "642.8501",
+      "ISO_TS": "2026-03-26T02:41:42Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_085 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_085"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_SP_060 completed in 77.30s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_060",
+      "FLOAT": "77.30"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3411 event on MCH0001: module MOD_ETCH_001 de_err=0.022430",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3411",
+      "MCH_ID": "MCH0001",
+      "MODULE_ID": "MOD_ETCH_001",
+      "FLOAT": "0.022430"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 Recipe RCP_NOVA_001 started on EQP_SP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_005 connected to EQP_SP_001 version VER_PVD_3.2.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_005",
+      "EQP_ID": "EQP_SP_001",
+      "VERSION": "VER_PVD_3.2.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 ER-4201 alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "ERROR_CODE": "ER-4201",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_011 Lot LOT_AT_001 Wafer WFR_SP_001 temperature 621.7 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_011",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_SP_001",
+      "FLOAT": "621.7"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 951.837",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "951.837"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_032 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_032"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 ER-4303 alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "ERROR_CODE": "ER-4303",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_005 connected to EQP_NOVA_001 version VER_PVD_1.1.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_005",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_1.1.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-4102 alarm triggered on EQP_SP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-4102",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_SP_083 completed in 19.81s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_083",
+      "FLOAT": "19.81"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_SP_001 slot SLOT_016 exposure_handle=1379",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_016",
+      "EXP_HANDLE": "1379"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_002 Lot LOT_TD_001 Wafer WFR_CC_001 temperature 501.6 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_002",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "501.6"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_CC_001 slot SLOT_011 exposure_handle=3662",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_011",
+      "EXP_HANDLE": "3662"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-20E2 event on MCH0003: module MOD_ETCH_003 de_err=0.026212",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-20E2",
+      "MCH_ID": "MCH0003",
+      "MODULE_ID": "MOD_ETCH_003",
+      "FLOAT": "0.026212"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 ER-4102 alarm triggered on EQP_SP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "ERROR_CODE": "ER-4102",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 704.196",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "704.196"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_096 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_096"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_016 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 262.6 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_016",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "262.6"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 Recipe RCP_PVD_001 started on EQP_CT_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "RECIPE_ID": "RCP_PVD_001",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3411 event on MCH0003: module MOD_LITHO_002 de_err=0.023270",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3411",
+      "MCH_ID": "MCH0003",
+      "MODULE_ID": "MOD_LITHO_002",
+      "FLOAT": "0.023270"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_003 exposure_handle=2838",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_003",
+      "EXP_HANDLE": "2838"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_SP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_PVD_001",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 ER-OFFF alarm triggered on EQP_CT_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "ERROR_CODE": "ER-OFFF",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_CC_006 completed in 28.87s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_CC_006",
+      "FLOAT": "28.87"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3411 event on MCH0002: module MOD_ETCH_003 de_err=0.028119",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3411",
+      "MCH_ID": "MCH0002",
+      "MODULE_ID": "MOD_ETCH_003",
+      "FLOAT": "0.028119"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 465.539",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "465.539"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0008 reading 460.3687 at 2026-01-27T15:11:58Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0008",
+      "FLOAT": "460.3687",
+      "ISO_TS": "2026-01-27T15:11:58Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-4201 alarm triggered on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-4201",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_SP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_018 Lot LOT_TD_001 Wafer WFR_CC_001 temperature 506.0 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_018",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "506.0"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_013 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 318.7 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_013",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "318.7"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_020 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 634.1 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_020",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "634.1"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_036 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_036"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 ER-4201 alarm triggered on EQP_CT_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "ERROR_CODE": "ER-4201",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_001 connected to EQP_RTP_001 version VER_PVD_2.5.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_001",
+      "EQP_ID": "EQP_RTP_001",
+      "VERSION": "VER_PVD_2.5.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_SP_001 slot SLOT_013 exposure_handle=4022",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_013",
+      "EXP_HANDLE": "4022"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_041 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_041"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-4102 alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-4102",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 102.315",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "102.315"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_004 connected to EQP_RTP_001 version VER_PVD_1.4.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_004",
+      "EQP_ID": "EQP_RTP_001",
+      "VERSION": "VER_PVD_1.4.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_CC_081 completed in 12.08s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_CC_081",
+      "FLOAT": "12.08"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 130.465",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "130.465"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_CC_047 completed in 87.39s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_CC_047",
+      "FLOAT": "87.39"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_020 exposure_handle=3688",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_020",
+      "EXP_HANDLE": "3688"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = 729.279",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = <FLOAT>",
+    "variables": {
+      "FLOAT": "729.279"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_SP_050 completed in 118.44s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_050",
+      "FLOAT": "118.44"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0003 reading 119.3244 at 2026-01-25T11:33:33Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0003",
+      "FLOAT": "119.3244",
+      "ISO_TS": "2026-01-25T11:33:33Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 Recipe RCP_CC_001 started on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "RECIPE_ID": "RCP_CC_001",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-OFFF alarm triggered on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-OFFF",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 Recipe RCP_CC_001 started on EQP_SP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "RECIPE_ID": "RCP_CC_001",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_009 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 259.4 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_009",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "259.4"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_014 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_014"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_CC_007 completed in 12.27s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_CC_007",
+      "FLOAT": "12.27"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_003 connected to EQP_CT_001 version VER_PVD_2.2.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_003",
+      "EQP_ID": "EQP_CT_001",
+      "VERSION": "VER_PVD_2.2.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-20E2 event on MCH0002: module MOD_ETCH_003 de_err=0.011828",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-20E2",
+      "MCH_ID": "MCH0002",
+      "MODULE_ID": "MOD_ETCH_003",
+      "FLOAT": "0.011828"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_003 connected to EQP_CT_001 version VER_PVD_1.0.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_003",
+      "EQP_ID": "EQP_CT_001",
+      "VERSION": "VER_PVD_1.0.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_019 Lot LOT_MV_001 Wafer WFR_CC_001 temperature 872.5 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_019",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "872.5"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-4102 alarm triggered on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-4102",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_053 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_053"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_091 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_091"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-4303 alarm triggered on EQP_CT_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-4303",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-4303 alarm triggered on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-4303",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_004 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 678.2 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_004",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "678.2"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_CC_001 slot SLOT_020 exposure_handle=7581",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_020",
+      "EXP_HANDLE": "7581"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 Recipe RCP_PVD_001 started on EQP_CT_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "RECIPE_ID": "RCP_PVD_001",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_AT_001 slot SLOT_020 exposure_handle=8308",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_020",
+      "EXP_HANDLE": "8308"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-4102 alarm triggered on EQP_CT_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-4102",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3620 event on MCH0002: module MOD_LITHO_001 de_err=0.032806",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3620",
+      "MCH_ID": "MCH0002",
+      "MODULE_ID": "MOD_LITHO_001",
+      "FLOAT": "0.032806"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_CC_004 completed in 119.38s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_CC_004",
+      "FLOAT": "119.38"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0007 reading 787.3026 at 2026-02-24T03:30:03Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0007",
+      "FLOAT": "787.3026",
+      "ISO_TS": "2026-02-24T03:30:03Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_AT_001 slot SLOT_025 exposure_handle=2442",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_025",
+      "EXP_HANDLE": "2442"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 ER-OFFF alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "ERROR_CODE": "ER-OFFF",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-4303 alarm triggered on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-4303",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_005 connected to EQP_NOVA_001 version VER_PVD_3.9.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_005",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_3.9.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_007 Lot LOT_TD_001 Wafer WFR_AT_001 temperature 227.6 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_007",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "227.6"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_009 exposure_handle=2522",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_009",
+      "EXP_HANDLE": "2522"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_054 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_054"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 522.581",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "522.581"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 458.636",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "458.636"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_011 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 660.0 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_011",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "660.0"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 Recipe RCP_NOVA_001 started on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_PVD_001",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0003 reading 503.3900 at 2026-01-21T17:30:37Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0003",
+      "FLOAT": "503.3900",
+      "ISO_TS": "2026-01-21T17:30:37Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_097 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_097"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_074 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_074"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_086 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_086"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0003 reading 297.7591 at 2026-03-21T00:35:55Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0003",
+      "FLOAT": "297.7591",
+      "ISO_TS": "2026-03-21T00:35:55Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_CC_001 slot SLOT_024 exposure_handle=8982",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_024",
+      "EXP_HANDLE": "8982"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0010 reading 81.8926 at 2026-03-16T08:46:56Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0010",
+      "FLOAT": "81.8926",
+      "ISO_TS": "2026-03-16T08:46:56Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_004 connected to EQP_NOVA_001 version VER_PVD_2.2.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_004",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_2.2.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 469.205",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "469.205"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_016 exposure_handle=8844",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_016",
+      "EXP_HANDLE": "8844"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 166.176",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "166.176"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-4201 alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-4201",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_CC_001 slot SLOT_008 exposure_handle=2373",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_008",
+      "EXP_HANDLE": "2373"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0007 reading 361.9082 at 2026-02-18T17:27:36Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0007",
+      "FLOAT": "361.9082",
+      "ISO_TS": "2026-02-18T17:27:36Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-4303 alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-4303",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_013 Lot LOT_TD_001 Wafer WFR_CC_001 temperature 341.2 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_013",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "341.2"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-OFFF alarm triggered on EQP_CT_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-OFFF",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_017 exposure_handle=9776",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_017",
+      "EXP_HANDLE": "9776"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 379.049",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "379.049"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3620 event on MCH0003: module MOD_ETCH_001 de_err=0.049778",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3620",
+      "MCH_ID": "MCH0003",
+      "MODULE_ID": "MOD_ETCH_001",
+      "FLOAT": "0.049778"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_SP_001 slot SLOT_019 exposure_handle=9821",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_019",
+      "EXP_HANDLE": "9821"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-OFFF alarm triggered on EQP_CT_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-OFFF",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 102.907",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "102.907"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0008 reading 974.0066 at 2026-02-14T22:34:11Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0008",
+      "FLOAT": "974.0066",
+      "ISO_TS": "2026-02-14T22:34:11Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_002 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_023 exposure_handle=9060",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_023",
+      "EXP_HANDLE": "9060"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_AT_037 completed in 26.85s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_AT_037",
+      "FLOAT": "26.85"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_001 Lot LOT_TD_001 Wafer WFR_SP_001 temperature 714.7 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_001",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_SP_001",
+      "FLOAT": "714.7"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_002 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 609.3 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_002",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "609.3"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 787.773",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "787.773"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_024 exposure_handle=2037",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_024",
+      "EXP_HANDLE": "2037"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_013 exposure_handle=9026",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_013",
+      "EXP_HANDLE": "9026"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_AT_001 slot SLOT_017 exposure_handle=2591",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_017",
+      "EXP_HANDLE": "2591"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_017 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 521.1 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_017",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "521.1"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_099 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_099"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0005 reading 91.8141 at 2026-03-12T23:20:50Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0005",
+      "FLOAT": "91.8141",
+      "ISO_TS": "2026-03-12T23:20:50Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_011 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 741.7 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_011",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "741.7"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_CC_053 completed in 37.27s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_CC_053",
+      "FLOAT": "37.27"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_001 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 576.6 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_001",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "576.6"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0006 reading 863.4181 at 2026-03-22T07:24:32Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0006",
+      "FLOAT": "863.4181",
+      "ISO_TS": "2026-03-22T07:24:32Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_013 exposure_handle=3248",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_013",
+      "EXP_HANDLE": "3248"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_014 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 344.7 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_014",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "344.7"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_AT_001 slot SLOT_012 exposure_handle=2302",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_012",
+      "EXP_HANDLE": "2302"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = 763.775",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = <FLOAT>",
+    "variables": {
+      "FLOAT": "763.775"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 876.902",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "876.902"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = 135.172",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = <FLOAT>",
+    "variables": {
+      "FLOAT": "135.172"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_003 Lot LOT_MV_001 Wafer WFR_CC_001 temperature 319.6 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_003",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "319.6"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0010 reading 881.8203 at 2026-02-24T13:28:05Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0010",
+      "FLOAT": "881.8203",
+      "ISO_TS": "2026-02-24T13:28:05Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-20E2 event on MCH0003: module MOD_LITHO_003 de_err=0.026270",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-20E2",
+      "MCH_ID": "MCH0003",
+      "MODULE_ID": "MOD_LITHO_003",
+      "FLOAT": "0.026270"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0010 reading 959.1528 at 2026-02-25T15:51:02Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0010",
+      "FLOAT": "959.1528",
+      "ISO_TS": "2026-02-25T15:51:02Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 280.180",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "280.180"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0004 reading 912.4406 at 2026-02-26T04:12:21Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0004",
+      "FLOAT": "912.4406",
+      "ISO_TS": "2026-02-26T04:12:21Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 ER-4102 alarm triggered on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "ERROR_CODE": "ER-4102",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-20E2 event on MCH0001: module MOD_ETCH_003 de_err=0.007186",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-20E2",
+      "MCH_ID": "MCH0001",
+      "MODULE_ID": "MOD_ETCH_003",
+      "FLOAT": "0.007186"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_061 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_061"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_SP_027 completed in 88.98s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_027",
+      "FLOAT": "88.98"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_005 connected to EQP_RTP_001 version VER_PVD_3.6.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_005",
+      "EQP_ID": "EQP_RTP_001",
+      "VERSION": "VER_PVD_3.6.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_002 connected to EQP_RTP_001 version VER_PVD_4.2.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_002",
+      "EQP_ID": "EQP_RTP_001",
+      "VERSION": "VER_PVD_4.2.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3411 event on MCH0001: module MOD_ETCH_003 de_err=0.017765",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3411",
+      "MCH_ID": "MCH0001",
+      "MODULE_ID": "MOD_ETCH_003",
+      "FLOAT": "0.017765"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_005 connected to EQP_RTP_001 version VER_PVD_1.3.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_005",
+      "EQP_ID": "EQP_RTP_001",
+      "VERSION": "VER_PVD_1.3.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_SP_001 slot SLOT_002 exposure_handle=5780",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_002",
+      "EXP_HANDLE": "5780"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_002 connected to EQP_CT_001 version VER_PVD_4.2.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_002",
+      "EQP_ID": "EQP_CT_001",
+      "VERSION": "VER_PVD_4.2.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_015 Lot LOT_MV_001 Wafer WFR_SP_001 temperature 281.2 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_015",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_SP_001",
+      "FLOAT": "281.2"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_012 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 857.0 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_012",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "857.0"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = 994.963",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = <FLOAT>",
+    "variables": {
+      "FLOAT": "994.963"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_025 exposure_handle=9039",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_025",
+      "EXP_HANDLE": "9039"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 400.215",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "400.215"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_AT_081 completed in 29.38s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_AT_081",
+      "FLOAT": "29.38"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 Recipe RCP_NOVA_001 started on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_001 connected to EQP_NOVA_001 version VER_PVD_3.2.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_001",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_3.2.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_017 exposure_handle=8379",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "SLOT_ID": "SLOT_017",
+      "EXP_HANDLE": "8379"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3620 event on MCH0001: module MOD_ETCH_001 de_err=0.009686",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3620",
+      "MCH_ID": "MCH0001",
+      "MODULE_ID": "MOD_ETCH_001",
+      "FLOAT": "0.009686"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = 923.937",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = <FLOAT>",
+    "variables": {
+      "FLOAT": "923.937"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_SP_029 completed in 22.19s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_029",
+      "FLOAT": "22.19"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0004 reading 86.3888 at 2026-01-28T15:53:29Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0004",
+      "FLOAT": "86.3888",
+      "ISO_TS": "2026-01-28T15:53:29Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_001 connected to EQP_NOVA_001 version VER_PVD_1.7.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_001",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_1.7.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_001 connected to EQP_NOVA_001 version VER_PVD_3.0.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_001",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_3.0.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_016 Lot LOT_MV_001 Wafer WFR_CC_001 temperature 818.8 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_016",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "818.8"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 Recipe RCP_PVD_001 started on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "RECIPE_ID": "RCP_PVD_001",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_SP_001 slot SLOT_025 exposure_handle=3409",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_025",
+      "EXP_HANDLE": "3409"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_002 connected to EQP_RTP_001 version VER_PVD_1.1.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_002",
+      "EQP_ID": "EQP_RTP_001",
+      "VERSION": "VER_PVD_1.1.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_CC_001 slot SLOT_024 exposure_handle=7944",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_024",
+      "EXP_HANDLE": "7944"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3620 event on MCH0001: module MOD_LITHO_002 de_err=0.041140",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3620",
+      "MCH_ID": "MCH0001",
+      "MODULE_ID": "MOD_LITHO_002",
+      "FLOAT": "0.041140"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Power = 905.886",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Power = <FLOAT>",
+    "variables": {
+      "FLOAT": "905.886"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_005 Lot LOT_TD_001 Wafer WFR_CC_001 temperature 838.5 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_005",
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "838.5"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_SP_001 slot SLOT_003 exposure_handle=2909",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_003",
+      "EXP_HANDLE": "2909"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-4303 alarm triggered on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-4303",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 Recipe RCP_NOVA_001 started on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_005 connected to EQP_NOVA_001 version VER_PVD_2.6.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_005",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_2.6.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 456.489",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "456.489"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_RTP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_PVD_001",
+      "EQP_ID": "EQP_RTP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0005 reading 488.8526 at 2026-01-13T23:03:53Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0005",
+      "FLOAT": "488.8526",
+      "ISO_TS": "2026-01-13T23:03:53Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_032 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_032"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0010 reading 800.3847 at 2026-01-19T16:51:19Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0010",
+      "FLOAT": "800.3847",
+      "ISO_TS": "2026-01-19T16:51:19Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = 521.748",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.MaxTime = <FLOAT>",
+    "variables": {
+      "FLOAT": "521.748"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0007 reading 646.2755 at 2026-01-10T08:50:51Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0007",
+      "FLOAT": "646.2755",
+      "ISO_TS": "2026-01-10T08:50:51Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_SP_053 completed in 65.94s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_SP_053",
+      "FLOAT": "65.94"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 Recipe RCP_CC_001 started on EQP_SP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "RECIPE_ID": "RCP_CC_001",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = 737.048",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Pressure = <FLOAT>",
+    "variables": {
+      "FLOAT": "737.048"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_020 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 615.1 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_020",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_CC_001",
+      "FLOAT": "615.1"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_013 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 703.0 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_013",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "703.0"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-20E2 event on MCH0001: module MOD_ETCH_002 de_err=0.035667",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-20E2",
+      "MCH_ID": "MCH0001",
+      "MODULE_ID": "MOD_ETCH_002",
+      "FLOAT": "0.035667"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_003 connected to EQP_NOVA_001 version VER_PVD_2.8.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_003",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_2.8.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 ER-4201 alarm triggered on EQP_CT_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "ERROR_CODE": "ER-4201",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 Recipe RCP_NOVA_001 started on EQP_SP_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_SP_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_009 exposure_handle=1095",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001",
+      "WAFER_ID": "WFR_CC_001",
+      "SLOT_ID": "SLOT_009",
+      "EXP_HANDLE": "1095"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_042 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_042"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_012 Lot LOT_AT_001 Wafer WFR_SP_001 temperature 594.1 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_012",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_SP_001",
+      "FLOAT": "594.1"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_002 connected to EQP_NOVA_001 version VER_PVD_2.1.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_002",
+      "EQP_ID": "EQP_NOVA_001",
+      "VERSION": "VER_PVD_2.1.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_006 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 412.0 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_006",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "412.0"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_005 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_005"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 231.872",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "231.872"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0004 reading 209.2243 at 2026-02-21T21:10:11Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0004",
+      "FLOAT": "209.2243",
+      "ISO_TS": "2026-02-21T21:10:11Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_MV_001 wafer WFR_SP_001 slot SLOT_010 exposure_handle=8233",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_010",
+      "EXP_HANDLE": "8233"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_014 exposure_handle=7773",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_014",
+      "EXP_HANDLE": "7773"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3411 event on MCH0002: module MOD_ETCH_001 de_err=0.043677",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3411",
+      "MCH_ID": "MCH0002",
+      "MODULE_ID": "MOD_ETCH_001",
+      "FLOAT": "0.043677"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_090 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_090"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 Recipe RCP_NOVA_001 started on EQP_CT_001",
+    "template": "Machine:<MCH_ID> Recipe <RECIPE_ID> started on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "EQP_ID": "EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_004 connected to EQP_CT_001 version VER_PVD_2.7.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_004",
+      "EQP_ID": "EQP_CT_001",
+      "VERSION": "VER_PVD_2.7.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_004 exposure_handle=7694",
+    "template": "Lot <LOT_ID> wafer <WAFER_ID> slot <SLOT_ID> exposure_handle=<EXP_HANDLE>",
+    "variables": {
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_SP_001",
+      "SLOT_ID": "SLOT_004",
+      "EXP_HANDLE": "7694"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0001 AT_EC_004 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 612.7 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0001",
+      "EC_ID": "AT_EC_004",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "612.7"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = 760.917",
+    "template": "Recipe step \\RECIPE\\STEPS\\STEP.Flow = <FLOAT>",
+    "variables": {
+      "FLOAT": "760.917"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0004 reading 749.8083 at 2026-03-27T05:01:17Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0004",
+      "FLOAT": "749.8083",
+      "ISO_TS": "2026-03-27T05:01:17Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-20E2 event on MCH0003: module MOD_ETCH_001 de_err=0.001359",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-20E2",
+      "MCH_ID": "MCH0003",
+      "MODULE_ID": "MOD_ETCH_001",
+      "FLOAT": "0.001359"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3620 event on MCH0001: module MOD_LITHO_002 de_err=0.013458",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3620",
+      "MCH_ID": "MCH0001",
+      "MODULE_ID": "MOD_LITHO_002",
+      "FLOAT": "0.013458"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Process job PRJOB_CC_065 completed in 109.47s",
+    "template": "Process job <PRJOB_ID> completed in <FLOAT>s",
+    "variables": {
+      "PRJOB_ID": "PRJOB_CC_065",
+      "FLOAT": "109.47"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Network NET_CC_003 connected to EQP_RTP_001 version VER_PVD_3.7.0",
+    "template": "Network <NET_ID> connected to <EQP_ID> version <VERSION>",
+    "variables": {
+      "NET_ID": "NET_CC_003",
+      "EQP_ID": "EQP_RTP_001",
+      "VERSION": "VER_PVD_3.7.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_002 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 ER-4201 alarm triggered on EQP_NOVA_001",
+    "template": "Machine:<MCH_ID> <ERROR_CODE> alarm triggered on <EQP_ID>",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "ERROR_CODE": "ER-4201",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0002 AT_EC_003 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 392.0 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0002",
+      "EC_ID": "AT_EC_003",
+      "LOT_ID": "LOT_AT_001",
+      "WAFER_ID": "WFR_AT_001",
+      "FLOAT": "392.0"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3411 event on MCH0002: module MOD_LITHO_001 de_err=0.009844",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3411",
+      "MCH_ID": "MCH0002",
+      "MODULE_ID": "MOD_LITHO_001",
+      "FLOAT": "0.009844"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Machine:MCH0003 AT_EC_019 Lot LOT_MV_001 Wafer WFR_SP_001 temperature 775.1 C",
+    "template": "Machine:<MCH_ID> <EC_ID> Lot <LOT_ID> Wafer <WAFER_ID> temperature <FLOAT> C",
+    "variables": {
+      "MCH_ID": "MCH0003",
+      "EC_ID": "AT_EC_019",
+      "LOT_ID": "LOT_MV_001",
+      "WAFER_ID": "WFR_SP_001",
+      "FLOAT": "775.1"
+    },
+    "parsed": 1,
+    "var_count": 5
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_PC_009 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_009"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Control job CJOB_NOVA_076 state transition: ACTIVE -> COMPLETE",
+    "template": "Control job <CJOB_ID> state transition: ACTIVE -> COMPLETE",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_076"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "Sensor SENSOR_0001 reading 421.6397 at 2026-01-12T10:12:42Z",
+    "template": "Sensor <SENSOR_ID> reading <FLOAT> at <ISO_TS>",
+    "variables": {
+      "SENSOR_ID": "SENSOR_0001",
+      "FLOAT": "421.6397",
+      "ISO_TS": "2026-01-12T10:12:42Z"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_synthetic_fab_20260521T044756_42",
+    "timestamp_utc": "2026-05-21T04:47:56.971385+00:00",
+    "raw": "DW-3620 event on MCH0002: module MOD_LITHO_002 de_err=0.017894",
+    "template": "<DW_CODE> event on <MCH_ID>: module <MODULE_ID> de_err=<FLOAT>",
+    "variables": {
+      "DW_CODE": "DW-3620",
+      "MCH_ID": "MCH0002",
+      "MODULE_ID": "MOD_LITHO_002",
+      "FLOAT": "0.017894"
+    },
+    "parsed": 1,
+    "var_count": 4
+  }
+]

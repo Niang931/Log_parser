@@ -1,0 +1,63 @@
+{
+  "run_id": "run_vendor2_plasmacore_recipe_details_20260521T055205_49",
+  "total_clusters": 3,
+  "template_fingerprint": "a927b8f7aaf4c17b",
+  "drain_stats": {
+    "new_cluster": 3
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "'<CJOB_ID>',",
+        "'EquipmentID':",
+        "'<EQP_ID>'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '<FLOAT>', 'FileType': 'Recipe'}",
+      "template_tokens": [
+        "{'FileGeneratorSoftwareVersion':",
+        "'Process',",
+        "'FileGeneratorVersion':",
+        "'<FLOAT>',",
+        "'FileType':",
+        "'Recipe'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "[{'Keys': {'PRJobID': '<PRJOB_ID>', 'RecipeID': '<RECIPE_ID>'}, 'Attributes': {'LotID': '<LOT_ID>', 'LayerName': 'SiO2_Etch', 'SubstrateType': '300mm_Si'}, 'ModuleProcessReports': [{'Keys': {'ModuleID': '<MODULE_ID>', 'RecipeStepID': '<FAB_TOKEN>', 'Wafer",
+      "template_tokens": [
+        "[{'Keys':",
+        "{'PRJobID':",
+        "'<PRJOB_ID>',",
+        "'RecipeID':",
+        "'<RECIPE_ID>'},",
+        "'Attributes':",
+        "{'LotID':",
+        "'<LOT_ID>',",
+        "'LayerName':",
+        "'SiO2_Etch',",
+        "'SubstrateType':",
+        "'300mm_Si'},",
+        "'ModuleProcessReports':",
+        "[{'Keys':",
+        "{'ModuleID':",
+        "'<MODULE_ID>',",
+        "'RecipeStepID':",
+        "'<FAB_TOKEN>',",
+        "'Wafer"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

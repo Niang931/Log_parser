@@ -1,0 +1,300 @@
+Machine:MCH0001 AT_EC_018 Lot LOT_TD_001 Wafer WFR_AT_001 temperature 218.6 C
+Control job CJOB_PC_069 state transition: ACTIVE -> COMPLETE
+Sensor SENSOR_0004 reading 163.2399 at 2026-03-27T07:43:20Z
+Network NET_CC_001 connected to EQP_CT_001 version VER_PVD_2.2.0
+DW-3411 event on MCH0002: module MOD_ETCH_001 de_err=0.018696
+Lot LOT_TD_001 wafer WFR_AT_001 slot SLOT_025 exposure_handle=4295
+Sensor SENSOR_0001 reading 70.9230 at 2026-01-20T02:32:15Z
+Process job PRJOB_SP_053 completed in 96.27s
+Recipe step \RECIPE\STEPS\STEP.Flow = 164.473
+Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_CT_001
+Process job PRJOB_SP_097 completed in 32.56s
+Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_CT_001
+Machine:MCH0003 ER-4102 alarm triggered on EQP_RTP_001
+Machine:MCH0002 ER-OFFF alarm triggered on EQP_NOVA_001
+Lot LOT_TD_001 wafer WFR_SP_001 slot SLOT_022 exposure_handle=6409
+Network NET_CC_003 connected to EQP_NOVA_001 version VER_PVD_2.6.0
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 224.417
+Recipe step \RECIPE\STEPS\STEP.Flow = 916.553
+Recipe step \RECIPE\STEPS\STEP.Pressure = 319.391
+Machine:MCH0001 Recipe RCP_CC_001 started on EQP_RTP_001
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 327.026
+Machine:MCH0003 AT_EC_020 Lot LOT_TD_001 Wafer WFR_AT_001 temperature 736.8 C
+Network NET_CC_002 connected to EQP_SP_001 version VER_PVD_4.2.0
+Network NET_CC_003 connected to EQP_RTP_001 version VER_PVD_3.9.0
+Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_009 exposure_handle=6023
+Sensor SENSOR_0010 reading 975.6304 at 2026-01-16T09:14:23Z
+Lot LOT_MV_001 wafer WFR_AT_001 slot SLOT_003 exposure_handle=5066
+Machine:MCH0003 AT_EC_017 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 872.1 C
+Recipe step \RECIPE\STEPS\STEP.Power = 660.522
+Recipe step \RECIPE\STEPS\STEP.Power = 733.800
+Sensor SENSOR_0007 reading 692.9803 at 2026-03-11T14:05:20Z
+Recipe step \RECIPE\STEPS\STEP.Flow = 121.306
+Recipe step \RECIPE\STEPS\STEP.Power = 507.733
+Machine:MCH0002 ER-OFFF alarm triggered on EQP_RTP_001
+Machine:MCH0002 AT_EC_014 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 796.2 C
+Process job PRJOB_AT_089 completed in 30.06s
+Recipe step \RECIPE\STEPS\STEP.Power = 73.789
+Network NET_CC_003 connected to EQP_CT_001 version VER_PVD_4.0.0
+Machine:MCH0002 AT_EC_005 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 527.8 C
+Network NET_CC_001 connected to EQP_CT_001 version VER_PVD_2.8.0
+Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_004 exposure_handle=8450
+Machine:MCH0003 AT_EC_002 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 769.1 C
+Machine:MCH0002 Recipe RCP_PVD_001 started on EQP_SP_001
+Machine:MCH0002 AT_EC_003 Lot LOT_TD_001 Wafer WFR_SP_001 temperature 755.2 C
+DW-20E2 event on MCH0003: module MOD_LITHO_001 de_err=0.043680
+Machine:MCH0002 Recipe RCP_CC_001 started on EQP_CT_001
+Control job CJOB_NOVA_012 state transition: ACTIVE -> COMPLETE
+DW-20E2 event on MCH0002: module MOD_ETCH_001 de_err=0.008785
+Process job PRJOB_AT_059 completed in 115.98s
+Machine:MCH0002 AT_EC_006 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 302.5 C
+Control job CJOB_PC_065 state transition: ACTIVE -> COMPLETE
+Control job CJOB_NOVA_065 state transition: ACTIVE -> COMPLETE
+Sensor SENSOR_0007 reading 642.8501 at 2026-03-26T02:41:42Z
+Control job CJOB_NOVA_085 state transition: ACTIVE -> COMPLETE
+Process job PRJOB_SP_060 completed in 77.30s
+DW-3411 event on MCH0001: module MOD_ETCH_001 de_err=0.022430
+Machine:MCH0002 Recipe RCP_NOVA_001 started on EQP_SP_001
+Network NET_CC_005 connected to EQP_SP_001 version VER_PVD_3.2.0
+Machine:MCH0003 ER-4201 alarm triggered on EQP_RTP_001
+Machine:MCH0002 AT_EC_011 Lot LOT_AT_001 Wafer WFR_SP_001 temperature 621.7 C
+Recipe step \RECIPE\STEPS\STEP.Power = 951.837
+Control job CJOB_PC_032 state transition: ACTIVE -> COMPLETE
+Machine:MCH0003 ER-4303 alarm triggered on EQP_RTP_001
+Network NET_CC_005 connected to EQP_NOVA_001 version VER_PVD_1.1.0
+Machine:MCH0002 ER-4102 alarm triggered on EQP_SP_001
+Process job PRJOB_SP_083 completed in 19.81s
+Lot LOT_TD_001 wafer WFR_SP_001 slot SLOT_016 exposure_handle=1379
+Machine:MCH0002 AT_EC_002 Lot LOT_TD_001 Wafer WFR_CC_001 temperature 501.6 C
+Lot LOT_AT_001 wafer WFR_CC_001 slot SLOT_011 exposure_handle=3662
+DW-20E2 event on MCH0003: module MOD_ETCH_003 de_err=0.026212
+Machine:MCH0003 ER-4102 alarm triggered on EQP_SP_001
+Recipe step \RECIPE\STEPS\STEP.Power = 704.196
+Control job CJOB_PC_096 state transition: ACTIVE -> COMPLETE
+Machine:MCH0003 AT_EC_016 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 262.6 C
+Machine:MCH0001 Recipe RCP_PVD_001 started on EQP_CT_001
+DW-3411 event on MCH0003: module MOD_LITHO_002 de_err=0.023270
+Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_003 exposure_handle=2838
+Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_SP_001
+Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_SP_001
+Machine:MCH0003 ER-OFFF alarm triggered on EQP_CT_001
+Process job PRJOB_CC_006 completed in 28.87s
+DW-3411 event on MCH0002: module MOD_ETCH_003 de_err=0.028119
+Machine:MCH0002 ER-4102 alarm triggered on EQP_SP_001
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 465.539
+Sensor SENSOR_0008 reading 460.3687 at 2026-01-27T15:11:58Z
+Machine:MCH0002 Recipe RCP_PVD_001 started on EQP_SP_001
+Machine:MCH0001 ER-4201 alarm triggered on EQP_NOVA_001
+Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_SP_001
+Machine:MCH0002 AT_EC_018 Lot LOT_TD_001 Wafer WFR_CC_001 temperature 506.0 C
+Machine:MCH0003 ER-4201 alarm triggered on EQP_RTP_001
+Machine:MCH0001 AT_EC_013 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 318.7 C
+Machine:MCH0002 AT_EC_020 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 634.1 C
+Control job CJOB_PC_036 state transition: ACTIVE -> COMPLETE
+Machine:MCH0003 ER-4201 alarm triggered on EQP_CT_001
+Network NET_CC_001 connected to EQP_RTP_001 version VER_PVD_2.5.0
+Lot LOT_TD_001 wafer WFR_SP_001 slot SLOT_013 exposure_handle=4022
+Machine:MCH0003 ER-4201 alarm triggered on EQP_RTP_001
+Control job CJOB_NOVA_041 state transition: ACTIVE -> COMPLETE
+Machine:MCH0002 ER-4102 alarm triggered on EQP_RTP_001
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 102.315
+Network NET_CC_004 connected to EQP_RTP_001 version VER_PVD_1.4.0
+Process job PRJOB_CC_081 completed in 12.08s
+Recipe step \RECIPE\STEPS\STEP.Flow = 130.465
+Process job PRJOB_CC_047 completed in 87.39s
+Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_020 exposure_handle=3688
+Recipe step \RECIPE\STEPS\STEP.Pressure = 729.279
+Process job PRJOB_SP_050 completed in 118.44s
+Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_NOVA_001
+Sensor SENSOR_0003 reading 119.3244 at 2026-01-25T11:33:33Z
+Machine:MCH0002 Recipe RCP_CC_001 started on EQP_RTP_001
+Machine:MCH0001 ER-OFFF alarm triggered on EQP_NOVA_001
+Machine:MCH0002 Recipe RCP_CC_001 started on EQP_SP_001
+Machine:MCH0001 AT_EC_009 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 259.4 C
+Control job CJOB_NOVA_014 state transition: ACTIVE -> COMPLETE
+Process job PRJOB_CC_007 completed in 12.27s
+Network NET_CC_003 connected to EQP_CT_001 version VER_PVD_2.2.0
+Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_SP_001
+DW-20E2 event on MCH0002: module MOD_ETCH_003 de_err=0.011828
+Network NET_CC_003 connected to EQP_CT_001 version VER_PVD_1.0.0
+Machine:MCH0003 AT_EC_019 Lot LOT_MV_001 Wafer WFR_CC_001 temperature 872.5 C
+Machine:MCH0001 ER-4102 alarm triggered on EQP_NOVA_001
+Control job CJOB_NOVA_053 state transition: ACTIVE -> COMPLETE
+Control job CJOB_PC_091 state transition: ACTIVE -> COMPLETE
+Machine:MCH0001 ER-4303 alarm triggered on EQP_CT_001
+Machine:MCH0002 ER-4303 alarm triggered on EQP_NOVA_001
+Machine:MCH0002 AT_EC_004 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 678.2 C
+Lot LOT_AT_001 wafer WFR_CC_001 slot SLOT_020 exposure_handle=7581
+Machine:MCH0002 Recipe RCP_PVD_001 started on EQP_CT_001
+Lot LOT_TD_001 wafer WFR_AT_001 slot SLOT_020 exposure_handle=8308
+Machine:MCH0002 ER-4102 alarm triggered on EQP_CT_001
+DW-3620 event on MCH0002: module MOD_LITHO_001 de_err=0.032806
+Process job PRJOB_CC_004 completed in 119.38s
+Sensor SENSOR_0007 reading 787.3026 at 2026-02-24T03:30:03Z
+Lot LOT_TD_001 wafer WFR_AT_001 slot SLOT_025 exposure_handle=2442
+Machine:MCH0003 ER-OFFF alarm triggered on EQP_RTP_001
+Machine:MCH0001 ER-4303 alarm triggered on EQP_NOVA_001
+Network NET_CC_005 connected to EQP_NOVA_001 version VER_PVD_3.9.0
+Machine:MCH0003 AT_EC_007 Lot LOT_TD_001 Wafer WFR_AT_001 temperature 227.6 C
+Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_009 exposure_handle=2522
+Control job CJOB_PC_054 state transition: ACTIVE -> COMPLETE
+Recipe step \RECIPE\STEPS\STEP.Flow = 522.581
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 458.636
+Machine:MCH0003 AT_EC_011 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 660.0 C
+Machine:MCH0001 Recipe RCP_NOVA_001 started on EQP_RTP_001
+Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_NOVA_001
+Sensor SENSOR_0003 reading 503.3900 at 2026-01-21T17:30:37Z
+Machine:MCH0002 Recipe RCP_NOVA_001 started on EQP_SP_001
+Control job CJOB_PC_097 state transition: ACTIVE -> COMPLETE
+Control job CJOB_PC_074 state transition: ACTIVE -> COMPLETE
+Control job CJOB_NOVA_086 state transition: ACTIVE -> COMPLETE
+Machine:MCH0002 Recipe RCP_CC_001 started on EQP_SP_001
+Machine:MCH0002 ER-OFFF alarm triggered on EQP_NOVA_001
+Sensor SENSOR_0003 reading 297.7591 at 2026-03-21T00:35:55Z
+Lot LOT_AT_001 wafer WFR_CC_001 slot SLOT_024 exposure_handle=8982
+Control job CJOB_NOVA_041 state transition: ACTIVE -> COMPLETE
+Sensor SENSOR_0010 reading 81.8926 at 2026-03-16T08:46:56Z
+Network NET_CC_004 connected to EQP_NOVA_001 version VER_PVD_2.2.0
+Recipe step \RECIPE\STEPS\STEP.Power = 469.205
+Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_016 exposure_handle=8844
+Recipe step \RECIPE\STEPS\STEP.Power = 166.176
+Machine:MCH0001 ER-4201 alarm triggered on EQP_RTP_001
+Lot LOT_MV_001 wafer WFR_CC_001 slot SLOT_008 exposure_handle=2373
+Sensor SENSOR_0007 reading 361.9082 at 2026-02-18T17:27:36Z
+Machine:MCH0002 ER-4303 alarm triggered on EQP_RTP_001
+Machine:MCH0002 AT_EC_013 Lot LOT_TD_001 Wafer WFR_CC_001 temperature 341.2 C
+Machine:MCH0001 ER-OFFF alarm triggered on EQP_CT_001
+Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_017 exposure_handle=9776
+Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_CT_001
+Machine:MCH0001 ER-OFFF alarm triggered on EQP_NOVA_001
+Recipe step \RECIPE\STEPS\STEP.Power = 379.049
+DW-3620 event on MCH0003: module MOD_ETCH_001 de_err=0.049778
+Lot LOT_MV_001 wafer WFR_SP_001 slot SLOT_019 exposure_handle=9821
+Machine:MCH0002 ER-OFFF alarm triggered on EQP_CT_001
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 102.907
+Sensor SENSOR_0008 reading 974.0066 at 2026-02-14T22:34:11Z
+Control job CJOB_PC_002 state transition: ACTIVE -> COMPLETE
+Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_023 exposure_handle=9060
+Process job PRJOB_AT_037 completed in 26.85s
+Machine:MCH0003 AT_EC_001 Lot LOT_TD_001 Wafer WFR_SP_001 temperature 714.7 C
+Machine:MCH0002 AT_EC_002 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 609.3 C
+Recipe step \RECIPE\STEPS\STEP.Power = 787.773
+Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_024 exposure_handle=2037
+Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_013 exposure_handle=9026
+Lot LOT_MV_001 wafer WFR_AT_001 slot SLOT_017 exposure_handle=2591
+Machine:MCH0003 AT_EC_017 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 521.1 C
+Control job CJOB_PC_099 state transition: ACTIVE -> COMPLETE
+Sensor SENSOR_0005 reading 91.8141 at 2026-03-12T23:20:50Z
+Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_RTP_001
+Machine:MCH0001 AT_EC_011 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 741.7 C
+Process job PRJOB_CC_053 completed in 37.27s
+Machine:MCH0003 AT_EC_001 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 576.6 C
+Sensor SENSOR_0006 reading 863.4181 at 2026-03-22T07:24:32Z
+Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_013 exposure_handle=3248
+Machine:MCH0003 AT_EC_014 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 344.7 C
+Lot LOT_MV_001 wafer WFR_AT_001 slot SLOT_012 exposure_handle=2302
+Recipe step \RECIPE\STEPS\STEP.Pressure = 763.775
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 876.902
+Recipe step \RECIPE\STEPS\STEP.Pressure = 135.172
+Machine:MCH0001 AT_EC_003 Lot LOT_MV_001 Wafer WFR_CC_001 temperature 319.6 C
+Sensor SENSOR_0010 reading 881.8203 at 2026-02-24T13:28:05Z
+Machine:MCH0001 ER-4201 alarm triggered on EQP_NOVA_001
+DW-20E2 event on MCH0003: module MOD_LITHO_003 de_err=0.026270
+Machine:MCH0003 ER-OFFF alarm triggered on EQP_RTP_001
+Sensor SENSOR_0010 reading 959.1528 at 2026-02-25T15:51:02Z
+Recipe step \RECIPE\STEPS\STEP.Flow = 280.180
+Sensor SENSOR_0004 reading 912.4406 at 2026-02-26T04:12:21Z
+Machine:MCH0001 ER-4102 alarm triggered on EQP_NOVA_001
+Machine:MCH0002 ER-4102 alarm triggered on EQP_NOVA_001
+DW-20E2 event on MCH0001: module MOD_ETCH_003 de_err=0.007186
+Control job CJOB_NOVA_061 state transition: ACTIVE -> COMPLETE
+Process job PRJOB_SP_027 completed in 88.98s
+Network NET_CC_005 connected to EQP_RTP_001 version VER_PVD_3.6.0
+Network NET_CC_002 connected to EQP_RTP_001 version VER_PVD_4.2.0
+DW-3411 event on MCH0001: module MOD_ETCH_003 de_err=0.017765
+Network NET_CC_005 connected to EQP_RTP_001 version VER_PVD_1.3.0
+Lot LOT_TD_001 wafer WFR_SP_001 slot SLOT_002 exposure_handle=5780
+Network NET_CC_002 connected to EQP_CT_001 version VER_PVD_4.2.0
+Machine:MCH0001 AT_EC_015 Lot LOT_MV_001 Wafer WFR_SP_001 temperature 281.2 C
+Machine:MCH0002 Recipe RCP_CC_001 started on EQP_RTP_001
+Machine:MCH0001 AT_EC_012 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 857.0 C
+Recipe step \RECIPE\STEPS\STEP.Pressure = 994.963
+Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_025 exposure_handle=9039
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 400.215
+Process job PRJOB_AT_081 completed in 29.38s
+Machine:MCH0002 Recipe RCP_NOVA_001 started on EQP_NOVA_001
+Network NET_CC_001 connected to EQP_NOVA_001 version VER_PVD_3.2.0
+Lot LOT_AT_001 wafer WFR_AT_001 slot SLOT_017 exposure_handle=8379
+DW-3620 event on MCH0001: module MOD_ETCH_001 de_err=0.009686
+Recipe step \RECIPE\STEPS\STEP.Pressure = 923.937
+Process job PRJOB_SP_029 completed in 22.19s
+Sensor SENSOR_0004 reading 86.3888 at 2026-01-28T15:53:29Z
+Network NET_CC_001 connected to EQP_NOVA_001 version VER_PVD_1.7.0
+Network NET_CC_001 connected to EQP_NOVA_001 version VER_PVD_3.0.0
+Machine:MCH0001 Recipe RCP_CC_001 started on EQP_RTP_001
+Machine:MCH0002 AT_EC_016 Lot LOT_MV_001 Wafer WFR_CC_001 temperature 818.8 C
+Machine:MCH0002 Recipe RCP_PVD_001 started on EQP_RTP_001
+Machine:MCH0002 ER-4102 alarm triggered on EQP_SP_001
+Lot LOT_MV_001 wafer WFR_SP_001 slot SLOT_025 exposure_handle=3409
+Network NET_CC_002 connected to EQP_RTP_001 version VER_PVD_1.1.0
+Lot LOT_MV_001 wafer WFR_CC_001 slot SLOT_024 exposure_handle=7944
+DW-3620 event on MCH0001: module MOD_LITHO_002 de_err=0.041140
+Recipe step \RECIPE\STEPS\STEP.Power = 905.886
+Machine:MCH0002 AT_EC_005 Lot LOT_TD_001 Wafer WFR_CC_001 temperature 838.5 C
+Lot LOT_MV_001 wafer WFR_SP_001 slot SLOT_003 exposure_handle=2909
+Machine:MCH0001 ER-4303 alarm triggered on EQP_RTP_001
+Machine:MCH0001 Recipe RCP_NOVA_001 started on EQP_NOVA_001
+Network NET_CC_005 connected to EQP_NOVA_001 version VER_PVD_2.6.0
+Recipe step \RECIPE\STEPS\STEP.Flow = 456.489
+Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_RTP_001
+Sensor SENSOR_0005 reading 488.8526 at 2026-01-13T23:03:53Z
+Machine:MCH0002 ER-OFFF alarm triggered on EQP_NOVA_001
+Machine:MCH0002 ER-OFFF alarm triggered on EQP_RTP_001
+Control job CJOB_NOVA_032 state transition: ACTIVE -> COMPLETE
+Machine:MCH0003 Recipe RCP_PVD_001 started on EQP_RTP_001
+Sensor SENSOR_0010 reading 800.3847 at 2026-01-19T16:51:19Z
+Recipe step \RECIPE\STEPS\STEP.MaxTime = 521.748
+Sensor SENSOR_0007 reading 646.2755 at 2026-01-10T08:50:51Z
+Machine:MCH0001 Recipe RCP_PVD_001 started on EQP_CT_001
+Process job PRJOB_SP_053 completed in 65.94s
+Machine:MCH0003 Recipe RCP_CC_001 started on EQP_SP_001
+Recipe step \RECIPE\STEPS\STEP.Pressure = 737.048
+Machine:MCH0001 AT_EC_020 Lot LOT_AT_001 Wafer WFR_CC_001 temperature 615.1 C
+Machine:MCH0002 AT_EC_013 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 703.0 C
+DW-20E2 event on MCH0001: module MOD_ETCH_002 de_err=0.035667
+Network NET_CC_003 connected to EQP_NOVA_001 version VER_PVD_2.8.0
+Machine:MCH0001 ER-4201 alarm triggered on EQP_CT_001
+Machine:MCH0001 Recipe RCP_NOVA_001 started on EQP_SP_001
+Lot LOT_TD_001 wafer WFR_CC_001 slot SLOT_009 exposure_handle=1095
+Control job CJOB_PC_042 state transition: ACTIVE -> COMPLETE
+Machine:MCH0002 AT_EC_012 Lot LOT_AT_001 Wafer WFR_SP_001 temperature 594.1 C
+Machine:MCH0002 ER-4102 alarm triggered on EQP_NOVA_001
+Network NET_CC_002 connected to EQP_NOVA_001 version VER_PVD_2.1.0
+Machine:MCH0002 AT_EC_006 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 412.0 C
+Machine:MCH0003 Recipe RCP_NOVA_001 started on EQP_SP_001
+Control job CJOB_PC_005 state transition: ACTIVE -> COMPLETE
+Recipe step \RECIPE\STEPS\STEP.Flow = 231.872
+Sensor SENSOR_0004 reading 209.2243 at 2026-02-21T21:10:11Z
+Lot LOT_MV_001 wafer WFR_SP_001 slot SLOT_010 exposure_handle=8233
+Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_014 exposure_handle=7773
+DW-3411 event on MCH0002: module MOD_ETCH_001 de_err=0.043677
+Control job CJOB_PC_090 state transition: ACTIVE -> COMPLETE
+Machine:MCH0001 Recipe RCP_NOVA_001 started on EQP_CT_001
+Network NET_CC_004 connected to EQP_CT_001 version VER_PVD_2.7.0
+Lot LOT_AT_001 wafer WFR_SP_001 slot SLOT_004 exposure_handle=7694
+Machine:MCH0001 AT_EC_004 Lot LOT_MV_001 Wafer WFR_AT_001 temperature 612.7 C
+Recipe step \RECIPE\STEPS\STEP.Flow = 760.917
+Sensor SENSOR_0004 reading 749.8083 at 2026-03-27T05:01:17Z
+DW-20E2 event on MCH0003: module MOD_ETCH_001 de_err=0.001359
+DW-3620 event on MCH0001: module MOD_LITHO_002 de_err=0.013458
+Process job PRJOB_CC_065 completed in 109.47s
+Network NET_CC_003 connected to EQP_RTP_001 version VER_PVD_3.7.0
+Control job CJOB_NOVA_002 state transition: ACTIVE -> COMPLETE
+Machine:MCH0003 ER-4201 alarm triggered on EQP_NOVA_001
+Machine:MCH0002 AT_EC_003 Lot LOT_AT_001 Wafer WFR_AT_001 temperature 392.0 C
+DW-3411 event on MCH0002: module MOD_LITHO_001 de_err=0.009844
+Machine:MCH0003 AT_EC_019 Lot LOT_MV_001 Wafer WFR_SP_001 temperature 775.1 C
+Control job CJOB_PC_009 state transition: ACTIVE -> COMPLETE
+Control job CJOB_NOVA_076 state transition: ACTIVE -> COMPLETE
+Sensor SENSOR_0001 reading 421.6397 at 2026-01-12T10:12:42Z
+DW-3620 event on MCH0002: module MOD_LITHO_002 de_err=0.017894

@@ -1,0 +1,76 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.164908+00:00,Recipe.noNamespaceSchemaLocation = http://www.metrovision.com/schema/Recipe/v2.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Recipe.noNamespaceSchemaLocation = http://www.metrovision.com/schema/Recipe/v2.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.164908+00:00,<RecipeID>RCP_MV_001</RecipeID>,<RecipeID><RECIPE_ID></RecipeID>,"{""RECIPE_ID"": ""RCP_MV_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.164908+00:00,<RecipeName>CD_OCD_M1_POLY_MEASURE_v3</RecipeName>,<RecipeName><FAB_TOKEN>v3</RecipeName>,"{""FAB_TOKEN"": ""CD_OCD_M1_POLY_MEASURE_""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.226904+00:00,<MachineID>EQP_MV_001</MachineID>,<MachineID><EQP_ID></MachineID>,"{""EQP_ID"": ""EQP_MV_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.226904+00:00,<MachineCustomerName>CUST_MV_001</MachineCustomerName>,<MachineCustomerName><CUST_ID></MachineCustomerName>,"{""CUST_ID"": ""CUST_MV_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.226904+00:00,<MachineType>MTYPE_OCD_001</MachineType>,<MachineType><MTYPE_ID></MachineType>,"{""MTYPE_ID"": ""MTYPE_OCD_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.643849+00:00,<SoftwareRelease>6.5.2</SoftwareRelease>,<SoftwareRelease><FLOAT>.2</SoftwareRelease>,"{""FLOAT"": ""6.5""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.643849+00:00,<CreatedBy>CREATOR_MV_001</CreatedBy>,<CreatedBy><CREATOR_ID></CreatedBy>,"{""CREATOR_ID"": ""CREATOR_MV_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.643849+00:00,<CreateTime>2026-01-10T00:00:00+00:00</CreateTime>,<CreateTime><ISO_TS></CreateTime>,"{""ISO_TS"": ""2026-01-10T00:00:00+00:00""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.703534+00:00,<DocumentID>DOC_MV_001</DocumentID>,<DocumentID><DOC_ID></DocumentID>,"{""DOC_ID"": ""DOC_MV_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.703534+00:00,<DocumentType>Recipe</DocumentType>,<DocumentType>Recipe</DocumentType>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.703534+00:00,<DocumentTypeVersion>v2.0</DocumentTypeVersion>,<DocumentTypeVersion>v<FLOAT></DocumentTypeVersion>,"{""FLOAT"": ""2.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.760996+00:00,<ApprovedBy>CREATOR_MV_002</ApprovedBy>,<ApprovedBy><CREATOR_ID></ApprovedBy>,"{""CREATOR_ID"": ""CREATOR_MV_002""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.760996+00:00,<ExpirationTime>2027-01-10T00:00:00+00:00</ExpirationTime>,<ExpirationTime><ISO_TS></ExpirationTime>,"{""ISO_TS"": ""2027-01-10T00:00:00+00:00""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.760996+00:00,<TargetMachineID>EQP_MV_001</TargetMachineID>,<TargetMachineID><EQP_ID></TargetMachineID>,"{""EQP_ID"": ""EQP_MV_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.826499+00:00,<TargetMachineCustomerName>CUST_MV_001</TargetMachineCustomerName>,<TargetMachineCustomerName><CUST_ID></TargetMachineCustomerName>,"{""CUST_ID"": ""CUST_MV_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.826499+00:00,Site.id = 1,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 1""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.826499+00:00,<X_mm>0.0</X_mm>,<X_mm><FLOAT></X_mm>,"{""FLOAT"": ""0.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.900767+00:00,<Y_mm>0.0</Y_mm>,<Y_mm><FLOAT></Y_mm>,"{""FLOAT"": ""0.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.900767+00:00,<Name>Center</Name>,<Name>Center</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.900767+00:00,Site.id = 2,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 2""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.978718+00:00,<X_mm>-50.0</X_mm>,<X_mm><FLOAT></X_mm>,"{""FLOAT"": ""-50.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.978718+00:00,<Name>Mid_Left</Name>,<Name>Mid_Left</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:08.978718+00:00,Site.id = 3,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 3""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.077204+00:00,<X_mm>50.0</X_mm>,<X_mm><FLOAT></X_mm>,"{""FLOAT"": ""50.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.077204+00:00,<Name>Mid_Right</Name>,<Name>Mid_Right</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.077204+00:00,Site.id = 4,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 4""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.142705+00:00,<Y_mm>-50.0</Y_mm>,<Y_mm><FLOAT></Y_mm>,"{""FLOAT"": ""-50.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.142705+00:00,<Name>Mid_Bottom</Name>,<Name>Mid_Bottom</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.142705+00:00,Site.id = 5,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 5""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.202104+00:00,<Y_mm>50.0</Y_mm>,<Y_mm><FLOAT></Y_mm>,"{""FLOAT"": ""50.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.202104+00:00,<Name>Mid_Top</Name>,<Name>Mid_Top</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.202104+00:00,Site.id = 6,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 6""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.261439+00:00,<X_mm>-100.0</X_mm>,<X_mm><FLOAT></X_mm>,"{""FLOAT"": ""-100.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.261439+00:00,<Name>Edge_Left</Name>,<Name>Edge_Left</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.261439+00:00,Site.id = 7,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 7""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.329201+00:00,<X_mm>100.0</X_mm>,<X_mm><FLOAT></X_mm>,"{""FLOAT"": ""100.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.329201+00:00,<Name>Edge_Right</Name>,<Name>Edge_Right</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.329201+00:00,Site.id = 8,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 8""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.392971+00:00,<Y_mm>-100.0</Y_mm>,<Y_mm><FLOAT></Y_mm>,"{""FLOAT"": ""-100.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.392971+00:00,<Name>Edge_Bottom</Name>,<Name>Edge_Bottom</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.392971+00:00,Site.id = 9,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Site.id = 9""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.452042+00:00,<Y_mm>100.0</Y_mm>,<Y_mm><FLOAT></Y_mm>,"{""FLOAT"": ""100.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.452042+00:00,<Name>Edge_Top</Name>,<Name>Edge_Top</Name>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.452042+00:00,Target.id = TGT_001,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Target.id = TGT_001""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.515814+00:00,<TargetName>Poly_CD_H</TargetName>,<TargetName>Poly_<FAB_TOKEN></TargetName>,"{""FAB_TOKEN"": ""CD_H""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.515814+00:00,<MeasurementType>OCD</MeasurementType>,<MeasurementType>OCD</MeasurementType>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.515814+00:00,<Wavelength_nm>193</Wavelength_nm>,<Wavelength_nm>193</Wavelength_nm>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.576789+00:00,<NumericalAperture>0.70</NumericalAperture>,<NumericalAperture><FLOAT></NumericalAperture>,"{""FLOAT"": ""0.70""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.576789+00:00,<ModelName>PolyGate_Model_v2</ModelName>,<ModelName>PolyGate_Model_v2</ModelName>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.576789+00:00,Param.name = CDtop,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.name = CDtop""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.655103+00:00,Param.target_nm = 22.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.target_nm = 22.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.655103+00:00,Param.tolerance_nm = 2.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.tolerance_nm = 2.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.655103+00:00,"Param name=""CDtop"" target_nm=""22.0"" tolerance_nm=""2.0""","Param <ATTR_KV> target_nm=""<FLOAT>"" tolerance_nm=""<FLOAT>""","{""ATTR_KV"": ""name=\""CDtop\"""", ""FLOAT"": ""2.0""}",1,2
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.840695+00:00,Param.name = CDmid,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.name = CDmid""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.840695+00:00,Param.target_nm = 26.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.target_nm = 26.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.840695+00:00,"Param name=""CDmid"" target_nm=""26.0"" tolerance_nm=""2.0""","Param <ATTR_KV> target_nm=""<FLOAT>"" tolerance_nm=""<FLOAT>""","{""ATTR_KV"": ""name=\""CDmid\"""", ""FLOAT"": ""2.0""}",1,2
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.902437+00:00,Param.name = Height,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.name = Height""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.902437+00:00,Param.target_nm = 80.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.target_nm = 80.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.902437+00:00,Param.tolerance_nm = 5.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.tolerance_nm = 5.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.964600+00:00,"Param name=""Height"" target_nm=""80.0"" tolerance_nm=""5.0""","Param <ATTR_KV> target_nm=""<FLOAT>"" tolerance_nm=""<FLOAT>""","{""ATTR_KV"": ""name=\""Height\"""", ""FLOAT"": ""5.0""}",1,2
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.964600+00:00,Param.name = SWA,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.name = SWA""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:09.964600+00:00,Param.target_deg = 88.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.target_deg = 88.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.026028+00:00,Param.tolerance_deg = 1.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.tolerance_deg = 1.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.026028+00:00,"Param name=""SWA"" target_deg=""88.0"" tolerance_deg=""1.0""","Param <ATTR_KV> target_deg=""<FLOAT>"" tolerance_deg=""<FLOAT>""","{""ATTR_KV"": ""name=\""SWA\"""", ""FLOAT"": ""1.0""}",1,2
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.026028+00:00,<Sites>1 2 3 4 5 6 7 8 9</Sites>,<Sites>1 <NUM> <NUM> <NUM> <NUM> <NUM> <NUM> <NUM> 9</Sites>,"{""NUM"": ""8""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.089637+00:00,Target.id = TGT_002,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Target.id = TGT_002""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.089637+00:00,<TargetName>OxideThickness</TargetName>,<TargetName>OxideThickness</TargetName>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.089637+00:00,<MeasurementType>Reflectometry</MeasurementType>,<MeasurementType>Reflectometry</MeasurementType>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.148523+00:00,<ModelName>SiO2_on_Si_Model</ModelName>,<ModelName>SiO2_on_Si_Model</ModelName>,{},0,0
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.148523+00:00,Param.name = Thickness_A,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.name = Thickness_A""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.148523+00:00,Param.target_A = 22.0,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.target_A = 22.0""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.212429+00:00,Param.tolerance_A = 0.5,<XML_ATTR_LINE>,"{""XML_ATTR_LINE"": ""Param.tolerance_A = 0.5""}",1,1
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.212429+00:00,"Param name=""Thickness_A"" target_A=""22.0"" tolerance_A=""0.5""","Param <ATTR_KV> target_A=""<FLOAT>"" tolerance_A=""<FLOAT>""","{""ATTR_KV"": ""name=\""Thickness_A\"""", ""FLOAT"": ""0.5""}",1,2
+run_vendor9_metrovision_recipe_details_20260521T055205_46,2026-05-21T05:52:10.212429+00:00,<Sites>1 5 9</Sites>,<Sites>1 <NUM> 9</Sites>,"{""NUM"": ""5""}",1,1

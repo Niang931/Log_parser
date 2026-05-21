@@ -1,0 +1,39 @@
+{
+  "run_id": "run_vendor2_plasmacore_machine_constants_20260521T044757_42",
+  "total_clusters": 2,
+  "template_fingerprint": "3b81b7480609a19b",
+  "drain_stats": {
+    "new_cluster": 2
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "'<CJOB_ID>',",
+        "'EquipmentID':",
+        "'<EQP_ID>'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '<FLOAT>', 'FileType': 'Recipe', 'Version': {'RecipeID': '<RECIPE_ID>",
+      "template_tokens": [
+        "{'FileGeneratorSoftwareVersion':",
+        "'Process',",
+        "'FileGeneratorVersion':",
+        "'<FLOAT>',",
+        "'FileType':",
+        "'Recipe',",
+        "'Version':",
+        "{'RecipeID':",
+        "'<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

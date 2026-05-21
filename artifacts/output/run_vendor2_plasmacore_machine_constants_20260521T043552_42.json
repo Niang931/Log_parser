@@ -1,0 +1,26 @@
+[
+  {
+    "run_id": "run_vendor2_plasmacore_machine_constants_20260521T043552_42",
+    "timestamp_utc": "2026-05-21T04:35:52.049450+00:00",
+    "raw": "{'CtrlJobID': 'CJOB_PC_001', 'EquipmentID': 'EQP_PC_001'}",
+    "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+    "variables": {
+      "CJOB_ID": "CJOB_PC_001",
+      "EQP_ID": "EQP_PC_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor2_plasmacore_machine_constants_20260521T043552_42",
+    "timestamp_utc": "2026-05-21T04:35:52.049450+00:00",
+    "raw": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '3.1', 'FileType': 'Recipe', 'Version': {'RecipeID': 'RCP_PC",
+    "template": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '<FLOAT>', 'FileType': 'Recipe', 'Version': {'RecipeID': '<RECIPE_ID>",
+    "variables": {
+      "FLOAT": "3.1",
+      "RECIPE_ID": "RCP_PC"
+    },
+    "parsed": 1,
+    "var_count": 2
+  }
+]

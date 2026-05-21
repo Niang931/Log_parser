@@ -1,0 +1,270 @@
+{
+  "summary": {
+    "llm_calls": 0,
+    "total_latency_s": 0,
+    "est_tokens_out": 0,
+    "events": 40
+  },
+  "events": [
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:51.185581+00:00",
+      "run_id": "run_BGL_sample_20260521T041651_42",
+      "input": "artifacts\\data\\BGL_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:51.187333+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:51.191943+00:00",
+      "kept": 500,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:51.199478+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:51.201227+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:51.683071+00:00",
+      "records": 500,
+      "templates": 157,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:51.684367+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 157,
+      "avg_wildcard_ratio": 0.49222917082917084
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:51.716853+00:00",
+      "elapsed_s": 0.531
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:51.721831+00:00",
+      "run_id": "run_HDFS_sample_20260521T041651_42",
+      "input": "artifacts\\data\\HDFS_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:51.724250+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:51.727186+00:00",
+      "kept": 500,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:51.732214+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:51.733894+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.071114+00:00",
+      "records": 500,
+      "templates": 20,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.072037+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 20,
+      "avg_wildcard_ratio": 0.4922256798756799
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.098801+00:00",
+      "elapsed_s": 0.377
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.101165+00:00",
+      "run_id": "run_synthetic_fab_20260521T041652_42",
+      "input": "artifacts\\data\\synthetic_fab.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.101937+00:00",
+      "lines": 300
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.103086+00:00",
+      "kept": 276,
+      "empty": 0,
+      "short": 0,
+      "dup": 24,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.104888+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.105839+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.256373+00:00",
+      "records": 276,
+      "templates": 13,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.257000+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 13,
+      "avg_wildcard_ratio": 0.35535139176443525
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.273756+00:00",
+      "elapsed_s": 0.173
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.277474+00:00",
+      "run_id": "run_vendor10_annealtech_machine_constants_20260521T041652_42",
+      "input": "artifacts\\data\\vendor10_annealtech_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.304639+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.304800+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.306172+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.307222+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.311088+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.311135+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.323267+00:00",
+      "elapsed_s": 0.046
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.325341+00:00",
+      "run_id": "run_vendor10_annealtech_recipe_details_20260521T041652_42",
+      "input": "artifacts\\data\\vendor10_annealtech_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.331945+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.332170+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.333616+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.334624+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.338149+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.338175+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.345582+00:00",
+      "elapsed_s": 0.02
+    }
+  ]
+}

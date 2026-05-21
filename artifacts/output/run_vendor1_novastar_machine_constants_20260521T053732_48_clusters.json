@@ -1,0 +1,49 @@
+{
+  "run_id": "run_vendor1_novastar_machine_constants_20260521T053732_48",
+  "total_clusters": 2,
+  "template_fingerprint": "c858689f86496285",
+  "drain_stats": {
+    "new_cluster": 2
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': None, 'ToolID': '<EQP_ID>', 'DateTime': '<DATE>T08:00:<FLOAT>Z'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "None,",
+        "'ToolID':",
+        "'<EQP_ID>',",
+        "'DateTime':",
+        "'<DATE>T08:00:<FLOAT>Z'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'Vendor': '<VENDOR_ID>', 'FileGeneratorSoftwareVersion': '<VERSION>', 'ToolID': '<EQP_ID>', 'NetworkAddress': '<NET_ID>', 'ExpirationDate': '6/30/2027', 'ProcessType': 'Lithography', 'EquipmentConstants': [{'Name': '<NAME_TOKEN>', 'ConstantID': '",
+      "template_tokens": [
+        "{'Vendor':",
+        "'<VENDOR_ID>',",
+        "'FileGeneratorSoftwareVersion':",
+        "'<VERSION>',",
+        "'ToolID':",
+        "'<EQP_ID>',",
+        "'NetworkAddress':",
+        "'<NET_ID>',",
+        "'ExpirationDate':",
+        "'6/30/2027',",
+        "'ProcessType':",
+        "'Lithography',",
+        "'EquipmentConstants':",
+        "[{'Name':",
+        "'<NAME_TOKEN>',",
+        "'ConstantID':",
+        "'"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

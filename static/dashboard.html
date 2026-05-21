@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DeepParse v2 — Silicon-Fab Log Parser</title>
+<style>
+:root{
+  --bg:#0b0d14;--surface:#13162a;--card:#1a1d2e;--border:#2a2d42;
+  --accent:#6366f1;--accent2:#8b5cf6;--green:#10b981;--amber:#f59e0b;
+  --red:#ef4444;--blue:#3b82f6;--text:#e2e8f0;--muted:#64748b;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono','Fira Code',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+header{
+  background:linear-gradient(135deg,#1a1d2e,#0f1323);
+  border-bottom:1px solid var(--border);padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  height:64px;position:sticky;top:0;z-index:100
+}
+.logo{display:flex;align-items:center;gap:.75rem}
+.logo-icon{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-size:1.1rem;font-weight:700;letter-spacing:-.5px}
+.logo-sub{font-size:.7rem;color:var(--muted)}
+.hbadges{display:flex;gap:.5rem;align-items:center}
+.badge{padding:.2rem .6rem;border-radius:20px;font-size:.7rem;font-weight:600;border:1px solid}
+.badge-green{color:var(--green);border-color:var(--green);background:rgba(16,185,129,.1)}
+.badge-accent{color:var(--accent);border-color:var(--accent);background:rgba(99,102,241,.1)}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);padding:0 2rem}
+.tab{padding:.9rem 1.4rem;font-size:.85rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.content{padding:2rem;max-width:1400px;margin:0 auto}
+.pane{display:none}.pane.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
+.card-title{font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+
+/* ── Upload zone ── */
+.upload-zone{
+  border:2px dashed var(--border);border-radius:12px;
+  padding:2.5rem 2rem;text-align:center;cursor:pointer;
+  transition:all .2s;position:relative;
+}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(99,102,241,.05)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.upload-icon{font-size:2.5rem;margin-bottom:.75rem}
+.upload-title{font-size:1rem;font-weight:600;margin-bottom:.4rem}
+.upload-sub{font-size:.8rem;color:var(--muted)}
+
+/* ── File queue ── */
+.file-queue{margin-top:1rem;display:flex;flex-direction:column;gap:.5rem;max-height:300px;overflow-y:auto}
+.file-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:.75rem 1rem;
+  display:flex;align-items:center;gap:.75rem;
+  transition:border-color .2s;
+}
+.file-card.running{border-color:var(--accent)}
+.file-card.done{border-color:var(--green)}
+.file-card.error{border-color:var(--red)}
+.file-card.skipped{opacity:.5}
+.file-icon{font-size:1.2rem;flex-shrink:0}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-meta{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+.file-prog{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.4rem}
+.file-prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .3s}
+.file-prog-fill.done{background:var(--green)}
+.file-prog-fill.error{background:var(--red)}
+.file-status{flex-shrink:0;font-size:.72rem;font-weight:600;text-align:right;min-width:52px}
+.status-queued{color:var(--muted)}
+.status-running{color:var(--accent)}
+.status-done{color:var(--green)}
+.status-error{color:var(--red)}
+.file-rate{font-size:.85rem;font-weight:700;flex-shrink:0;min-width:42px;text-align:right}
+.file-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;padding:0 .2rem;flex-shrink:0}
+.file-del:hover{color:var(--red)}
+
+/* ── Settings ── */
+.settings-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin:1.2rem 0}
+.setting label{font-size:.72rem;color:var(--muted);display:block;margin-bottom:.3rem}
+.setting select,.setting input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.45rem .7rem;color:var(--text);font-size:.82rem;font-family:var(--font)}
+.setting select:focus,.setting input:focus{outline:none;border-color:var(--accent)}
+
+/* ── Buttons ── */
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn-outline:hover{background:rgba(99,102,241,.1)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);padding:.4rem .8rem;font-size:.75rem}
+.btn-danger:hover{background:rgba(239,68,68,.1)}
+.btn-row{display:flex;gap:.75rem;align-items:center;margin-top:1rem}
+
+/* ── Aggregate metrics ── */
+.agg-bar{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:1rem 1.5rem;
+  display:flex;align-items:center;gap:2rem;flex-wrap:wrap;
+  margin-bottom:1.5rem;
+}
+.agg-item{text-align:center}
+.agg-val{font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums}
+.agg-lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.1rem}
+.agg-green .agg-val{color:var(--green)}
+.agg-accent .agg-val{color:var(--accent)}
+.agg-amber .agg-val{color:var(--amber)}
+.agg-blue .agg-val{color:var(--blue)}
+.agg-sep{width:1px;height:40px;background:var(--border)}
+
+/* ── Stages ── */
+.stages{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:.75rem 0}
+.stage{flex:1;padding:.5rem .3rem;text-align:center;font-size:.65rem;font-weight:600;color:var(--muted);border-right:1px solid var(--border);transition:all .3s;display:flex;flex-direction:column;align-items:center;gap:.15rem}
+.stage:last-child{border-right:none}
+.stage .si{font-size:1rem}
+.stage.active{background:rgba(99,102,241,.15);color:var(--accent)}
+.stage.done{background:rgba(16,185,129,.1);color:var(--green)}
+.stage.error{background:rgba(239,68,68,.1);color:var(--red)}
+
+/* ── Metric tiles ── */
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.metric-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.metric-value{font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums;margin:.15rem 0}
+.metric-sub{font-size:.7rem;color:var(--muted)}
+.mg .metric-value{color:var(--green)}
+.ma .metric-value{color:var(--accent)}
+.mb .metric-value{color:var(--blue)}
+.mam .metric-value{color:var(--amber)}
+
+/* ── Log stream ── */
+.log-stream{background:var(--surface);border:1px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:.72rem;height:200px;overflow-y:auto;padding:.65rem}
+.ll{margin-bottom:.35rem;line-height:1.5}
+.ll .tag{display:inline-block;padding:.05rem .35rem;border-radius:4px;font-size:.62rem;font-weight:700;margin-right:.35rem}
+.tag-stage{background:rgba(99,102,241,.2);color:var(--accent)}
+.tag-ok{background:rgba(16,185,129,.2);color:var(--green)}
+.tag-warn{background:rgba(245,158,11,.2);color:var(--amber)}
+.tag-err{background:rgba(239,68,68,.2);color:var(--red)}
+.tag-info{background:rgba(59,130,246,.2);color:var(--blue)}
+
+/* ── Record cards ── */
+.record-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.8rem;margin-bottom:.6rem;animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.record-raw{color:var(--muted);font-size:.72rem;font-family:var(--mono);margin-bottom:.35rem}
+.record-tmpl{color:var(--text);font-size:.74rem;font-family:var(--mono);margin-bottom:.45rem}
+.record-tmpl .mask{color:var(--accent);font-weight:600}
+.vars-row{display:flex;flex-wrap:wrap;gap:.35rem}
+.var-chip{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:.12rem .5rem;font-size:.65rem;font-family:var(--mono)}
+.var-chip .vk{color:var(--muted)}
+.var-chip .vv{color:var(--accent);font-weight:600}
+.record-src{font-size:.62rem;color:var(--muted);margin-bottom:.25rem;font-style:italic}
+
+/* ── Cluster table ── */
+.cluster-row{display:flex;align-items:center;gap:.75rem;padding:.55rem .75rem;border-radius:8px;border:1px solid var(--border);margin-bottom:.4rem;background:var(--surface)}
+.cluster-size{min-width:38px;height:38px;border-radius:8px;background:rgba(99,102,241,.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.cluster-tmpl{font-family:var(--mono);font-size:.72rem;flex:1}
+.cluster-tmpl .mask{color:var(--accent)}
+.stab-bar{width:50px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0}
+.stab-fill{height:100%;background:var(--green);border-radius:3px}
+
+/* ── History table ── */
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{text-align:left;color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:.5rem .7rem;border-bottom:1px solid var(--border)}
+td{padding:.55rem .7rem;border-bottom:1px solid rgba(42,45,66,.6)}
+tr:hover td{background:rgba(99,102,241,.04)}
+.rh{color:var(--green);font-weight:700}
+.rm{color:var(--amber);font-weight:700}
+.rl{color:var(--red);font-weight:700}
+
+/* ── Arch boxes ── */
+.arch-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;display:flex;align-items:flex-start;gap:.85rem;margin-bottom:.5rem}
+.arch-icon{font-size:1.3rem;flex-shrink:0;margin-top:.1rem}
+.arch-title{font-weight:600;font-size:.85rem;margin-bottom:.25rem}
+.arch-desc{font-size:.74rem;color:var(--muted);line-height:1.5}
+.arch-badge{display:inline-block;padding:.08rem .45rem;border-radius:4px;font-size:.62rem;font-weight:600;margin-top:.35rem;background:rgba(99,102,241,.15);color:var(--accent)}
+.arch-arrow{text-align:center;color:var(--muted);font-size:1rem;margin:.2rem 0}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.section-title{font-size:1rem;font-weight:700;margin-bottom:1rem}
+.mt1{margin-top:1rem}.mt2{margin-top:1.5rem}
+.flex-row{display:flex;align-items:center;gap:.75rem}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.pill{padding:.12rem .5rem;border-radius:20px;font-size:.65rem;font-weight:600}
+.pill-green{background:rgba(16,185,129,.15);color:var(--green)}
+.pill-amber{background:rgba(245,158,11,.15);color:var(--amber)}
+.pill-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.empty-state{text-align:center;color:var(--muted);padding:2.5rem;font-size:.88rem}
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚙</div>
+    <div>
+      <div class="logo-text">DeepParse v2</div>
+      <div class="logo-sub">Silicon-Fab Log Parsing Pipeline</div>
+    </div>
+  </div>
+  <div class="hbadges">
+    <span class="badge badge-green" id="hb-db">● 0 runs</span>
+    <span class="badge badge-accent" id="hb-llm">LLM: —</span>
+    <span class="badge badge-accent" id="hb-active">0 active</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('demo')">🚀 Live Demo</div>
+  <div class="tab" onclick="switchTab('results')">📊 Results</div>
+  <div class="tab" onclick="switchTab('history')">📋 History</div>
+  <div class="tab" onclick="switchTab('arch')">🏗 Architecture</div>
+  <div class="tab" onclick="switchTab('api')">⚡ API</div>
+</div>
+
+<div class="content">
+
+<!-- ══ TAB 1: LIVE DEMO ══ -->
+<div class="pane active" id="pane-demo">
+
+  <!-- Aggregate metrics bar (shown once at least one run starts) -->
+  <div class="agg-bar" id="agg-bar" style="display:none">
+    <div class="agg-item agg-green">
+      <div class="agg-val" id="agg-rate">—</div>
+      <div class="agg-lbl">Avg Parse Rate</div>
+    </div>
+    <div class="agg-sep"></div>
+    <div class="agg-item agg-accent">
+      <div class="agg-val" id="agg-files">0/0</div>
+      <div class="agg-lbl">Files Done</div>
+    </div>
+    <div class="agg-sep"></div>
+    <div class="agg-item agg-blue">
+      <div class="agg-val" id="agg-records">0</div>
+      <div class="agg-lbl">Total Records</div>
+    </div>
+    <div class="agg-sep"></div>
+    <div class="agg-item agg-amber">
+      <div class="agg-val" id="agg-templates">0</div>
+      <div class="agg-lbl">Templates Found</div>
+    </div>
+    <div class="agg-sep"></div>
+    <div class="agg-item">
+      <div class="agg-val" id="agg-llm" style="color:var(--muted)">0</div>
+      <div class="agg-lbl">LLM Calls</div>
+    </div>
+  </div>
+
+  <div class="g2">
+
+    <!-- LEFT: upload + file queue + settings -->
+    <div>
+      <div class="card">
+        <div class="card-title">📂 Upload Files</div>
+
+        <div class="upload-zone" id="dropzone">
+          <input type="file" id="file-input" multiple
+                 accept=".log,.txt,.csv,.tsv,.json,.jsonl,.xml,.yaml,.yml,.ini"
+                 onchange="onFilesSelected(this.files)"/>
+          <div class="upload-icon">📂</div>
+          <div class="upload-title" id="upload-title">Drop files here or click to browse</div>
+          <div class="upload-sub">Multiple files supported · .log .txt .csv .tsv .json .xml .yaml .ini · 50 MB each</div>
+        </div>
+
+        <!-- File queue list -->
+        <div id="file-queue" class="file-queue" style="display:none"></div>
+
+        <!-- Settings -->
+        <div class="settings-row">
+          <div class="setting">
+            <label>LLM Provider</label>
+            <select id="s-provider">
+              <option value="groq">Groq (Free)</option>
+              <option value="gemini">Gemini (Free)</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="mock">Mock (offline)</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>Adapt Threshold</label>
+            <input type="number" id="s-threshold" value="0.80" min="0.5" max="1.0" step="0.05"/>
+          </div>
+          <div class="setting">
+            <label>Drain Similarity</label>
+            <input type="number" id="s-drain-sim" value="0.3" min="0.1" max="0.9" step="0.05"/>
+          </div>
+          <div class="setting">
+            <label>Max Lines/File</label>
+            <input type="number" id="s-max-logs" value="1000" min="10" max="10000" step="100"/>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="parse-btn" onclick="startBatch()" disabled style="flex:1">
+            ▶ Parse All Files
+          </button>
+          <button class="btn btn-danger" id="clear-btn" onclick="clearQueue()" style="display:none">
+            ✕ Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Active file stage display -->
+      <div id="active-stage-wrap" style="display:none" class="mt1">
+        <div class="card">
+          <div class="card-title" id="active-file-label">⚡ Processing…</div>
+          <div class="stages" id="stages">
+            <div class="stage" id="st-load"> <span class="si">📥</span>Load</div>
+            <div class="stage" id="st-norm"> <span class="si">🧹</span>Norm</div>
+            <div class="stage" id="st-masks"><span class="si">🤖</span>LLM</div>
+            <div class="stage" id="st-drain"><span class="si">🌳</span>Drain</div>
+            <div class="stage" id="st-valid"><span class="si">✅</span>Valid</div>
+            <div class="stage" id="st-write"><span class="si">💾</span>Write</div>
+          </div>
+          <div class="g4 mt1">
+            <div class="metric mg"><div class="metric-label">Parse Rate</div><div class="metric-value" id="m-rate">—</div></div>
+            <div class="metric ma"><div class="metric-label">Templates</div><div class="metric-value" id="m-templates">—</div></div>
+            <div class="metric mb"><div class="metric-label">LLM Calls</div><div class="metric-value" id="m-llm">—</div></div>
+            <div class="metric mam"><div class="metric-label">Masks</div><div class="metric-value" id="m-masks">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event log -->
+      <div class="card mt1">
+        <div class="card-title">📡 Event Log</div>
+        <div class="log-stream" id="event-log">
+          <div class="ll" style="color:var(--muted)">Waiting for events…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: live records feed -->
+    <div>
+      <div class="card" style="height:100%">
+        <div class="flex-between" style="margin-bottom:.75rem">
+          <div class="card-title" style="margin:0">⚡ Live Parsed Records</div>
+          <div class="flex-row" style="gap:.5rem">
+            <span class="pill pill-blue" id="live-count">0 records</span>
+            <span class="pill pill-green" id="live-files">0 files</span>
+          </div>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:.75rem;overflow:hidden">
+          <div id="progress-bar" style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;border-radius:2px"></div>
+        </div>
+        <div id="records-feed" style="height:calc(100% - 56px);overflow-y:auto">
+          <div class="empty-state">Parsed records appear here in real-time<br/>as each file is processed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 2: RESULTS ══ -->
+<div class="pane" id="pane-results">
+  <div id="no-results" class="empty-state">Run a parse first to see results</div>
+  <div id="results-content" style="display:none">
+    <div class="flex-between" style="margin-bottom:1.5rem">
+      <div>
+        <div class="section-title" id="res-title">Batch Results</div>
+        <div style="font-size:.8rem;color:var(--muted)" id="res-subtitle">—</div>
+      </div>
+    </div>
+
+    <!-- Per-file results grid -->
+    <div id="res-file-grid" class="g3"></div>
+
+    <!-- Combined cluster + records -->
+    <div class="g2 mt2" id="res-detail">
+      <div class="card">
+        <div class="card-title">🌳 Top Templates (All Files)</div>
+        <div id="cluster-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📄 Sample Records</div>
+        <div id="sample-records"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 3: HISTORY ══ -->
+<div class="pane" id="pane-history">
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:1.25rem">
+      <div class="card-title" style="margin:0">📋 All Runs</div>
+      <button class="btn btn-outline" onclick="loadHistory()">↻ Refresh</button>
+    </div>
+    <div id="history-table"><div class="empty-state">No runs yet</div></div>
+  </div>
+</div>
+
+<!-- ══ TAB 4: ARCH ══ -->
+<div class="pane" id="pane-arch">
+  <div class="g2">
+    <div>
+      <div class="section-title">Pipeline Architecture</div>
+      <div class="arch-box"><div class="arch-icon">📥</div><div><div class="arch-title">1 · Multi-format Loader</div><div class="arch-desc">XML, JSON, CSV, TSV, YAML, INI, syslog, plain text. Auto-detects format. Key-value table detection. Strips syslog prefixes.</div><div class="arch-badge">6 loaders</div></div></div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-box"><div class="arch-icon">🛡</div><div><div class="arch-title">2 · Normalise + Guardrails</div><div class="arch-desc">Dedup, length cap, prompt-injection detection. Blocked: "ignore instructions", "DAN mode", system prompt injection.</div><div class="arch-badge">injection awareness</div></div></div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-box"><div class="arch-icon">🤖</div><div><div class="arch-title">3 · LLM Mask Synthesis</div><div class="arch-desc">Domain schema injected as grounding context. Self-consistency voting × 3 temperature-varied completions. LLM called once per run not per line.</div><div class="arch-badge">RAG-lite grounding</div></div></div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-box"><div class="arch-icon">🔄</div><div><div class="arch-title">4 · Adaptive Feedback Loop</div><div class="arch-desc">Probes parse-rate. Below threshold → re-synthesise on unparsed lines. Up to 3 rounds. Stops early when met.</div><div class="arch-badge">adaptive parsing</div></div></div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-box"><div class="arch-icon">🌳</div><div><div class="arch-title">5 · Drain Clustering</div><div class="arch-desc">Pre-masking before clustering. Named tokens not wildcards. Adaptive sim-threshold. Cluster stability scoring.</div><div class="arch-badge">original architecture</div></div></div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-box"><div class="arch-icon">✅</div><div><div class="arch-title">6 · JSON-Schema Validation</div><div class="arch-desc">Every record validated against OUTPUT_SCHEMA. Failures → quarantine table. Health check asserts fail fast.</div><div class="arch-badge">guardrails + validators</div></div></div>
+    </div>
+    <div>
+      <div class="section-title">Design Rationale</div>
+      <div class="card mt1">
+        <div class="card-title">Why Drain + LLM?</div>
+        <table><tr><th>Approach</th><th>Strength</th><th>Weakness</th></tr>
+        <tr><td>Regex only</td><td style="color:var(--green)">Fast</td><td style="color:var(--red)">Can't generalise</td></tr>
+        <tr><td>LLM per line</td><td style="color:var(--green)">Flexible</td><td style="color:var(--red)">Expensive at scale</td></tr>
+        <tr><td style="color:var(--accent);font-weight:700">Drain + LLM masks</td><td style="color:var(--green)">Generalises, O(1) cost</td><td style="color:var(--amber)">Needs sample</td></tr></table>
+        <div style="margin-top:.65rem;font-size:.75rem;color:var(--muted)">LLM synthesises masks <strong style="color:var(--text)">once</strong>; Drain applies them at O(n). 500 lines = 1–4 LLM calls.</div>
+      </div>
+      <div class="card mt1">
+        <div class="card-title">Reproducibility</div>
+        <div style="font-size:.76rem;color:var(--muted);line-height:1.7">• Global seed controls all RNG<br/>• Deterministic run_id per file + seed<br/>• Drain state serialised for warm-start<br/>• Template fingerprint (SHA-256) cross-run verify<br/>• Mask cache reused on identical file stems</div>
+      </div>
+      <div class="card mt1">
+        <div class="card-title">Security</div>
+        <div style="font-size:.76rem;color:var(--muted);line-height:1.7">• Prompt-injection blocklist on every line<br/>• File extension allowlist (.log .csv .xml etc)<br/>• 50 MB upload cap, max 20 files per batch<br/>• API keys via .env — never in source<br/>• Docker: non-root uid 10001, read-only mount</div>
+      </div>
+      <div class="card mt1">
+        <div class="card-title">Cost / Latency</div>
+        <div style="font-size:.76rem;color:var(--muted);line-height:1.7">• <strong style="color:var(--green)">Groq free</strong>: 14,400 req/day, fastest inference<br/>• <strong style="color:var(--blue)">Gemini Flash free</strong>: 1,500 req/day<br/>• Batch files staggered 0.5s apart (no LLM overload)<br/>• Mask cache reused across same-format files<br/>• Adaptive loop stops early — never over-calls</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 5: API ══ -->
+<div class="pane" id="pane-api">
+  <div class="section-title">REST API Reference</div>
+  <div class="g2">
+    <div>
+      <div class="card">
+        <div class="card-title">Endpoints</div>
+        <table>
+          <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+          <tr><td><span class="pill pill-green">POST</span></td><td><code>/api/parse</code></td><td>Single file → run_id</td></tr>
+          <tr><td><span class="pill pill-green">POST</span></td><td><code>/api/parse-batch</code></td><td>Multiple files → run_ids</td></tr>
+          <tr><td><span class="pill pill-blue">GET</span></td><td><code>/api/stream/{id}</code></td><td>SSE live events</td></tr>
+          <tr><td><span class="pill pill-blue">GET</span></td><td><code>/api/runs</code></td><td>List all runs</td></tr>
+          <tr><td><span class="pill pill-blue">GET</span></td><td><code>/api/runs/{id}</code></td><td>Run detail</td></tr>
+          <tr><td><span class="pill pill-blue">GET</span></td><td><code>/api/runs/{id}/records</code></td><td>Paginated records</td></tr>
+          <tr><td><span class="pill pill-blue">GET</span></td><td><code>/api/runs/{id}/download/csv</code></td><td>Download CSV</td></tr>
+          <tr><td><span class="pill pill-blue">GET</span></td><td><code>/api/health</code></td><td>Health check</td></tr>
+        </table>
+      </div>
+      <div class="card mt1">
+        <div class="card-title">System Health</div>
+        <pre id="health-pre" style="font-size:.7rem;color:var(--muted);font-family:var(--mono);line-height:1.6;white-space:pre-wrap">Loading…</pre>
+        <button class="btn btn-outline" style="margin-top:.65rem" onclick="refreshHealth()">↻ Refresh</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Batch upload example</div>
+        <pre style="font-size:.7rem;color:var(--accent);font-family:var(--mono);line-height:1.8;white-space:pre-wrap">curl -X POST http://localhost:8000/api/parse-batch \
+  -F "files=@fab1.log" \
+  -F "files=@recipes.xml" \
+  -F "files=@constants.csv" \
+  -F "llm_provider=groq"
+
+# Response:
+{
+  "batch_size": 3,
+  "queued": 3,
+  "runs": [
+    {"run_id": "run_fab1_...", "stream": "/api/stream/..."},
+    {"run_id": "run_recipes_...", "stream": "/api/stream/..."},
+    {"run_id": "run_constants_...", "stream": "/api/stream/..."}
+  ]
+}</pre>
+      </div>
+      <div class="card mt1">
+        <div class="card-title">Stream all batch runs</div>
+        <pre style="font-size:.7rem;color:var(--accent);font-family:var(--mono);line-height:1.8;white-space:pre-wrap">const resp = await fetch('/api/parse-batch', {
+  method: 'POST', body: formData
+});
+const {runs} = await resp.json();
+
+// Subscribe to each run's SSE stream
+runs.forEach(run => {
+  const es = new EventSource(run.stream);
+  es.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    if (ev.type === 'done') {
+      updateFileCard(run.run_id, ev);
+      es.close();
+    }
+  };
+});</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const queue     = [];          // {file, name, size, status, runId, es}
+const runMeta   = {};          // runId → summary
+let   totalRecs = 0;
+let   totalTmpl = 0;
+let   totalLLM  = 0;
+let   doneCount = 0;
+let   activeStreams = 0;
+
+// ═══════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════
+function switchTab(name) {
+  const names = ['demo','results','history','arch','api'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-'+name).classList.add('active');
+  if (name==='history') loadHistory();
+  if (name==='api') refreshHealth();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FILE SELECTION
+// ═══════════════════════════════════════════════════════════
+function onFilesSelected(files) {
+  Array.from(files).forEach(addFileToQueue);
+  renderQueue();
+}
+
+function addFileToQueue(file) {
+  if (queue.some(q => q.name === file.name && q.size === file.size)) return; // skip dup
+  queue.push({file, name:file.name, size:file.size, status:'queued', runId:null, es:null, progress:0});
+}
+
+function removeFromQueue(idx) {
+  const item = queue[idx];
+  if (item.es) item.es.close();
+  queue.splice(idx, 1);
+  renderQueue();
+}
+
+function clearQueue() {
+  queue.forEach(q => { if (q.es) q.es.close(); });
+  queue.length = 0;
+  renderQueue();
+  document.getElementById('records-feed').innerHTML =
+    '<div class="empty-state">Parsed records appear here in real-time</div>';
+  document.getElementById('event-log').innerHTML =
+    '<div class="ll" style="color:var(--muted)">Waiting for events…</div>';
+  resetAgg();
+  document.getElementById('agg-bar').style.display = 'none';
+  document.getElementById('active-stage-wrap').style.display = 'none';
+}
+
+function renderQueue() {
+  const el = document.getElementById('file-queue');
+  const hasFiles = queue.length > 0;
+  el.style.display = hasFiles ? 'flex' : 'none';
+  document.getElementById('parse-btn').disabled = !hasFiles;
+  document.getElementById('clear-btn').style.display = hasFiles ? 'inline-block' : 'none';
+  document.getElementById('upload-title').textContent =
+    hasFiles ? `${queue.length} file${queue.length>1?'s':''} ready` : 'Drop files here or click to browse';
+
+  el.innerHTML = queue.map((q,i) => {
+    const icon = {queued:'⏳', running:'⚡', done:'✅', error:'❌', skipped:'⚠️'}[q.status] || '📄';
+    const statCls = 'status-'+q.status;
+    const statTxt = {queued:'Queued', running:'Running', done:'Done', error:'Error', skipped:'Skipped'}[q.status];
+    const rateTxt = q.rate !== undefined ? Math.round(q.rate*100)+'%' : '';
+    const rateCol = q.rate>=.85 ? 'color:var(--green)' : q.rate>=.65 ? 'color:var(--amber)' : 'color:var(--red)';
+    const progFillCls = q.status==='done' ? 'done' : q.status==='error' ? 'error' : '';
+    return `<div class="file-card ${q.status}" id="fc-${i}">
+      <div class="file-icon">${icon}</div>
+      <div class="file-info">
+        <div class="file-name">${esc(q.name)}</div>
+        <div class="file-meta">${(q.size/1024).toFixed(1)} KB ${q.template_count ? `· ${q.template_count} templates` : ''}</div>
+        <div class="file-prog"><div class="file-prog-fill ${progFillCls}" style="width:${q.progress||0}%"></div></div>
+      </div>
+      <div class="file-rate" style="${rateCol}">${rateTxt}</div>
+      <div class="file-status ${statCls}">${statTxt}</div>
+      ${q.status==='queued' ? `<button class="file-del" onclick="removeFromQueue(${i})" title="Remove">✕</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// Drag and drop
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  onFilesSelected(e.dataTransfer.files);
+});
+
+// ═══════════════════════════════════════════════════════════
+// BATCH PARSE
+// ═══════════════════════════════════════════════════════════
+async function startBatch() {
+  const pending = queue.filter(q => q.status === 'queued');
+  if (!pending.length) return;
+
+  document.getElementById('parse-btn').disabled = true;
+  document.getElementById('agg-bar').style.display = 'flex';
+  document.getElementById('active-stage-wrap').style.display = 'block';
+
+  // Build FormData with all queued files
+  const fd  = new FormData();
+  const qs  = new URLSearchParams({
+    llm_provider:       document.getElementById('s-provider').value,
+    adaptive_threshold: document.getElementById('s-threshold').value,
+    drain_sim:          document.getElementById('s-drain-sim').value,
+    max_logs:           document.getElementById('s-max-logs').value,
+  });
+  pending.forEach(q => fd.append('files', q.file));
+
+  pushLog('info','BATCH',`Uploading ${pending.length} file${pending.length>1?'s':''}…`);
+
+  try {
+    const resp = await fetch('/api/parse-batch?'+qs, {method:'POST', body:fd});
+    if (!resp.ok) {
+      const err = await resp.json();
+      pushLog('err','ERROR', err.detail||'Upload failed');
+      document.getElementById('parse-btn').disabled = false;
+      return;
+    }
+    const data = await resp.json();
+    pushLog('ok','BATCH',`${data.queued} runs queued${data.skipped?' ('+data.skipped+' skipped)':''}`);
+
+    // Map run results back to queue items
+    let ri = 0;
+    pending.forEach(q => {
+      const run = data.runs[ri++];
+      if (!run) return;
+      if (run.skipped) {
+        q.status = 'skipped';
+      } else {
+        q.status = 'running';
+        q.runId  = run.run_id;
+        subscribeToRun(q, run.run_id);
+      }
+    });
+    renderQueue();
+    updateAggBadge();
+
+  } catch(e) {
+    pushLog('err','ERROR', e.message);
+    document.getElementById('parse-btn').disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SSE PER RUN
+// ═══════════════════════════════════════════════════════════
+function subscribeToRun(qItem, runId) {
+  activeStreams++;
+  updateAggBadge();
+  const es = new EventSource(`/api/stream/${runId}`);
+  qItem.es = es;
+
+  es.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    handleRunEvent(qItem, runId, ev);
+  };
+  es.onerror = () => {
+    if (qItem.status === 'running') {
+      qItem.status = 'error';
+      renderQueue();
+      activeStreams = Math.max(0, activeStreams-1);
+      updateAggBadge();
+    }
+  };
+}
+
+function handleRunEvent(qItem, runId, ev) {
+  // Mirror stage indicators for the most recently active run
+  const isLatest = queue.filter(q=>q.status==='running').pop() === qItem ||
+                   queue.every(q=>q.status!=='running');
+
+  if (ev.type === 'stage') {
+    if (isLatest) {
+      setStage(ev.stage, 'active');
+      document.getElementById('active-file-label').textContent = `⚡ ${qItem.name} — ${ev.stage}`;
+    }
+    pushLog('stage', qItem.name.split('.')[0].substring(0,8).toUpperCase(), ev.message);
+  }
+
+  if (ev.type === 'load_done')      { if(isLatest) setStage('load','done'); }
+  if (ev.type === 'normalise_done') { if(isLatest) setStage('norm','done'); }
+
+  if (ev.type === 'masks_done') {
+    if (isLatest) {
+      setStage('masks','done');
+      document.getElementById('m-masks').textContent = ev.mask_count;
+      document.getElementById('m-llm').textContent   = ev.llm_calls;
+    }
+    totalLLM += (ev.llm_calls||0);
+    document.getElementById('agg-llm').textContent = totalLLM;
+  }
+
+  if (ev.type === 'records_batch') {
+    qItem.progress = ev.progress||0;
+    const pct = ev.total_so_far>0 ? Math.round(ev.parsed_so_far/ev.total_so_far*100) : 0;
+    if (isLatest) {
+      document.getElementById('m-rate').textContent = pct+'%';
+      setStage('drain','active');
+    }
+    renderQueue();
+    renderLiveRecords(ev.sample||[], qItem.name);
+  }
+
+  if (ev.type === 'parse_rate_probe') {
+    const pct = Math.round(ev.rate*100);
+    pushLog(pct>=80?'ok':'warn', 'ADAPT',
+      `${qItem.name.substring(0,14)} round ${ev.round}: ${pct}% ${pct>=80?'✓':'→ re-synth'}`);
+  }
+
+  if (ev.type === 'done') {
+    qItem.status         = 'done';
+    qItem.progress       = 100;
+    qItem.rate           = ev.parse_rate||0;
+    qItem.template_count = ev.unique_templates||0;
+    runMeta[runId]       = ev;
+
+    doneCount++;
+    totalRecs  += ev.log_count||0;
+    totalTmpl  += ev.unique_templates||0;
+    activeStreams = Math.max(0, activeStreams-1);
+
+    if (isLatest) {
+      setStage('valid','done'); setStage('write','done');
+      document.getElementById('m-rate').textContent      = Math.round((ev.parse_rate||0)*100)+'%';
+      document.getElementById('m-templates').textContent = ev.unique_templates||0;
+      document.getElementById('m-llm').textContent       = ev.llm_calls||0;
+      document.getElementById('m-masks').textContent     = ev.mask_count||0;
+      document.getElementById('progress-bar').style.width = '100%';
+    }
+
+    renderQueue();
+    updateAgg();
+    updateAggBadge();
+    pushLog('ok','DONE',`${qItem.name} — ${Math.round((ev.parse_rate||0)*100)}% · ${ev.unique_templates} templates · ${ev.elapsed_s}s`);
+
+    // Auto-show results when all done
+    const allDone = queue.every(q => q.status!=='running'&&q.status!=='queued');
+    if (allDone) {
+      document.getElementById('parse-btn').disabled = false;
+      loadBatchResults();
+    }
+    if (qItem.es) qItem.es.close();
+  }
+
+  if (ev.type === 'error') {
+    qItem.status   = 'error';
+    qItem.progress = 0;
+    activeStreams   = Math.max(0, activeStreams-1);
+    pushLog('err','ERROR', `${qItem.name}: ${ev.message}`);
+    renderQueue();
+    updateAggBadge();
+    document.getElementById('parse-btn').disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AGGREGATE METRICS
+// ═══════════════════════════════════════════════════════════
+function updateAgg() {
+  const doneRuns = queue.filter(q => q.status==='done'&&q.rate!==undefined);
+  const total    = queue.length;
+  const avgRate  = doneRuns.length>0
+    ? doneRuns.reduce((s,q)=>s+q.rate,0)/doneRuns.length : 0;
+
+  document.getElementById('agg-rate').textContent     = Math.round(avgRate*100)+'%';
+  document.getElementById('agg-files').textContent    = `${doneRuns.length}/${total}`;
+  document.getElementById('agg-records').textContent  = totalRecs.toLocaleString();
+  document.getElementById('agg-templates').textContent= totalTmpl.toLocaleString();
+  document.getElementById('live-files').textContent   = `${doneRuns.length} done`;
+  document.getElementById('live-count').textContent   = `${totalRecs} records`;
+}
+
+function updateAggBadge() {
+  document.getElementById('hb-active').textContent = activeStreams+' active';
+}
+
+function resetAgg() {
+  totalRecs=0; totalTmpl=0; totalLLM=0; doneCount=0; activeStreams=0;
+  ['agg-rate','agg-files','agg-records','agg-templates','agg-llm'].forEach(id=>{
+    document.getElementById(id).textContent='—';
+  });
+  ['m-rate','m-templates','m-llm','m-masks'].forEach(id=>{
+    document.getElementById(id).textContent='—';
+  });
+  ['load','norm','masks','drain','valid','write'].forEach(s=>
+    document.getElementById('st-'+s).className='stage');
+  document.getElementById('progress-bar').style.width='0';
+}
+
+// ═══════════════════════════════════════════════════════════
+// LIVE RECORDS
+// ═══════════════════════════════════════════════════════════
+function renderLiveRecords(records, sourceName) {
+  const feed = document.getElementById('records-feed');
+  if (feed.querySelector('.empty-state')) feed.innerHTML='';
+  records.forEach(r => {
+    const vars    = r.variables||{};
+    const tmplH   = esc(r.template).replace(/&lt;([A-Z_*][A-Z0-9_*]*)&gt;/g,
+                    '<span class="mask">&lt;$1&gt;</span>');
+    const chips   = Object.entries(vars).map(([k,v])=>
+      `<span class="var-chip"><span class="vk">${k}:</span><span class="vv">${esc(v)}</span></span>`
+    ).join('');
+    const div = document.createElement('div');
+    div.className='record-card';
+    div.innerHTML=`
+      <div class="record-src">📄 ${esc(sourceName)}</div>
+      <div class="record-raw">▸ ${esc(r.raw)}</div>
+      <div class="record-tmpl">${tmplH}</div>
+      ${chips?`<div class="vars-row">${chips}</div>`:''}`;
+    feed.prepend(div);
+    while(feed.children.length>50) feed.removeChild(feed.lastChild);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESULTS TAB
+// ═══════════════════════════════════════════════════════════
+function loadBatchResults() {
+  const done = queue.filter(q => q.status==='done'&&q.runId);
+  if (!done.length) return;
+
+  document.getElementById('no-results').style.display='none';
+  document.getElementById('results-content').style.display='block';
+  document.getElementById('res-title').textContent =
+    done.length===1 ? `Results: ${done[0].name}` : `Batch Results — ${done.length} files`;
+  document.getElementById('res-subtitle').textContent =
+    `${totalRecs.toLocaleString()} records · ${totalTmpl} templates · ${totalLLM} LLM calls`;
+
+  // Per-file cards
+  const grid = document.getElementById('res-file-grid');
+  grid.innerHTML = done.map(q => {
+    const s   = runMeta[q.runId]||{};
+    const pct = Math.round((s.parse_rate||0)*100);
+    const col = pct>=85?'var(--green)':pct>=65?'var(--amber)':'var(--red)';
+    return `<div class="card">
+      <div style="font-weight:600;font-size:.85rem;margin-bottom:.5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📄 ${esc(q.name)}</div>
+      <div style="font-size:2rem;font-weight:700;color:${col}">${pct}%</div>
+      <div style="font-size:.72rem;color:var(--muted);margin:.2rem 0">parse rate · ${s.log_count||0} lines</div>
+      <div style="font-size:.78rem;color:var(--muted)">${s.unique_templates||0} templates · ${s.mask_count||0} masks</div>
+      <div style="margin-top:.75rem;display:flex;gap:.4rem">
+        <button class="btn btn-outline" style="flex:1;font-size:.72rem" onclick="dlArtifact('${q.runId}','csv')">CSV</button>
+        <button class="btn btn-outline" style="flex:1;font-size:.72rem" onclick="dlArtifact('${q.runId}','json')">JSON</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Combined clusters from first done run
+  const firstRun = done[0];
+  if (firstRun) {
+    fetch(`/api/runs/${firstRun.runId}`)
+      .then(r=>r.json())
+      .then(d => {
+        const cl = document.getElementById('cluster-list');
+        cl.innerHTML=(d.top_clusters||[]).map(c=>{
+          const th = esc(c.template).replace(/&lt;([A-Z_*][A-Z0-9_*]*)&gt;/g,'<span class="mask">&lt;$1&gt;</span>');
+          return `<div class="cluster-row">
+            <div class="cluster-size">${c.size}</div>
+            <div class="cluster-tmpl">${th}</div>
+            <div><div style="font-size:.62rem;color:var(--muted);margin-bottom:2px">stab</div>
+            <div class="stab-bar"><div class="stab-fill" style="width:${Math.round(c.stability*100)}%"></div></div></div>
+          </div>`;
+        }).join('');
+      });
+
+    fetch(`/api/runs/${firstRun.runId}/records?size=6&parsed_only=true`)
+      .then(r=>r.json())
+      .then(d=>{
+        const sr=document.getElementById('sample-records');
+        sr.innerHTML=(d.records||[]).map(r=>{
+          const vars=r.variables||{};
+          const th=esc(r.template).replace(/&lt;([A-Z_*][A-Z0-9_*]*)&gt;/g,'<span class="mask">&lt;$1&gt;</span>');
+          const chips=Object.entries(vars).map(([k,v])=>
+            `<span class="var-chip"><span class="vk">${k}:</span><span class="vv">${esc(v)}</span></span>`
+          ).join('');
+          return `<div class="record-card">
+            <div class="record-raw">▸ ${esc(r.raw)}</div>
+            <div class="record-tmpl">${th}</div>
+            ${chips?`<div class="vars-row mt1">${chips}</div>`:''}
+          </div>`;
+        }).join('');
+      });
+  }
+}
+
+function dlArtifact(runId, fmt) { window.open(`/api/runs/${runId}/download/${fmt}`); }
+
+// ═══════════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════════
+async function loadHistory() {
+  const data = await fetch('/api/runs?limit=40').then(r=>r.json()).catch(()=>({runs:[]}));
+  const el   = document.getElementById('history-table');
+  if (!data.runs?.length) { el.innerHTML='<div class="empty-state">No runs yet</div>'; return; }
+  let html=`<table><tr><th>Run</th><th>File</th><th>Provider</th><th>Lines</th><th>Rate</th><th>Masks</th><th>Created</th><th></th></tr>`;
+  data.runs.forEach(r=>{
+    const pct = Math.round((r.parse_rate||0)*100);
+    const cls = pct>=85?'rh':pct>=65?'rm':'rl';
+    const file = (r.notes||'').split('input=')[1]?.split(' ')[0]?.split('\\').pop()?.split('/').pop()||'—';
+    const ts   = (r.created_utc||'').replace('T',' ').substring(0,19);
+    const short= (r.run_id||'').substring(0,28);
+    html+=`<tr>
+      <td><code style="font-size:.7rem">${short}…</code></td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file}</td>
+      <td><span class="pill pill-blue">${r.llm_provider||'—'}</span></td>
+      <td>${r.log_count||0}</td>
+      <td class="${cls}">${pct}%</td>
+      <td>${r.mask_count||0}</td>
+      <td style="color:var(--muted);font-size:.75rem">${ts}</td>
+      <td><button class="btn btn-outline" style="font-size:.68rem;padding:.2rem .5rem" onclick="dlArtifact('${r.run_id}','csv')">CSV</button></td>
+    </tr>`;
+  });
+  html+='</table>';
+  el.innerHTML=html;
+  document.getElementById('hb-db').textContent='● '+data.runs.length+' runs';
+}
+
+// ═══════════════════════════════════════════════════════════
+// HEALTH
+// ═══════════════════════════════════════════════════════════
+async function refreshHealth() {
+  try {
+    const h=await fetch('/api/health').then(r=>r.json());
+    document.getElementById('health-pre').textContent=JSON.stringify(h,null,2);
+    const provs=h.providers_ready||{};
+    const ready=Object.entries(provs).filter(([,v])=>v).map(([k])=>k);
+    document.getElementById('hb-llm').textContent= ready.length>0?'LLM: '+ready[0]:'LLM: mock';
+    document.getElementById('hb-db').textContent= '● '+(h.db_stats?.total_runs||0)+' runs';
+  } catch { document.getElementById('health-pre').textContent='Server not reachable'; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function setStage(name,state){
+  const el=document.getElementById('st-'+name);
+  if(el) el.className='stage '+state;
+}
+function pushLog(type,tag,msg){
+  const el=document.getElementById('event-log');
+  const cls={ok:'tag-ok',warn:'tag-warn',err:'tag-err',stage:'tag-stage',info:'tag-info'}[type]||'tag-info';
+  const ts=new Date().toLocaleTimeString();
+  el.innerHTML+=`<div class="ll"><span style="color:var(--muted);font-size:.65rem">${ts}</span> <span class="tag ${cls}">${tag}</span>${esc(msg)}</div>`;
+  el.scrollTop=el.scrollHeight;
+  // Cap log length
+  while(el.children.length>120) el.removeChild(el.firstChild);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+refreshHealth();
+setInterval(refreshHealth,30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+{
+  "run_id": "run_HDFS_sample_20260521T042134_42",
+  "total_clusters": 9,
+  "template_fingerprint": "e7f9d8cb9120e0fc",
+  "drain_stats": {
+    "new_cluster": 9,
+    "matched": 491
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 1,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> INFO dfs.FSNamesystem: BLOCK* <*> <*> <*> <*> <*> <*> <*> <*>",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "INFO",
+        "dfs.FSNamesystem:",
+        "BLOCK*",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 126,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 0,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> INFO dfs.DataNode$PacketResponder: PacketResponder <NUM> for block <*> terminating",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "INFO",
+        "dfs.DataNode$PacketResponder:",
+        "PacketResponder",
+        "<NUM>",
+        "for",
+        "block",
+        "<*>",
+        "terminating"
+      ],
+      "size": 69,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> INFO dfs.DataNode$PacketResponder: Received block <*> of size <LARGE_INT> from <*>",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "INFO",
+        "dfs.DataNode$PacketResponder:",
+        "Received",
+        "block",
+        "<*>",
+        "of",
+        "size",
+        "<LARGE_INT>",
+        "from",
+        "<*>"
+      ],
+      "size": 67,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> INFO dfs.FSDataset: Deleting block <*> file <*>",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "INFO",
+        "dfs.FSDataset:",
+        "Deleting",
+        "block",
+        "<*>",
+        "file",
+        "<*>"
+      ],
+      "size": 65,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> INFO dfs.DataNode$DataXceiver: <FLOAT>.<FLOAT>:<LARGE_INT> Served block <*> to /<FLOAT>.<FLOAT>",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "INFO",
+        "dfs.DataNode$DataXceiver:",
+        "<FLOAT>.<FLOAT>:<LARGE_INT>",
+        "Served",
+        "block",
+        "<*>",
+        "to",
+        "/<FLOAT>.<FLOAT>"
+      ],
+      "size": 48,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> WARN dfs.DataNode$DataXceiver: <FLOAT>.<FLOAT>:<LARGE_INT>:Got exception while serving <*> to <*>",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "WARN",
+        "dfs.DataNode$DataXceiver:",
+        "<FLOAT>.<FLOAT>:<LARGE_INT>:Got",
+        "exception",
+        "while",
+        "serving",
+        "<*>",
+        "to",
+        "<*>"
+      ],
+      "size": 47,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> INFO dfs.DataNode$DataXceiver: Receiving block <*> src: /<FLOAT>.<FLOAT>:<LARGE_INT> dest: <*>",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "INFO",
+        "dfs.DataNode$DataXceiver:",
+        "Receiving",
+        "block",
+        "<*>",
+        "src:",
+        "/<FLOAT>.<FLOAT>:<LARGE_INT>",
+        "dest:",
+        "<*>"
+      ],
+      "size": 42,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: <*>",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "INFO",
+        "dfs.FSNamesystem:",
+        "BLOCK*",
+        "NameSystem.allocateBlock:",
+        "<*>"
+      ],
+      "size": 28,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<LARGE_INT> <LARGE_INT> <NUM> INFO dfs.DataBlockScanner: Verification succeeded for <*>",
+      "template_tokens": [
+        "<LARGE_INT>",
+        "<LARGE_INT>",
+        "<NUM>",
+        "INFO",
+        "dfs.DataBlockScanner:",
+        "Verification",
+        "succeeded",
+        "for",
+        "<*>"
+      ],
+      "size": 8,
+      "stability": 0.2
+    }
+  ]
+}

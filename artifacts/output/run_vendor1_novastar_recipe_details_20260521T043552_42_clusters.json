@@ -1,0 +1,52 @@
+{
+  "run_id": "run_vendor1_novastar_recipe_details_20260521T043552_42",
+  "total_clusters": 3,
+  "template_fingerprint": "040222937b700cd2",
+  "drain_stats": {
+    "new_cluster": 3
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "'<CJOB_ID>',",
+        "'EquipmentID':",
+        "'<EQP_ID>'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'FileGeneratorSoftwareVersion': 'T<FLOAT>_3', 'FileType': 'Recipe'}",
+      "template_tokens": [
+        "{'FileGeneratorSoftwareVersion':",
+        "'T<FLOAT>_3',",
+        "'FileType':",
+        "'Recipe'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "[{'Keys': {'PRJobID': '<PRJOB_ID>', 'RecipeID': '<RECIPE_ID>'}, 'Attributes': {'LotID': '<LOT_ID>', 'WaferSize': '<QUANTITY_WITH_UNIT>",
+      "template_tokens": [
+        "[{'Keys':",
+        "{'PRJobID':",
+        "'<PRJOB_ID>',",
+        "'RecipeID':",
+        "'<RECIPE_ID>'},",
+        "'Attributes':",
+        "{'LotID':",
+        "'<LOT_ID>',",
+        "'WaferSize':",
+        "'<QUANTITY_WITH_UNIT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

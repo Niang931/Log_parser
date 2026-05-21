@@ -1,0 +1,652 @@
+[
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "[RECIPE_IDENTIFICATION]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "RECIPE_IDENTIFICATION"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "RecipeID            = RCP_CT_001",
+    "template": "RecipeID = <RECIPE_ID>",
+    "variables": {
+      "var_0": "<RECIPE_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "RecipeName          = POST_ETCH_CLEAN_STD_v4",
+    "template": "RecipeName = <FAB_TOKEN>v4",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "EquipmentID         = EQP_CT_001",
+    "template": "EquipmentID = <EQP_ID>",
+    "variables": {
+      "var_0": "<EQP_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "FileType            = Recipe",
+    "template": "FileType = Recipe",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "SoftwareVersion     = VER_WC_6.1.3",
+    "template": "SoftwareVersion = <VERSION>",
+    "variables": {
+      "var_0": "<VERSION>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "TargetProcess       = Post_Metal_Etch_Residue_Removal",
+    "template": "TargetProcess = Post_Metal_Etch_Residue_Removal",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "LotID               = LOT_CT_001",
+    "template": "LotID = <LOT_ID>",
+    "variables": {
+      "var_0": "<LOT_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "LayerName           = Metal_Clean_Post_Etch",
+    "template": "LayerName = Metal_Clean_Post_Etch",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "CreatedBy           = CREATOR_CT_001",
+    "template": "CreatedBy = <CREATOR_ID>",
+    "variables": {
+      "var_0": "<CREATOR_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "ApprovedBy          = CREATOR_CT_002",
+    "template": "ApprovedBy = <CREATOR_ID>",
+    "variables": {
+      "var_0": "<CREATOR_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "CreatedAt           = 2026-01-25T07:00:00Z",
+    "template": "CreatedAt = <ISO_TS>",
+    "variables": {
+      "var_0": "<ISO_TS>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "ExpiresAt           = 2027-01-25T07:00:00Z",
+    "template": "ExpiresAt = <ISO_TS>",
+    "variables": {
+      "var_0": "<ISO_TS>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "[STEP_01_DIW_PREWET]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "STEP_01_DIW_PREWET"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepID              = DIW_PREWET",
+    "template": "StepID = <FAB_TOKEN>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepName            = DIW Pre-Wet",
+    "template": "StepName = DIW Pre-Wet",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "MaxTime_s           = 30",
+    "template": "MaxTime_s = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "SpinSpeed_rpm       = 300",
+    "template": "SpinSpeed_rpm = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "DIW_Flow_ml_min     = 1000",
+    "template": "<FAB_TOKEN>low_ml_min = <NUM>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>",
+      "var_1": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "MegasonicPower_W    = 0",
+    "template": "MegasonicPower_W = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "Temperature_C       = 25",
+    "template": "Temperature_C = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "[STEP_02_SC1_CLEAN]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "STEP_02_SC1_CLEAN"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepID              = SC1_CLEAN",
+    "template": "StepID = SC1_CLEAN",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepName            = SC1 Particle Remove (NH4OH:H2O2:H2O)",
+    "template": "StepName = SC1 Particle Remove (NH4OH:H2O2:H2O)",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "MaxTime_s           = 120",
+    "template": "MaxTime_s = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "SpinSpeed_rpm       = 500",
+    "template": "SpinSpeed_rpm = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "ChemicalFlow_ml_min = 500",
+    "template": "ChemicalFlow_ml_min = <NUM>",
+    "variables": {
+      "NUM": "500"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "MegasonicPower_W    = 600",
+    "template": "MegasonicPower_W = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "MegasonicFreq_kHz   = 1000",
+    "template": "MegasonicFreq_kHz = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "Temperature_C       = 65",
+    "template": "Temperature_C = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "NH4OH_pct           = 29.0",
+    "template": "NH4OH_pct = <FLOAT>",
+    "variables": {
+      "var_0": "<FLOAT>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "H2O2_pct            = 30.0",
+    "template": "H2O2_pct = <FLOAT>",
+    "variables": {
+      "var_0": "<FLOAT>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "Ratio               = 1:1:5",
+    "template": "Ratio = 1:1:5",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "[STEP_03_DIW_RINSE1]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "STEP_03_DIW_RINSE1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepID              = DIW_RINSE1",
+    "template": "StepID = <FAB_TOKEN>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepName            = DIW Overflow Rinse 1",
+    "template": "StepName = DIW Overflow Rinse <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "MaxTime_s           = 60",
+    "template": "MaxTime_s = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "DIW_Flow_ml_min     = 1500",
+    "template": "<FAB_TOKEN>low_ml_min = <NUM>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>",
+      "var_1": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "ResistivityTarget_MOhm_cm = 17.0",
+    "template": "ResistivityTarget_MOhm_cm = <FLOAT>",
+    "variables": {
+      "FLOAT": "17.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "[STEP_04_HF_OXIDE_STRIP]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "STEP_04_HF_OXIDE_STRIP"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepID              = HF_STRIP",
+    "template": "StepID = <FAB_TOKEN>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepName            = Dilute HF Native Oxide Strip (1:200)",
+    "template": "StepName = Dilute HF Native Oxide Strip (1:200)",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "ChemicalFlow_ml_min = 300",
+    "template": "ChemicalFlow_ml_min = <NUM>",
+    "variables": {
+      "NUM": "300"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "HF_pct              = 0.5",
+    "template": "HF_pct = <FLOAT>",
+    "variables": {
+      "var_0": "<FLOAT>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "EPD_Enabled         = false",
+    "template": "<FAB_TOKEN>nabled = false",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "[STEP_05_DIW_RINSE2]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "STEP_05_DIW_RINSE2"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepID              = DIW_RINSE2",
+    "template": "StepID = <FAB_TOKEN>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepName            = DIW Overflow Rinse 2",
+    "template": "StepName = DIW Overflow Rinse <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "ResistivityTarget_MOhm_cm = 18.0",
+    "template": "ResistivityTarget_MOhm_cm = <FLOAT>",
+    "variables": {
+      "FLOAT": "18.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "[STEP_06_ISOPROPANOL_DRY]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "STEP_06_ISOPROPANOL_DRY"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepID              = IPA_DRY",
+    "template": "StepID = <FAB_TOKEN>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepName            = IPA Marangoni Dry",
+    "template": "StepName = IPA Marangoni Dry",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "SpinSpeed_rpm_ramp  = 0-2000",
+    "template": "SpinSpeed_rpm_ramp = 0-2000",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "IPA_N2_Carrier      = true",
+    "template": "<FAB_TOKEN>arrier = true",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "IPA_Flow_sccm       = 200",
+    "template": "<*> = <NUM>",
+    "variables": {
+      "*": "IPA_Flow_sccm      ",
+      "NUM": "200"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "N2_Flow_slm         = 10",
+    "template": "N2_Flow_slm = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "[STEP_07_SPIN_DRY]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "STEP_07_SPIN_DRY"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepID              = SPIN_DRY",
+    "template": "StepID = <FAB_TOKEN>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "StepName            = Final Spin Dry",
+    "template": "StepName = Final Spin Dry",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "SpinSpeed_rpm       = 3000",
+    "template": "SpinSpeed_rpm = <NUM>",
+    "variables": {
+      "var_0": "<NUM>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.679070+00:00",
+    "raw": "N2_Purge            = true",
+    "template": "N2_Purge = true",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  }
+]

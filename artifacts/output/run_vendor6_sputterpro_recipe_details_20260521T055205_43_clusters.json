@@ -1,0 +1,513 @@
+{
+  "run_id": "run_vendor6_sputterpro_recipe_details_20260521T055205_43",
+  "total_clusters": 63,
+  "template_fingerprint": "34a19f4b7aece6d2",
+  "drain_stats": {
+    "new_cluster": 63
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "control_job.keys.ctrl_job_id: <CJOB_ID>",
+      "template_tokens": [
+        "control_job.keys.ctrl_job_id:",
+        "<CJOB_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "control_job.keys.equipment_id: <EQP_ID>",
+      "template_tokens": [
+        "control_job.keys.equipment_id:",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "control_job.attributes.file_generator_version: <VERSION>",
+      "template_tokens": [
+        "control_job.attributes.file_generator_version:",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "control_job.attributes.file_type: Recipe",
+      "template_tokens": [
+        "control_job.attributes.file_type:",
+        "Recipe"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "control_job.process_jobs[0].keys.pr_job_id: <PRJOB_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].keys.pr_job_id:",
+        "<PRJOB_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "control_job.process_jobs[0].keys.recipe_id: <RECIPE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].keys.recipe_id:",
+        "<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "control_job.process_jobs[0].attributes.lot_id: <LOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].attributes.lot_id:",
+        "<LOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "control_job.process_jobs[0].attributes.wafer_size_mm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].attributes.wafer_size_mm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "control_job.process_jobs[0].attributes.layer_name: TiN_Barrier",
+      "template_tokens": [
+        "control_job.process_jobs[0].attributes.layer_name:",
+        "TiN_Barrier"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "control_job.process_jobs[0].attributes.target_thickness_nm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].attributes.target_thickness_nm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "control_job.process_jobs[0].module_process_reports[0].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "control_job.process_jobs[0].module_process_reports[0].keys.recipe_step_id: PUMP",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].keys.recipe_step_id:",
+        "PUMP"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "control_job.process_jobs[0].module_process_reports[0].keys.wafer_id:",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].keys.wafer_id:"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "control_job.process_jobs[0].module_process_reports[0].attributes.slot_id: <LOT_ID>one",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].attributes.slot_id:",
+        "<LOT_ID>one"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "control_job.process_jobs[0].module_process_reports[0].attributes.step_name: Pump Down",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].attributes.step_name:",
+        "Pump",
+        "Down"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "control_job.process_jobs[0].module_process_reports[0].attributes.max_time_s: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].attributes.max_time_s:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "control_job.process_jobs[0].module_process_reports[0].attributes.target_pressure_torr: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].attributes.target_pressure_torr:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "control_job.process_jobs[0].module_process_reports[0].attributes.heater_on: False",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].attributes.heater_on:",
+        "False"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "control_job.process_jobs[0].module_process_reports[1].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "control_job.process_jobs[0].module_process_reports[1].keys.recipe_step_id: PREHEAT",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].keys.recipe_step_id:",
+        "PREHEAT"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "control_job.process_jobs[0].module_process_reports[1].keys.wafer_id: <WAFER_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].keys.wafer_id:",
+        "<WAFER_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.slot_id: <SLOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.slot_id:",
+        "<SLOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.step_name: Substrate Preheat",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.step_name:",
+        "Substrate",
+        "Preheat"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.max_time_s: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.max_time_s:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.substrate_temp_c: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.substrate_temp_c:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.ar_flow_sccm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.ar_flow_sccm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.process_pressure_mtorr: <FLOAT>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.process_pressure_mtorr:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.rotation_rpm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.rotation_rpm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "control_job.process_jobs[0].module_process_reports[2].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "control_job.process_jobs[0].module_process_reports[2].keys.recipe_step_id: <FAB_TOKEN>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].keys.recipe_step_id:",
+        "<FAB_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "control_job.process_jobs[0].module_process_reports[2].keys.wafer_id: <WAFER_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].keys.wafer_id:",
+        "<WAFER_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.slot_id: <SLOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.slot_id:",
+        "<SLOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.step_name: Pre-Sputter Clean",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.step_name:",
+        "Pre-Sputter",
+        "Clean"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.max_time_s: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.max_time_s:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.dc_power_w: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.dc_power_w:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.ar_flow_sccm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.ar_flow_sccm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 36,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.process_pressure_mtorr: <FLOAT>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.process_pressure_mtorr:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 37,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.shutter: CLOSED",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.shutter:",
+        "CLOSED"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 38,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.rotation_rpm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.rotation_rpm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 39,
+      "template": "control_job.process_jobs[0].module_process_reports[3].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 40,
+      "template": "control_job.process_jobs[0].module_process_reports[3].keys.recipe_step_id: D<FAB_TOKEN>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].keys.recipe_step_id:",
+        "D<FAB_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 41,
+      "template": "control_job.process_jobs[0].module_process_reports[3].keys.wafer_id: <WAFER_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].keys.wafer_id:",
+        "<WAFER_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 42,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.slot_id: <SLOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.slot_id:",
+        "<SLOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 43,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.step_name: TiN Deposition",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.step_name:",
+        "TiN",
+        "Deposition"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 44,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.max_time_s: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.max_time_s:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 45,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.dc_power_w: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.dc_power_w:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 46,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.ar_flow_sccm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.ar_flow_sccm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 47,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.n2_flow_sccm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.n2_flow_sccm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 48,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.process_pressure_mtorr: <FLOAT>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.process_pressure_mtorr:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 49,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.substrate_temp_c: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.substrate_temp_c:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

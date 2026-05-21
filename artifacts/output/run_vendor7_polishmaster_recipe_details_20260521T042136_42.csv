@@ -1,0 +1,7 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor7_polishmaster_recipe_details_20260521T042136_42,2026-05-21T04:21:36.502192+00:00,Pad Condition,Pad Condition,{},0,0
+run_vendor7_polishmaster_recipe_details_20260521T042136_42,2026-05-21T04:21:36.502192+00:00,Wafer Load,Wafer Load,{},0,0
+run_vendor7_polishmaster_recipe_details_20260521T042136_42,2026-05-21T04:21:36.502192+00:00,Bulk Removal,Bulk Removal,{},0,0
+run_vendor7_polishmaster_recipe_details_20260521T042136_42,2026-05-21T04:21:36.502192+00:00,Endpoint Polish,Endpoint Polish,{},0,0
+run_vendor7_polishmaster_recipe_details_20260521T042136_42,2026-05-21T04:21:36.502192+00:00,Post-CMP Rinse,Post-CMP Rinse,{},0,0
+run_vendor7_polishmaster_recipe_details_20260521T042136_42,2026-05-21T04:21:36.502192+00:00,Wafer Unload,Wafer Unload,{},0,0

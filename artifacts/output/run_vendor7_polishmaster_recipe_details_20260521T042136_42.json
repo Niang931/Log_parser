@@ -1,0 +1,56 @@
+[
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.502192+00:00",
+    "raw": "Pad Condition",
+    "template": "Pad Condition",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.502192+00:00",
+    "raw": "Wafer Load",
+    "template": "Wafer Load",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.502192+00:00",
+    "raw": "Bulk Removal",
+    "template": "Bulk Removal",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.502192+00:00",
+    "raw": "Endpoint Polish",
+    "template": "Endpoint Polish",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.502192+00:00",
+    "raw": "Post-CMP Rinse",
+    "template": "Post-CMP Rinse",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T042136_42",
+    "timestamp_utc": "2026-05-21T04:21:36.502192+00:00",
+    "raw": "Wafer Unload",
+    "template": "Wafer Unload",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  }
+]

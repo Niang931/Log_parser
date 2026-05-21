@@ -1,0 +1,368 @@
+{
+  "run_id": "run_vendor6_sputterpro_machine_constants_20260521T053002_42",
+  "total_clusters": 33,
+  "template_fingerprint": "216194113fccce1e",
+  "drain_stats": {
+    "new_cluster": 33,
+    "matched": 48
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 9,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].n<UNITS>me: <NAME_TOKEN>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].n<UNITS>me:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 10,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].const<UNITS>nt_id: <EC_ID>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].const<UNITS>nt_id:",
+        "<EC_ID>"
+      ],
+      "size": 12,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 13,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].v<UNITS>lue: <*>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].v<UNITS>lue:",
+        "<*>"
+      ],
+      "size": 12,
+      "stability": 0.4
+    },
+    {
+      "cluster_id": 12,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].<HEX_VALUE><UNITS>t<UNITS>_type: Flo<UNITS>t",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].<HEX_VALUE><UNITS>t<UNITS>_type:",
+        "Flo<UNITS>t"
+      ],
+      "size": 11,
+      "stability": 0.5
+    },
+    {
+      "cluster_id": 11,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units: <UNITS>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units:",
+        "<UNITS>"
+      ],
+      "size": 5,
+      "stability": 0.2
+    },
+    {
+      "cluster_id": 14,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: <FILE_PATH> Power Supply <FILE_PATH><UNITS>ximum (<FILE_PATH><UNITS>rget <FILE_PATH>)",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "<FILE_PATH>",
+        "Power",
+        "Supply",
+        "<FILE_PATH><UNITS>ximum",
+        "(<FILE_PATH><UNITS>rget",
+        "<FILE_PATH>)"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "m<UNITS>chine_const<UNITS>nts<FILE_PATH>keys<FILE_PATH>ctrl_job_id: None",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts<FILE_PATH>keys<FILE_PATH>ctrl_job_id:",
+        "None"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "m<UNITS>chine_const<UNITS>nts<FILE_PATH>keys<FILE_PATH>tool_id: <EQP_ID>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts<FILE_PATH>keys<FILE_PATH>tool_id:",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "m<UNITS>chine_const<UNITS>nts<FILE_PATH>keys<FILE_PATH><HEX_VALUE><UNITS>te_time: <DATE><FILE_PATH>:<FILE_PATH>:<FLOAT><FILE_PATH>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts<FILE_PATH>keys<FILE_PATH><HEX_VALUE><UNITS>te_time:",
+        "<DATE><FILE_PATH>:<FILE_PATH>:<FLOAT><FILE_PATH>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>vendor: <VENDOR_ID>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>vendor:",
+        "<VENDOR_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>file_gener<UNITS>tor_version: <VERSION>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>file_gener<UNITS>tor_version:",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>process_type: <TOKEN_NAME><UNITS>gnetron_Sputter",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>process_type:",
+        "<TOKEN_NAME><UNITS>gnetron_Sputter"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>network_<UNITS>ddress: <NET_ID>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>network_<UNITS>ddress:",
+        "<NET_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>expir<UNITS>tion_d<UNITS>te: <DATE>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>expir<UNITS>tion_d<UNITS>te:",
+        "<DATE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>ch<UNITS>mber_config: Multi_T<UNITS>rget_6",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>ch<UNITS>mber_config:",
+        "Multi_T<UNITS>rget_6"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: <DESCRIPTION>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "<DESCRIPTION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: <UNITS>r <FILE_PATH><UNITS>s Flow Setpoint",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "<UNITS>r",
+        "<FILE_PATH><UNITS>s",
+        "Flow",
+        "Setpoint"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: <FILE_PATH> Re<UNITS>ctive <FILE_PATH><UNITS>s Flow Setpoint",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "<FILE_PATH>",
+        "Re<UNITS>ctive",
+        "<FILE_PATH><UNITS>s",
+        "Flow",
+        "Setpoint"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units: \u00b0<FILE_PATH>",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units:",
+        "\u00b0<FILE_PATH>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: Substr<UNITS>te Temper<UNITS>ture Setpoint",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "Substr<UNITS>te",
+        "Temper<UNITS>ture",
+        "Setpoint"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units: rpm",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units:",
+        "rpm"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: Substr<UNITS>te Rot<UNITS>tion Speed",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "Substr<UNITS>te",
+        "Rot<UNITS>tion",
+        "Speed"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units: \u00c5<FILE_PATH>s",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units:",
+        "\u00c5<FILE_PATH>s"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: Deposition <FILE_PATH><UNITS>te <FILE_PATH><UNITS>rget (Ti)",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "Deposition",
+        "<FILE_PATH><UNITS>te",
+        "<FILE_PATH><UNITS>rget",
+        "(Ti)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units: mm",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units:",
+        "mm"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: <FILE_PATH><UNITS>rget<FILE_PATH>to<FILE_PATH>Substr<UNITS>te Dist<UNITS>nce",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "<FILE_PATH><UNITS>rget<FILE_PATH>to<FILE_PATH>Substr<UNITS>te",
+        "Dist<UNITS>nce"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units: kWh",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units:",
+        "kWh"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: <FILE_PATH><UNITS>rget Lifetime (<UNITS>ccumul<UNITS>ted power)",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "<FILE_PATH><UNITS>rget",
+        "Lifetime",
+        "(<UNITS>ccumul<UNITS>ted",
+        "power)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units: cycles",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units:",
+        "cycles"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].<HEX_VALUE><UNITS>t<UNITS>_type: Integer",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].<HEX_VALUE><UNITS>t<UNITS>_type:",
+        "Integer"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: Pre<FILE_PATH>sputter Cle<UNITS>n Interv<UNITS>l",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "Pre<FILE_PATH>sputter",
+        "Cle<UNITS>n",
+        "Interv<UNITS>l"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units: Torr",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].units:",
+        "Torr"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description: <FILE_PATH><UNITS>se Pressure Requirement",
+      "template_tokens": [
+        "m<UNITS>chine_const<UNITS>nts.<UNITS>ttributes<FILE_PATH>equipment_const<UNITS>nts[<FILE_PATH>].description:",
+        "<FILE_PATH><UNITS>se",
+        "Pressure",
+        "Requirement"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

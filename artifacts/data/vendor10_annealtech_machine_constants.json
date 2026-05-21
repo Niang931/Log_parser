@@ -1,0 +1,152 @@
+{
+  "MachineConstants": {
+    "Keys": {
+      "CtrlJobID": null,
+      "ToolID": "EQP_AT_001",
+      "DateTime": "2026-02-18T13:00:00.000Z"
+    },
+    "Attributes": {
+      "Vendor": "VENDOR_ANNEALTECH",
+      "FileGeneratorSoftwareVersion": "VER_RTP_3.3.0",
+      "ProcessType": "Rapid_Thermal_Processing",
+      "NetworkAddress": "NET_AT_001",
+      "ExpirationDate": "2027-10-31",
+      "ChamberConfig": "Single_Wafer_Tungsten_Halogen",
+      "EquipmentConstants": [
+        {
+          "Name": "NAME_0001",
+          "ConstantID": "AT_EC_001",
+          "Units": "\u00b0C",
+          "DataType": "Float",
+          "Value": "1050.0",
+          "Desc": "Max Process Temperature"
+        },
+        {
+          "Name": "NAME_0002",
+          "ConstantID": "AT_EC_002",
+          "Units": "\u00b0C/s",
+          "DataType": "Float",
+          "Value": "100.0",
+          "Desc": "Max Ramp Rate Up"
+        },
+        {
+          "Name": "NAME_0003",
+          "ConstantID": "AT_EC_003",
+          "Units": "\u00b0C/s",
+          "DataType": "Float",
+          "Value": "50.0",
+          "Desc": "Max Ramp Rate Down"
+        },
+        {
+          "Name": "NAME_0004",
+          "ConstantID": "AT_EC_004",
+          "Units": "slm",
+          "DataType": "Float",
+          "Value": "5.0",
+          "Desc": "N2 Purge Flow"
+        },
+        {
+          "Name": "NAME_0005",
+          "ConstantID": "AT_EC_005",
+          "Units": "slm",
+          "DataType": "Float",
+          "Value": "2.0",
+          "Desc": "O2 Anneal Flow"
+        },
+        {
+          "Name": "NAME_0006",
+          "ConstantID": "AT_EC_006",
+          "Units": "Torr",
+          "DataType": "Float",
+          "Value": "760.0",
+          "Desc": "Process Pressure (atm)"
+        },
+        {
+          "Name": "NAME_0007",
+          "ConstantID": "AT_EC_007",
+          "Units": "s",
+          "DataType": "Float",
+          "Value": "0.5",
+          "Desc": "Pyrometer Response Time"
+        },
+        {
+          "Name": "NAME_0008",
+          "ConstantID": "AT_EC_008",
+          "Units": "hours",
+          "DataType": "Float",
+          "Value": "2000.0",
+          "Desc": "Lamp Lifetime"
+        },
+        {
+          "Name": "NAME_0009",
+          "ConstantID": "AT_EC_009",
+          "Units": "%",
+          "DataType": "Float",
+          "Value": "1.0",
+          "Desc": "Temperature Uniformity Spec"
+        },
+        {
+          "Name": "NAME_0010",
+          "ConstantID": "AT_EC_010",
+          "Units": "\u00b0C",
+          "DataType": "Float",
+          "Value": "2.0",
+          "Desc": "Pyrometer Accuracy"
+        },
+        {
+          "Name": "NAME_0011",
+          "ConstantID": "AT_EC_011",
+          "Units": "cycles",
+          "DataType": "Integer",
+          "Value": "10000",
+          "Desc": "Slip Detection Sensitivity"
+        },
+        {
+          "Name": "NAME_0012",
+          "ConstantID": "AT_EC_012",
+          "Units": "wafers/hr",
+          "DataType": "Float",
+          "Value": "60.0",
+          "Desc": "Throughput Target"
+        }
+      ],
+      "Sensors": [
+        {
+          "SensorID": "PYR_001",
+          "Type": "Pyrometer",
+          "WaveLength_nm": 950,
+          "Range_C": "400-1150",
+          "Accuracy_C": 2.0
+        },
+        {
+          "SensorID": "PYR_002",
+          "Type": "Pyrometer_Edge",
+          "WaveLength_nm": 950,
+          "Range_C": "400-1150",
+          "Accuracy_C": 2.5
+        },
+        {
+          "SensorID": "TC_001",
+          "Type": "Thermocouple",
+          "Grade": "Type_K",
+          "Range_C": "0-1200",
+          "Accuracy_C": 1.5
+        },
+        {
+          "SensorID": "FLOW_001",
+          "Type": "MFC",
+          "Gas": "N2",
+          "Range_slm": "0-10",
+          "Accuracy_pct": 1.0
+        },
+        {
+          "SensorID": "FLOW_002",
+          "Type": "MFC",
+          "Gas": "O2",
+          "Range_slm": "0-5",
+          "Accuracy_pct": 1.0
+        }
+      ]
+    }
+  }
+}

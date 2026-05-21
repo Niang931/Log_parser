@@ -1,0 +1,22 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,Vendor: ThermalDyn Systems,Vendor: ThermalDyn Systems,{},0,0
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,ProcessType: Thermal Oxidation / Diffusion,ProcessType: Thermal Oxidation / Diffusion,{},0,0
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,SoftwareVersion: VER_TD_3.9,SoftwareVersion: <VERSION>,"{""VERSION"": ""VER_TD_3.9""}",1,1
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,NetworkAddress: NET_TD_001,NetworkAddress: <NET_ID>,"{""NET_ID"": ""NET_TD_001""}",1,1
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,ExpirationDate: 2027-09-30,ExpirationDate: <DATE>,"{""DATE"": ""2027-09-30""}",1,1
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,ConstantID: Name,ConstantID: Name,{},0,0
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_001: NAME_0001,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_001"", ""NAME_TOKEN"": ""NAME_0001""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_002: NAME_0002,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_002"", ""NAME_TOKEN"": ""NAME_0002""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_003: NAME_0003,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_003"", ""NAME_TOKEN"": ""NAME_0003""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_004: NAME_0004,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_004"", ""NAME_TOKEN"": ""NAME_0004""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_005: NAME_0005,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_005"", ""NAME_TOKEN"": ""NAME_0005""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_006: NAME_0006,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_006"", ""NAME_TOKEN"": ""NAME_0006""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_007: NAME_0007,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_007"", ""NAME_TOKEN"": ""NAME_0007""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_008: NAME_0008,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_008"", ""NAME_TOKEN"": ""NAME_0008""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_009: NAME_0009,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_009"", ""NAME_TOKEN"": ""NAME_0009""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_010: NAME_0010,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_010"", ""NAME_TOKEN"": ""NAME_0010""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_011: NAME_0011,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_011"", ""NAME_TOKEN"": ""NAME_0011""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_012: NAME_0012,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_012"", ""NAME_TOKEN"": ""NAME_0012""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_013: NAME_0013,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_013"", ""NAME_TOKEN"": ""NAME_0013""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_014: NAME_0014,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_014"", ""NAME_TOKEN"": ""NAME_0014""}",1,2
+run_vendor4_thermaldyn_machine_constants_20260521T042135_42,2026-05-21T04:21:35.838364+00:00,TD_EC_015: NAME_0015,<EC_ID>: <NAME_TOKEN>,"{""EC_ID"": ""TD_EC_015"", ""NAME_TOKEN"": ""NAME_0015""}",1,2

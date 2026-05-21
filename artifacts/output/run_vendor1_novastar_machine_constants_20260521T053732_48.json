@@ -1,0 +1,30 @@
+[
+  {
+    "run_id": "run_vendor1_novastar_machine_constants_20260521T053732_48",
+    "timestamp_utc": "2026-05-21T05:38:06.119869+00:00",
+    "raw": "{'CtrlJobID': None, 'ToolID': 'EQP_NOVA_001', 'DateTime': '2026-02-18T08:00:00.000Z'}",
+    "template": "{'CtrlJobID': None, 'ToolID': '<EQP_ID>', 'DateTime': '<DATE>T08:00:<FLOAT>Z'}",
+    "variables": {
+      "EQP_ID": "EQP_NOVA_001",
+      "DATE": "2026-02-18",
+      "FLOAT": "00.000"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_vendor1_novastar_machine_constants_20260521T053732_48",
+    "timestamp_utc": "2026-05-21T05:38:06.174304+00:00",
+    "raw": "{'Vendor': 'VENDOR_NOVASTAR', 'FileGeneratorSoftwareVersion': 'VER_2.4.1', 'ToolID': 'EQP_NOVA_001', 'NetworkAddress': 'NET_NOVA_001', 'ExpirationDate': '6/30/2027', 'ProcessType': 'Lithography', 'EquipmentConstants': [{'Name': 'NAME_0001', 'ConstantID': '",
+    "template": "{'Vendor': '<VENDOR_ID>', 'FileGeneratorSoftwareVersion': '<VERSION>', 'ToolID': '<EQP_ID>', 'NetworkAddress': '<NET_ID>', 'ExpirationDate': '6/30/2027', 'ProcessType': 'Lithography', 'EquipmentConstants': [{'Name': '<NAME_TOKEN>', 'ConstantID': '",
+    "variables": {
+      "VENDOR_ID": "VENDOR_NOVASTAR",
+      "VERSION": "VER_2.4.1",
+      "EQP_ID": "EQP_NOVA_001",
+      "NET_ID": "NET_NOVA_001",
+      "NAME_TOKEN": "NAME_0001"
+    },
+    "parsed": 1,
+    "var_count": 5
+  }
+]

@@ -1,0 +1,245 @@
+{
+  "run_id": "run_vendor8_cleantech_machine_constants_20260521T041653_42",
+  "total_clusters": 19,
+  "template_fingerprint": "c0ca5e5e5b8b0a6d",
+  "drain_stats": {
+    "new_cluster": 19,
+    "matched": 12
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 11,
+      "template": "<EC_ID> = <NAME_TOKEN> | <*> | <*> | <*> | <*> <*> <*> <*>",
+      "template_tokens": [
+        "<EC_ID>",
+        "=",
+        "<NAME_TOKEN>",
+        "|",
+        "<*>",
+        "|",
+        "<*>",
+        "|",
+        "<*>",
+        "|",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 6,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 13,
+      "template": "<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*>",
+      "template_tokens": [
+        "<EC_ID>",
+        "=",
+        "<NAME_TOKEN>",
+        "|",
+        "<*>",
+        "|",
+        "Float",
+        "|",
+        "<FLOAT>",
+        "|",
+        "<*>",
+        "<*>"
+      ],
+      "size": 5,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 12,
+      "template": "<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*> <*>",
+      "template_tokens": [
+        "<EC_ID>",
+        "=",
+        "<NAME_TOKEN>",
+        "|",
+        "<*>",
+        "|",
+        "Float",
+        "|",
+        "<FLOAT>",
+        "|",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 4,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "[<FAB_TOKEN>]",
+      "template_tokens": [
+        "[<FAB_TOKEN>]"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "ToolID = <EQP_ID>",
+      "template_tokens": [
+        "ToolID",
+        "=",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "ToolType = Single_Wafer_Wet_Clean",
+      "template_tokens": [
+        "ToolType",
+        "=",
+        "Single_Wafer_Wet_Clean"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "Vendor = CleanTech Systems",
+      "template_tokens": [
+        "Vendor",
+        "=",
+        "CleanTech",
+        "Systems"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "ProcessType = Wet_Clean_SC1_SC2_HF",
+      "template_tokens": [
+        "ProcessType",
+        "=",
+        "Wet_Clean_SC1_SC2_HF"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "SoftwareVersion = <VERSION>",
+      "template_tokens": [
+        "SoftwareVersion",
+        "=",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "NetworkAddress = <NET_ID>",
+      "template_tokens": [
+        "NetworkAddress",
+        "=",
+        "<NET_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "ExpirationDate = <DATE>",
+      "template_tokens": [
+        "ExpirationDate",
+        "=",
+        "<DATE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "GeneratedBy = <CREATOR_ID>",
+      "template_tokens": [
+        "GeneratedBy",
+        "=",
+        "<CREATOR_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "GeneratedAt = <ISO_TS>",
+      "template_tokens": [
+        "GeneratedAt",
+        "=",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "[EQU<FAB_TOKEN>]",
+      "template_tokens": [
+        "[EQU<FAB_TOKEN>]"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "[CH<FAB_TOKEN>]",
+      "template_tokens": [
+        "[CH<FAB_TOKEN>]"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "SC1_<FAB_TOKEN> = 1:1:5",
+      "template_tokens": [
+        "SC1_<FAB_TOKEN>",
+        "=",
+        "1:1:5"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "SC2_<FAB_TOKEN> = 1:1:6",
+      "template_tokens": [
+        "SC2_<FAB_TOKEN>",
+        "=",
+        "1:1:6"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "<FAB_TOKEN> = 1:200",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "1:200"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "<FAB_TOKEN> = 4:1",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "4:1"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

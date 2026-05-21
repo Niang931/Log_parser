@@ -1,0 +1,261 @@
+{
+  "run_id": "run_vendor9_metrovision_machine_constants_20260521T053732_46",
+  "total_clusters": 27,
+  "template_fingerprint": "da1c02290dcd1c53",
+  "drain_stats": {
+    "new_cluster": 27,
+    "matched": 47
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 11,
+      "template": "<Name><NAME_TOKEN></Name>",
+      "template_tokens": [
+        "<Name><NAME_TOKEN></Name>"
+      ],
+      "size": 10,
+      "stability": 0.45
+    },
+    {
+      "cluster_id": 12,
+      "template": "<ConstantID><EC_ID></ConstantID>",
+      "template_tokens": [
+        "<ConstantID><EC_ID></ConstantID>"
+      ],
+      "size": 10,
+      "stability": 0.45
+    },
+    {
+      "cluster_id": 15,
+      "template": "<Value><FLOAT></Value>",
+      "template_tokens": [
+        "<Value><FLOAT></Value>"
+      ],
+      "size": 8,
+      "stability": 0.35
+    },
+    {
+      "cluster_id": 0,
+      "template": "<XML_ATTR_LINE>",
+      "template_tokens": [
+        "<XML_ATTR_LINE>"
+      ],
+      "size": 4,
+      "stability": 0.15
+    },
+    {
+      "cluster_id": 13,
+      "template": "<Units><DESCRIPTION></Units>",
+      "template_tokens": [
+        "<Units><DESCRIPTION></Units>"
+      ],
+      "size": 4,
+      "stability": 0.15
+    },
+    {
+      "cluster_id": 16,
+      "template": "<Description><DESCRIPTION> <DESCRIPTION> <DESCRIPTION> <*>",
+      "template_tokens": [
+        "<Description><DESCRIPTION>",
+        "<DESCRIPTION>",
+        "<DESCRIPTION>",
+        "<*>"
+      ],
+      "size": 4,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 17,
+      "template": "<Description><DESCRIPTION> <DESCRIPTION></Description>",
+      "template_tokens": [
+        "<Description><DESCRIPTION>",
+        "<DESCRIPTION></Description>"
+      ],
+      "size": 4,
+      "stability": 0.15
+    },
+    {
+      "cluster_id": 21,
+      "template": "<Name><VENDOR></Name>",
+      "template_tokens": [
+        "<Name><VENDOR></Name>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 23,
+      "template": "<NominalValue><FLOAT></NominalValue>",
+      "template_tokens": [
+        "<NominalValue><FLOAT></NominalValue>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 24,
+      "template": "<Tolerance><FLOAT></Tolerance>",
+      "template_tokens": [
+        "<Tolerance><FLOAT></Tolerance>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 14,
+      "template": "<DataType><DESCRIPTION></DataType>",
+      "template_tokens": [
+        "<DataType><DESCRIPTION></DataType>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 18,
+      "template": "<Units><DESCRIPTION>/<DESCRIPTION></Units>",
+      "template_tokens": [
+        "<Units><DESCRIPTION>/<DESCRIPTION></Units>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 19,
+      "template": "<Value><*></Value>",
+      "template_tokens": [
+        "<Value><*></Value>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 20,
+      "template": "<Description><DESCRIPTION> <DESCRIPTION> <DESCRIPTION></Description>",
+      "template_tokens": [
+        "<Description><DESCRIPTION>",
+        "<DESCRIPTION>",
+        "<DESCRIPTION></Description>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 1,
+      "template": "<ToolID><EQP_ID></ToolID>",
+      "template_tokens": [
+        "<ToolID><EQP_ID></ToolID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<Vendor><DESCRIPTION> <DESCRIPTION></Vendor>",
+      "template_tokens": [
+        "<Vendor><DESCRIPTION>",
+        "<DESCRIPTION></Vendor>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<ProcessType><PROCESS_TYPE></ProcessType>",
+      "template_tokens": [
+        "<ProcessType><PROCESS_TYPE></ProcessType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<SoftwareRelease><FLOAT>.<INTEGER_VALUE></SoftwareRelease>",
+      "template_tokens": [
+        "<SoftwareRelease><FLOAT>.<INTEGER_VALUE></SoftwareRelease>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<NetworkAddress><NET_ID></NetworkAddress>",
+      "template_tokens": [
+        "<NetworkAddress><NET_ID></NetworkAddress>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<ExpirationDate><DATE></ExpirationDate>",
+      "template_tokens": [
+        "<ExpirationDate><DATE></ExpirationDate>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+      "template_tokens": [
+        "<CreatedBy><CREATOR_ID></CreatedBy>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<CreateTime><ISO_TS></CreateTime>",
+      "template_tokens": [
+        "<CreateTime><ISO_TS></CreateTime>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "<DocumentType><DOCUMENT_TYPE></DocumentType>",
+      "template_tokens": [
+        "<DocumentType><DOCUMENT_TYPE></DocumentType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "<DocumentTypeVersion><DESCRIPTION><FLOAT></DocumentTypeVersion>",
+      "template_tokens": [
+        "<DocumentTypeVersion><DESCRIPTION><FLOAT></DocumentTypeVersion>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "<Unit>\u00b0<DESCRIPTION></Unit>",
+      "template_tokens": [
+        "<Unit>\u00b0<DESCRIPTION></Unit>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "<Unit>%</Unit>",
+      "template_tokens": [
+        "<Unit>%</Unit>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "<Unit><DESCRIPTION></Unit>",
+      "template_tokens": [
+        "<Unit><DESCRIPTION></Unit>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

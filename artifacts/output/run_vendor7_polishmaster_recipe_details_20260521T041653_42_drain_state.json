@@ -1,0 +1,73 @@
+{
+  "config": {
+    "sim_threshold": 0.5,
+    "depth": 4,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "Pad Condition",
+      "template_tokens": [
+        "Pad",
+        "Condition"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "Wafer Load",
+      "template_tokens": [
+        "Wafer",
+        "Load"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "Bulk Removal",
+      "template_tokens": [
+        "Bulk",
+        "Removal"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "Endpoint Polish",
+      "template_tokens": [
+        "Endpoint",
+        "Polish"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "Post-CMP Rinse",
+      "template_tokens": [
+        "Post-CMP",
+        "Rinse"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "Wafer Unload",
+      "template_tokens": [
+        "Wafer",
+        "Unload"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 6
+  }
+}

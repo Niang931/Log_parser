@@ -1,0 +1,20 @@
+{
+  "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+  "total_clusters": 1,
+  "template_fingerprint": "c1ab59f72943e098",
+  "drain_stats": {
+    "new_cluster": 1,
+    "matched": 62
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "<XML_ATTR_LINE>",
+      "template_tokens": [
+        "<XML_ATTR_LINE>"
+      ],
+      "size": 63,
+      "stability": 1.0
+    }
+  ]
+}

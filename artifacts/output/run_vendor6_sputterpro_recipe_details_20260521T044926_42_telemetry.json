@@ -1,0 +1,1030 @@
+{
+  "summary": {
+    "llm_calls": 11,
+    "total_latency_s": 112.302,
+    "est_tokens_out": 510,
+    "events": 155
+  },
+  "events": [
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:54.837576+00:00",
+      "run_id": "run_BGL_sample_20260521T044754_42",
+      "input": "artifacts\\data\\BGL_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:54.841004+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:54.847707+00:00",
+      "kept": 1000,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:54.855690+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:54.857251+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:56.113084+00:00",
+      "records": 1000,
+      "templates": 30,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:56.114642+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 30,
+      "avg_wildcard_ratio": 0.6828621045621046
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:56.174873+00:00",
+      "elapsed_s": 1.337
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:56.179793+00:00",
+      "run_id": "run_HDFS_sample_20260521T044756_42",
+      "input": "artifacts\\data\\HDFS_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:56.182097+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:56.188804+00:00",
+      "kept": 1000,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:56.194339+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:56.196012+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:56.878656+00:00",
+      "records": 1000,
+      "templates": 28,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:56.880302+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 28,
+      "avg_wildcard_ratio": 0.636896916971917
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:56.922057+00:00",
+      "elapsed_s": 0.742
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:56.927297+00:00",
+      "run_id": "run_synthetic_fab_20260521T044756_42",
+      "input": "artifacts\\data\\synthetic_fab.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:56.928172+00:00",
+      "lines": 300
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:56.929362+00:00",
+      "kept": 276,
+      "empty": 0,
+      "short": 0,
+      "dup": 24,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:56.933292+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:56.935251+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:57.137674+00:00",
+      "records": 276,
+      "templates": 13,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:57.138793+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 13,
+      "avg_wildcard_ratio": 0.35535139176443525
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:57.163566+00:00",
+      "elapsed_s": 0.236
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:57.170105+00:00",
+      "run_id": "run_vendor10_annealtech_machine_constants_20260521T044757_42",
+      "input": "artifacts\\data\\vendor10_annealtech_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:57.218806+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:57.219488+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:57.224488+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:57.226976+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:57.239686+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:57.239785+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:57.254181+00:00",
+      "elapsed_s": 0.084
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:57.258797+00:00",
+      "run_id": "run_vendor10_annealtech_recipe_details_20260521T044757_42",
+      "input": "artifacts\\data\\vendor10_annealtech_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:57.264957+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:57.265210+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:57.270399+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:57.272756+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:57.280833+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:57.280865+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:57.293455+00:00",
+      "elapsed_s": 0.035
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:57.300443+00:00",
+      "run_id": "run_vendor1_novastar_machine_constants_20260521T044757_42",
+      "input": "artifacts\\data\\vendor1_novastar_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:57.306449+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:57.306891+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:57.310458+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:57.311679+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:57.318680+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:57.318775+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:57.329528+00:00",
+      "elapsed_s": 0.029
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:57.337322+00:00",
+      "run_id": "run_vendor1_novastar_recipe_details_20260521T044757_42",
+      "input": "artifacts\\data\\vendor1_novastar_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:57.343225+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:57.343564+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:57.347055+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:57.348332+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:57.353378+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:57.353443+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:57.365216+00:00",
+      "elapsed_s": 0.028
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:57.370356+00:00",
+      "run_id": "run_vendor2_plasmacore_machine_constants_20260521T044757_42",
+      "input": "artifacts\\data\\vendor2_plasmacore_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:57.376027+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:57.376481+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:57.380029+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:57.381689+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:57.388256+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:57.388400+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:57.396141+00:00",
+      "elapsed_s": 0.026
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:57.400680+00:00",
+      "run_id": "run_vendor2_plasmacore_recipe_details_20260521T044757_42",
+      "input": "artifacts\\data\\vendor2_plasmacore_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:57.407092+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:57.407278+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:57.409620+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:47:57.411527+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:47:57.416353+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:47:57.416442+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:47:57.432076+00:00",
+      "elapsed_s": 0.032
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:47:57.441562+00:00",
+      "run_id": "run_vendor3_chipconst_machine_constants_20260521T044757_42",
+      "input": "artifacts\\data\\vendor3_chipconst_machine_constants.xml",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:47:57.443468+00:00",
+      "lines": 95
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:47:57.444015+00:00",
+      "kept": 71,
+      "empty": 0,
+      "short": 0,
+      "dup": 24,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:47:57.449664+00:00",
+      "round": 1,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:48:03.322341+00:00",
+      "provider": "groq",
+      "latency_s": 5.869,
+      "tokens_out": 0,
+      "cost_usd": 0.00013806000000000002
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:03.325757+00:00",
+      "round": 2,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:48:07.115688+00:00",
+      "provider": "groq",
+      "latency_s": 3.787,
+      "tokens_out": 0,
+      "cost_usd": 8.673e-05
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:07.118122+00:00",
+      "round": 3,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:48:18.157339+00:00",
+      "provider": "groq",
+      "latency_s": 11.036,
+      "tokens_out": 0,
+      "cost_usd": 9.499000000000001e-05
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:48:18.160207+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:48:18.281517+00:00",
+      "records": 71,
+      "templates": 37,
+      "parse_rate": 0.6338
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:48:18.281729+00:00",
+      "parse_rate": 0.6338028169014085,
+      "unique_templates": 37,
+      "avg_wildcard_ratio": 0.886150234741784
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:48:18.309417+00:00",
+      "elapsed_s": 20.868
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:48:18.320443+00:00",
+      "run_id": "run_vendor3_chipconst_recipe_details_20260521T044818_42",
+      "input": "artifacts\\data\\vendor3_chipconst_recipe_details.xml",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:48:18.322651+00:00",
+      "lines": 63
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:48:18.323403+00:00",
+      "kept": 48,
+      "empty": 0,
+      "short": 0,
+      "dup": 15,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:18.330766+00:00",
+      "round": 1,
+      "rate": 0.3958
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:48:28.318616+00:00",
+      "provider": "groq",
+      "latency_s": 9.984,
+      "tokens_out": 310,
+      "cost_usd": 0.00011682000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:28.323333+00:00",
+      "round": 2,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:48:28.329382+00:00",
+      "count": 100
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:48:28.418170+00:00",
+      "records": 48,
+      "templates": 36,
+      "parse_rate": 0.9792
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:48:28.418298+00:00",
+      "parse_rate": 0.9791666666666666,
+      "unique_templates": 36,
+      "avg_wildcard_ratio": 1.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:48:28.436470+00:00",
+      "elapsed_s": 10.116
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:48:28.441734+00:00",
+      "run_id": "run_vendor4_thermaldyn_machine_constants_20260521T044828_42",
+      "input": "artifacts\\data\\vendor4_thermaldyn_machine_constants.csv",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:48:28.468747+00:00",
+      "lines": 21
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:48:28.469334+00:00",
+      "kept": 21,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:28.473261+00:00",
+      "round": 1,
+      "rate": 0.8571
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:48:28.475475+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:48:28.497264+00:00",
+      "records": 21,
+      "templates": 7,
+      "parse_rate": 0.8571
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:48:28.497377+00:00",
+      "parse_rate": 0.8571428571428571,
+      "unique_templates": 7,
+      "avg_wildcard_ratio": 0.7857142857142857
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:48:28.511285+00:00",
+      "elapsed_s": 0.07
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:48:28.519140+00:00",
+      "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T044828_42",
+      "input": "artifacts\\data\\vendor4_thermaldyn_recipe_details.csv",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:48:28.527801+00:00",
+      "lines": 27
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:48:28.528324+00:00",
+      "kept": 13,
+      "empty": 0,
+      "short": 0,
+      "dup": 14,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:28.533257+00:00",
+      "round": 1,
+      "rate": 0.6923
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:48:36.462772+00:00",
+      "provider": "groq",
+      "latency_s": 7.928,
+      "tokens_out": 0,
+      "cost_usd": 5.546e-05
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:36.463914+00:00",
+      "round": 2,
+      "rate": 0.6923
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:48:42.894867+00:00",
+      "provider": "groq",
+      "latency_s": 6.429,
+      "tokens_out": 0,
+      "cost_usd": 4.13e-05
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:42.896420+00:00",
+      "round": 3,
+      "rate": 0.6923
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:48:48.127336+00:00",
+      "provider": "groq",
+      "latency_s": 5.229,
+      "tokens_out": 40,
+      "cost_usd": 4.189e-05
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:48:48.130434+00:00",
+      "count": 73
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:48:48.158273+00:00",
+      "records": 13,
+      "templates": 13,
+      "parse_rate": 0.9231
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:48:48.158356+00:00",
+      "parse_rate": 0.9230769230769231,
+      "unique_templates": 13,
+      "avg_wildcard_ratio": 0.4551282051282052
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:48:48.177954+00:00",
+      "elapsed_s": 19.659
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:48:48.185098+00:00",
+      "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044848_42",
+      "input": "artifacts\\data\\vendor5_ionbeam_machine_constants.txt",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:48:48.185929+00:00",
+      "lines": 76
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:48:48.186479+00:00",
+      "kept": 75,
+      "empty": 0,
+      "short": 0,
+      "dup": 1,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:48.190645+00:00",
+      "round": 1,
+      "rate": 0.92
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:48:48.192425+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:48:48.299297+00:00",
+      "records": 75,
+      "templates": 39,
+      "parse_rate": 0.9467
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:48:48.299406+00:00",
+      "parse_rate": 0.9466666666666667,
+      "unique_templates": 39,
+      "avg_wildcard_ratio": 0.4297777777777778
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:48:48.326289+00:00",
+      "elapsed_s": 0.141
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:48:48.335952+00:00",
+      "run_id": "run_vendor5_ionbeam_recipe_details_20260521T044848_42",
+      "input": "artifacts\\data\\vendor5_ionbeam_recipe_details.txt",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:48:48.337290+00:00",
+      "lines": 63
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:48:48.338162+00:00",
+      "kept": 59,
+      "empty": 0,
+      "short": 0,
+      "dup": 4,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:48.346229+00:00",
+      "round": 1,
+      "rate": 0.92
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:48:48.350136+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:48:48.420923+00:00",
+      "records": 59,
+      "templates": 37,
+      "parse_rate": 0.9322
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:48:48.421197+00:00",
+      "parse_rate": 0.9322033898305084,
+      "unique_templates": 37,
+      "avg_wildcard_ratio": 0.351412429378531
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:48:48.447229+00:00",
+      "elapsed_s": 0.111
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:48:48.457179+00:00",
+      "run_id": "run_vendor6_sputterpro_machine_constants_20260521T044848_42",
+      "input": "artifacts\\data\\vendor6_sputterpro_machine_constants.yaml",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:48:48.476010+00:00",
+      "lines": 81
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:48:48.477051+00:00",
+      "kept": 81,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:48:48.485923+00:00",
+      "round": 1,
+      "rate": 0.56
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:49:00.489642+00:00",
+      "provider": "groq",
+      "latency_s": 11.998,
+      "tokens_out": 0,
+      "cost_usd": 4.425e-05
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:49:00.491805+00:00",
+      "round": 2,
+      "rate": 0.56
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:49:13.516875+00:00",
+      "provider": "groq",
+      "latency_s": 13.022,
+      "tokens_out": 0,
+      "cost_usd": 4.956e-05
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:49:13.524055+00:00",
+      "round": 3,
+      "rate": 0.56
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:49:26.570264+00:00",
+      "provider": "groq",
+      "latency_s": 13.038,
+      "tokens_out": 0,
+      "cost_usd": 4.956e-05
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:49:26.575171+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:49:26.790077+00:00",
+      "records": 81,
+      "templates": 81,
+      "parse_rate": 0.5309
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:49:26.790260+00:00",
+      "parse_rate": 0.5308641975308642,
+      "unique_templates": 81,
+      "avg_wildcard_ratio": 0.2654320987654321
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:49:26.816482+00:00",
+      "elapsed_s": 38.359
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:49:26.825858+00:00",
+      "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+      "input": "artifacts\\data\\vendor6_sputterpro_recipe_details.yaml",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:49:26.837386+00:00",
+      "lines": 63
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:49:26.838614+00:00",
+      "kept": 63,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:49:26.846632+00:00",
+      "round": 1,
+      "rate": 0.44
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:49:50.834271+00:00",
+      "provider": "groq",
+      "latency_s": 23.982,
+      "tokens_out": 160,
+      "cost_usd": 0.00014691000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:49:50.841243+00:00",
+      "round": 2,
+      "rate": 0.96
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:49:50.846495+00:00",
+      "count": 85
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:49:51.039551+00:00",
+      "records": 63,
+      "templates": 45,
+      "parse_rate": 0.9683
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:49:51.039783+00:00",
+      "parse_rate": 0.9682539682539683,
+      "unique_templates": 45,
+      "avg_wildcard_ratio": 0.753968253968254
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:49:51.096291+00:00",
+      "elapsed_s": 24.271
+    }
+  ]
+}

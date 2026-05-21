@@ -1,0 +1,72 @@
+{
+  "config": {
+    "sim_threshold": 0.5,
+    "depth": 4,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "ThermalDyn Systems",
+      "template_tokens": [
+        "ThermalDyn",
+        "Systems"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "Thermal Oxidation / Diffusion",
+      "template_tokens": [
+        "Thermal",
+        "Oxidation",
+        "/",
+        "Diffusion"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<VERSION>",
+      "template_tokens": [
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<NET_ID>",
+      "template_tokens": [
+        "<NET_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<DATE>",
+      "template_tokens": [
+        "<DATE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<NAME_TOKEN>",
+      "template_tokens": [
+        "<NAME_TOKEN>"
+      ],
+      "size": 15,
+      "stability": 0.7
+    }
+  ],
+  "stats": {
+    "new_cluster": 6,
+    "matched": 14
+  }
+}

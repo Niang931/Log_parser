@@ -1,0 +1,31 @@
+# PolishMaster Corp - Recipe Details					
+# RecipeID: RCP_PM_001	RecipeName: STI_CMP_OXIDE_300A				
+# EquipmentID: EQP_PM_001	LotID: LOT_PM_001				
+# LayerName: STI_Oxide	TargetRemoval_nm: 300				
+StepID	StepName	Parameter	Unit	Setpoint	Tolerance
+PRECONDITIONING	Pad Condition	Platen_rpm	rpm	93	2
+PRECONDITIONING	Pad Condition	Head_rpm	rpm	87	2
+PRECONDITIONING	Pad Condition	DresserForce_N	N	8.5	0.5
+PRECONDITIONING	Pad Condition	DIW_Flow_ml_min	ml/min	500	20
+PRECONDITIONING	Pad Condition	Duration_s	s	60	
+LOAD	Wafer Load	Transfer_Speed	Normal	1	
+LOAD	Wafer Load	Chuck_Vac_mbar	mbar	-800	20
+STEP1_BULK	Bulk Removal	Head_Pressure_psi	psi	3.0	0.1
+STEP1_BULK	Bulk Removal	Platen_rpm	rpm	93	2
+STEP1_BULK	Bulk Removal	Head_rpm	rpm	87	2
+STEP1_BULK	Bulk Removal	Slurry_ml_min	ml/min	250	10
+STEP1_BULK	Bulk Removal	RR_Zone1_psi	psi	2.0	0.05
+STEP1_BULK	Bulk Removal	RR_Zone2_psi	psi	2.5	0.05
+STEP1_BULK	Bulk Removal	RR_Zone3_psi	psi	2.2	0.05
+STEP1_BULK	Bulk Removal	RetRing_psi	psi	1.5	0.1
+STEP1_BULK	Bulk Removal	Target_Remove_nm	nm	250	
+STEP1_BULK	Bulk Removal	EPD_Enabled	Bool	true	
+STEP2_ENDPOINT	Endpoint Polish	Head_Pressure_psi	psi	2.0	0.1
+STEP2_ENDPOINT	Endpoint Polish	Platen_rpm	rpm	77	2
+STEP2_ENDPOINT	Endpoint Polish	Head_rpm	rpm	73	2
+STEP2_ENDPOINT	Endpoint Polish	Slurry_ml_min	ml/min	150	10
+STEP2_ENDPOINT	Endpoint Polish	Target_Remove_nm	nm	50	
+STEP2_ENDPOINT	Endpoint Polish	EPD_Window_s	s	30	
+RINSE	Post-CMP Rinse	DIW_Flow_ml_min	ml/min	1000	50
+RINSE	Post-CMP Rinse	Duration_s	s	30	
+UNLOAD	Wafer Unload	Transfer_Speed	Normal	1	

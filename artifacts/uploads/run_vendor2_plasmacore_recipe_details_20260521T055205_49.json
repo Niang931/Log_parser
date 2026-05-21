@@ -1,0 +1,258 @@
+{
+  "ControlJob": {
+    "Keys": {
+      "CtrlJobID": "CJOB_PC_001",
+      "EquipmentID": "EQP_PC_001"
+    },
+    "Attributes": {
+      "FileGeneratorSoftwareVersion": "Process",
+      "FileGeneratorVersion": "3.1",
+      "FileType": "Recipe"
+    },
+    "ProcessJobs": [
+      {
+        "Keys": {
+          "PRJobID": "PRJOB_PC_001",
+          "RecipeID": "RCP_PC_001"
+        },
+        "Attributes": {
+          "LotID": "LOT_PC_001",
+          "LayerName": "SiO2_Etch",
+          "SubstrateType": "300mm_Si"
+        },
+        "ModuleProcessReports": [
+          {
+            "Keys": {
+              "ModuleID": "MOD_ETCH_001",
+              "RecipeStepID": "PRE_PUMP",
+              "WaferID": ""
+            },
+            "Attributes": {
+              "SlotID": null,
+              "EquipmentConstants": []
+            },
+            "SetPoints": [
+              {
+                "SensorID": "SENSOR_0001",
+                "DataType": "Float",
+                "Value": "5.0"
+              },
+              {
+                "SensorID": "SENSOR_0006",
+                "DataType": "Float",
+                "Value": "0"
+              },
+              {
+                "SensorID": "SENSOR_0007",
+                "DataType": "Float",
+                "Value": "0"
+              },
+              {
+                "SensorID": "SENSOR_0008",
+                "DataType": "Float",
+                "Value": "50"
+              },
+              {
+                "SensorID": "SENSOR_0002",
+                "DataType": "Float",
+                "Value": "0"
+              },
+              {
+                "SensorID": "SENSOR_0003",
+                "DataType": "Float",
+                "Value": "0"
+              }
+            ]
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_ETCH_001",
+              "RecipeStepID": "STRIKE",
+              "WaferID": ""
+            },
+            "Attributes": {
+              "SlotID": null,
+              "EquipmentConstants": []
+            },
+            "SetPoints": [
+              {
+                "SensorID": "SENSOR_0001",
+                "DataType": "Float",
+                "Value": "50.0"
+              },
+              {
+                "SensorID": "SENSOR_0002",
+                "DataType": "Float",
+                "Value": "500"
+              },
+              {
+                "SensorID": "SENSOR_0003",
+                "DataType": "Float",
+                "Value": "0"
+              },
+              {
+                "SensorID": "SENSOR_0006",
+                "DataType": "Float",
+                "Value": "30"
+              },
+              {
+                "SensorID": "SENSOR_0008",
+                "DataType": "Float",
+                "Value": "100"
+              },
+              {
+                "SensorID": "SENSOR_0005",
+                "DataType": "Float",
+                "Value": "20"
+              }
+            ]
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_ETCH_001",
+              "RecipeStepID": "MAIN_ETCH",
+              "WaferID": "WFR_PC_001"
+            },
+            "Attributes": {
+              "SlotID": "SLOT_001",
+              "EquipmentConstants": []
+            },
+            "SetPoints": [
+              {
+                "SensorID": "SENSOR_0001",
+                "DataType": "Float",
+                "Value": "30.0"
+              },
+              {
+                "SensorID": "SENSOR_0002",
+                "DataType": "Float",
+                "Value": "1200"
+              },
+              {
+                "SensorID": "SENSOR_0003",
+                "DataType": "Float",
+                "Value": "600"
+              },
+              {
+                "SensorID": "SENSOR_0004",
+                "DataType": "Float",
+                "Value": "13560"
+              },
+              {
+                "SensorID": "SENSOR_0005",
+                "DataType": "Float",
+                "Value": "20"
+              },
+              {
+                "SensorID": "SENSOR_0006",
+                "DataType": "Float",
+                "Value": "50"
+              },
+              {
+                "SensorID": "SENSOR_0007",
+                "DataType": "Float",
+                "Value": "25"
+              },
+              {
+                "SensorID": "SENSOR_0008",
+                "DataType": "Float",
+                "Value": "100"
+              },
+              {
+                "SensorID": "SENSOR_0009",
+                "DataType": "Float",
+                "Value": "5"
+              },
+              {
+                "SensorID": "SENSOR_0010",
+                "DataType": "Float",
+                "Value": "-120"
+              }
+            ]
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_ETCH_001",
+              "RecipeStepID": "OVER_ETCH",
+              "WaferID": "WFR_PC_001"
+            },
+            "Attributes": {
+              "SlotID": "SLOT_001",
+              "EquipmentConstants": []
+            },
+            "SetPoints": [
+              {
+                "SensorID": "SENSOR_0001",
+                "DataType": "Float",
+                "Value": "30.0"
+              },
+              {
+                "SensorID": "SENSOR_0002",
+                "DataType": "Float",
+                "Value": "800"
+              },
+              {
+                "SensorID": "SENSOR_0003",
+                "DataType": "Float",
+                "Value": "300"
+              },
+              {
+                "SensorID": "SENSOR_0004",
+                "DataType": "Float",
+                "Value": "13560"
+              },
+              {
+                "SensorID": "SENSOR_0005",
+                "DataType": "Float",
+                "Value": "20"
+              },
+              {
+                "SensorID": "SENSOR_0006",
+                "DataType": "Float",
+                "Value": "20"
+              },
+              {
+                "SensorID": "SENSOR_0008",
+                "DataType": "Float",
+                "Value": "200"
+              },
+              {
+                "SensorID": "SENSOR_0009",
+                "DataType": "Float",
+                "Value": "15"
+              }
+            ]
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_ETCH_001",
+              "RecipeStepID": "PURGE",
+              "WaferID": "WFR_PC_001"
+            },
+            "Attributes": {
+              "SlotID": "SLOT_001",
+              "EquipmentConstants": []
+            },
+            "SetPoints": [
+              {
+                "SensorID": "SENSOR_0001",
+                "DataType": "Float",
+                "Value": "null"
+              },
+              {
+                "SensorID": "SENSOR_0002",
+                "DataType": "Float",
+                "Value": "0"
+              },
+              {
+                "SensorID": "SENSOR_0008",
+                "DataType": "Float",
+                "Value": "500"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

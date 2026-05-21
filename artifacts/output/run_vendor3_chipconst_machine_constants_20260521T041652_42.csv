@@ -1,0 +1,72 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<MachineConstants>,<MachineConstants>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Header>,<Header>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ToolID>EQP_CHIPCONST_001</ToolID>,<ToolID><EQP_ID></ToolID>,"{""EQP_ID"": ""EQP_CHIPCONST_001""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Vendor>ChipConst Technologies</Vendor>,<Vendor>ChipConst Technologies</Vendor>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ProcessType>LPCVD</ProcessType>,<ProcessType>LPCVD</ProcessType>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<SoftwareVersion>VER_CVD_4.2.1</SoftwareVersion>,<SoftwareVersion><VERSION></SoftwareVersion>,"{""VERSION"": ""VER_CVD_4.2.1""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<NetworkAddress>NET_CC_001</NetworkAddress>,<NetworkAddress><NET_ID></NetworkAddress>,"{""NET_ID"": ""NET_CC_001""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ExpirationDate>2027-12-31</ExpirationDate>,<ExpirationDate><DATE></ExpirationDate>,"{""DATE"": ""2027-12-31""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<CreatedBy>CREATOR_CC_001</CreatedBy>,<CreatedBy><CREATOR_ID></CreatedBy>,"{""CREATOR_ID"": ""CREATOR_CC_001""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<CreateTime>2026-01-15T06:00:00+00:00</CreateTime>,<CreateTime><ISO_TS></CreateTime>,"{""ISO_TS"": ""2026-01-15T06:00:00+00:00""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<EquipmentConstants>,<EquipmentConstants>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Constant>,<Constant>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0001</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0001""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_001</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_001""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>Torr</Units>,<Units>Torr</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<DataType>Float</DataType>,<DataType>Float</DataType>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>0.35</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""0.35""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Process Pressure Setpoint</Description>,<Description>Process Pressure Setpoint</Description>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0002</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0002""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_002</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_002""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>°C</Units>,<Units>°C</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>750.0</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""750.0""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Furnace Zone 1 Temperature</Description>,<Description>Furnace Zone <NUM> Temperature</Description>,"{""NUM"": ""1""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0003</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0003""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_003</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_003""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>755.0</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""755.0""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Furnace Zone 2 Temperature</Description>,<Description>Furnace Zone <NUM> Temperature</Description>,"{""NUM"": ""2""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0004</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0004""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_004</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_004""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>748.0</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""748.0""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Furnace Zone 3 Temperature</Description>,<Description>Furnace Zone <NUM> Temperature</Description>,"{""NUM"": ""3""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0005</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0005""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_005</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_005""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>sccm</Units>,<Units>sccm</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>100.0</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""100.0""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>SiH2Cl2 (DCS) Flow Rate</Description>,<Description>SiH2Cl2 (DCS) Flow Rate</Description>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0006</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0006""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_006</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_006""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>20.0</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""20.0""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>NH3 Flow Rate</Description>,<Description>NH3 Flow Rate</Description>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0007</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0007""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_007</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_007""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>nm/min</Units>,<Units>nm/min</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>5.8</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""5.8""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Deposition Rate Target</Description>,<Description>Deposition Rate Target</Description>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0008</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0008""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_008</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_008""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>wafers</Units>,<Units>wafers</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<DataType>Integer</DataType>,<DataType>Integer</DataType>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>150</Value>,<Value><*></Value>,"{""*"": ""150""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Batch Size Maximum</Description>,<Description>Batch Size Maximum</Description>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0009</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0009""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_009</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_009""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>cycles</Units>,<Units>cycles</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>50</Value>,<Value><*></Value>,"{""*"": ""50""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>PM Cycle Interval</Description>,<Description>PM Cycle Interval</Description>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0010</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0010""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_010</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_010""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>nm</Units>,<Units>nm</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>5.0</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""5.0""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Deposition Thickness Tolerance</Description>,<Description>Deposition Thickness Tolerance</Description>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0011</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0011""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_011</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_011""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>%</Units>,<Units>%</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>1.5</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""1.5""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Uniformity Spec Within-Wafer</Description>,<Description>Uniformity Spec Within-Wafer</Description>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Name>NAME_0012</Name>,<Name><NAME_TOKEN></Name>,"{""NAME_TOKEN"": ""NAME_0012""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<ConstantID>CC_EC_012</ConstantID>,<ConstantID><EC_ID></ConstantID>,"{""EC_ID"": ""CC_EC_012""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Units>MPa</Units>,<Units>MPa</Units>,{},0,0
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Value>-200.0</Value>,<Value><FLOAT></Value>,"{""FLOAT"": ""-200.0""}",1,1
+run_vendor3_chipconst_machine_constants_20260521T041652_42,2026-05-21T04:16:52.461583+00:00,<Description>Film Stress Target</Description>,<Description>Film Stress Target</Description>,{},0,0

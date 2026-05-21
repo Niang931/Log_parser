@@ -1,0 +1,473 @@
+{
+  "config": {
+    "sim_threshold": 0.5,
+    "depth": 4,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "# ============================================================",
+      "template_tokens": [
+        "#",
+        "============================================================"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "# Machine Constants File - IonBeam Technologies",
+      "template_tokens": [
+        "#",
+        "Machine",
+        "Constants",
+        "File",
+        "-",
+        "IonBeam",
+        "Technologies"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "# ToolID : <EQP_ID>",
+      "template_tokens": [
+        "#",
+        "ToolID",
+        ":",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "# ProcessType : Ion Implantation",
+      "template_tokens": [
+        "#",
+        "ProcessType",
+        ":",
+        "Ion",
+        "Implantation"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "# Vendor : IonBeam Technologies Inc.",
+      "template_tokens": [
+        "#",
+        "Vendor",
+        ":",
+        "IonBeam",
+        "Technologies",
+        "Inc."
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "# <FAB_TOKEN>ersion : <VERSION>",
+      "template_tokens": [
+        "#",
+        "<FAB_TOKEN>ersion",
+        ":",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "# Network : <NET_ID>",
+      "template_tokens": [
+        "#",
+        "Network",
+        ":",
+        "<NET_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "# Expiration : <DATE>",
+      "template_tokens": [
+        "#",
+        "Expiration",
+        ":",
+        "<DATE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "# Generated : <ISO_TS>",
+      "template_tokens": [
+        "#",
+        "Generated",
+        ":",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "[<FAB_TOKEN>]",
+      "template_tokens": [
+        "[<FAB_TOKEN>]"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "<FAB_TOKEN> = <*>",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "<*>"
+      ],
+      "size": 2,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "<FAB_TOKEN> = Medium_Current_Implanter",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "Medium_Current_Implanter"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "MANUFA<FAB_TOKEN> = <FAB_ID>",
+      "template_tokens": [
+        "MANUFA<FAB_TOKEN>",
+        "=",
+        "<FAB_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "[EQU<FAB_TOKEN>]",
+      "template_tokens": [
+        "[EQU<FAB_TOKEN>]"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "<FAB_ID>_NAME = <NAME_TOKEN>",
+      "template_tokens": [
+        "<FAB_ID>_NAME",
+        "=",
+        "<NAME_TOKEN>"
+      ],
+      "size": 10,
+      "stability": 0.45
+    },
+    {
+      "cluster_id": 15,
+      "template": "<FAB_ID>_<FAB_TOKEN> = <LARGE_INT>",
+      "template_tokens": [
+        "<FAB_ID>_<FAB_TOKEN>",
+        "=",
+        "<LARGE_INT>"
+      ],
+      "size": 10,
+      "stability": 0.45
+    },
+    {
+      "cluster_id": 16,
+      "template": "<FAB_ID>_UNITS = keV",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "keV"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "<FAB_ID>_DATATYPE = Float",
+      "template_tokens": [
+        "<FAB_ID>_DATATYPE",
+        "=",
+        "Float"
+      ],
+      "size": 8,
+      "stability": 0.35
+    },
+    {
+      "cluster_id": 18,
+      "template": "<FAB_ID>_VALUE = <*>",
+      "template_tokens": [
+        "<FAB_ID>_VALUE",
+        "=",
+        "<*>"
+      ],
+      "size": 9,
+      "stability": 0.3
+    },
+    {
+      "cluster_id": 19,
+      "template": "<FAB_ID>_DESC = Beam Energy Maximum",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Beam",
+        "Energy",
+        "Maximum"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "<FAB_ID>_UNITS = mA",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "mA"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "<FAB_ID>_DESC = Beam Current Maximum",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Beam",
+        "Current",
+        "Maximum"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "<FAB_ID>_UNITS = atoms/cm2",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "atoms/cm2"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "<FAB_ID>_DESC = Dose Uniformity <*> <*>",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Dose",
+        "Uniformity",
+        "<*>",
+        "<*>"
+      ],
+      "size": 2,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "<FAB_ID>_UNITS = None",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "None"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "<FAB_ID>_DATATYPE = String",
+      "template_tokens": [
+        "<FAB_ID>_DATATYPE",
+        "=",
+        "String"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "<FAB_ID>_VALUE = Boron_BF3",
+      "template_tokens": [
+        "<FAB_ID>_VALUE",
+        "=",
+        "Boron_BF3"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "<FAB_ID>_DESC = Default Ion Species",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Default",
+        "Ion",
+        "Species"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "<FAB_ID>_UNITS = cycles",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "cycles"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "<FAB_ID>_DATATYPE = Integer",
+      "template_tokens": [
+        "<FAB_ID>_DATATYPE",
+        "=",
+        "Integer"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "<FAB_ID>_DESC = Faraday Cup Calibration Interval",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Faraday",
+        "Cup",
+        "Calibration",
+        "Interval"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "<FAB_ID>_UNITS = %",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "%"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "<FAB_ID>_UNITS = Torr",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "Torr"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "<FAB_ID>_DESC = Beam Line Vacuum Limit",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Beam",
+        "Line",
+        "Vacuum",
+        "Limit"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "<FAB_ID>_UNITS = degrees",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "degrees"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 35,
+      "template": "<FAB_ID>_DESC = Tilt Angle Default",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Tilt",
+        "Angle",
+        "Default"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 36,
+      "template": "<FAB_ID>_DESC = Rotation Angle Default",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Rotation",
+        "Angle",
+        "Default"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 37,
+      "template": "<FAB_ID>_UNITS = mm/s",
+      "template_tokens": [
+        "<FAB_ID>_UNITS",
+        "=",
+        "mm/s"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 38,
+      "template": "<FAB_ID>_DESC = Scan Speed Maximum",
+      "template_tokens": [
+        "<FAB_ID>_DESC",
+        "=",
+        "Scan",
+        "Speed",
+        "Maximum"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 39,
+    "matched": 36
+  }
+}

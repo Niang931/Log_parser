@@ -1,0 +1,228 @@
+{
+  "run_id": "run_vendor5_ionbeam_recipe_details_20260521T055205_42",
+  "total_clusters": 19,
+  "template_fingerprint": "e450d064358ac435",
+  "drain_stats": {
+    "new_cluster": 19,
+    "matched": 40
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 14,
+      "template": "<INI_KV>",
+      "template_tokens": [
+        "<INI_KV>"
+      ],
+      "size": 27,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "<FAB_TOKEN> = <*>",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "<*>"
+      ],
+      "size": 10,
+      "stability": 0.4
+    },
+    {
+      "cluster_id": 12,
+      "template": "<INI_SECTION>",
+      "template_tokens": [
+        "<INI_SECTION>"
+      ],
+      "size": 6,
+      "stability": 0.25
+    },
+    {
+      "cluster_id": 0,
+      "template": "# ============================================================",
+      "template_tokens": [
+        "#",
+        "============================================================"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "# Recipe File - IonBeam Technologies",
+      "template_tokens": [
+        "#",
+        "Recipe",
+        "File",
+        "-",
+        "IonBeam",
+        "Technologies"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "# RecipeID : <RECIPE_ID>",
+      "template_tokens": [
+        "#",
+        "RecipeID",
+        ":",
+        "<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "# RecipeName : BF2_<FAB_TOKEN>keV",
+      "template_tokens": [
+        "#",
+        "RecipeName",
+        ":",
+        "BF2_<FAB_TOKEN>keV"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "# EquipmentID : <EQP_ID>",
+      "template_tokens": [
+        "#",
+        "EquipmentID",
+        ":",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "# LotID : <LOT_ID>",
+      "template_tokens": [
+        "#",
+        "LotID",
+        ":",
+        "<LOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "# Layer : P-Well",
+      "template_tokens": [
+        "#",
+        "Layer",
+        ":",
+        "P-Well"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "# FileType : Recipe",
+      "template_tokens": [
+        "#",
+        "FileType",
+        ":",
+        "Recipe"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "# <FAB_TOKEN>ersion : <VERSION>",
+      "template_tokens": [
+        "#",
+        "<FAB_TOKEN>ersion",
+        ":",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "# Created : <ISO_TS>",
+      "template_tokens": [
+        "#",
+        "Created",
+        ":",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "# ApprovedBy : <FAB_ID>",
+      "template_tokens": [
+        "#",
+        "ApprovedBy",
+        ":",
+        "<FAB_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "# Expiration : <ISO_TS>",
+      "template_tokens": [
+        "#",
+        "Expiration",
+        ":",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "<FAB_TOKEN> = 1+",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "1+"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "TOL<FAB_TOKEN> = <FLOAT>",
+      "template_tokens": [
+        "TOL<FAB_TOKEN>",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "RO<FAB_TOKEN> = <FLOAT>",
+      "template_tokens": [
+        "RO<FAB_TOKEN>",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "UNIF<FAB_TOKEN> = <FLOAT>",
+      "template_tokens": [
+        "UNIF<FAB_TOKEN>",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

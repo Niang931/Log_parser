@@ -1,0 +1,800 @@
+[
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.164908+00:00",
+    "raw": "Recipe.noNamespaceSchemaLocation = http://www.metrovision.com/schema/Recipe/v2.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Recipe.noNamespaceSchemaLocation = http://www.metrovision.com/schema/Recipe/v2.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.164908+00:00",
+    "raw": "<RecipeID>RCP_MV_001</RecipeID>",
+    "template": "<RecipeID><RECIPE_ID></RecipeID>",
+    "variables": {
+      "RECIPE_ID": "RCP_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.164908+00:00",
+    "raw": "<RecipeName>CD_OCD_M1_POLY_MEASURE_v3</RecipeName>",
+    "template": "<RecipeName><FAB_TOKEN>v3</RecipeName>",
+    "variables": {
+      "FAB_TOKEN": "CD_OCD_M1_POLY_MEASURE_"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.226904+00:00",
+    "raw": "<MachineID>EQP_MV_001</MachineID>",
+    "template": "<MachineID><EQP_ID></MachineID>",
+    "variables": {
+      "EQP_ID": "EQP_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.226904+00:00",
+    "raw": "<MachineCustomerName>CUST_MV_001</MachineCustomerName>",
+    "template": "<MachineCustomerName><CUST_ID></MachineCustomerName>",
+    "variables": {
+      "CUST_ID": "CUST_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.226904+00:00",
+    "raw": "<MachineType>MTYPE_OCD_001</MachineType>",
+    "template": "<MachineType><MTYPE_ID></MachineType>",
+    "variables": {
+      "MTYPE_ID": "MTYPE_OCD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.643849+00:00",
+    "raw": "<SoftwareRelease>6.5.2</SoftwareRelease>",
+    "template": "<SoftwareRelease><FLOAT>.2</SoftwareRelease>",
+    "variables": {
+      "FLOAT": "6.5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.643849+00:00",
+    "raw": "<CreatedBy>CREATOR_MV_001</CreatedBy>",
+    "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+    "variables": {
+      "CREATOR_ID": "CREATOR_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.643849+00:00",
+    "raw": "<CreateTime>2026-01-10T00:00:00+00:00</CreateTime>",
+    "template": "<CreateTime><ISO_TS></CreateTime>",
+    "variables": {
+      "ISO_TS": "2026-01-10T00:00:00+00:00"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.703534+00:00",
+    "raw": "<DocumentID>DOC_MV_001</DocumentID>",
+    "template": "<DocumentID><DOC_ID></DocumentID>",
+    "variables": {
+      "DOC_ID": "DOC_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.703534+00:00",
+    "raw": "<DocumentType>Recipe</DocumentType>",
+    "template": "<DocumentType>Recipe</DocumentType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.703534+00:00",
+    "raw": "<DocumentTypeVersion>v2.0</DocumentTypeVersion>",
+    "template": "<DocumentTypeVersion>v<FLOAT></DocumentTypeVersion>",
+    "variables": {
+      "FLOAT": "2.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.760996+00:00",
+    "raw": "<ApprovedBy>CREATOR_MV_002</ApprovedBy>",
+    "template": "<ApprovedBy><CREATOR_ID></ApprovedBy>",
+    "variables": {
+      "CREATOR_ID": "CREATOR_MV_002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.760996+00:00",
+    "raw": "<ExpirationTime>2027-01-10T00:00:00+00:00</ExpirationTime>",
+    "template": "<ExpirationTime><ISO_TS></ExpirationTime>",
+    "variables": {
+      "ISO_TS": "2027-01-10T00:00:00+00:00"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.760996+00:00",
+    "raw": "<TargetMachineID>EQP_MV_001</TargetMachineID>",
+    "template": "<TargetMachineID><EQP_ID></TargetMachineID>",
+    "variables": {
+      "EQP_ID": "EQP_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.826499+00:00",
+    "raw": "<TargetMachineCustomerName>CUST_MV_001</TargetMachineCustomerName>",
+    "template": "<TargetMachineCustomerName><CUST_ID></TargetMachineCustomerName>",
+    "variables": {
+      "CUST_ID": "CUST_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.826499+00:00",
+    "raw": "Site.id = 1",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.826499+00:00",
+    "raw": "<X_mm>0.0</X_mm>",
+    "template": "<X_mm><FLOAT></X_mm>",
+    "variables": {
+      "FLOAT": "0.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.900767+00:00",
+    "raw": "<Y_mm>0.0</Y_mm>",
+    "template": "<Y_mm><FLOAT></Y_mm>",
+    "variables": {
+      "FLOAT": "0.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.900767+00:00",
+    "raw": "<Name>Center</Name>",
+    "template": "<Name>Center</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.900767+00:00",
+    "raw": "Site.id = 2",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 2"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.978718+00:00",
+    "raw": "<X_mm>-50.0</X_mm>",
+    "template": "<X_mm><FLOAT></X_mm>",
+    "variables": {
+      "FLOAT": "-50.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.978718+00:00",
+    "raw": "<Name>Mid_Left</Name>",
+    "template": "<Name>Mid_Left</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:08.978718+00:00",
+    "raw": "Site.id = 3",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 3"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.077204+00:00",
+    "raw": "<X_mm>50.0</X_mm>",
+    "template": "<X_mm><FLOAT></X_mm>",
+    "variables": {
+      "FLOAT": "50.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.077204+00:00",
+    "raw": "<Name>Mid_Right</Name>",
+    "template": "<Name>Mid_Right</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.077204+00:00",
+    "raw": "Site.id = 4",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 4"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.142705+00:00",
+    "raw": "<Y_mm>-50.0</Y_mm>",
+    "template": "<Y_mm><FLOAT></Y_mm>",
+    "variables": {
+      "FLOAT": "-50.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.142705+00:00",
+    "raw": "<Name>Mid_Bottom</Name>",
+    "template": "<Name>Mid_Bottom</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.142705+00:00",
+    "raw": "Site.id = 5",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.202104+00:00",
+    "raw": "<Y_mm>50.0</Y_mm>",
+    "template": "<Y_mm><FLOAT></Y_mm>",
+    "variables": {
+      "FLOAT": "50.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.202104+00:00",
+    "raw": "<Name>Mid_Top</Name>",
+    "template": "<Name>Mid_Top</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.202104+00:00",
+    "raw": "Site.id = 6",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 6"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.261439+00:00",
+    "raw": "<X_mm>-100.0</X_mm>",
+    "template": "<X_mm><FLOAT></X_mm>",
+    "variables": {
+      "FLOAT": "-100.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.261439+00:00",
+    "raw": "<Name>Edge_Left</Name>",
+    "template": "<Name>Edge_Left</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.261439+00:00",
+    "raw": "Site.id = 7",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 7"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.329201+00:00",
+    "raw": "<X_mm>100.0</X_mm>",
+    "template": "<X_mm><FLOAT></X_mm>",
+    "variables": {
+      "FLOAT": "100.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.329201+00:00",
+    "raw": "<Name>Edge_Right</Name>",
+    "template": "<Name>Edge_Right</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.329201+00:00",
+    "raw": "Site.id = 8",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 8"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.392971+00:00",
+    "raw": "<Y_mm>-100.0</Y_mm>",
+    "template": "<Y_mm><FLOAT></Y_mm>",
+    "variables": {
+      "FLOAT": "-100.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.392971+00:00",
+    "raw": "<Name>Edge_Bottom</Name>",
+    "template": "<Name>Edge_Bottom</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.392971+00:00",
+    "raw": "Site.id = 9",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Site.id = 9"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.452042+00:00",
+    "raw": "<Y_mm>100.0</Y_mm>",
+    "template": "<Y_mm><FLOAT></Y_mm>",
+    "variables": {
+      "FLOAT": "100.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.452042+00:00",
+    "raw": "<Name>Edge_Top</Name>",
+    "template": "<Name>Edge_Top</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.452042+00:00",
+    "raw": "Target.id = TGT_001",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Target.id = TGT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.515814+00:00",
+    "raw": "<TargetName>Poly_CD_H</TargetName>",
+    "template": "<TargetName>Poly_<FAB_TOKEN></TargetName>",
+    "variables": {
+      "FAB_TOKEN": "CD_H"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.515814+00:00",
+    "raw": "<MeasurementType>OCD</MeasurementType>",
+    "template": "<MeasurementType>OCD</MeasurementType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.515814+00:00",
+    "raw": "<Wavelength_nm>193</Wavelength_nm>",
+    "template": "<Wavelength_nm>193</Wavelength_nm>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.576789+00:00",
+    "raw": "<NumericalAperture>0.70</NumericalAperture>",
+    "template": "<NumericalAperture><FLOAT></NumericalAperture>",
+    "variables": {
+      "FLOAT": "0.70"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.576789+00:00",
+    "raw": "<ModelName>PolyGate_Model_v2</ModelName>",
+    "template": "<ModelName>PolyGate_Model_v2</ModelName>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.576789+00:00",
+    "raw": "Param.name = CDtop",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.name = CDtop"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.655103+00:00",
+    "raw": "Param.target_nm = 22.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.target_nm = 22.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.655103+00:00",
+    "raw": "Param.tolerance_nm = 2.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.tolerance_nm = 2.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.655103+00:00",
+    "raw": "Param name=\"CDtop\" target_nm=\"22.0\" tolerance_nm=\"2.0\"",
+    "template": "Param <ATTR_KV> target_nm=\"<FLOAT>\" tolerance_nm=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"CDtop\"",
+      "FLOAT": "2.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.840695+00:00",
+    "raw": "Param.name = CDmid",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.name = CDmid"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.840695+00:00",
+    "raw": "Param.target_nm = 26.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.target_nm = 26.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.840695+00:00",
+    "raw": "Param name=\"CDmid\" target_nm=\"26.0\" tolerance_nm=\"2.0\"",
+    "template": "Param <ATTR_KV> target_nm=\"<FLOAT>\" tolerance_nm=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"CDmid\"",
+      "FLOAT": "2.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.902437+00:00",
+    "raw": "Param.name = Height",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.name = Height"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.902437+00:00",
+    "raw": "Param.target_nm = 80.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.target_nm = 80.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.902437+00:00",
+    "raw": "Param.tolerance_nm = 5.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.tolerance_nm = 5.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.964600+00:00",
+    "raw": "Param name=\"Height\" target_nm=\"80.0\" tolerance_nm=\"5.0\"",
+    "template": "Param <ATTR_KV> target_nm=\"<FLOAT>\" tolerance_nm=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"Height\"",
+      "FLOAT": "5.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.964600+00:00",
+    "raw": "Param.name = SWA",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.name = SWA"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:09.964600+00:00",
+    "raw": "Param.target_deg = 88.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.target_deg = 88.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.026028+00:00",
+    "raw": "Param.tolerance_deg = 1.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.tolerance_deg = 1.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.026028+00:00",
+    "raw": "Param name=\"SWA\" target_deg=\"88.0\" tolerance_deg=\"1.0\"",
+    "template": "Param <ATTR_KV> target_deg=\"<FLOAT>\" tolerance_deg=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"SWA\"",
+      "FLOAT": "1.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.026028+00:00",
+    "raw": "<Sites>1 2 3 4 5 6 7 8 9</Sites>",
+    "template": "<Sites>1 <NUM> <NUM> <NUM> <NUM> <NUM> <NUM> <NUM> 9</Sites>",
+    "variables": {
+      "NUM": "8"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.089637+00:00",
+    "raw": "Target.id = TGT_002",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Target.id = TGT_002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.089637+00:00",
+    "raw": "<TargetName>OxideThickness</TargetName>",
+    "template": "<TargetName>OxideThickness</TargetName>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.089637+00:00",
+    "raw": "<MeasurementType>Reflectometry</MeasurementType>",
+    "template": "<MeasurementType>Reflectometry</MeasurementType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.148523+00:00",
+    "raw": "<ModelName>SiO2_on_Si_Model</ModelName>",
+    "template": "<ModelName>SiO2_on_Si_Model</ModelName>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.148523+00:00",
+    "raw": "Param.name = Thickness_A",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.name = Thickness_A"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.148523+00:00",
+    "raw": "Param.target_A = 22.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.target_A = 22.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.212429+00:00",
+    "raw": "Param.tolerance_A = 0.5",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Param.tolerance_A = 0.5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.212429+00:00",
+    "raw": "Param name=\"Thickness_A\" target_A=\"22.0\" tolerance_A=\"0.5\"",
+    "template": "Param <ATTR_KV> target_A=\"<FLOAT>\" tolerance_A=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"Thickness_A\"",
+      "FLOAT": "0.5"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor9_metrovision_recipe_details_20260521T055205_46",
+    "timestamp_utc": "2026-05-21T05:52:10.212429+00:00",
+    "raw": "<Sites>1 5 9</Sites>",
+    "template": "<Sites>1 <NUM> 9</Sites>",
+    "variables": {
+      "NUM": "5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  }
+]

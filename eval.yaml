@@ -1,0 +1,7 @@
+output_dir: artifacts/output
+eval_dir: artifacts/eval
+ground_truth: null
+min_parse_rate: 0.60
+min_ga: 0.50
+pass_on_no_gt: true
+

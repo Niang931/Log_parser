@@ -1,0 +1,139 @@
+[
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "RecipeName: SiO2_GATE_OX_22A_WET",
+    "template": "RecipeName: SiO2_<FAB_TOKEN>",
+    "variables": {
+      "FAB_TOKEN": "GATE_OX_22A_WET"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "EquipmentID: EQP_TD_001",
+    "template": "EquipmentID: <EQP_ID>",
+    "variables": {
+      "EQP_ID": "EQP_TD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "LotID: LOT_TD_001",
+    "template": "LotID: <LOT_ID>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "LayerName: GateOxide",
+    "template": "LayerName: GateOxide",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "TargetThickness_A: 22",
+    "template": "TargetThickness_A: <NUM>",
+    "variables": {
+      "NUM": "22"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "StepID: StepName",
+    "template": "StepID: StepName",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "INERT_LOAD: Inert Load",
+    "template": "<FAB_TOKEN>: Inert Load",
+    "variables": {
+      "FAB_TOKEN": "INERT_LOAD"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "RAMP_UP: Temperature Ramp",
+    "template": "<FAB_TOKEN>: Temperature Ramp",
+    "variables": {
+      "FAB_TOKEN": "RAMP_UP"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "DRY_OX: Dry Oxidation",
+    "template": "<FAB_TOKEN>: Dry Oxidation",
+    "variables": {
+      "FAB_TOKEN": "DRY_OX"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "WET_OX: Wet Oxidation",
+    "template": "<FAB_TOKEN>: Wet Oxidation",
+    "variables": {
+      "FAB_TOKEN": "WET_OX"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "ANNEAL: Post-Ox Anneal",
+    "template": "ANNEAL: Post-Ox Anneal",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "RAMP_DOWN: Temperature Ramp Down",
+    "template": "<FAB_TOKEN>: Temperature Ramp Down",
+    "variables": {
+      "FAB_TOKEN": "RAMP_DOWN"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.893494+00:00",
+    "raw": "INERT_UNLOAD: Inert Unload",
+    "template": "<FAB_TOKEN>: Inert Unload",
+    "variables": {
+      "FAB_TOKEN": "INERT_UNLOAD"
+    },
+    "parsed": 1,
+    "var_count": 1
+  }
+]

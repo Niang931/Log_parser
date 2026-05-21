@@ -1,0 +1,124 @@
+{
+  "MachineConstants": {
+    "Keys": {
+      "CtrlJobID": null,
+      "ToolID": "EQP_NOVA_001",
+      "DateTime": "2026-02-18T08:00:00.000Z"
+    },
+    "Attributes": {
+      "Vendor": "VENDOR_NOVASTAR",
+      "FileGeneratorSoftwareVersion": "VER_2.4.1",
+      "ToolID": "EQP_NOVA_001",
+      "NetworkAddress": "NET_NOVA_001",
+      "ExpirationDate": "6/30/2027",
+      "ProcessType": "Lithography",
+      "EquipmentConstants": [
+        {
+          "Name": "NAME_0001",
+          "ConstantID": "EC_NOVA_001",
+          "Units": null,
+          "DataType": "Integer",
+          "Value": "1"
+        },
+        {
+          "Name": "NAME_0002",
+          "ConstantID": "EC_NOVA_002",
+          "Units": "%",
+          "DataType": "Float",
+          "Value": "98.5"
+        },
+        {
+          "Name": "NAME_0003",
+          "ConstantID": "EC_NOVA_003",
+          "Units": "mJ/cm2",
+          "DataType": "Float",
+          "Value": "25.0"
+        },
+        {
+          "Name": "NAME_0004",
+          "ConstantID": "EC_NOVA_004",
+          "Units": null,
+          "DataType": "String",
+          "Value": "ArF_193nm"
+        },
+        {
+          "Name": "NAME_0005",
+          "ConstantID": "EC_NOVA_005",
+          "Units": "cycles",
+          "DataType": "Integer",
+          "Value": "500000"
+        },
+        {
+          "Name": "NAME_0006",
+          "ConstantID": "EC_NOVA_006",
+          "Units": "nm",
+          "DataType": "Float",
+          "Value": "0.50"
+        },
+        {
+          "Name": "NAME_0007",
+          "ConstantID": "EC_NOVA_007",
+          "Units": "mbar",
+          "DataType": "Float",
+          "Value": "1.5e-3"
+        },
+        {
+          "Name": "NAME_0008",
+          "ConstantID": "EC_NOVA_008",
+          "Units": "\u00b0C",
+          "DataType": "Float",
+          "Value": "22.0"
+        },
+        {
+          "Name": "NAME_0009",
+          "ConstantID": "EC_NOVA_009",
+          "Units": "rpm",
+          "DataType": "Integer",
+          "Value": "3000"
+        },
+        {
+          "Name": "NAME_0010",
+          "ConstantID": "EC_NOVA_010",
+          "Units": "mm",
+          "DataType": "Float",
+          "Value": "300.0"
+        },
+        {
+          "Name": "NAME_0011",
+          "ConstantID": "EC_NOVA_011",
+          "Units": "s",
+          "DataType": "Float",
+          "Value": "0.25"
+        },
+        {
+          "Name": "NAME_0012",
+          "ConstantID": "EC_NOVA_012",
+          "Units": "%",
+          "DataType": "Float",
+          "Value": "45.0"
+        },
+        {
+          "Name": "NAME_0013",
+          "ConstantID": "EC_NOVA_013",
+          "Units": "lph",
+          "DataType": "Float",
+          "Value": "120.0"
+        },
+        {
+          "Name": "NAME_0014",
+          "ConstantID": "EC_NOVA_014",
+          "Units": "\u00b5m",
+          "DataType": "Float",
+          "Value": "0.065"
+        },
+        {
+          "Name": "NAME_0015",
+          "ConstantID": "EC_NOVA_015",
+          "Units": null,
+          "DataType": "Boolean",
+          "Value": "true"
+        }
+      ]
+    }
+  }
+}

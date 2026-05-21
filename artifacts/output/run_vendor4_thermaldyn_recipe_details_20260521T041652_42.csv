@@ -1,0 +1,13 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,SiO2_GATE_OX_22A_WET,SiO2_<FAB_TOKEN>,"{""FAB_TOKEN"": ""GATE_OX_22A_WET""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,EQP_TD_001,<EQP_ID>,"{""EQP_ID"": ""EQP_TD_001""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,LOT_TD_001,<LOT_ID>,"{""LOT_ID"": ""LOT_TD_001""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,GateOxide,GateOxide,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,StepName,StepName,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,Inert Load,Inert Load,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,Temperature Ramp,Temperature Ramp,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,Dry Oxidation,Dry Oxidation,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,Wet Oxidation,Wet Oxidation,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,Post-Ox Anneal,Post-Ox Anneal,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,Temperature Ramp Down,Temperature Ramp Down,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T041652_42,2026-05-21T04:16:52.702241+00:00,Inert Unload,Inert Unload,{},0,0

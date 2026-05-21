@@ -1,0 +1,116 @@
+[
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "SiO2_GATE_OX_22A_WET",
+    "template": "SiO2_<FAB_TOKEN>",
+    "variables": {
+      "FAB_TOKEN": "GATE_OX_22A_WET"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "EQP_TD_001",
+    "template": "<EQP_ID>",
+    "variables": {
+      "EQP_ID": "EQP_TD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "LOT_TD_001",
+    "template": "<LOT_ID>",
+    "variables": {
+      "LOT_ID": "LOT_TD_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "GateOxide",
+    "template": "GateOxide",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "StepName",
+    "template": "StepName",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "Inert Load",
+    "template": "Inert Load",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "Temperature Ramp",
+    "template": "Temperature Ramp",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "Dry Oxidation",
+    "template": "Dry Oxidation",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "Wet Oxidation",
+    "template": "Wet Oxidation",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "Post-Ox Anneal",
+    "template": "Post-Ox Anneal",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "Temperature Ramp Down",
+    "template": "Temperature Ramp Down",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor4_thermaldyn_recipe_details_20260521T041652_42",
+    "timestamp_utc": "2026-05-21T04:16:52.702241+00:00",
+    "raw": "Inert Unload",
+    "template": "Inert Unload",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  }
+]

@@ -1,0 +1,774 @@
+[
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.790189+00:00",
+    "raw": "<MachineConstants>",
+    "template": "<MachineConstants>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.790189+00:00",
+    "raw": "<Header>",
+    "template": "<Header>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.790189+00:00",
+    "raw": "<ToolID>EQP_MV_001</ToolID>",
+    "template": "<ToolID><EQP_ID></ToolID>",
+    "variables": {
+      "EQP_ID": "EQP_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.858258+00:00",
+    "raw": "<Vendor>MetroVision Analytics</Vendor>",
+    "template": "<Vendor>MetroVision Analytics</Vendor>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.858258+00:00",
+    "raw": "<ProcessType>Optical_CD_SEM_Metrology</ProcessType>",
+    "template": "<ProcessType>Optical_<FAB_TOKEN>etrology</ProcessType>",
+    "variables": {
+      "FAB_TOKEN": "CD_SEM_M"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.858258+00:00",
+    "raw": "<SoftwareRelease>6.5.2</SoftwareRelease>",
+    "template": "<SoftwareRelease><FLOAT>.2</SoftwareRelease>",
+    "variables": {
+      "FLOAT": "6.5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.922380+00:00",
+    "raw": "<NetworkAddress>NET_MV_001</NetworkAddress>",
+    "template": "<NetworkAddress><NET_ID></NetworkAddress>",
+    "variables": {
+      "NET_ID": "NET_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.922380+00:00",
+    "raw": "<ExpirationDate>2027-12-31</ExpirationDate>",
+    "template": "<ExpirationDate><DATE></ExpirationDate>",
+    "variables": {
+      "DATE": "2027-12-31"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.922380+00:00",
+    "raw": "<CreatedBy>CREATOR_MV_001</CreatedBy>",
+    "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+    "variables": {
+      "CREATOR_ID": "CREATOR_MV_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.982761+00:00",
+    "raw": "<CreateTime>2026-02-18T12:00:00+00:00</CreateTime>",
+    "template": "<CreateTime><ISO_TS></CreateTime>",
+    "variables": {
+      "ISO_TS": "2026-02-18T12:00:00+00:00"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.982761+00:00",
+    "raw": "<DocumentType>MachineConstants</DocumentType>",
+    "template": "<DocumentType>MachineConstants</DocumentType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:26.982761+00:00",
+    "raw": "<DocumentTypeVersion>v2.0</DocumentTypeVersion>",
+    "template": "<DocumentTypeVersion>v<FLOAT></DocumentTypeVersion>",
+    "variables": {
+      "FLOAT": "2.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.044689+00:00",
+    "raw": "<EquipmentConstants>",
+    "template": "<EquipmentConstants>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.044689+00:00",
+    "raw": "<Constant>",
+    "template": "<Constant>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.044689+00:00",
+    "raw": "<Name>NAME_0001</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.110690+00:00",
+    "raw": "<ConstantID>MV_EC_001</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.110690+00:00",
+    "raw": "<Units>nm</Units>",
+    "template": "<Units>nm</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.110690+00:00",
+    "raw": "<DataType>Float</DataType>",
+    "template": "<DataType>Float</DataType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.171186+00:00",
+    "raw": "<Value>0.1</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "0.1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.171186+00:00",
+    "raw": "<Description>XY Stage Precision (3-sigma)</Description>",
+    "template": "<Description>XY Stage Precision (3-sigma)</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.171186+00:00",
+    "raw": "<Name>NAME_0002</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.233110+00:00",
+    "raw": "<ConstantID>MV_EC_002</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.233110+00:00",
+    "raw": "<Value>0.3</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "0.3"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.233110+00:00",
+    "raw": "<Description>CD Measurement Accuracy (3-sigma)</Description>",
+    "template": "<Description>CD Measurement Accuracy (3-sigma)</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.295409+00:00",
+    "raw": "<Name>NAME_0003</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0003"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.295409+00:00",
+    "raw": "<ConstantID>MV_EC_003</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_003"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.295409+00:00",
+    "raw": "<Value>193.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "193.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.359492+00:00",
+    "raw": "<Description>Measurement Wavelength</Description>",
+    "template": "<Description>Measurement Wavelength</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.359492+00:00",
+    "raw": "<Name>NAME_0004</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0004"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.359492+00:00",
+    "raw": "<ConstantID>MV_EC_004</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_004"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.423075+00:00",
+    "raw": "<Units>None</Units>",
+    "template": "<Units>None</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.423075+00:00",
+    "raw": "<Value>0.70</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "0.70"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.423075+00:00",
+    "raw": "<Description>Numerical Aperture</Description>",
+    "template": "<Description>Numerical Aperture</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.488027+00:00",
+    "raw": "<Name>NAME_0005</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0005"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.488027+00:00",
+    "raw": "<ConstantID>MV_EC_005</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_005"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.488027+00:00",
+    "raw": "<Units>wafers/hr</Units>",
+    "template": "<Units>wafers/hr</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.549671+00:00",
+    "raw": "<Value>120.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "120.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.549671+00:00",
+    "raw": "<Description>Throughput Maximum</Description>",
+    "template": "<Description>Throughput Maximum</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.549671+00:00",
+    "raw": "<Name>NAME_0006</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0006"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.611926+00:00",
+    "raw": "<ConstantID>MV_EC_006</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_006"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.611926+00:00",
+    "raw": "<Units>sites/wafer</Units>",
+    "template": "<Units>sites/wafer</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.611926+00:00",
+    "raw": "<DataType>Integer</DataType>",
+    "template": "<DataType>Integer</DataType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.675272+00:00",
+    "raw": "<Value>9</Value>",
+    "template": "<Value><*></Value>",
+    "variables": {
+      "*": "9"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.675272+00:00",
+    "raw": "<Description>Default Site Count OCD</Description>",
+    "template": "<Description>Default Site Count OCD</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.675272+00:00",
+    "raw": "<Name>NAME_0007</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0007"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.738966+00:00",
+    "raw": "<ConstantID>MV_EC_007</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_007"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.738966+00:00",
+    "raw": "<Value>0.05</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "0.05"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.738966+00:00",
+    "raw": "<Description>Film Thickness Repeatability</Description>",
+    "template": "<Description>Film Thickness Repeatability</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.798529+00:00",
+    "raw": "<Name>NAME_0008</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0008"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.798529+00:00",
+    "raw": "<ConstantID>MV_EC_008</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_008"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.798529+00:00",
+    "raw": "<Units>degrees</Units>",
+    "template": "<Units>degrees</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.859691+00:00",
+    "raw": "<Value>0.005</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "0.005"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.859691+00:00",
+    "raw": "<Description>Wafer Alignment Accuracy</Description>",
+    "template": "<Description>Wafer Alignment Accuracy</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.859691+00:00",
+    "raw": "<Name>NAME_0009</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0009"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.922101+00:00",
+    "raw": "<ConstantID>MV_EC_009</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_009"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.922101+00:00",
+    "raw": "<Value>7</Value>",
+    "template": "<Value><*></Value>",
+    "variables": {
+      "*": "7"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.922101+00:00",
+    "raw": "<Description>Maximum Targets Per Site</Description>",
+    "template": "<Description>Maximum Targets Per Site</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.986412+00:00",
+    "raw": "<Name>NAME_0010</Name>",
+    "template": "<Name><NAME_TOKEN></Name>",
+    "variables": {
+      "NAME_TOKEN": "NAME_0010"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.986412+00:00",
+    "raw": "<ConstantID>MV_EC_010</ConstantID>",
+    "template": "<ConstantID><EC_ID></ConstantID>",
+    "variables": {
+      "EC_ID": "MV_EC_010"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:27.986412+00:00",
+    "raw": "<Units>hours</Units>",
+    "template": "<Units>hours</Units>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.064287+00:00",
+    "raw": "<Value>8760.0</Value>",
+    "template": "<Value><FLOAT></Value>",
+    "variables": {
+      "FLOAT": "8760.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.064287+00:00",
+    "raw": "<Description>Lamp Lifetime</Description>",
+    "template": "<Description>Lamp Lifetime</Description>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.064287+00:00",
+    "raw": "<SensorDefinitions>",
+    "template": "<SensorDefinitions>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.125258+00:00",
+    "raw": "<Sensor>",
+    "template": "<Sensor>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.125258+00:00",
+    "raw": "<Name>Stage_Temp</Name>",
+    "template": "<Name>Stage_Temp</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.125258+00:00",
+    "raw": "<Unit>°C</Unit>",
+    "template": "<Unit>°C</Unit>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.190788+00:00",
+    "raw": "<NominalValue>22.0</NominalValue>",
+    "template": "<NominalValue><FLOAT></NominalValue>",
+    "variables": {
+      "FLOAT": "22.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.190788+00:00",
+    "raw": "<Tolerance>0.1</Tolerance>",
+    "template": "<Tolerance><FLOAT></Tolerance>",
+    "variables": {
+      "FLOAT": "0.1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.190788+00:00",
+    "raw": "<Name>Lamp_Intensity</Name>",
+    "template": "<Name>Lamp_Intensity</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.254355+00:00",
+    "raw": "<Unit>%</Unit>",
+    "template": "<Unit>%</Unit>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.254355+00:00",
+    "raw": "<NominalValue>100.0</NominalValue>",
+    "template": "<NominalValue><FLOAT></NominalValue>",
+    "variables": {
+      "FLOAT": "100.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.254355+00:00",
+    "raw": "<Tolerance>2.0</Tolerance>",
+    "template": "<Tolerance><FLOAT></Tolerance>",
+    "variables": {
+      "FLOAT": "2.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.313812+00:00",
+    "raw": "<Name>Focus_Error</Name>",
+    "template": "<Name>Focus_Error</Name>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.313812+00:00",
+    "raw": "<Unit>nm</Unit>",
+    "template": "<Unit>nm</Unit>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.313812+00:00",
+    "raw": "<NominalValue>0.0</NominalValue>",
+    "template": "<NominalValue><FLOAT></NominalValue>",
+    "variables": {
+      "FLOAT": "0.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+    "timestamp_utc": "2026-05-21T04:59:28.377562+00:00",
+    "raw": "<Tolerance>5.0</Tolerance>",
+    "template": "<Tolerance><FLOAT></Tolerance>",
+    "variables": {
+      "FLOAT": "5.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  }
+]

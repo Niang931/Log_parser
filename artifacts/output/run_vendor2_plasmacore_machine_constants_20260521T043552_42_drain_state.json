@@ -1,0 +1,42 @@
+{
+  "config": {
+    "sim_threshold": 0.3,
+    "depth": 3,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "'<CJOB_ID>',",
+        "'EquipmentID':",
+        "'<EQP_ID>'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'FileGeneratorSoftwareVersion': 'Process', 'FileGeneratorVersion': '<FLOAT>', 'FileType': 'Recipe', 'Version': {'RecipeID': '<RECIPE_ID>",
+      "template_tokens": [
+        "{'FileGeneratorSoftwareVersion':",
+        "'Process',",
+        "'FileGeneratorVersion':",
+        "'<FLOAT>',",
+        "'FileType':",
+        "'Recipe',",
+        "'Version':",
+        "{'RecipeID':",
+        "'<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 2
+  }
+}

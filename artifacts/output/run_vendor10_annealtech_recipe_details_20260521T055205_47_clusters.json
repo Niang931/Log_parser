@@ -1,0 +1,59 @@
+{
+  "run_id": "run_vendor10_annealtech_recipe_details_20260521T055205_47",
+  "total_clusters": 3,
+  "template_fingerprint": "87d3b9fea17ada22",
+  "drain_stats": {
+    "new_cluster": 3
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "'<CJOB_ID>',",
+        "'EquipmentID':",
+        "'<EQP_ID>'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'FileGeneratorSoftwareVersion': '<VERSION>', 'FileType': 'Recipe'}",
+      "template_tokens": [
+        "{'FileGeneratorSoftwareVersion':",
+        "'<VERSION>',",
+        "'FileType':",
+        "'Recipe'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "[{'Keys': {'PRJobID': '<PRJOB_ID>', 'RecipeID': '<RECIPE_ID>'}, 'Attributes': {'LotID': '<LOT_ID>', 'LayerName': 'Source_Drain_Activation', 'TargetProcess': '<FAB_TOKEN>pike_Anneal'}, 'ModuleProcessReports': [{'Keys': {'ModuleID': '<MODULE_ID>', 'RecipeStepID",
+      "template_tokens": [
+        "[{'Keys':",
+        "{'PRJobID':",
+        "'<PRJOB_ID>',",
+        "'RecipeID':",
+        "'<RECIPE_ID>'},",
+        "'Attributes':",
+        "{'LotID':",
+        "'<LOT_ID>',",
+        "'LayerName':",
+        "'Source_Drain_Activation',",
+        "'TargetProcess':",
+        "'<FAB_TOKEN>pike_Anneal'},",
+        "'ModuleProcessReports':",
+        "[{'Keys':",
+        "{'ModuleID':",
+        "'<MODULE_ID>',",
+        "'RecipeStepID"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

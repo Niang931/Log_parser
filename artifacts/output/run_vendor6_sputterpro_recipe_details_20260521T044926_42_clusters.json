@@ -1,0 +1,445 @@
+{
+  "run_id": "run_vendor6_sputterpro_recipe_details_20260521T044926_42",
+  "total_clusters": 45,
+  "template_fingerprint": "e8568adea8404bf2",
+  "drain_stats": {
+    "new_cluster": 45,
+    "matched": 18
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 15,
+      "template": "<MAX_TIME_S>",
+      "template_tokens": [
+        "<MAX_TIME_S>"
+      ],
+      "size": 5,
+      "stability": 0.2
+    },
+    {
+      "cluster_id": 14,
+      "template": "<STEP_NAME>",
+      "template_tokens": [
+        "<STEP_NAME>"
+      ],
+      "size": 4,
+      "stability": 0.15
+    },
+    {
+      "cluster_id": 22,
+      "template": "<AR_FLOW_SCCM>",
+      "template_tokens": [
+        "<AR_FLOW_SCCM>"
+      ],
+      "size": 4,
+      "stability": 0.15
+    },
+    {
+      "cluster_id": 11,
+      "template": "<RECIPE_STEP_ID>",
+      "template_tokens": [
+        "<RECIPE_STEP_ID>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 24,
+      "template": "<ROTATION_RPM>",
+      "template_tokens": [
+        "<ROTATION_RPM>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 17,
+      "template": "<HEATER_ON>",
+      "template_tokens": [
+        "<HEATER_ON>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 21,
+      "template": "<SUBSTRATE_TEMP_C>",
+      "template_tokens": [
+        "<SUBSTRATE_TEMP_C>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 30,
+      "template": "<DC_POWER_W>",
+      "template_tokens": [
+        "<DC_POWER_W>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 32,
+      "template": "<SHUTTER>",
+      "template_tokens": [
+        "<SHUTTER>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "control_job.keys.ctrl_job_id: <CJOB_ID>",
+      "template_tokens": [
+        "control_job.keys.ctrl_job_id:",
+        "<CJOB_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "control_job.keys.equipment_id: <EQP_ID>",
+      "template_tokens": [
+        "control_job.keys.equipment_id:",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "control_job.attributes.file_generator_version: <VERSION>",
+      "template_tokens": [
+        "control_job.attributes.file_generator_version:",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<FILE_TYPE>",
+      "template_tokens": [
+        "<FILE_TYPE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "control_job.process_jobs[0].keys.pr_job_id: <PRJOB_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].keys.pr_job_id:",
+        "<PRJOB_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "control_job.process_jobs[0].keys.recipe_id: <RECIPE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].keys.recipe_id:",
+        "<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "control_job.process_jobs[0].attributes.lot_id: <LOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].attributes.lot_id:",
+        "<LOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<WAFER_SIZE_MM>",
+      "template_tokens": [
+        "<WAFER_SIZE_MM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<LAYER_NAME>",
+      "template_tokens": [
+        "<LAYER_NAME>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "<TARGET_THICKNESS_NM>",
+      "template_tokens": [
+        "<TARGET_THICKNESS_NM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "control_job.process_jobs[0].module_process_reports[0].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "control_job.process_jobs[0].module_process_reports[0].keys.wafer_id:",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].keys.wafer_id:"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "control_job.process_jobs[0].module_process_reports[0].attributes.slot_id: <LOT_ID>one",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[0].attributes.slot_id:",
+        "<LOT_ID>one"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "<TARGET_PRESSURE_TORR>",
+      "template_tokens": [
+        "<TARGET_PRESSURE_TORR>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "control_job.process_jobs[0].module_process_reports[1].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "control_job.process_jobs[0].module_process_reports[1].keys.wafer_id: <WAFER_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].keys.wafer_id:",
+        "<WAFER_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.slot_id: <SLOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.slot_id:",
+        "<SLOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "control_job.process_jobs[0].module_process_reports[1].attributes.process_pressure_mtorr: <FLOAT>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[1].attributes.process_pressure_mtorr:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "control_job.process_jobs[0].module_process_reports[2].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "control_job.process_jobs[0].module_process_reports[2].keys.recipe_step_id: <FAB_TOKEN>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].keys.recipe_step_id:",
+        "<FAB_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "control_job.process_jobs[0].module_process_reports[2].keys.wafer_id: <WAFER_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].keys.wafer_id:",
+        "<WAFER_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.slot_id: <SLOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.slot_id:",
+        "<SLOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.step_name: Pre-Sputter Clean",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.step_name:",
+        "Pre-Sputter",
+        "Clean"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "control_job.process_jobs[0].module_process_reports[2].attributes.process_pressure_mtorr: <FLOAT>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[2].attributes.process_pressure_mtorr:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "control_job.process_jobs[0].module_process_reports[3].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "<RECIPE_STEP_ID><FAB_TOKEN>",
+      "template_tokens": [
+        "<RECIPE_STEP_ID><FAB_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "control_job.process_jobs[0].module_process_reports[3].keys.wafer_id: <WAFER_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].keys.wafer_id:",
+        "<WAFER_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 36,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.slot_id: <SLOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.slot_id:",
+        "<SLOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 37,
+      "template": "<N2_FLOW_SCCM>",
+      "template_tokens": [
+        "<N2_FLOW_SCCM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 38,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.process_pressure_mtorr: <FLOAT>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.process_pressure_mtorr:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 39,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.deposition_rate_angstrom_per_s: <FLOAT>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.deposition_rate_angstrom_per_s:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 40,
+      "template": "control_job.process_jobs[0].module_process_reports[3].attributes.target_thickness_nm: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[3].attributes.target_thickness_nm:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 41,
+      "template": "control_job.process_jobs[0].module_process_reports[4].keys.module_id: <MODULE_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[4].keys.module_id:",
+        "<MODULE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 42,
+      "template": "control_job.process_jobs[0].module_process_reports[4].keys.wafer_id: <WAFER_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[4].keys.wafer_id:",
+        "<WAFER_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 43,
+      "template": "control_job.process_jobs[0].module_process_reports[4].attributes.slot_id: <SLOT_ID>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[4].attributes.slot_id:",
+        "<SLOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 44,
+      "template": "control_job.process_jobs[0].module_process_reports[4].attributes.target_temp_c: <NUM>",
+      "template_tokens": [
+        "control_job.process_jobs[0].module_process_reports[4].attributes.target_temp_c:",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

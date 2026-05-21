@@ -1,0 +1,826 @@
+[
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# ============================================================",
+    "template": "# ============================================================",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# Machine Constants File - IonBeam Technologies",
+    "template": "# Machine Constants File - IonBeam Technologies",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# ToolID       : EQP_IB_001",
+    "template": "# ToolID : <EQP_ID>",
+    "variables": {
+      "var_0": "<EQP_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# ProcessType  : Ion Implantation",
+    "template": "# ProcessType : Ion Implantation",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# Vendor       : IonBeam Technologies Inc.",
+    "template": "# Vendor : IonBeam Technologies Inc.",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# SW_Version   : VER_IB_5.0.2",
+    "template": "# <FAB_TOKEN>ersion : <VERSION>",
+    "variables": {
+      "var_0": "<FAB_TOKEN>",
+      "var_1": "<VERSION>"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# Network      : NET_IB_001",
+    "template": "# Network : <NET_ID>",
+    "variables": {
+      "var_0": "<NET_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# Expiration   : 2027-06-30",
+    "template": "# Expiration : <DATE>",
+    "variables": {
+      "var_0": "<DATE>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "# Generated    : 2026-02-18T09:00:00Z",
+    "template": "# Generated : <ISO_TS>",
+    "variables": {
+      "var_0": "<ISO_TS>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "[TOOL_INFO]",
+    "template": "[<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "TOOL_INFO"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "TOOL_ID              = EQP_IB_001",
+    "template": "<FAB_TOKEN> = <EQP_ID>",
+    "variables": {
+      "FAB_TOKEN": "TOOL_ID             ",
+      "EQP_ID": "EQP_IB_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "TOOL_TYPE            = Medium_Current_Implanter",
+    "template": "<FAB_TOKEN> = Medium_Current_Implanter",
+    "variables": {
+      "FAB_TOKEN": "TOOL_TYPE           "
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "BEAM_LINE_ID         = BL_001",
+    "template": "<FAB_TOKEN> = <*>",
+    "variables": {
+      "FAB_TOKEN": "BEAM_LINE_ID        ",
+      "*": "BL_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "MANUFACTURER_ID      = MFGR_IB_001",
+    "template": "MANUFA<FAB_TOKEN> = <FAB_ID>",
+    "variables": {
+      "FAB_TOKEN": "CTURER_ID     ",
+      "FAB_ID": "MFGR_IB_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "[EQUIPMENT_CONSTANTS]",
+    "template": "[EQU<FAB_TOKEN>]",
+    "variables": {
+      "FAB_TOKEN": "IPMENT_CONSTANTS"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_001_NAME       = NAME_0001",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_001_CONST_ID   = 31920001",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_001_UNITS      = keV",
+    "template": "<FAB_ID>_UNITS = keV",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_001_DATATYPE   = Float",
+    "template": "<FAB_ID>_DATATYPE = Float",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_001_VALUE      = 60.0",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "60.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_001_DESC       = Beam Energy Maximum",
+    "template": "<FAB_ID>_DESC = Beam Energy Maximum",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_002_NAME       = NAME_0002",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_002_CONST_ID   = 31920002",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_002_UNITS      = mA",
+    "template": "<FAB_ID>_UNITS = mA",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_002_DATATYPE   = Float",
+    "template": "<FAB_ID>_DATATYPE = Float",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_002_VALUE      = 20.0",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "20.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_002_DESC       = Beam Current Maximum",
+    "template": "<FAB_ID>_DESC = Beam <*> Maximum",
+    "variables": {
+      "var_0": "<FAB_ID>",
+      "var_1": "<*>"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_003_NAME       = NAME_0003",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0003"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_003_CONST_ID   = 31920003",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920003"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_003_UNITS      = atoms/cm2",
+    "template": "<FAB_ID>_UNITS = atoms/cm2",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_003_DATATYPE   = Float",
+    "template": "<FAB_ID>_DATATYPE = Float",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_003_VALUE      = 1.0e16",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "1.0e16"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_003_DESC       = Dose Uniformity Calibration Factor",
+    "template": "<FAB_ID>_DESC = Dose Uniformity Calibration Factor",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_004_NAME       = NAME_0004",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0004"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_004_CONST_ID   = 31920004",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920004"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_004_UNITS      = None",
+    "template": "<FAB_ID>_UNITS = None",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_004_DATATYPE   = String",
+    "template": "<FAB_ID>_DATATYPE = String",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_004_VALUE      = Boron_BF3",
+    "template": "<FAB_ID>_VALUE = Boron_BF3",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_004_DESC       = Default Ion Species",
+    "template": "<FAB_ID>_DESC = Default Ion Species",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_005_NAME       = NAME_0005",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0005"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_005_CONST_ID   = 31920005",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920005"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_005_UNITS      = cycles",
+    "template": "<FAB_ID>_UNITS = cycles",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_005_DATATYPE   = Integer",
+    "template": "<FAB_ID>_DATATYPE = Integer",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_005_VALUE      = 5000",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "5000"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_005_DESC       = Faraday Cup Calibration Interval",
+    "template": "<FAB_ID>_DESC = Faraday Cup Calibration Interval",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_006_NAME       = NAME_0006",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0006"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_006_CONST_ID   = 31920006",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920006"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_006_UNITS      = %",
+    "template": "<FAB_ID>_UNITS = %",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_006_DATATYPE   = Float",
+    "template": "<FAB_ID>_DATATYPE = Float",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_006_VALUE      = 0.5",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "0.5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_006_DESC       = Dose Uniformity Spec (1-sigma)",
+    "template": "<FAB_ID>_DESC = Dose Uniformity <*> <*>",
+    "variables": {
+      "var_0": "<FAB_ID>",
+      "var_1": "<*>",
+      "var_2": "<*>"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_007_NAME       = NAME_0007",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0007"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_007_CONST_ID   = 31920007",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920007"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_007_UNITS      = Torr",
+    "template": "<FAB_ID>_UNITS = Torr",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_007_DATATYPE   = Float",
+    "template": "<FAB_ID>_DATATYPE = Float",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_007_VALUE      = 5.0e-7",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "5.0e-7"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_007_DESC       = Beam Line Vacuum Limit",
+    "template": "<FAB_ID>_DESC = Beam Line Vacuum Limit",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_008_NAME       = NAME_0008",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0008"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_008_CONST_ID   = 31920008",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920008"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_008_UNITS      = degrees",
+    "template": "<FAB_ID>_UNITS = degrees",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_008_DATATYPE   = Float",
+    "template": "<FAB_ID>_DATATYPE = Float",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_008_VALUE      = 7.0",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "7.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_008_DESC       = Tilt Angle Default",
+    "template": "<FAB_ID>_DESC = Tilt Angle Default",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_009_NAME       = NAME_0009",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0009"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_009_CONST_ID   = 31920009",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920009"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_009_UNITS      = degrees",
+    "template": "<FAB_ID>_UNITS = degrees",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_009_DATATYPE   = Float",
+    "template": "<FAB_ID>_DATATYPE = Float",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_009_VALUE      = 22.0",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "22.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_009_DESC       = Rotation Angle Default",
+    "template": "<FAB_ID>_DESC = Rotation Angle Default",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_010_NAME       = NAME_0010",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "NAME_0010"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_010_CONST_ID   = 31920010",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "31920010"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_010_UNITS      = mm/s",
+    "template": "<FAB_ID>_UNITS = mm/s",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_010_DATATYPE   = Float",
+    "template": "<FAB_ID>_DATATYPE = Float",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_010_VALUE      = 50.0",
+    "template": "<*> = <*>",
+    "variables": {
+      "*": "50.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor5_ionbeam_machine_constants_20260521T044225_42",
+    "timestamp_utc": "2026-05-21T04:42:25.732031+00:00",
+    "raw": "EC_IB_010_DESC       = Scan Speed Maximum",
+    "template": "<FAB_ID>_DESC = Scan Speed Maximum",
+    "variables": {
+      "var_0": "<FAB_ID>"
+    },
+    "parsed": 1,
+    "var_count": 1
+  }
+]

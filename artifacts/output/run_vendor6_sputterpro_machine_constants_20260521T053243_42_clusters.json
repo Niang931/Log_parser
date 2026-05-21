@@ -1,0 +1,531 @@
+{
+  "run_id": "run_vendor6_sputterpro_machine_constants_20260521T053243_42",
+  "total_clusters": 81,
+  "template_fingerprint": "ff9c95fe07624913",
+  "drain_stats": {
+    "new_cluster": 81
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "machine_constants.keys.ctrl_job_id: None",
+      "template_tokens": [
+        "machine_constants.keys.ctrl_job_id:",
+        "None"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "machine_constants.keys.tool_id: <EQP_ID>",
+      "template_tokens": [
+        "machine_constants.keys.tool_id:",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "machine_constants.keys.date_time: <DATE>T10:00:<FLOAT>Z",
+      "template_tokens": [
+        "machine_constants.keys.date_time:",
+        "<DATE>T10:00:<FLOAT>Z"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "machine_constants.attributes.vendor: <VENDOR_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.vendor:",
+        "<VENDOR_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "machine_constants.attributes.file_generator_version: <VERSION>",
+      "template_tokens": [
+        "machine_constants.attributes.file_generator_version:",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "machine_constants.attributes.process_type: <FAB_TOKEN>agnetron_Sputter",
+      "template_tokens": [
+        "machine_constants.attributes.process_type:",
+        "<FAB_TOKEN>agnetron_Sputter"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "machine_constants.attributes.network_address: <NET_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.network_address:",
+        "<NET_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "machine_constants.attributes.expiration_date: <DATE>",
+      "template_tokens": [
+        "machine_constants.attributes.expiration_date:",
+        "<DATE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "machine_constants.attributes.chamber_config: Multi_Target_6",
+      "template_tokens": [
+        "machine_constants.attributes.chamber_config:",
+        "Multi_Target_6"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "machine_constants.attributes.equipment_constants[0].name: <NAME_TOKEN>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[0].name:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "machine_constants.attributes.equipment_constants[0].constant_id: <EC_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[0].constant_id:",
+        "<EC_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "machine_constants.attributes.equipment_constants[0].units: W",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[0].units:",
+        "W"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "machine_constants.attributes.equipment_constants[0].data_type: Float",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[0].data_type:",
+        "Float"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "machine_constants.attributes.equipment_constants[0].value: <FLOAT>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[0].value:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "machine_constants.attributes.equipment_constants[0].description: DC Power Supply Maximum (Target 1)",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[0].description:",
+        "DC",
+        "Power",
+        "Supply",
+        "Maximum",
+        "(Target",
+        "1)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "machine_constants.attributes.equipment_constants[1].name: <NAME_TOKEN>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[1].name:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "machine_constants.attributes.equipment_constants[1].constant_id: <EC_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[1].constant_id:",
+        "<EC_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "machine_constants.attributes.equipment_constants[1].units: W",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[1].units:",
+        "W"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "machine_constants.attributes.equipment_constants[1].data_type: Float",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[1].data_type:",
+        "Float"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "machine_constants.attributes.equipment_constants[1].value: <FLOAT>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[1].value:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "machine_constants.attributes.equipment_constants[1].description: RF Power Supply Maximum (Target 2)",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[1].description:",
+        "RF",
+        "Power",
+        "Supply",
+        "Maximum",
+        "(Target",
+        "2)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "machine_constants.attributes.equipment_constants[2].name: <NAME_TOKEN>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[2].name:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "machine_constants.attributes.equipment_constants[2].constant_id: <EC_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[2].constant_id:",
+        "<EC_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "machine_constants.attributes.equipment_constants[2].units: mTorr",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[2].units:",
+        "mTorr"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "machine_constants.attributes.equipment_constants[2].data_type: Float",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[2].data_type:",
+        "Float"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "machine_constants.attributes.equipment_constants[2].value: <FLOAT>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[2].value:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "machine_constants.attributes.equipment_constants[2].description: Process Pressure Setpoint",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[2].description:",
+        "Process",
+        "Pressure",
+        "Setpoint"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "machine_constants.attributes.equipment_constants[3].name: <NAME_TOKEN>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[3].name:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "machine_constants.attributes.equipment_constants[3].constant_id: <EC_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[3].constant_id:",
+        "<EC_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "machine_constants.attributes.equipment_constants[3].units: sccm",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[3].units:",
+        "sccm"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "machine_constants.attributes.equipment_constants[3].data_type: Float",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[3].data_type:",
+        "Float"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "machine_constants.attributes.equipment_constants[3].value: <FLOAT>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[3].value:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "machine_constants.attributes.equipment_constants[3].description: Ar Gas Flow Setpoint",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[3].description:",
+        "Ar",
+        "Gas",
+        "Flow",
+        "Setpoint"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "machine_constants.attributes.equipment_constants[4].name: <NAME_TOKEN>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[4].name:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "machine_constants.attributes.equipment_constants[4].constant_id: <EC_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[4].constant_id:",
+        "<EC_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "machine_constants.attributes.equipment_constants[4].units: sccm",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[4].units:",
+        "sccm"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 36,
+      "template": "machine_constants.attributes.equipment_constants[4].data_type: Float",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[4].data_type:",
+        "Float"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 37,
+      "template": "machine_constants.attributes.equipment_constants[4].value: <FLOAT>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[4].value:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 38,
+      "template": "machine_constants.attributes.equipment_constants[4].description: N2 Reactive Gas Flow Setpoint",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[4].description:",
+        "N2",
+        "Reactive",
+        "Gas",
+        "Flow",
+        "Setpoint"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 39,
+      "template": "machine_constants.attributes.equipment_constants[5].name: <NAME_TOKEN>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[5].name:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 40,
+      "template": "machine_constants.attributes.equipment_constants[5].constant_id: <EC_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[5].constant_id:",
+        "<EC_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 41,
+      "template": "machine_constants.attributes.equipment_constants[5].units: \u00b0C",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[5].units:",
+        "\u00b0C"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 42,
+      "template": "machine_constants.attributes.equipment_constants[5].data_type: Float",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[5].data_type:",
+        "Float"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 43,
+      "template": "machine_constants.attributes.equipment_constants[5].value: <FLOAT>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[5].value:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 44,
+      "template": "machine_constants.attributes.equipment_constants[5].description: Substrate Temperature Setpoint",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[5].description:",
+        "Substrate",
+        "Temperature",
+        "Setpoint"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 45,
+      "template": "machine_constants.attributes.equipment_constants[6].name: <NAME_TOKEN>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[6].name:",
+        "<NAME_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 46,
+      "template": "machine_constants.attributes.equipment_constants[6].constant_id: <EC_ID>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[6].constant_id:",
+        "<EC_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 47,
+      "template": "machine_constants.attributes.equipment_constants[6].units: rpm",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[6].units:",
+        "rpm"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 48,
+      "template": "machine_constants.attributes.equipment_constants[6].data_type: Float",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[6].data_type:",
+        "Float"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 49,
+      "template": "machine_constants.attributes.equipment_constants[6].value: <FLOAT>",
+      "template_tokens": [
+        "machine_constants.attributes.equipment_constants[6].value:",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

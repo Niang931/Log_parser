@@ -1,0 +1,420 @@
+{
+  "config": {
+    "sim_threshold": 0.5,
+    "depth": 4,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "<Recipe>",
+      "template_tokens": [
+        "<Recipe>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "<Header>",
+      "template_tokens": [
+        "<Header>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<RecipeID><RECIPE_ID></RecipeID>",
+      "template_tokens": [
+        "<RecipeID><RECIPE_ID></RecipeID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<RecipeName><FAB_TOKEN>v3</RecipeName>",
+      "template_tokens": [
+        "<RecipeName><FAB_TOKEN>v3</RecipeName>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<MachineID><EQP_ID></MachineID>",
+      "template_tokens": [
+        "<MachineID><EQP_ID></MachineID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<MachineCustomerName><CUST_ID></MachineCustomerName>",
+      "template_tokens": [
+        "<MachineCustomerName><CUST_ID></MachineCustomerName>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<MachineType><MTYPE_ID></MachineType>",
+      "template_tokens": [
+        "<MachineType><MTYPE_ID></MachineType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<SoftwareRelease><FLOAT>.2</SoftwareRelease>",
+      "template_tokens": [
+        "<SoftwareRelease><FLOAT>.2</SoftwareRelease>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+      "template_tokens": [
+        "<CreatedBy><CREATOR_ID></CreatedBy>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "<CreateTime><ISO_TS></CreateTime>",
+      "template_tokens": [
+        "<CreateTime><ISO_TS></CreateTime>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "<DocumentID><DOC_ID></DocumentID>",
+      "template_tokens": [
+        "<DocumentID><DOC_ID></DocumentID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "<DocumentType>Recipe</DocumentType>",
+      "template_tokens": [
+        "<DocumentType>Recipe</DocumentType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "<DocumentTypeVersion>v<FLOAT></DocumentTypeVersion>",
+      "template_tokens": [
+        "<DocumentTypeVersion>v<FLOAT></DocumentTypeVersion>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "<ApprovedBy><CREATOR_ID></ApprovedBy>",
+      "template_tokens": [
+        "<ApprovedBy><CREATOR_ID></ApprovedBy>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "<ExpirationTime><ISO_TS></ExpirationTime>",
+      "template_tokens": [
+        "<ExpirationTime><ISO_TS></ExpirationTime>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "<TargetMachineID><EQP_ID></TargetMachineID>",
+      "template_tokens": [
+        "<TargetMachineID><EQP_ID></TargetMachineID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "<TargetMachineCustomerName><CUST_ID></TargetMachineCustomerName>",
+      "template_tokens": [
+        "<TargetMachineCustomerName><CUST_ID></TargetMachineCustomerName>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "<MeasurementSites>",
+      "template_tokens": [
+        "<MeasurementSites>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "<Site>",
+      "template_tokens": [
+        "<Site>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "<X_mm><FLOAT></X_mm>",
+      "template_tokens": [
+        "<X_mm><FLOAT></X_mm>"
+      ],
+      "size": 5,
+      "stability": 0.2
+    },
+    {
+      "cluster_id": 20,
+      "template": "<Y_mm><FLOAT></Y_mm>",
+      "template_tokens": [
+        "<Y_mm><FLOAT></Y_mm>"
+      ],
+      "size": 5,
+      "stability": 0.2
+    },
+    {
+      "cluster_id": 21,
+      "template": "<Name>Center</Name>",
+      "template_tokens": [
+        "<Name>Center</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "<Name>Mid_Left</Name>",
+      "template_tokens": [
+        "<Name>Mid_Left</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "<Name>Mid_Right</Name>",
+      "template_tokens": [
+        "<Name>Mid_Right</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "<Name>Mid_Bottom</Name>",
+      "template_tokens": [
+        "<Name>Mid_Bottom</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "<Name>Mid_Top</Name>",
+      "template_tokens": [
+        "<Name>Mid_Top</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "<Name>Edge_Left</Name>",
+      "template_tokens": [
+        "<Name>Edge_Left</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "<Name>Edge_Right</Name>",
+      "template_tokens": [
+        "<Name>Edge_Right</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "<Name>Edge_Bottom</Name>",
+      "template_tokens": [
+        "<Name>Edge_Bottom</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "<Name>Edge_Top</Name>",
+      "template_tokens": [
+        "<Name>Edge_Top</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "<TargetList>",
+      "template_tokens": [
+        "<TargetList>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "<Target>",
+      "template_tokens": [
+        "<Target>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "<TargetName>Poly_<FAB_TOKEN></TargetName>",
+      "template_tokens": [
+        "<TargetName>Poly_<FAB_TOKEN></TargetName>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "<MeasurementType>OCD</MeasurementType>",
+      "template_tokens": [
+        "<MeasurementType>OCD</MeasurementType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "<Wavelength_nm>193</Wavelength_nm>",
+      "template_tokens": [
+        "<Wavelength_nm>193</Wavelength_nm>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "<NumericalAperture><FLOAT></NumericalAperture>",
+      "template_tokens": [
+        "<NumericalAperture><FLOAT></NumericalAperture>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 36,
+      "template": "<ModelName>PolyGate_Model_v2</ModelName>",
+      "template_tokens": [
+        "<ModelName>PolyGate_Model_v2</ModelName>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 37,
+      "template": "<FloatingParameters>",
+      "template_tokens": [
+        "<FloatingParameters>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 38,
+      "template": "<Param>",
+      "template_tokens": [
+        "<Param>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 39,
+      "template": "<Sites>1 <NUM> <NUM> <NUM> <NUM> <NUM> <NUM> <NUM> 9</Sites>",
+      "template_tokens": [
+        "<Sites>1",
+        "<NUM>",
+        "<NUM>",
+        "<NUM>",
+        "<NUM>",
+        "<NUM>",
+        "<NUM>",
+        "<NUM>",
+        "9</Sites>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 40,
+      "template": "<TargetName>OxideThickness</TargetName>",
+      "template_tokens": [
+        "<TargetName>OxideThickness</TargetName>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 41,
+      "template": "<MeasurementType>Reflectometry</MeasurementType>",
+      "template_tokens": [
+        "<MeasurementType>Reflectometry</MeasurementType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 42,
+      "template": "<ModelName>SiO2_on_Si_Model</ModelName>",
+      "template_tokens": [
+        "<ModelName>SiO2_on_Si_Model</ModelName>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 43,
+      "template": "<Sites>1 <NUM> 9</Sites>",
+      "template_tokens": [
+        "<Sites>1",
+        "<NUM>",
+        "9</Sites>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 44,
+    "matched": 8
+  }
+}

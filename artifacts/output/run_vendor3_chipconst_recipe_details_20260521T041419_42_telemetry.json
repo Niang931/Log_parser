@@ -1,0 +1,734 @@
+{
+  "summary": {
+    "llm_calls": 16,
+    "total_latency_s": 0.013,
+    "est_tokens_out": 800,
+    "events": 108
+  },
+  "events": [
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:17.608962+00:00",
+      "run_id": "run_BGL_sample_20260521T041417_42",
+      "input": "artifacts\\data\\BGL_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:17.619062+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:17.624875+00:00",
+      "kept": 500,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:17.652951+00:00",
+      "provider": "mock",
+      "latency_s": 0.003,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:17.665256+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:17.667456+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:18.844243+00:00",
+      "records": 500,
+      "templates": 157,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:18.845026+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 157,
+      "avg_wildcard_ratio": 0.49222917082917084
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:18.883634+00:00",
+      "elapsed_s": 1.275
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:18.887415+00:00",
+      "run_id": "run_HDFS_sample_20260521T041418_42",
+      "input": "artifacts\\data\\HDFS_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:18.899915+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:18.902800+00:00",
+      "kept": 500,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:18.904256+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:18.906821+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:18.907891+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.240968+00:00",
+      "records": 500,
+      "templates": 20,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.241731+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 20,
+      "avg_wildcard_ratio": 0.4922256798756799
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.259510+00:00",
+      "elapsed_s": 0.372
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.262236+00:00",
+      "run_id": "run_synthetic_fab_20260521T041419_42",
+      "input": "artifacts\\data\\synthetic_fab.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.270039+00:00",
+      "lines": 300
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.271241+00:00",
+      "kept": 276,
+      "empty": 0,
+      "short": 0,
+      "dup": 24,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.272984+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.274435+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.421868+00:00",
+      "records": 276,
+      "templates": 13,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.422250+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 13,
+      "avg_wildcard_ratio": 0.35535139176443525
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.437221+00:00",
+      "elapsed_s": 0.175
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.440009+00:00",
+      "run_id": "run_vendor10_annealtech_machine_constants_20260521T041419_42",
+      "input": "artifacts\\data\\vendor10_annealtech_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.463528+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.463847+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.465636+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.466002+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.468261+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.472717+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.472750+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.480098+00:00",
+      "elapsed_s": 0.04
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.482264+00:00",
+      "run_id": "run_vendor10_annealtech_recipe_details_20260521T041419_42",
+      "input": "artifacts\\data\\vendor10_annealtech_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.487108+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.487279+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.488763+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.488940+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.490486+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.495148+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.495172+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.502940+00:00",
+      "elapsed_s": 0.021
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.506171+00:00",
+      "run_id": "run_vendor1_novastar_machine_constants_20260521T041419_42",
+      "input": "artifacts\\data\\vendor1_novastar_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.509577+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.509735+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.511358+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.511494+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.512383+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.515336+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.515355+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.524377+00:00",
+      "elapsed_s": 0.018
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.527501+00:00",
+      "run_id": "run_vendor1_novastar_recipe_details_20260521T041419_42",
+      "input": "artifacts\\data\\vendor1_novastar_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.530883+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.531023+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.532607+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.533053+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.535061+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.539254+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.539278+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.547736+00:00",
+      "elapsed_s": 0.02
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.552703+00:00",
+      "run_id": "run_vendor2_plasmacore_machine_constants_20260521T041419_42",
+      "input": "artifacts\\data\\vendor2_plasmacore_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.556015+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.556171+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.557130+00:00",
+      "provider": "mock",
+      "latency_s": 0.0,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.557252+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.558538+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.561366+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.561386+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.568937+00:00",
+      "elapsed_s": 0.016
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.571412+00:00",
+      "run_id": "run_vendor2_plasmacore_recipe_details_20260521T041419_42",
+      "input": "artifacts\\data\\vendor2_plasmacore_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.574655+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.574799+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.575703+00:00",
+      "provider": "mock",
+      "latency_s": 0.0,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.575995+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.577009+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.580778+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.580805+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.587468+00:00",
+      "elapsed_s": 0.016
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.590864+00:00",
+      "run_id": "run_vendor3_chipconst_machine_constants_20260521T041419_42",
+      "input": "artifacts\\data\\vendor3_chipconst_machine_constants.xml",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.592064+00:00",
+      "lines": 95
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.592381+00:00",
+      "kept": 71,
+      "empty": 0,
+      "short": 0,
+      "dup": 24,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.593378+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.595010+00:00",
+      "round": 1,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.596438+00:00",
+      "provider": "mock",
+      "latency_s": 0.0,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.597377+00:00",
+      "round": 2,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.598677+00:00",
+      "provider": "mock",
+      "latency_s": 0.0,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.599680+00:00",
+      "round": 3,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.601498+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.602751+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.638353+00:00",
+      "records": 71,
+      "templates": 37,
+      "parse_rate": 0.6338
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.638489+00:00",
+      "parse_rate": 0.6338028169014085,
+      "unique_templates": 37,
+      "avg_wildcard_ratio": 0.886150234741784
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.649054+00:00",
+      "elapsed_s": 0.058
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:14:19.652715+00:00",
+      "run_id": "run_vendor3_chipconst_recipe_details_20260521T041419_42",
+      "input": "artifacts\\data\\vendor3_chipconst_recipe_details.xml",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:14:19.653566+00:00",
+      "lines": 63
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:14:19.653839+00:00",
+      "kept": 48,
+      "empty": 0,
+      "short": 0,
+      "dup": 15,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.655047+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.656384+00:00",
+      "round": 1,
+      "rate": 0.3958
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.658431+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.659473+00:00",
+      "round": 2,
+      "rate": 0.3958
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.660990+00:00",
+      "provider": "mock",
+      "latency_s": 0.0,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:14:19.661999+00:00",
+      "round": 3,
+      "rate": 0.3958
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:14:19.663646+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:14:19.664772+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:14:19.692167+00:00",
+      "records": 48,
+      "templates": 46,
+      "parse_rate": 0.3958
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:14:19.692240+00:00",
+      "parse_rate": 0.3958333333333333,
+      "unique_templates": 46,
+      "avg_wildcard_ratio": 0.9583333333333334
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:14:19.701282+00:00",
+      "elapsed_s": 0.049
+    }
+  ]
+}

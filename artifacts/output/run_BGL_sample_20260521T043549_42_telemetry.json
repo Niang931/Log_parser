@@ -1,0 +1,62 @@
+{
+  "summary": {
+    "llm_calls": 0,
+    "total_latency_s": 0,
+    "est_tokens_out": 0,
+    "events": 8
+  },
+  "events": [
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:35:49.710175+00:00",
+      "run_id": "run_BGL_sample_20260521T043549_42",
+      "input": "artifacts\\data\\BGL_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:35:49.715215+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:35:49.728872+00:00",
+      "kept": 1000,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:35:49.745586+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:35:49.749111+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:35:50.880034+00:00",
+      "records": 1000,
+      "templates": 30,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:35:50.882257+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 30,
+      "avg_wildcard_ratio": 0.6828621045621046
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:35:50.947675+00:00",
+      "elapsed_s": 1.238
+    }
+  ]
+}

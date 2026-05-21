@@ -1,0 +1,429 @@
+{
+  "config": {
+    "sim_threshold": 0.3,
+    "depth": 3,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "# ============================================================",
+      "template_tokens": [
+        "#",
+        "============================================================"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "# Recipe File - IonBeam Technologies",
+      "template_tokens": [
+        "#",
+        "Recipe",
+        "File",
+        "-",
+        "IonBeam",
+        "Technologies"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "# RecipeID : <RECIPE_ID>",
+      "template_tokens": [
+        "#",
+        "RecipeID",
+        ":",
+        "<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "# RecipeName : BF2_<FAB_TOKEN>keV",
+      "template_tokens": [
+        "#",
+        "RecipeName",
+        ":",
+        "BF2_<FAB_TOKEN>keV"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "# EquipmentID : <EQP_ID>",
+      "template_tokens": [
+        "#",
+        "EquipmentID",
+        ":",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "# LotID : <LOT_ID>",
+      "template_tokens": [
+        "#",
+        "LotID",
+        ":",
+        "<LOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "# Layer : P-Well",
+      "template_tokens": [
+        "#",
+        "Layer",
+        ":",
+        "P-Well"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "# FileType : Recipe",
+      "template_tokens": [
+        "#",
+        "FileType",
+        ":",
+        "Recipe"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "# <FAB_TOKEN>ersion : <VERSION>",
+      "template_tokens": [
+        "#",
+        "<FAB_TOKEN>ersion",
+        ":",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "# Created : <ISO_TS>",
+      "template_tokens": [
+        "#",
+        "Created",
+        ":",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "# ApprovedBy : <FAB_ID>",
+      "template_tokens": [
+        "#",
+        "ApprovedBy",
+        ":",
+        "<FAB_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "# Expiration : <ISO_TS>",
+      "template_tokens": [
+        "#",
+        "Expiration",
+        ":",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "[<FAB_TOKEN>]",
+      "template_tokens": [
+        "[<FAB_TOKEN>]"
+      ],
+      "size": 6,
+      "stability": 0.25
+    },
+    {
+      "cluster_id": 13,
+      "template": "<FAB_TOKEN> = <*>",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "<*>"
+      ],
+      "size": 18,
+      "stability": 0.8
+    },
+    {
+      "cluster_id": 14,
+      "template": "<FAB_TOKEN> = BF2_<FAB_TOKEN>keV",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "BF2_<FAB_TOKEN>keV"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "<FAB_TOKEN> = Si_100",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "Si_100"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "<FAB_TOKEN> = BF2",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "BF2"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "<FAB_TOKEN> = 1+",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "1+"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "<FAB_TOKEN> = SETUP",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "SETUP"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "<FAB_TOKEN> = Tool Setup and Verification",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "Tool",
+        "Setup",
+        "and",
+        "Verification"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "<FAB_TOKEN> = true",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "true"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 21,
+      "template": "F<FAB_TOKEN> = true",
+      "template_tokens": [
+        "F<FAB_TOKEN>",
+        "=",
+        "true"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "<FAB_TOKEN> = Dose Rate Calibration",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "Dose",
+        "Rate",
+        "Calibration"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "F<FAB_TOKEN> = <FAB_TOKEN>",
+      "template_tokens": [
+        "F<FAB_TOKEN>",
+        "=",
+        "<FAB_TOKEN>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "TOL<FAB_TOKEN> = <FLOAT>",
+      "template_tokens": [
+        "TOL<FAB_TOKEN>",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "<FAB_TOKEN> = IMPLANT",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "IMPLANT"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "<FAB_TOKEN> = Main Implant",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "Main",
+        "Implant"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "RO<FAB_TOKEN> = <FLOAT>",
+      "template_tokens": [
+        "RO<FAB_TOKEN>",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 28,
+      "template": "<FAB_TOKEN> = Raster",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "Raster"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "UNIF<FAB_TOKEN> = <FLOAT>",
+      "template_tokens": [
+        "UNIF<FAB_TOKEN>",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "<FAB_TOKEN> = PURGE",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "PURGE"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "<FAB_TOKEN> = End Station Purge",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "End",
+        "Station",
+        "Purge"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "N2_<FAB_TOKEN> = <NUM>",
+      "template_tokens": [
+        "N2_<FAB_TOKEN>",
+        "=",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "<FAB_TOKEN> = UNLOAD",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "UNLOAD"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "<FAB_TOKEN> = Wafer Unload",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "Wafer",
+        "Unload"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "<FAB_TOKEN> = NORMAL",
+      "template_tokens": [
+        "<FAB_TOKEN>",
+        "=",
+        "NORMAL"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 36,
+    "matched": 23
+  }
+}

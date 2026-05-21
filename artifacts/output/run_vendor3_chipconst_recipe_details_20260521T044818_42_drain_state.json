@@ -1,0 +1,338 @@
+{
+  "config": {
+    "sim_threshold": 0.3,
+    "depth": 3,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "<RECIPE>",
+      "template_tokens": [
+        "<RECIPE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "<HEADER>",
+      "template_tokens": [
+        "<HEADER>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<RecipeID><RECIPE_ID></RecipeID>",
+      "template_tokens": [
+        "<RecipeID><RECIPE_ID></RecipeID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<RecipeName>Si3N4_<FAB_TOKEN>nm_v2</RecipeName>",
+      "template_tokens": [
+        "<RecipeName>Si3N4_<FAB_TOKEN>nm_v2</RecipeName>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<EquipmentID><EQP_ID></EquipmentID>",
+      "template_tokens": [
+        "<EquipmentID><EQP_ID></EquipmentID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<FILE_TYPE>",
+      "template_tokens": [
+        "<FILE_TYPE>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<FileGeneratorVersion>CVD_<FLOAT>.1</FileGeneratorVersion>",
+      "template_tokens": [
+        "<FileGeneratorVersion>CVD_<FLOAT>.1</FileGeneratorVersion>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+      "template_tokens": [
+        "<CreatedBy><CREATOR_ID></CreatedBy>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<ApprovedBy><CREATOR_ID></ApprovedBy>",
+      "template_tokens": [
+        "<ApprovedBy><CREATOR_ID></ApprovedBy>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "<CreateTime><ISO_TS></CreateTime>",
+      "template_tokens": [
+        "<CreateTime><ISO_TS></CreateTime>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "<ExpirationTime><ISO_TS></ExpirationTime>",
+      "template_tokens": [
+        "<ExpirationTime><ISO_TS></ExpirationTime>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "<TARGET_FILM_MATERIAL>",
+      "template_tokens": [
+        "<TARGET_FILM_MATERIAL>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "<TARGET_THICKNESS_NM>",
+      "template_tokens": [
+        "<TARGET_THICKNESS_NM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "<TargetMachineID><EQP_ID></TargetMachineID>",
+      "template_tokens": [
+        "<TargetMachineID><EQP_ID></TargetMachineID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 14,
+      "template": "<CONTROL_JOB>",
+      "template_tokens": [
+        "<CONTROL_JOB>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "<CtrlJobID><CJOB_ID></CtrlJobID>",
+      "template_tokens": [
+        "<CtrlJobID><CJOB_ID></CtrlJobID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "<PROCESS_JOBS>",
+      "template_tokens": [
+        "<PROCESS_JOBS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "<PROCESS_JOB>",
+      "template_tokens": [
+        "<PROCESS_JOB>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "<PRJobID><PRJOB_ID></PRJobID>",
+      "template_tokens": [
+        "<PRJobID><PRJOB_ID></PRJobID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "<LotID><LOT_ID></LotID>",
+      "template_tokens": [
+        "<LotID><LOT_ID></LotID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "<RECIPE_STEPS>",
+      "template_tokens": [
+        "<RECIPE_STEPS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "<STEP>",
+      "template_tokens": [
+        "<STEP>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "<STEP_NAME>",
+      "template_tokens": [
+        "<STEP_NAME>"
+      ],
+      "size": 5,
+      "stability": 0.2
+    },
+    {
+      "cluster_id": 23,
+      "template": "<MAX_TIME_S>",
+      "template_tokens": [
+        "<MAX_TIME_S>"
+      ],
+      "size": 5,
+      "stability": 0.2
+    },
+    {
+      "cluster_id": 24,
+      "template": "<PressureTarget_Torr><FLOAT></PressureTarget_Torr>",
+      "template_tokens": [
+        "<PressureTarget_Torr><FLOAT></PressureTarget_Torr>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 25,
+      "template": "<GAS_FLOWS>",
+      "template_tokens": [
+        "<GAS_FLOWS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "<RF_POWER_W>",
+      "template_tokens": [
+        "<RF_POWER_W>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "<ZONE_TEMP_C>",
+      "template_tokens": [
+        "<ZONE_TEMP_C>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 28,
+      "template": "<RampRate_C_per_min><FLOAT></RampRate_C_per_min>",
+      "template_tokens": [
+        "<RampRate_C_per_min><FLOAT></RampRate_C_per_min>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "<STABILIZE_TIME_S>",
+      "template_tokens": [
+        "<STABILIZE_TIME_S>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "<GAS>",
+      "template_tokens": [
+        "<GAS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "<DepositRate_nm_per_min><FLOAT></DepositRate_nm_per_min>",
+      "template_tokens": [
+        "<DepositRate_nm_per_min><FLOAT></DepositRate_nm_per_min>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "<EPD_Enabled>false</EPD_Enabled>",
+      "template_tokens": [
+        "<EPD_Enabled>false</EPD_Enabled>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "<TARGET_TEMP_C>",
+      "template_tokens": [
+        "<TARGET_TEMP_C>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "<CoolRate_C_per_min><FLOAT></CoolRate_C_per_min>",
+      "template_tokens": [
+        "<CoolRate_C_per_min><FLOAT></CoolRate_C_per_min>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "<N2_FLOW_SCCM>",
+      "template_tokens": [
+        "<N2_FLOW_SCCM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 36,
+    "matched": 12
+  }
+}

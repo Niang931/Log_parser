@@ -1,0 +1,566 @@
+{
+  "summary": {
+    "llm_calls": 3,
+    "total_latency_s": 0.004,
+    "est_tokens_out": 150,
+    "events": 85
+  },
+  "events": [
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:51.185581+00:00",
+      "run_id": "run_BGL_sample_20260521T041651_42",
+      "input": "artifacts\\data\\BGL_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:51.187333+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:51.191943+00:00",
+      "kept": 500,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:51.199478+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:51.201227+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:51.683071+00:00",
+      "records": 500,
+      "templates": 157,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:51.684367+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 157,
+      "avg_wildcard_ratio": 0.49222917082917084
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:51.716853+00:00",
+      "elapsed_s": 0.531
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:51.721831+00:00",
+      "run_id": "run_HDFS_sample_20260521T041651_42",
+      "input": "artifacts\\data\\HDFS_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:51.724250+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:51.727186+00:00",
+      "kept": 500,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:51.732214+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:51.733894+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.071114+00:00",
+      "records": 500,
+      "templates": 20,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.072037+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 20,
+      "avg_wildcard_ratio": 0.4922256798756799
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.098801+00:00",
+      "elapsed_s": 0.377
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.101165+00:00",
+      "run_id": "run_synthetic_fab_20260521T041652_42",
+      "input": "artifacts\\data\\synthetic_fab.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.101937+00:00",
+      "lines": 300
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.103086+00:00",
+      "kept": 276,
+      "empty": 0,
+      "short": 0,
+      "dup": 24,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.104888+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.105839+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.256373+00:00",
+      "records": 276,
+      "templates": 13,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.257000+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 13,
+      "avg_wildcard_ratio": 0.35535139176443525
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.273756+00:00",
+      "elapsed_s": 0.173
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.277474+00:00",
+      "run_id": "run_vendor10_annealtech_machine_constants_20260521T041652_42",
+      "input": "artifacts\\data\\vendor10_annealtech_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.304639+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.304800+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.306172+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.307222+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.311088+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.311135+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.323267+00:00",
+      "elapsed_s": 0.046
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.325341+00:00",
+      "run_id": "run_vendor10_annealtech_recipe_details_20260521T041652_42",
+      "input": "artifacts\\data\\vendor10_annealtech_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.331945+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.332170+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.333616+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.334624+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.338149+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.338175+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.345582+00:00",
+      "elapsed_s": 0.02
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.350306+00:00",
+      "run_id": "run_vendor1_novastar_machine_constants_20260521T041652_42",
+      "input": "artifacts\\data\\vendor1_novastar_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.353888+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.354016+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.355288+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.356338+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.359527+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.359549+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.369445+00:00",
+      "elapsed_s": 0.019
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.371811+00:00",
+      "run_id": "run_vendor1_novastar_recipe_details_20260521T041652_42",
+      "input": "artifacts\\data\\vendor1_novastar_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.375687+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.376039+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.380072+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.381996+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.385666+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.385687+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.392349+00:00",
+      "elapsed_s": 0.021
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.394644+00:00",
+      "run_id": "run_vendor2_plasmacore_machine_constants_20260521T041652_42",
+      "input": "artifacts\\data\\vendor2_plasmacore_machine_constants.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.399122+00:00",
+      "lines": 2
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.399272+00:00",
+      "kept": 2,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.400458+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.401640+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.404457+00:00",
+      "records": 2,
+      "templates": 2,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.404478+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 2,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.412122+00:00",
+      "elapsed_s": 0.018
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.416862+00:00",
+      "run_id": "run_vendor2_plasmacore_recipe_details_20260521T041652_42",
+      "input": "artifacts\\data\\vendor2_plasmacore_recipe_details.json",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.421006+00:00",
+      "lines": 3
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.421164+00:00",
+      "kept": 3,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 1
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.423598+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.425653+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.429533+00:00",
+      "records": 3,
+      "templates": 3,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.429582+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 3,
+      "avg_wildcard_ratio": 0.0
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.437723+00:00",
+      "elapsed_s": 0.021
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:16:52.441152+00:00",
+      "run_id": "run_vendor3_chipconst_machine_constants_20260521T041652_42",
+      "input": "artifacts\\data\\vendor3_chipconst_machine_constants.xml",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:16:52.442581+00:00",
+      "lines": 95
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:16:52.443173+00:00",
+      "kept": 71,
+      "empty": 0,
+      "short": 0,
+      "dup": 24,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.445840+00:00",
+      "round": 1,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:16:52.448884+00:00",
+      "provider": "mock",
+      "latency_s": 0.002,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.449995+00:00",
+      "round": 2,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:16:52.451956+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:16:52.453062+00:00",
+      "round": 3,
+      "rate": 0.6
+    },
+    {
+      "event": "llm_call",
+      "ts": "2026-05-21T04:16:52.456390+00:00",
+      "provider": "mock",
+      "latency_s": 0.001,
+      "tokens_out": 50,
+      "cost_usd": 0.0006000000000000001
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:16:52.457579+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:16:52.500314+00:00",
+      "records": 71,
+      "templates": 37,
+      "parse_rate": 0.6338
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:16:52.500482+00:00",
+      "parse_rate": 0.6338028169014085,
+      "unique_templates": 37,
+      "avg_wildcard_ratio": 0.886150234741784
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:16:52.519646+00:00",
+      "elapsed_s": 0.078
+    }
+  ]
+}

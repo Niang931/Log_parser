@@ -1,0 +1,102 @@
+# ============================================================
+# Machine Constants - SputterPro Manufacturing
+# ProcessType: Physical Vapor Deposition (PVD) / Magnetron Sputtering
+# ============================================================
+machine_constants:
+  keys:
+    ctrl_job_id: null
+    tool_id: EQP_SP_001
+    date_time: "2026-02-18T10:00:00.000Z"
+
+  attributes:
+    vendor: VENDOR_SPUTTERPRO
+    file_generator_version: "VER_PVD_2.8.0"
+    process_type: PVD_Magnetron_Sputter
+    network_address: NET_SP_001
+    expiration_date: "2027-08-31"
+    chamber_config: Multi_Target_6
+
+    equipment_constants:
+      - name: NAME_0001
+        constant_id: SP_EC_001
+        units: "W"
+        data_type: Float
+        value: 5000.0
+        description: "DC Power Supply Maximum (Target 1)"
+
+      - name: NAME_0002
+        constant_id: SP_EC_002
+        units: "W"
+        data_type: Float
+        value: 3000.0
+        description: "RF Power Supply Maximum (Target 2)"
+
+      - name: NAME_0003
+        constant_id: SP_EC_003
+        units: "mTorr"
+        data_type: Float
+        value: 3.0
+        description: "Process Pressure Setpoint"
+
+      - name: NAME_0004
+        constant_id: SP_EC_004
+        units: "sccm"
+        data_type: Float
+        value: 50.0
+        description: "Ar Gas Flow Setpoint"
+
+      - name: NAME_0005
+        constant_id: SP_EC_005
+        units: "sccm"
+        data_type: Float
+        value: 5.0
+        description: "N2 Reactive Gas Flow Setpoint"
+
+      - name: NAME_0006
+        constant_id: SP_EC_006
+        units: "°C"
+        data_type: Float
+        value: 250.0
+        description: "Substrate Temperature Setpoint"
+
+      - name: NAME_0007
+        constant_id: SP_EC_007
+        units: "rpm"
+        data_type: Float
+        value: 20.0
+        description: "Substrate Rotation Speed"
+
+      - name: NAME_0008
+        constant_id: SP_EC_008
+        units: "Å/s"
+        data_type: Float
+        value: 2.5
+        description: "Deposition Rate Target (Ti)"
+
+      - name: NAME_0009
+        constant_id: SP_EC_009
+        units: "mm"
+        data_type: Float
+        value: 60.0
+        description: "Target-to-Substrate Distance"
+
+      - name: NAME_0010
+        constant_id: SP_EC_010
+        units: "kWh"
+        data_type: Float
+        value: 2000.0
+        description: "Target Lifetime (accumulated power)"
+
+      - name: NAME_0011
+        constant_id: SP_EC_011
+        units: "cycles"
+        data_type: Integer
+        value: 10000
+        description: "Pre-sputter Clean Interval"
+
+      - name: NAME_0012
+        constant_id: SP_EC_012
+        units: "Torr"
+        data_type: Float
+        value: 5.0e-8
+        description: "Base Pressure Requirement"

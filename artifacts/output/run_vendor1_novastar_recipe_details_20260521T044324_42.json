@@ -1,0 +1,39 @@
+[
+  {
+    "run_id": "run_vendor1_novastar_recipe_details_20260521T044324_42",
+    "timestamp_utc": "2026-05-21T04:43:24.357821+00:00",
+    "raw": "{'CtrlJobID': 'CJOB_NOVA_001', 'EquipmentID': 'EQP_NOVA_001'}",
+    "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+    "variables": {
+      "CJOB_ID": "CJOB_NOVA_001",
+      "EQP_ID": "EQP_NOVA_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor1_novastar_recipe_details_20260521T044324_42",
+    "timestamp_utc": "2026-05-21T04:43:24.357821+00:00",
+    "raw": "{'FileGeneratorSoftwareVersion': 'T2.0_3', 'FileType': 'Recipe'}",
+    "template": "{'FileGeneratorSoftwareVersion': 'T<FLOAT>_3', 'FileType': 'Recipe'}",
+    "variables": {
+      "FLOAT": "2.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor1_novastar_recipe_details_20260521T044324_42",
+    "timestamp_utc": "2026-05-21T04:43:24.357821+00:00",
+    "raw": "[{'Keys': {'PRJobID': 'PRJOB_NOVA_001', 'RecipeID': 'RCP_NOVA_001'}, 'Attributes': {'LotID': 'LOT_NOVA_001', 'WaferSize': '300mm",
+    "template": "[{'Keys': {'PRJobID': '<PRJOB_ID>', 'RecipeID': '<RECIPE_ID>'}, 'Attributes': {'LotID': '<LOT_ID>', 'WaferSize': '<QUANTITY_WITH_UNIT>",
+    "variables": {
+      "PRJOB_ID": "PRJOB_NOVA_001",
+      "RECIPE_ID": "RCP_NOVA_001",
+      "LOT_ID": "LOT_NOVA_001",
+      "QUANTITY_WITH_UNIT": "300mm"
+    },
+    "parsed": 1,
+    "var_count": 4
+  }
+]

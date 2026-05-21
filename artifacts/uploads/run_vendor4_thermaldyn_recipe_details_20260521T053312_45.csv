@@ -1,0 +1,29 @@
+RecipeID,RCP_TD_001,,,,,
+RecipeName,SiO2_GATE_OX_22A_WET,,,,,
+EquipmentID,EQP_TD_001,,,,,
+LotID,LOT_TD_001,,,,,
+LayerName,GateOxide,,,,,
+TargetThickness_A,22,,,,,
+,,,,,,
+StepID,StepName,Parameter,Unit,Setpoint,Tolerance,Duration_s
+INERT_LOAD,Inert Load,N2_Flow,slm,5.0,0.2,120
+INERT_LOAD,Inert Load,Temp_Zone1,°C,800.0,2.0,
+INERT_LOAD,Inert Load,Temp_Zone2,°C,800.0,2.0,
+RAMP_UP,Temperature Ramp,Temp_Zone1,°C,1050.0,2.0,600
+RAMP_UP,Temperature Ramp,Temp_Zone2,°C,1055.0,2.0,600
+RAMP_UP,Temperature Ramp,Temp_Zone3,°C,1048.0,2.0,600
+RAMP_UP,Temperature Ramp,RampRate,°C/min,5.0,0.5,
+RAMP_UP,Temperature Ramp,N2_Flow,slm,5.0,0.2,
+DRY_OX,Dry Oxidation,O2_Flow,slm,2.0,0.1,300
+DRY_OX,Dry Oxidation,Temp_Zone1,°C,1050.0,1.0,
+DRY_OX,Dry Oxidation,HCl_Flow,slm,0.1,0.01,
+WET_OX,Wet Oxidation,H2_Flow,slm,2.0,0.1,156
+WET_OX,Wet Oxidation,O2_Flow,slm,1.0,0.05,
+WET_OX,Wet Oxidation,Temp_Zone1,°C,1050.0,1.0,
+WET_OX,Wet Oxidation,Pyrogenic_H2O,on,1,,
+ANNEAL,Post-Ox Anneal,N2_Flow,slm,5.0,0.2,600
+ANNEAL,Post-Ox Anneal,Temp_Zone1,°C,1050.0,1.0,
+RAMP_DOWN,Temperature Ramp Down,RampRate,°C/min,-3.0,0.5,600
+RAMP_DOWN,Temperature Ramp Down,N2_Flow,slm,5.0,0.2,
+INERT_UNLOAD,Inert Unload,N2_Flow,slm,5.0,0.2,120
+INERT_UNLOAD,Inert Unload,Temp_Zone1,°C,700.0,3.0,

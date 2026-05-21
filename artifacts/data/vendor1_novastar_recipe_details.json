@@ -1,0 +1,269 @@
+{
+  "ControlJob": {
+    "Keys": {
+      "CtrlJobID": "CJOB_NOVA_001",
+      "EquipmentID": "EQP_NOVA_001"
+    },
+    "Attributes": {
+      "FileGeneratorSoftwareVersion": "T2.0_3",
+      "FileType": "Recipe"
+    },
+    "ProcessJobs": [
+      {
+        "Keys": {
+          "PRJobID": "PRJOB_NOVA_001",
+          "RecipeID": "RCP_NOVA_001"
+        },
+        "Attributes": {
+          "LotID": "LOT_NOVA_001",
+          "WaferSize": "300mm",
+          "LayerName": "M1_Metal"
+        },
+        "ModuleProcessReports": [
+          {
+            "Keys": {
+              "ModuleID": "MOD_LITHO_001",
+              "RecipeStepID": "0",
+              "WaferID": "WFR_NOVA_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_NOVA_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\RECIPE.Format",
+                    "Name": "NAME_0001",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "2.0"
+                  },
+                  {
+                    "Key": "\\\\RECIPE.Name",
+                    "Name": "NAME_0002",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "M1_ArF_193_LITHO_v3"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\PASSPORT.AccessDisplayGroups",
+                    "Name": "NAME_0003",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "All"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\PASSPORT.AccessModifyGroups",
+                    "Name": "NAME_0004",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "Engineers"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\PASSPORT.ChamberType",
+                    "Name": "NAME_0005",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "ArF_Scanner"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_LITHO_001",
+              "RecipeStepID": "1",
+              "WaferID": "WFR_NOVA_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_NOVA_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.ChLocation",
+                    "Name": "NAME_0006",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "Any"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.DCP",
+                    "Name": "NAME_0007",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "Micron-ArF-193nm-DCP"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.LoopC",
+                    "Name": "NAME_0008",
+                    "Unit": null,
+                    "Type": "integer",
+                    "Value": "0"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.LoopE",
+                    "Name": "NAME_0009",
+                    "Unit": null,
+                    "Type": "integer",
+                    "Value": "0"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.MaxTime",
+                    "Name": "NAME_0010",
+                    "Unit": "s",
+                    "Type": "string",
+                    "Value": "30"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.ExposureDose",
+                    "Name": "NAME_0011",
+                    "Unit": "mJ/cm2",
+                    "Type": "Float",
+                    "Value": "25.0"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.FocusOffset",
+                    "Name": "NAME_0012",
+                    "Unit": "nm",
+                    "Type": "Float",
+                    "Value": "-10"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.NAperture",
+                    "Name": "NAME_0013",
+                    "Unit": null,
+                    "Type": "Float",
+                    "Value": "0.93"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.SigmaOuter",
+                    "Name": "NAME_0014",
+                    "Unit": null,
+                    "Type": "Float",
+                    "Value": "0.85"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.SigmaInner",
+                    "Name": "NAME_0015",
+                    "Unit": null,
+                    "Type": "Float",
+                    "Value": "0.60"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_LITHO_001",
+              "RecipeStepID": "2",
+              "WaferID": "WFR_NOVA_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_NOVA_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.ChLocation",
+                    "Name": "NAME_0006",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": "Any"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.DCP",
+                    "Name": "NAME_0007",
+                    "Unit": null,
+                    "Type": "string",
+                    "Value": ""
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.LoopC",
+                    "Name": "NAME_0008",
+                    "Unit": null,
+                    "Type": "integer",
+                    "Value": "0"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.LoopE",
+                    "Name": "NAME_0009",
+                    "Unit": null,
+                    "Type": "integer",
+                    "Value": "0"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.MaxTime",
+                    "Name": "NAME_0010",
+                    "Unit": "s",
+                    "Type": "string",
+                    "Value": "15"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.BakeTemp",
+                    "Name": "NAME_0016",
+                    "Unit": "\u00b0C",
+                    "Type": "Float",
+                    "Value": "110"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.BakeTime",
+                    "Name": "NAME_0017",
+                    "Unit": "s",
+                    "Type": "Float",
+                    "Value": "60"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Keys": {
+              "ModuleID": "MOD_LITHO_001",
+              "RecipeStepID": "3",
+              "WaferID": "WFR_NOVA_001"
+            },
+            "Attributes": {
+              "Recipe": {
+                "RecipeID": "RCP_NOVA_001",
+                "Type": "main",
+                "RecipeDetail": [
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.DevelopTime",
+                    "Name": "NAME_0018",
+                    "Unit": "s",
+                    "Type": "Float",
+                    "Value": "30"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.DeveloperFlow",
+                    "Name": "NAME_0019",
+                    "Unit": "ml/min",
+                    "Type": "Float",
+                    "Value": "80"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.RinseTime",
+                    "Name": "NAME_0020",
+                    "Unit": "s",
+                    "Type": "Float",
+                    "Value": "20"
+                  },
+                  {
+                    "Key": "\\\\RECIPE\\\\STEPS\\\\STEP.MaxTime",
+                    "Name": "NAME_0010",
+                    "Unit": "s",
+                    "Type": "string",
+                    "Value": "90"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

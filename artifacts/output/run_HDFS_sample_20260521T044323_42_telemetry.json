@@ -1,0 +1,114 @@
+{
+  "summary": {
+    "llm_calls": 0,
+    "total_latency_s": 0,
+    "est_tokens_out": 0,
+    "events": 16
+  },
+  "events": [
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:43:22.388104+00:00",
+      "run_id": "run_BGL_sample_20260521T044322_42",
+      "input": "artifacts\\data\\BGL_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:43:22.390498+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:43:22.396612+00:00",
+      "kept": 1000,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:43:22.404646+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:43:22.406487+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:43:23.192128+00:00",
+      "records": 1000,
+      "templates": 30,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:43:23.193963+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 30,
+      "avg_wildcard_ratio": 0.6828621045621046
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:43:23.241007+00:00",
+      "elapsed_s": 0.853
+    },
+    {
+      "event": "pipeline_start",
+      "ts": "2026-05-21T04:43:23.244583+00:00",
+      "run_id": "run_HDFS_sample_20260521T044323_42",
+      "input": "artifacts\\data\\HDFS_sample.log",
+      "fmt": "auto"
+    },
+    {
+      "event": "load",
+      "ts": "2026-05-21T04:43:23.246224+00:00",
+      "lines": 2000
+    },
+    {
+      "event": "normalise",
+      "ts": "2026-05-21T04:43:23.252664+00:00",
+      "kept": 1000,
+      "empty": 0,
+      "short": 0,
+      "dup": 0,
+      "injected": 0,
+      "truncated": 0
+    },
+    {
+      "event": "parse_rate_probe",
+      "ts": "2026-05-21T04:43:23.257070+00:00",
+      "round": 1,
+      "rate": 1.0
+    },
+    {
+      "event": "masks_ready",
+      "ts": "2026-05-21T04:43:23.258933+00:00",
+      "count": 69
+    },
+    {
+      "event": "health_check",
+      "ts": "2026-05-21T04:43:23.932042+00:00",
+      "records": 1000,
+      "templates": 28,
+      "parse_rate": 1.0
+    },
+    {
+      "event": "eval_metrics",
+      "ts": "2026-05-21T04:43:23.934262+00:00",
+      "parse_rate": 1.0,
+      "unique_templates": 28,
+      "avg_wildcard_ratio": 0.636896916971917
+    },
+    {
+      "event": "pipeline_done",
+      "ts": "2026-05-21T04:43:23.991145+00:00",
+      "elapsed_s": 0.747
+    }
+  ]
+}

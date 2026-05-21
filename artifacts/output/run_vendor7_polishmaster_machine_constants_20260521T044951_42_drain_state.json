@@ -1,0 +1,157 @@
+{
+  "config": {
+    "sim_threshold": 0.3,
+    "depth": 3,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "Head Pressure Setpoint",
+      "template_tokens": [
+        "Head",
+        "Pressure",
+        "Setpoint"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "Platen Speed",
+      "template_tokens": [
+        "Platen",
+        "Speed"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "Head Rotation Speed",
+      "template_tokens": [
+        "Head",
+        "Rotation",
+        "Speed"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "Slurry Flow Rate",
+      "template_tokens": [
+        "Slurry",
+        "Flow",
+        "Rate"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "Retaining Ring Pressure",
+      "template_tokens": [
+        "Retaining",
+        "Ring",
+        "Pressure"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "Membrane Zone <NUM> Pressure",
+      "template_tokens": [
+        "Membrane",
+        "Zone",
+        "<NUM>",
+        "Pressure"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 6,
+      "template": "Removal Rate Oxide Target",
+      "template_tokens": [
+        "Removal",
+        "Rate",
+        "Oxide",
+        "Target"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "Within-Wafer Uniformity Spec",
+      "template_tokens": [
+        "Within-Wafer",
+        "Uniformity",
+        "Spec"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "Pad Life Interval",
+      "template_tokens": [
+        "Pad",
+        "Life",
+        "Interval"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "Dress Interval",
+      "template_tokens": [
+        "Dress",
+        "Interval"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "Endpoint Detection Window",
+      "template_tokens": [
+        "Endpoint",
+        "Detection",
+        "Window"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "Dresser Down Force",
+      "template_tokens": [
+        "Dresser",
+        "Down",
+        "Force"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "Slurry Temperature Target",
+      "template_tokens": [
+        "Slurry",
+        "Temperature",
+        "Target"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 13,
+    "matched": 2
+  }
+}

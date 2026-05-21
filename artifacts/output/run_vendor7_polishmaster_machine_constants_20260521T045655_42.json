@@ -1,0 +1,143 @@
+[
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.122980+00:00",
+    "raw": "Head Pressure Setpoint",
+    "template": "Head Pressure Setpoint",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.181174+00:00",
+    "raw": "Platen Speed",
+    "template": "Platen Speed",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.241386+00:00",
+    "raw": "Head Rotation Speed",
+    "template": "Head Rotation Speed",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.303322+00:00",
+    "raw": "Slurry Flow Rate",
+    "template": "Slurry Flow Rate",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.364727+00:00",
+    "raw": "Retaining Ring Pressure",
+    "template": "Retaining Ring Pressure",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.427956+00:00",
+    "raw": "Membrane Zone 1 Pressure",
+    "template": "Membrane Zone <NUM> Pressure",
+    "variables": {
+      "NUM": "1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.490406+00:00",
+    "raw": "Membrane Zone 2 Pressure",
+    "template": "Membrane Zone <NUM> Pressure",
+    "variables": {
+      "NUM": "2"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.551827+00:00",
+    "raw": "Membrane Zone 3 Pressure",
+    "template": "Membrane Zone <NUM> Pressure",
+    "variables": {
+      "NUM": "3"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.615626+00:00",
+    "raw": "Removal Rate Oxide Target",
+    "template": "Removal Rate Oxide Target",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.677979+00:00",
+    "raw": "Within-Wafer Uniformity Spec",
+    "template": "Within-Wafer Uniformity Spec",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.740859+00:00",
+    "raw": "Pad Life Interval",
+    "template": "Pad Life Interval",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.802590+00:00",
+    "raw": "Dress Interval",
+    "template": "Dress Interval",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.866716+00:00",
+    "raw": "Endpoint Detection Window",
+    "template": "Endpoint Detection Window",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.931125+00:00",
+    "raw": "Dresser Down Force",
+    "template": "Dresser Down Force",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_machine_constants_20260521T045655_42",
+    "timestamp_utc": "2026-05-21T04:57:27.991697+00:00",
+    "raw": "Slurry Temperature Target",
+    "template": "Slurry Temperature Target",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  }
+]

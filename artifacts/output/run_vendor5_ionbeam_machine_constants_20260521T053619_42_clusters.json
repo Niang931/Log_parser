@@ -1,0 +1,142 @@
+{
+  "run_id": "run_vendor5_ionbeam_machine_constants_20260521T053619_42",
+  "total_clusters": 12,
+  "template_fingerprint": "5c3d6f446aefb278",
+  "drain_stats": {
+    "new_cluster": 12,
+    "matched": 63
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 6,
+      "template": "<*> = <*>",
+      "template_tokens": [
+        "<*>",
+        "=",
+        "<*>"
+      ],
+      "size": 30,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<FAB_ID><FILE_PATH><INI_KV>",
+      "template_tokens": [
+        "<FAB_ID><FILE_PATH><INI_KV>"
+      ],
+      "size": 28,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "# <FILE_PATH> : <*>",
+      "template_tokens": [
+        "#",
+        "<FILE_PATH>",
+        ":",
+        "<*>"
+      ],
+      "size": 5,
+      "stability": 0.15
+    },
+    {
+      "cluster_id": 5,
+      "template": "<INI_SECTION>",
+      "template_tokens": [
+        "<INI_SECTION>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 7,
+      "template": "<INI_KV>",
+      "template_tokens": [
+        "<INI_KV>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 9,
+      "template": "<FAB_ID><FILE_PATH><INI_KV>/<FILE_PATH>",
+      "template_tokens": [
+        "<FAB_ID><FILE_PATH><INI_KV>/<FILE_PATH>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "# ============================================================",
+      "template_tokens": [
+        "#",
+        "============================================================"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "# <FILE_PATH> <FILE_PATH> <FILE_PATH> - <FILE_PATH> <FILE_PATH>",
+      "template_tokens": [
+        "#",
+        "<FILE_PATH>",
+        "<FILE_PATH>",
+        "<FILE_PATH>",
+        "-",
+        "<FILE_PATH>",
+        "<FILE_PATH>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "# <FILE_PATH> : <FILE_PATH> <FILE_PATH>",
+      "template_tokens": [
+        "#",
+        "<FILE_PATH>",
+        ":",
+        "<FILE_PATH>",
+        "<FILE_PATH>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "# <FILE_PATH> : <FILE_PATH> <FILE_PATH> <FILE_PATH>.",
+      "template_tokens": [
+        "#",
+        "<FILE_PATH>",
+        ":",
+        "<FILE_PATH>",
+        "<FILE_PATH>",
+        "<FILE_PATH>."
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "<FAB_ID><VENDOR_TOKEN> = %",
+      "template_tokens": [
+        "<FAB_ID><VENDOR_TOKEN>",
+        "=",
+        "%"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "<FAB_ID><FILE_PATH><INI_KV>(<FILE_PATH>-<FILE_PATH>)",
+      "template_tokens": [
+        "<FAB_ID><FILE_PATH><INI_KV>(<FILE_PATH>-<FILE_PATH>)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

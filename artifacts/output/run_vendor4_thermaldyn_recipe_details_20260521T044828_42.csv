@@ -1,0 +1,14 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,RecipeName: SiO2_GATE_OX_22A_WET,RecipeName: SiO2_<FAB_TOKEN>,"{""FAB_TOKEN"": ""GATE_OX_22A_WET""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,EquipmentID: EQP_TD_001,EquipmentID: <EQP_ID>,"{""EQP_ID"": ""EQP_TD_001""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,LotID: LOT_TD_001,LotID: <LOT_ID>,"{""LOT_ID"": ""LOT_TD_001""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,LayerName: GateOxide,<LAYER_NAME>,"{""LAYER_NAME"": ""LayerName: GateOxide""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,TargetThickness_A: 22,<TARGET_THICKNESS>,"{""TARGET_THICKNESS"": ""TargetThickness_A: 22""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,StepID: StepName,<STEP_ID>,"{""STEP_ID"": ""StepID: StepName""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,INERT_LOAD: Inert Load,<FAB_TOKEN>: Inert Load,"{""FAB_TOKEN"": ""INERT_LOAD""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,RAMP_UP: Temperature Ramp,<FAB_TOKEN>: Temperature Ramp,"{""FAB_TOKEN"": ""RAMP_UP""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,DRY_OX: Dry Oxidation,<FAB_TOKEN>: Dry Oxidation,"{""FAB_TOKEN"": ""DRY_OX""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,WET_OX: Wet Oxidation,<FAB_TOKEN>: Wet Oxidation,"{""FAB_TOKEN"": ""WET_OX""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,ANNEAL: Post-Ox Anneal,ANNEAL: Post-Ox Anneal,{},0,0
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,RAMP_DOWN: Temperature Ramp Down,<FAB_TOKEN>: Temperature Ramp Down,"{""FAB_TOKEN"": ""RAMP_DOWN""}",1,1
+run_vendor4_thermaldyn_recipe_details_20260521T044828_42,2026-05-21T04:48:48.132737+00:00,INERT_UNLOAD: Inert Unload,<FAB_TOKEN>: Inert Unload,"{""FAB_TOKEN"": ""INERT_UNLOAD""}",1,1

@@ -1,0 +1,695 @@
+[
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.296818+00:00",
+    "raw": "RECIPE_IDENTIFICATION.RecipeID = RCP_CT_001",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.RecipeID = RCP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.296818+00:00",
+    "raw": "RECIPE_IDENTIFICATION.RecipeName = POST_ETCH_CLEAN_STD_v4",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.RecipeName = POST_ETCH_CLEAN_STD_v4"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.296818+00:00",
+    "raw": "RECIPE_IDENTIFICATION.EquipmentID = EQP_CT_001",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.EquipmentID = EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.351975+00:00",
+    "raw": "RECIPE_IDENTIFICATION.FileType = Recipe",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.FileType = Recipe"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.351975+00:00",
+    "raw": "RECIPE_IDENTIFICATION.SoftwareVersion = VER_WC_6.1.3",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.SoftwareVersion = VER_WC_6.1.3"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.351975+00:00",
+    "raw": "RECIPE_IDENTIFICATION.TargetProcess = Post_Metal_Etch_Residue_Removal",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.TargetProcess = Post_Metal_Etch_Residue_Removal"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.405572+00:00",
+    "raw": "RECIPE_IDENTIFICATION.LotID = LOT_CT_001",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.LotID = LOT_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.405572+00:00",
+    "raw": "RECIPE_IDENTIFICATION.LayerName = Metal_Clean_Post_Etch",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.LayerName = Metal_Clean_Post_Etch"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:07.405572+00:00",
+    "raw": "RECIPE_IDENTIFICATION.CreatedBy = CREATOR_CT_001",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.CreatedBy = CREATOR_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.076364+00:00",
+    "raw": "RECIPE_IDENTIFICATION.ApprovedBy = CREATOR_CT_002",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.ApprovedBy = CREATOR_CT_002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.076364+00:00",
+    "raw": "RECIPE_IDENTIFICATION.CreatedAt = 2026-01-25T07:00:00Z",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.CreatedAt = 2026-01-25T07:00:00Z"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.076364+00:00",
+    "raw": "RECIPE_IDENTIFICATION.ExpiresAt = 2027-01-25T07:00:00Z",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "RECIPE_IDENTIFICATION.ExpiresAt = 2027-01-25T07:00:00Z"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.148999+00:00",
+    "raw": "STEP_01_DIW_PREWET.StepID = DIW_PREWET",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_01_DIW_PREWET.StepID = DIW_PREWET"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.148999+00:00",
+    "raw": "STEP_01_DIW_PREWET.StepName = DIW Pre-Wet",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_01_DIW_PREWET.StepName = DIW Pre-Wet"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.148999+00:00",
+    "raw": "STEP_01_DIW_PREWET.MaxTime_s = 30",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_01_DIW_PREWET.MaxTime_s = 30"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.213213+00:00",
+    "raw": "STEP_01_DIW_PREWET.SpinSpeed_rpm = 300",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_01_DIW_PREWET.SpinSpeed_rpm = 300"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.213213+00:00",
+    "raw": "STEP_01_DIW_PREWET.DIW_Flow_ml_min = 1000",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_01_DIW_PREWET.DIW_Flow_ml_min = 1000"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.213213+00:00",
+    "raw": "STEP_01_DIW_PREWET.MegasonicPower_W = 0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_01_DIW_PREWET.MegasonicPower_W = 0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.643140+00:00",
+    "raw": "STEP_01_DIW_PREWET.Temperature_C = 25",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_01_DIW_PREWET.Temperature_C = 25"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.643140+00:00",
+    "raw": "STEP_02_SC1_CLEAN.StepID = SC1_CLEAN",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.StepID = SC1_CLEAN"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.643140+00:00",
+    "raw": "STEP_02_SC1_CLEAN.StepName = SC1 Particle Remove (NH4OH:H2O2:H2O)",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.StepName = SC1 Particle Remove (NH4OH:H2O2:H2O)"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.702380+00:00",
+    "raw": "STEP_02_SC1_CLEAN.MaxTime_s = 120",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.MaxTime_s = 120"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.702380+00:00",
+    "raw": "STEP_02_SC1_CLEAN.SpinSpeed_rpm = 500",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.SpinSpeed_rpm = 500"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.702380+00:00",
+    "raw": "STEP_02_SC1_CLEAN.ChemicalFlow_ml_min = 500",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.ChemicalFlow_ml_min = 500"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.760184+00:00",
+    "raw": "STEP_02_SC1_CLEAN.MegasonicPower_W = 600",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.MegasonicPower_W = 600"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.760184+00:00",
+    "raw": "STEP_02_SC1_CLEAN.MegasonicFreq_kHz = 1000",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.MegasonicFreq_kHz = 1000"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.760184+00:00",
+    "raw": "STEP_02_SC1_CLEAN.Temperature_C = 65",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.Temperature_C = 65"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.828572+00:00",
+    "raw": "STEP_02_SC1_CLEAN.NH4OH_pct = 29.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.NH4OH_pct = 29.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.828572+00:00",
+    "raw": "STEP_02_SC1_CLEAN.H2O2_pct = 30.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.H2O2_pct = 30.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.828572+00:00",
+    "raw": "STEP_02_SC1_CLEAN.Ratio = 1:1:5",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_02_SC1_CLEAN.Ratio = 1:1:5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.899825+00:00",
+    "raw": "STEP_03_DIW_RINSE1.StepID = DIW_RINSE1",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_03_DIW_RINSE1.StepID = DIW_RINSE1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.899825+00:00",
+    "raw": "STEP_03_DIW_RINSE1.StepName = DIW Overflow Rinse 1",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_03_DIW_RINSE1.StepName = DIW Overflow Rinse 1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.899825+00:00",
+    "raw": "STEP_03_DIW_RINSE1.MaxTime_s = 60",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_03_DIW_RINSE1.MaxTime_s = 60"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.978213+00:00",
+    "raw": "STEP_03_DIW_RINSE1.SpinSpeed_rpm = 500",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_03_DIW_RINSE1.SpinSpeed_rpm = 500"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.978213+00:00",
+    "raw": "STEP_03_DIW_RINSE1.DIW_Flow_ml_min = 1500",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_03_DIW_RINSE1.DIW_Flow_ml_min = 1500"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:08.978213+00:00",
+    "raw": "STEP_03_DIW_RINSE1.ResistivityTarget_MOhm_cm = 17.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_03_DIW_RINSE1.ResistivityTarget_MOhm_cm = 17.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.076558+00:00",
+    "raw": "STEP_04_HF_OXIDE_STRIP.StepID = HF_STRIP",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_04_HF_OXIDE_STRIP.StepID = HF_STRIP"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.076558+00:00",
+    "raw": "STEP_04_HF_OXIDE_STRIP.StepName = Dilute HF Native Oxide Strip (1:200)",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_04_HF_OXIDE_STRIP.StepName = Dilute HF Native Oxide Strip (1:200)"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.076558+00:00",
+    "raw": "STEP_04_HF_OXIDE_STRIP.MaxTime_s = 30",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_04_HF_OXIDE_STRIP.MaxTime_s = 30"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.141341+00:00",
+    "raw": "STEP_04_HF_OXIDE_STRIP.SpinSpeed_rpm = 500",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_04_HF_OXIDE_STRIP.SpinSpeed_rpm = 500"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.141341+00:00",
+    "raw": "STEP_04_HF_OXIDE_STRIP.ChemicalFlow_ml_min = 300",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_04_HF_OXIDE_STRIP.ChemicalFlow_ml_min = 300"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.141341+00:00",
+    "raw": "STEP_04_HF_OXIDE_STRIP.HF_pct = 0.5",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_04_HF_OXIDE_STRIP.HF_pct = 0.5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.201430+00:00",
+    "raw": "STEP_04_HF_OXIDE_STRIP.Temperature_C = 25",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_04_HF_OXIDE_STRIP.Temperature_C = 25"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.201430+00:00",
+    "raw": "STEP_04_HF_OXIDE_STRIP.EPD_Enabled = false",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_04_HF_OXIDE_STRIP.EPD_Enabled = false"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.201430+00:00",
+    "raw": "STEP_05_DIW_RINSE2.StepID = DIW_RINSE2",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_05_DIW_RINSE2.StepID = DIW_RINSE2"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.260684+00:00",
+    "raw": "STEP_05_DIW_RINSE2.StepName = DIW Overflow Rinse 2",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_05_DIW_RINSE2.StepName = DIW Overflow Rinse 2"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.260684+00:00",
+    "raw": "STEP_05_DIW_RINSE2.MaxTime_s = 60",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_05_DIW_RINSE2.MaxTime_s = 60"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.260684+00:00",
+    "raw": "STEP_05_DIW_RINSE2.SpinSpeed_rpm = 500",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_05_DIW_RINSE2.SpinSpeed_rpm = 500"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.327958+00:00",
+    "raw": "STEP_05_DIW_RINSE2.DIW_Flow_ml_min = 1500",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_05_DIW_RINSE2.DIW_Flow_ml_min = 1500"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.327958+00:00",
+    "raw": "STEP_05_DIW_RINSE2.ResistivityTarget_MOhm_cm = 18.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_05_DIW_RINSE2.ResistivityTarget_MOhm_cm = 18.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.327958+00:00",
+    "raw": "STEP_06_ISOPROPANOL_DRY.StepID = IPA_DRY",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_06_ISOPROPANOL_DRY.StepID = IPA_DRY"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.391244+00:00",
+    "raw": "STEP_06_ISOPROPANOL_DRY.StepName = IPA Marangoni Dry",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_06_ISOPROPANOL_DRY.StepName = IPA Marangoni Dry"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.391244+00:00",
+    "raw": "STEP_06_ISOPROPANOL_DRY.MaxTime_s = 120",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_06_ISOPROPANOL_DRY.MaxTime_s = 120"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.391244+00:00",
+    "raw": "STEP_06_ISOPROPANOL_DRY.SpinSpeed_rpm_ramp = 0-2000",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_06_ISOPROPANOL_DRY.SpinSpeed_rpm_ramp = 0-2000"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.450883+00:00",
+    "raw": "STEP_06_ISOPROPANOL_DRY.IPA_N2_Carrier = true",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_06_ISOPROPANOL_DRY.IPA_N2_Carrier = true"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.450883+00:00",
+    "raw": "STEP_06_ISOPROPANOL_DRY.IPA_Flow_sccm = 200",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_06_ISOPROPANOL_DRY.IPA_Flow_sccm = 200"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.450883+00:00",
+    "raw": "STEP_06_ISOPROPANOL_DRY.N2_Flow_slm = 10",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_06_ISOPROPANOL_DRY.N2_Flow_slm = 10"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.515067+00:00",
+    "raw": "STEP_06_ISOPROPANOL_DRY.Temperature_C = 25",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_06_ISOPROPANOL_DRY.Temperature_C = 25"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.515067+00:00",
+    "raw": "STEP_07_SPIN_DRY.StepID = SPIN_DRY",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_07_SPIN_DRY.StepID = SPIN_DRY"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.515067+00:00",
+    "raw": "STEP_07_SPIN_DRY.StepName = Final Spin Dry",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_07_SPIN_DRY.StepName = Final Spin Dry"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.577873+00:00",
+    "raw": "STEP_07_SPIN_DRY.MaxTime_s = 60",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_07_SPIN_DRY.MaxTime_s = 60"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.577873+00:00",
+    "raw": "STEP_07_SPIN_DRY.SpinSpeed_rpm = 3000",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_07_SPIN_DRY.SpinSpeed_rpm = 3000"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_recipe_details_20260521T055205_45",
+    "timestamp_utc": "2026-05-21T05:52:09.577873+00:00",
+    "raw": "STEP_07_SPIN_DRY.N2_Purge = true",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "STEP_07_SPIN_DRY.N2_Purge = true"
+    },
+    "parsed": 1,
+    "var_count": 1
+  }
+]

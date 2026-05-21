@@ -1,0 +1,237 @@
+{
+  "run_id": "run_BGL_sample_20260521T043549_42",
+  "total_clusters": 11,
+  "template_fingerprint": "65ae61f2a97618f1",
+  "drain_stats": {
+    "new_cluster": 11,
+    "matched": 989
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 3,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS KERNEL <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "KERNEL",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 724,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 0,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS <*> <*> <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 132,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "KERNDTLB <LARGE_INT> <FLOAT>.11 R30-M0-N9-C:J16-U01 <DATE><FLOAT>.<FLOAT> R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB erro",
+      "template_tokens": [
+        "KERNDTLB",
+        "<LARGE_INT>",
+        "<FLOAT>.11",
+        "R30-M0-N9-C:J16-U01",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R30-M0-N9-C:J16-U01",
+        "RAS",
+        "KERNEL",
+        "FATAL",
+        "data",
+        "TLB",
+        "erro"
+      ],
+      "size": 60,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "KERNSTOR <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS KERNEL FATAL data storage",
+      "template_tokens": [
+        "KERNSTOR",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "KERNEL",
+        "FATAL",
+        "data",
+        "storage"
+      ],
+      "size": 30,
+      "stability": 1.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS KERNEL INFO <*> <*> <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "KERNEL",
+        "INFO",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 26,
+      "stability": 0.9
+    },
+    {
+      "cluster_id": 4,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS <*> <*> <*> <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 17,
+      "stability": 0.55
+    },
+    {
+      "cluster_id": 2,
+      "template": "APPREAD <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> RAS APP FATAL ciod: failed to r",
+      "template_tokens": [
+        "APPREAD",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "APP",
+        "FATAL",
+        "ciod:",
+        "failed",
+        "to",
+        "r"
+      ],
+      "size": 3,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> NULL DISCOVERY <*> <*> <*> <*> <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "NULL",
+        "DISCOVERY",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 3,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 9,
+      "template": "- <LARGE_INT> <*> <*> <DATE><FLOAT>.<FLOAT> <*> <*> <*> INFO <*> <*> <*> <*>",
+      "template_tokens": [
+        "-",
+        "<LARGE_INT>",
+        "<*>",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "<*>",
+        "<*>",
+        "INFO",
+        "<*>",
+        "<*>",
+        "<*>",
+        "<*>"
+      ],
+      "size": 2,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "KERNRTSP <LARGE_INT> <FLOAT>.11 <*> <DATE><FLOAT>.<FLOAT> <*> RAS KERNEL FATAL rts panic! -",
+      "template_tokens": [
+        "KERNRTSP",
+        "<LARGE_INT>",
+        "<FLOAT>.11",
+        "<*>",
+        "<DATE><FLOAT>.<FLOAT>",
+        "<*>",
+        "RAS",
+        "KERNEL",
+        "FATAL",
+        "rts",
+        "panic!",
+        "-"
+      ],
+      "size": 2,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "APPCHILD <LARGE_INT> <FLOAT>.20 R12-M1-NC-I:J18-U11 <DATE><FLOAT>.<FLOAT> R12-M1-NC-I:J18-U11 RAS APP FATAL ciod: Error crea",
+      "template_tokens": [
+        "APPCHILD",
+        "<LARGE_INT>",
+        "<FLOAT>.20",
+        "R12-M1-NC-I:J18-U11",
+        "<DATE><FLOAT>.<FLOAT>",
+        "R12-M1-NC-I:J18-U11",
+        "RAS",
+        "APP",
+        "FATAL",
+        "ciod:",
+        "Error",
+        "crea"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# PolishMaster Corp - Machine Constants					
+# ToolID: EQP_PM_001	ProcessType: CMP				
+# SoftwareVersion: VER_CMP_1.7.4	Expiration: 2027-03-31				
+ConstantID	Name	Units	DataType	Value	Description
+PM_EC_001	NAME_0001	psi	Float	3.0	Head Pressure Setpoint
+PM_EC_002	NAME_0002	rpm	Float	93.0	Platen Speed
+PM_EC_003	NAME_0003	rpm	Float	87.0	Head Rotation Speed
+PM_EC_004	NAME_0004	ml/min	Float	250.0	Slurry Flow Rate
+PM_EC_005	NAME_0005	psi	Float	1.5	Retaining Ring Pressure
+PM_EC_006	NAME_0006	psi	Float	2.0	Membrane Zone 1 Pressure
+PM_EC_007	NAME_0007	psi	Float	2.5	Membrane Zone 2 Pressure
+PM_EC_008	NAME_0008	psi	Float	2.2	Membrane Zone 3 Pressure
+PM_EC_009	NAME_0009	nm/min	Float	150.0	Removal Rate Oxide Target
+PM_EC_010	NAME_0010	%	Float	3.0	Within-Wafer Uniformity Spec
+PM_EC_011	NAME_0011	wafers	Integer	500	Pad Life Interval
+PM_EC_012	NAME_0012	wafers	Integer	50	Dress Interval
+PM_EC_013	NAME_0013	s	Float	30.0	Endpoint Detection Window
+PM_EC_014	NAME_0014	N	Float	8.5	Dresser Down Force
+PM_EC_015	NAME_0015	°C	Float	22.0	Slurry Temperature Target

@@ -1,0 +1,571 @@
+[
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:09.850392+00:00",
+    "raw": "<RecipeID>RCP_CC_001</RecipeID>",
+    "template": "<RecipeID><RECIPE_ID></RecipeID>",
+    "variables": {
+      "RECIPE_ID": "RCP_CC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:09.850392+00:00",
+    "raw": "<RecipeName>Si3N4_LPCVD_75nm_v2</RecipeName>",
+    "template": "<RecipeName>Si3N4_<FAB_TOKEN>nm_v2</RecipeName>",
+    "variables": {
+      "FAB_TOKEN": "LPCVD_75"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:09.903010+00:00",
+    "raw": "<EquipmentID>EQP_CHIPCONST_001</EquipmentID>",
+    "template": "<EquipmentID><EQP_ID></EquipmentID>",
+    "variables": {
+      "EQP_ID": "EQP_CHIPCONST_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:09.903010+00:00",
+    "raw": "<FileType>Recipe</FileType>",
+    "template": "<FileType>Recipe</FileType>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:09.965197+00:00",
+    "raw": "<FileGeneratorVersion>CVD_4.2.1</FileGeneratorVersion>",
+    "template": "<FileGeneratorVersion>CVD_<FLOAT>.1</FileGeneratorVersion>",
+    "variables": {
+      "FLOAT": "4.2"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:09.965197+00:00",
+    "raw": "<CreatedBy>CREATOR_CC_001</CreatedBy>",
+    "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+    "variables": {
+      "CREATOR_ID": "CREATOR_CC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.028685+00:00",
+    "raw": "<ApprovedBy>CREATOR_CC_002</ApprovedBy>",
+    "template": "<ApprovedBy><CREATOR_ID></ApprovedBy>",
+    "variables": {
+      "CREATOR_ID": "CREATOR_CC_002"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.028685+00:00",
+    "raw": "<CreateTime>2026-01-15T06:00:00+00:00</CreateTime>",
+    "template": "<CreateTime><ISO_TS></CreateTime>",
+    "variables": {
+      "ISO_TS": "2026-01-15T06:00:00+00:00"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.090816+00:00",
+    "raw": "<ExpirationTime>2027-01-15T06:00:00+00:00</ExpirationTime>",
+    "template": "<ExpirationTime><ISO_TS></ExpirationTime>",
+    "variables": {
+      "ISO_TS": "2027-01-15T06:00:00+00:00"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.090816+00:00",
+    "raw": "<TargetFilmMaterial>Si3N4</TargetFilmMaterial>",
+    "template": "<TargetFilmMaterial>Si3N4</TargetFilmMaterial>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.149485+00:00",
+    "raw": "<TargetThickness_nm>75</TargetThickness_nm>",
+    "template": "<TargetThickness_nm>75</TargetThickness_nm>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.149485+00:00",
+    "raw": "<TargetMachineID>EQP_CHIPCONST_001</TargetMachineID>",
+    "template": "<TargetMachineID><EQP_ID></TargetMachineID>",
+    "variables": {
+      "EQP_ID": "EQP_CHIPCONST_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.214849+00:00",
+    "raw": "<CtrlJobID>CJOB_CC_001</CtrlJobID>",
+    "template": "<CtrlJobID><CJOB_ID></CtrlJobID>",
+    "variables": {
+      "CJOB_ID": "CJOB_CC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.214849+00:00",
+    "raw": "<PRJobID>PRJOB_CC_001</PRJobID>",
+    "template": "<PRJobID><PRJOB_ID></PRJobID>",
+    "variables": {
+      "PRJOB_ID": "PRJOB_CC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.471332+00:00",
+    "raw": "<LotID>LOT_CC_001</LotID>",
+    "template": "<LotID><LOT_ID></LotID>",
+    "variables": {
+      "LOT_ID": "LOT_CC_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.471332+00:00",
+    "raw": "Step.id = PUMP_DOWN",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Step.id = PUMP_DOWN"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.541522+00:00",
+    "raw": "<StepName>Pump Down</StepName>",
+    "template": "<StepName>Pump Down</StepName>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.541522+00:00",
+    "raw": "<MaxTime_s>600</MaxTime_s>",
+    "template": "<MaxTime_s>600</MaxTime_s>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.602420+00:00",
+    "raw": "<PressureTarget_Torr>0.001</PressureTarget_Torr>",
+    "template": "<PressureTarget_Torr><FLOAT></PressureTarget_Torr>",
+    "variables": {
+      "FLOAT": "0.001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.602420+00:00",
+    "raw": "<RFPower_W>0</RFPower_W>",
+    "template": "<RFPower_W>0</RFPower_W>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.663953+00:00",
+    "raw": "Step.id = RAMP_TEMP",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Step.id = RAMP_TEMP"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.663953+00:00",
+    "raw": "<StepName>Temperature Ramp</StepName>",
+    "template": "<StepName>Temperature Ramp</StepName>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.727617+00:00",
+    "raw": "<MaxTime_s>1800</MaxTime_s>",
+    "template": "<MaxTime_s>1800</MaxTime_s>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.727617+00:00",
+    "raw": "<Zone1Temp_C>750</Zone1Temp_C>",
+    "template": "<Zone1Temp_C>750</Zone1Temp_C>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.790185+00:00",
+    "raw": "<Zone2Temp_C>755</Zone2Temp_C>",
+    "template": "<Zone2Temp_C>755</Zone2Temp_C>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.790185+00:00",
+    "raw": "<Zone3Temp_C>748</Zone3Temp_C>",
+    "template": "<Zone3Temp_C>748</Zone3Temp_C>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.851519+00:00",
+    "raw": "<RampRate_C_per_min>5.0</RampRate_C_per_min>",
+    "template": "<RampRate_C_per_min><FLOAT></RampRate_C_per_min>",
+    "variables": {
+      "FLOAT": "5.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.851519+00:00",
+    "raw": "<PressureTarget_Torr>0.35</PressureTarget_Torr>",
+    "template": "<PressureTarget_Torr><FLOAT></PressureTarget_Torr>",
+    "variables": {
+      "FLOAT": "0.35"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.913554+00:00",
+    "raw": "<StabilizeTime_s>300</StabilizeTime_s>",
+    "template": "<StabilizeTime_s>300</StabilizeTime_s>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.913554+00:00",
+    "raw": "Step.id = DEPOSIT",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Step.id = DEPOSIT"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.975712+00:00",
+    "raw": "<StepName>Deposition</StepName>",
+    "template": "<StepName>Deposition</StepName>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:10.975712+00:00",
+    "raw": "<MaxTime_s>777</MaxTime_s>",
+    "template": "<MaxTime_s>777</MaxTime_s>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.038558+00:00",
+    "raw": "Gas.name = DCS",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Gas.name = DCS"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.038558+00:00",
+    "raw": "Gas.flow_sccm = 100.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Gas.flow_sccm = 100.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.101055+00:00",
+    "raw": "Gas name=\"DCS\" flow_sccm=\"100.0\"",
+    "template": "Gas <ATTR_KV> flow_sccm=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"DCS\"",
+      "FLOAT": "100.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.101055+00:00",
+    "raw": "Gas.name = NH3",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Gas.name = NH3"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.163383+00:00",
+    "raw": "Gas.flow_sccm = 20.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Gas.flow_sccm = 20.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.163383+00:00",
+    "raw": "Gas name=\"NH3\" flow_sccm=\"20.0\"",
+    "template": "Gas <ATTR_KV> flow_sccm=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"NH3\"",
+      "FLOAT": "20.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.225154+00:00",
+    "raw": "Gas.name = N2",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Gas.name = N2"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.225154+00:00",
+    "raw": "Gas.flow_sccm = 0.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Gas.flow_sccm = 0.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.305771+00:00",
+    "raw": "Gas name=\"N2\" flow_sccm=\"0.0\"",
+    "template": "Gas <ATTR_KV> flow_sccm=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"N2\"",
+      "FLOAT": "0.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.305771+00:00",
+    "raw": "<DepositRate_nm_per_min>5.8</DepositRate_nm_per_min>",
+    "template": "<DepositRate_nm_per_min><FLOAT></DepositRate_nm_per_min>",
+    "variables": {
+      "FLOAT": "5.8"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.429692+00:00",
+    "raw": "<EPD_Enabled>false</EPD_Enabled>",
+    "template": "<EPD_Enabled>false</EPD_Enabled>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.429692+00:00",
+    "raw": "Step.id = PURGE",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Step.id = PURGE"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.492002+00:00",
+    "raw": "<StepName>Gas Purge</StepName>",
+    "template": "<StepName>Gas Purge</StepName>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.492002+00:00",
+    "raw": "<MaxTime_s>300</MaxTime_s>",
+    "template": "<MaxTime_s>300</MaxTime_s>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.556324+00:00",
+    "raw": "Gas.flow_sccm = 500.0",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Gas.flow_sccm = 500.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.556324+00:00",
+    "raw": "Gas name=\"N2\" flow_sccm=\"500.0\"",
+    "template": "Gas <ATTR_KV> flow_sccm=\"<FLOAT>\"",
+    "variables": {
+      "ATTR_KV": "name=\"N2\"",
+      "FLOAT": "500.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.617762+00:00",
+    "raw": "<PressureTarget_Torr>0.5</PressureTarget_Torr>",
+    "template": "<PressureTarget_Torr><FLOAT></PressureTarget_Torr>",
+    "variables": {
+      "FLOAT": "0.5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.617762+00:00",
+    "raw": "Step.id = COOL_DOWN",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "Step.id = COOL_DOWN"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.679933+00:00",
+    "raw": "<StepName>Cool Down</StepName>",
+    "template": "<*> Down</StepName>",
+    "variables": {
+      "*": "<StepName>Cool"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.679933+00:00",
+    "raw": "<MaxTime_s>2400</MaxTime_s>",
+    "template": "<MaxTime_s>2400</MaxTime_s>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.743470+00:00",
+    "raw": "<TargetTemp_C>100</TargetTemp_C>",
+    "template": "<TargetTemp_C>100</TargetTemp_C>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.743470+00:00",
+    "raw": "<CoolRate_C_per_min>3.0</CoolRate_C_per_min>",
+    "template": "<CoolRate_C_per_min><FLOAT></CoolRate_C_per_min>",
+    "variables": {
+      "FLOAT": "3.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor3_chipconst_recipe_details_20260521T055205_50",
+    "timestamp_utc": "2026-05-21T05:52:11.806476+00:00",
+    "raw": "<N2Flow_sccm>200</N2Flow_sccm>",
+    "template": "<N2Flow_sccm>200</N2Flow_sccm>",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  }
+]

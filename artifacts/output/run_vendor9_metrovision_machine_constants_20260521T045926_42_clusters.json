@@ -1,0 +1,446 @@
+{
+  "run_id": "run_vendor9_metrovision_machine_constants_20260521T045926_42",
+  "total_clusters": 46,
+  "template_fingerprint": "d989849b0b94c8b4",
+  "drain_stats": {
+    "new_cluster": 46,
+    "matched": 30
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 14,
+      "template": "<Name><NAME_TOKEN></Name>",
+      "template_tokens": [
+        "<Name><NAME_TOKEN></Name>"
+      ],
+      "size": 10,
+      "stability": 0.45
+    },
+    {
+      "cluster_id": 15,
+      "template": "<ConstantID><EC_ID></ConstantID>",
+      "template_tokens": [
+        "<ConstantID><EC_ID></ConstantID>"
+      ],
+      "size": 10,
+      "stability": 0.45
+    },
+    {
+      "cluster_id": 18,
+      "template": "<Value><FLOAT></Value>",
+      "template_tokens": [
+        "<Value><FLOAT></Value>"
+      ],
+      "size": 8,
+      "stability": 0.35
+    },
+    {
+      "cluster_id": 40,
+      "template": "<NominalValue><FLOAT></NominalValue>",
+      "template_tokens": [
+        "<NominalValue><FLOAT></NominalValue>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 41,
+      "template": "<Tolerance><FLOAT></Tolerance>",
+      "template_tokens": [
+        "<Tolerance><FLOAT></Tolerance>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 28,
+      "template": "<Value><*></Value>",
+      "template_tokens": [
+        "<Value><*></Value>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 0,
+      "template": "<MachineConstants>",
+      "template_tokens": [
+        "<MachineConstants>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "<Header>",
+      "template_tokens": [
+        "<Header>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "<ToolID><EQP_ID></ToolID>",
+      "template_tokens": [
+        "<ToolID><EQP_ID></ToolID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "<Vendor>MetroVision Analytics</Vendor>",
+      "template_tokens": [
+        "<Vendor>MetroVision",
+        "Analytics</Vendor>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "<ProcessType>Optical_<FAB_TOKEN>etrology</ProcessType>",
+      "template_tokens": [
+        "<ProcessType>Optical_<FAB_TOKEN>etrology</ProcessType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "<SoftwareRelease><FLOAT>.2</SoftwareRelease>",
+      "template_tokens": [
+        "<SoftwareRelease><FLOAT>.2</SoftwareRelease>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "<NetworkAddress><NET_ID></NetworkAddress>",
+      "template_tokens": [
+        "<NetworkAddress><NET_ID></NetworkAddress>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "<ExpirationDate><DATE></ExpirationDate>",
+      "template_tokens": [
+        "<ExpirationDate><DATE></ExpirationDate>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "<CreatedBy><CREATOR_ID></CreatedBy>",
+      "template_tokens": [
+        "<CreatedBy><CREATOR_ID></CreatedBy>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "<CreateTime><ISO_TS></CreateTime>",
+      "template_tokens": [
+        "<CreateTime><ISO_TS></CreateTime>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "<DocumentType>MachineConstants</DocumentType>",
+      "template_tokens": [
+        "<DocumentType>MachineConstants</DocumentType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "<DocumentTypeVersion>v<FLOAT></DocumentTypeVersion>",
+      "template_tokens": [
+        "<DocumentTypeVersion>v<FLOAT></DocumentTypeVersion>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "<EquipmentConstants>",
+      "template_tokens": [
+        "<EquipmentConstants>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "<Constant>",
+      "template_tokens": [
+        "<Constant>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 16,
+      "template": "<Units>nm</Units>",
+      "template_tokens": [
+        "<Units>nm</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 17,
+      "template": "<DataType>Float</DataType>",
+      "template_tokens": [
+        "<DataType>Float</DataType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 19,
+      "template": "<Description>XY Stage Precision (3-sigma)</Description>",
+      "template_tokens": [
+        "<Description>XY",
+        "Stage",
+        "Precision",
+        "(3-sigma)</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 20,
+      "template": "<Description>CD Measurement Accuracy (3-sigma)</Description>",
+      "template_tokens": [
+        "<Description>CD",
+        "Measurement",
+        "Accuracy",
+        "(3-sigma)</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "<Description>Measurement Wavelength</Description>",
+      "template_tokens": [
+        "<Description>Measurement",
+        "Wavelength</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "<Units>None</Units>",
+      "template_tokens": [
+        "<Units>None</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 23,
+      "template": "<Description>Numerical Aperture</Description>",
+      "template_tokens": [
+        "<Description>Numerical",
+        "Aperture</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "<Units>wafers/hr</Units>",
+      "template_tokens": [
+        "<Units>wafers/hr</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "<Description>Throughput Maximum</Description>",
+      "template_tokens": [
+        "<Description>Throughput",
+        "Maximum</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "<Units>sites/wafer</Units>",
+      "template_tokens": [
+        "<Units>sites/wafer</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "<DataType>Integer</DataType>",
+      "template_tokens": [
+        "<DataType>Integer</DataType>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 29,
+      "template": "<Description>Default Site Count OCD</Description>",
+      "template_tokens": [
+        "<Description>Default",
+        "Site",
+        "Count",
+        "OCD</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "<Description>Film Thickness Repeatability</Description>",
+      "template_tokens": [
+        "<Description>Film",
+        "Thickness",
+        "Repeatability</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "<Units>degrees</Units>",
+      "template_tokens": [
+        "<Units>degrees</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "<Description>Wafer Alignment Accuracy</Description>",
+      "template_tokens": [
+        "<Description>Wafer",
+        "Alignment",
+        "Accuracy</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "<Description>Maximum Targets Per Site</Description>",
+      "template_tokens": [
+        "<Description>Maximum",
+        "Targets",
+        "Per",
+        "Site</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "<Units>hours</Units>",
+      "template_tokens": [
+        "<Units>hours</Units>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "<Description>Lamp Lifetime</Description>",
+      "template_tokens": [
+        "<Description>Lamp",
+        "Lifetime</Description>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 36,
+      "template": "<SensorDefinitions>",
+      "template_tokens": [
+        "<SensorDefinitions>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 37,
+      "template": "<Sensor>",
+      "template_tokens": [
+        "<Sensor>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 38,
+      "template": "<Name>Stage_Temp</Name>",
+      "template_tokens": [
+        "<Name>Stage_Temp</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 39,
+      "template": "<Unit>\u00b0C</Unit>",
+      "template_tokens": [
+        "<Unit>\u00b0C</Unit>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 42,
+      "template": "<Name>Lamp_Intensity</Name>",
+      "template_tokens": [
+        "<Name>Lamp_Intensity</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 43,
+      "template": "<Unit>%</Unit>",
+      "template_tokens": [
+        "<Unit>%</Unit>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 44,
+      "template": "<Name>Focus_Error</Name>",
+      "template_tokens": [
+        "<Name>Focus_Error</Name>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 45,
+      "template": "<Unit>nm</Unit>",
+      "template_tokens": [
+        "<Unit>nm</Unit>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

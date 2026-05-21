@@ -1,0 +1,27 @@
+[
+  {
+    "run_id": "run_vendor10_annealtech_machine_constants_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.483076+00:00",
+    "raw": "{'CtrlJobID': None, 'ToolID': 'EQP_AT_001', 'DateTime': '2026-02-18T13:00:00.000Z'}",
+    "template": "{'CtrlJobID': None, 'ToolID': '<EQP_ID>', 'DateTime': '<DATE>T13:00:<FLOAT>Z'}",
+    "variables": {
+      "EQP_ID": "EQP_AT_001",
+      "DATE": "2026-02-18",
+      "FLOAT": "00.000"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_vendor10_annealtech_machine_constants_20260521T042135_42",
+    "timestamp_utc": "2026-05-21T04:21:35.483076+00:00",
+    "raw": "{'Vendor': 'VENDOR_ANNEALTECH', 'FileGeneratorSoftwareVersion': 'VER_RTP_3.3.0', 'ProcessType': 'Rapid_Thermal_Processing', 'Net",
+    "template": "{'Vendor': '<VENDOR_ID>', 'FileGeneratorSoftwareVersion': '<VERSION>', 'ProcessType': 'Rapid_Thermal_Processing', 'Net",
+    "variables": {
+      "VENDOR_ID": "VENDOR_ANNEALTECH",
+      "VERSION": "VER_RTP_3.3.0"
+    },
+    "parsed": 1,
+    "var_count": 2
+  }
+]

@@ -1,0 +1,350 @@
+[
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:04.872962+00:00",
+    "raw": "TOOL_IDENTIFICATION.ToolID = EQP_CT_001",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.ToolID = EQP_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:04.933891+00:00",
+    "raw": "TOOL_IDENTIFICATION.ToolType = Single_Wafer_Wet_Clean",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.ToolType = Single_Wafer_Wet_Clean"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:04.996982+00:00",
+    "raw": "TOOL_IDENTIFICATION.Vendor = CleanTech Systems",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.Vendor = CleanTech Systems"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.058723+00:00",
+    "raw": "TOOL_IDENTIFICATION.ProcessType = Wet_Clean_SC1_SC2_HF",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.ProcessType = Wet_Clean_SC1_SC2_HF"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.121296+00:00",
+    "raw": "TOOL_IDENTIFICATION.SoftwareVersion = VER_WC_6.1.3",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.SoftwareVersion = VER_WC_6.1.3"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.182809+00:00",
+    "raw": "TOOL_IDENTIFICATION.NetworkAddress = NET_CT_001",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.NetworkAddress = NET_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.247476+00:00",
+    "raw": "TOOL_IDENTIFICATION.ExpirationDate = 2027-11-30",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.ExpirationDate = 2027-11-30"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.309694+00:00",
+    "raw": "TOOL_IDENTIFICATION.GeneratedBy = CREATOR_CT_001",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.GeneratedBy = CREATOR_CT_001"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.372922+00:00",
+    "raw": "TOOL_IDENTIFICATION.GeneratedAt = 2026-02-18T11:00:00Z",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "TOOL_IDENTIFICATION.GeneratedAt = 2026-02-18T11:00:00Z"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.435068+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_001 = NAME_0001 | ml/min | Float | 1500.0 | DIW Rinse Flow Rate",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | ml/min | Float | <FLOAT> | DIW Rinse Flow Rate",
+    "variables": {
+      "EC_ID": "CT_EC_001",
+      "NAME_TOKEN": "NAME_0001",
+      "FLOAT": "1500.0"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.497138+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_002 = NAME_0002 | rpm    | Float | 500.0  | Spin Speed - Chemical",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*> <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_002",
+      "NAME_TOKEN": "NAME_0002",
+      "*": "Chemical",
+      "FLOAT": "500.0 "
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.561843+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_003 = NAME_0003 | rpm    | Float | 2000.0 | Spin Speed - Rinse",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*> <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_003",
+      "NAME_TOKEN": "NAME_0003",
+      "*": "Rinse",
+      "FLOAT": "2000.0"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.624926+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_004 = NAME_0004 | rpm    | Float | 3000.0 | Spin Speed - Dry",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*> <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_004",
+      "NAME_TOKEN": "NAME_0004",
+      "*": "Dry",
+      "FLOAT": "3000.0"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.687302+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_005 = NAME_0005 | °C     | Float | 65.0   | SC1 Bath Temperature",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | °C | Float | <FLOAT> | SC1 Bath Temperature",
+    "variables": {
+      "var_0": "<EC_ID>",
+      "var_1": "<NAME_TOKEN>",
+      "var_2": "<FLOAT>"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.751290+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_006 = NAME_0006 | °C     | Float | 25.0   | HF Bath Temperature",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | °C | Float | <FLOAT> | <*> Bath Temperature",
+    "variables": {
+      "var_0": "<EC_ID>",
+      "var_1": "<NAME_TOKEN>",
+      "var_2": "<FLOAT>",
+      "var_3": "<*>"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.814136+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_007 = NAME_0007 | %      | Float | 0.5    | HF Concentration",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | % | Float | <FLOAT> | HF Concentration",
+    "variables": {
+      "var_0": "<EC_ID>",
+      "var_1": "<NAME_TOKEN>",
+      "var_2": "<FLOAT>"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.876454+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_008 = NAME_0008 | %      | Float | 29.0   | NH4OH Concentration",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | % | Float | <FLOAT> | <*> Concentration",
+    "variables": {
+      "var_0": "<EC_ID>",
+      "var_1": "<NAME_TOKEN>",
+      "var_2": "<FLOAT>",
+      "var_3": "<*>"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:05.937990+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_009 = NAME_0009 | %      | Float | 30.0   | H2O2 Concentration",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | % | Float | <FLOAT> | <*> Concentration",
+    "variables": {
+      "var_0": "<EC_ID>",
+      "var_1": "<NAME_TOKEN>",
+      "var_2": "<FLOAT>",
+      "var_3": "<*>"
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.000129+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_010 = NAME_0010 | s      | Float | 30.0   | Megasonic Duration",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_010",
+      "NAME_TOKEN": "NAME_0010",
+      "*": "Duration",
+      "FLOAT": "30.0  "
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.062435+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_011 = NAME_0011 | W      | Float | 600.0  | Megasonic Power",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_011",
+      "NAME_TOKEN": "NAME_0011",
+      "*": "Power",
+      "FLOAT": "600.0 "
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.117520+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_012 = NAME_0012 | wafers | Integer | 1000 | DIW Filter Change Interval",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | <*> | <*> | <*> <*> <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_012",
+      "NAME_TOKEN": "NAME_0012",
+      "*": "Interval"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.172159+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_013 = NAME_0013 | ppb    | Float | 1.0    | DIW TOC Limit",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_013",
+      "NAME_TOKEN": "NAME_0013",
+      "*": "Limit",
+      "FLOAT": "1.0   "
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.238953+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_014 = NAME_0014 | MΩ·cm | Float | 18.0   | DIW Resistivity Minimum",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | Float | <FLOAT> | <*> <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_014",
+      "NAME_TOKEN": "NAME_0014",
+      "*": "Minimum",
+      "FLOAT": "18.0  "
+    },
+    "parsed": 1,
+    "var_count": 4
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.361426+00:00",
+    "raw": "EQUIPMENT_CONSTANTS.CT_EC_015 = NAME_0015 | #/cm2  | Float | 0.05   | Particle Adder Spec (>45nm)",
+    "template": "EQUIPMENT_CONSTANTS.<EC_ID> = <NAME_TOKEN> | <*> | <*> | <*> | <*> <*> <*> <*>",
+    "variables": {
+      "EC_ID": "CT_EC_015",
+      "NAME_TOKEN": "NAME_0015",
+      "*": "(>45nm)"
+    },
+    "parsed": 1,
+    "var_count": 3
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.418378+00:00",
+    "raw": "CHEMICAL_SUPPLY.SC1_RATIO_NH4OH_H2O2_H2O = 1:1:5",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "CHEMICAL_SUPPLY.SC1_RATIO_NH4OH_H2O2_H2O = 1:1:5"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.479847+00:00",
+    "raw": "CHEMICAL_SUPPLY.SC2_RATIO_HCL_H2O2_H2O = 1:1:6",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "CHEMICAL_SUPPLY.SC2_RATIO_HCL_H2O2_H2O = 1:1:6"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.541878+00:00",
+    "raw": "CHEMICAL_SUPPLY.HF_DILUTE_RATIO_HF_H2O = 1:200",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "CHEMICAL_SUPPLY.HF_DILUTE_RATIO_HF_H2O = 1:200"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor8_cleantech_machine_constants_20260521T053732_45",
+    "timestamp_utc": "2026-05-21T05:38:06.604690+00:00",
+    "raw": "CHEMICAL_SUPPLY.SPM_RATIO_H2SO4_H2O2 = 4:1",
+    "template": "<XML_ATTR_LINE>",
+    "variables": {
+      "XML_ATTR_LINE": "CHEMICAL_SUPPLY.SPM_RATIO_H2SO4_H2O2 = 4:1"
+    },
+    "parsed": 1,
+    "var_count": 1
+  }
+]

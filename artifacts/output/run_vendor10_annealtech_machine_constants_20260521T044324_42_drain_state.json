@@ -1,0 +1,42 @@
+{
+  "config": {
+    "sim_threshold": 0.3,
+    "depth": 3,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': None, 'ToolID': '<EQP_ID>', 'DateTime': '<DATE>T13:00:<FLOAT>Z'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "None,",
+        "'ToolID':",
+        "'<EQP_ID>',",
+        "'DateTime':",
+        "'<DATE>T13:00:<FLOAT>Z'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'Vendor': '<VENDOR_ID>', 'FileGeneratorSoftwareVersion': '<VERSION>', 'ProcessType': 'Rapid_Thermal_Processing', 'Net",
+      "template_tokens": [
+        "{'Vendor':",
+        "'<VENDOR_ID>',",
+        "'FileGeneratorSoftwareVersion':",
+        "'<VERSION>',",
+        "'ProcessType':",
+        "'Rapid_Thermal_Processing',",
+        "'Net"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 2
+  }
+}

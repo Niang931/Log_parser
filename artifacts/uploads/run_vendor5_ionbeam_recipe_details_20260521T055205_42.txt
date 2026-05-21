@@ -1,0 +1,69 @@
+# ============================================================
+# Recipe File - IonBeam Technologies
+# RecipeID     : RCP_IB_001
+# RecipeName   : BF2_PWELL_1E13_60keV
+# EquipmentID  : EQP_IB_001
+# LotID        : LOT_IB_001
+# Layer        : P-Well
+# FileType     : Recipe
+# SW_Version   : VER_IB_5.0.2
+# Created      : 2026-01-20T08:00:00Z
+# ApprovedBy   : ENG_CHIEF_001
+# Expiration   : 2027-01-20T08:00:00Z
+# ============================================================
+
+[RECIPE_HEADER]
+RECIPE_ID            = RCP_IB_001
+RECIPE_NAME          = BF2_PWELL_1E13_60keV
+RECIPE_FORMAT        = 3.1
+TARGET_WAFER_SIZE    = 300
+TARGET_MATERIAL      = Si_100
+ION_SPECIES          = BF2
+ATOMIC_MASS          = 49
+CHARGE_STATE         = 1+
+
+[STEP_0_SETUP]
+STEP_ID              = SETUP
+STEP_NAME            = Tool Setup and Verification
+MAX_TIME_S           = 120
+VACUUM_CHECK         = true
+VACUUM_LIMIT_TORR    = 5.0e-7
+FARADAY_CAL          = true
+
+[STEP_1_DOSE_CAL]
+STEP_ID              = DOSE_CAL
+STEP_NAME            = Dose Rate Calibration
+MAX_TIME_S           = 60
+ENERGY_KEV           = 60.0
+BEAM_CURRENT_MA      = 2.0
+FARADAY_CUP          = FC_001
+TOLERANCE_PCT        = 1.0
+
+[STEP_2_IMPLANT]
+STEP_ID              = IMPLANT
+STEP_NAME            = Main Implant
+MAX_TIME_S           = 240
+ION_SPECIES          = BF2
+ENERGY_KEV           = 60.0
+DOSE_ATOMS_CM2       = 1.0e13
+BEAM_CURRENT_MA      = 5.0
+TILT_DEGREES         = 7.0
+ROTATION_DEGREES     = 22.0
+SCAN_MODE            = Raster
+SCAN_SPEED_MM_S      = 50.0
+UNIFORMITY_SPEC_PCT  = 0.5
+WAFER_TEMP_C         = 25.0
+ESC_VOLTAGE_V        = 2000
+
+[STEP_3_PURGE]
+STEP_ID              = PURGE
+STEP_NAME            = End Station Purge
+MAX_TIME_S           = 30
+N2_FLOW_SCCM         = 100
+
+[STEP_4_UNLOAD]
+STEP_ID              = UNLOAD
+STEP_NAME            = Wafer Unload
+MAX_TIME_S           = 60
+ROBOT_SPEED          = NORMAL
+VACUUM_VENT          = true

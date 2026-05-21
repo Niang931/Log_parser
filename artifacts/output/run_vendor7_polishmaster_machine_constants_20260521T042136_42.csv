@@ -1,0 +1,16 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Head Pressure Setpoint,Head Pressure Setpoint,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Platen Speed,Platen Speed,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Head Rotation Speed,Head Rotation Speed,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Slurry Flow Rate,Slurry Flow Rate,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Retaining Ring Pressure,Retaining Ring Pressure,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Membrane Zone 1 Pressure,Membrane Zone <NUM> Pressure,"{""NUM"": ""1""}",1,1
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Membrane Zone 2 Pressure,Membrane Zone <NUM> Pressure,"{""NUM"": ""2""}",1,1
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Membrane Zone 3 Pressure,Membrane Zone <NUM> Pressure,"{""NUM"": ""3""}",1,1
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Removal Rate Oxide Target,Removal Rate Oxide Target,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Within-Wafer Uniformity Spec,Within-Wafer Uniformity Spec,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Pad Life Interval,Pad Life Interval,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Dress Interval,Dress Interval,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Endpoint Detection Window,Endpoint Detection Window,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Dresser Down Force,Dresser Down Force,{},0,0
+run_vendor7_polishmaster_machine_constants_20260521T042136_42,2026-05-21T04:21:36.383350+00:00,Slurry Temperature Target,Slurry Temperature Target,{},0,0

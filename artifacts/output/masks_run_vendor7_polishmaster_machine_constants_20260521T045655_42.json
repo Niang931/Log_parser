@@ -1,0 +1,270 @@
+[
+  {
+    "regex": "\\bCJOB_[A-Z0-9_]+",
+    "mask_with": "<CJOB_ID>"
+  },
+  {
+    "regex": "\\bPRJOB_[A-Z0-9_]+",
+    "mask_with": "<PRJOB_ID>"
+  },
+  {
+    "regex": "\\bEQP_[A-Z0-9_]+",
+    "mask_with": "<EQP_ID>"
+  },
+  {
+    "regex": "\\bRCP_[A-Z0-9_]+",
+    "mask_with": "<RECIPE_ID>"
+  },
+  {
+    "regex": "\\bLOT_[A-Z0-9_]+",
+    "mask_with": "<LOT_ID>"
+  },
+  {
+    "regex": "\\bWFR_[A-Z0-9_]+",
+    "mask_with": "<WAFER_ID>"
+  },
+  {
+    "regex": "\\bMOD_[A-Z0-9_]+",
+    "mask_with": "<MODULE_ID>"
+  },
+  {
+    "regex": "\\bSENSOR_[0-9]+",
+    "mask_with": "<SENSOR_ID>"
+  },
+  {
+    "regex": "\\bSLOT_[A-Z0-9_]+",
+    "mask_with": "<SLOT_ID>"
+  },
+  {
+    "regex": "\\bNET_[A-Z0-9_]+",
+    "mask_with": "<NET_ID>"
+  },
+  {
+    "regex": "\\bVER_[A-Z0-9_.]+",
+    "mask_with": "<VERSION>"
+  },
+  {
+    "regex": "\\bVENDOR_[A-Z0-9_]+",
+    "mask_with": "<VENDOR_ID>"
+  },
+  {
+    "regex": "\\bCREATOR_[A-Z0-9_]+",
+    "mask_with": "<CREATOR_ID>"
+  },
+  {
+    "regex": "\\bDOC_[A-Z0-9_]+",
+    "mask_with": "<DOC_ID>"
+  },
+  {
+    "regex": "\\bCUST_[A-Z0-9_]+",
+    "mask_with": "<CUST_ID>"
+  },
+  {
+    "regex": "\\bMTYPE_[A-Z0-9_]+",
+    "mask_with": "<MTYPE_ID>"
+  },
+  {
+    "regex": "\\bNAME_[A-Z0-9_]+",
+    "mask_with": "<NAME_TOKEN>"
+  },
+  {
+    "regex": "\\b[A-Z]{2,6}_EC_[0-9]+",
+    "mask_with": "<EC_ID>"
+  },
+  {
+    "regex": "\\bIMG_[A-Z0-9_]+",
+    "mask_with": "<IMG_ID>"
+  },
+  {
+    "regex": "\\bRTL_[A-Z0-9_]+",
+    "mask_with": "<RETICLE_ID>"
+  },
+  {
+    "regex": "\\bDOE_[A-Z0-9_]+",
+    "mask_with": "<DOE_ID>"
+  },
+  {
+    "regex": "\\bPCE_[A-Z0-9_]+",
+    "mask_with": "<PCE_ID>"
+  },
+  {
+    "regex": "\\bPSE_[A-Z0-9_]+",
+    "mask_with": "<PSE_ID>"
+  },
+  {
+    "regex": "\\bCHKSUM_[A-Z0-9_]+",
+    "mask_with": "<CHECKSUM_ID>"
+  },
+  {
+    "regex": "-?\\d+\\.\\d+[eE][+-]?\\d+",
+    "mask_with": "<SCI_NUM>"
+  },
+  {
+    "regex": "-?\\d+\\.\\d+",
+    "mask_with": "<FLOAT>"
+  },
+  {
+    "regex": "\\b\\d{5,}\\b",
+    "mask_with": "<LARGE_INT>"
+  },
+  {
+    "regex": "0x[A-Fa-f0-9]{4,}",
+    "mask_with": "<HEX_ADDR>"
+  },
+  {
+    "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})?",
+    "mask_with": "<ISO_TS>"
+  },
+  {
+    "regex": "\\d{4}-\\d{2}-\\d{2}",
+    "mask_with": "<DATE>"
+  },
+  {
+    "regex": "\\b\\d{2}/\\d{2}/\\d{4}\\b",
+    "mask_with": "<DATE_US>"
+  },
+  {
+    "regex": "\\b\\d{2}:\\d{2}:\\d{2}\\.\\d{4}\\b",
+    "mask_with": "<LOG_TS>"
+  },
+  {
+    "regex": "Machine:MCH[A-Z0-9]+",
+    "mask_with": "Machine:<MCH_ID>"
+  },
+  {
+    "regex": "\\bMCH[A-Z0-9]+\\b",
+    "mask_with": "<MCH_ID>"
+  },
+  {
+    "regex": "Rel:[A-Z]{2,6}[0-9]+",
+    "mask_with": "Rel:<REL_VER>"
+  },
+  {
+    "regex": "\\bER-[A-Z0-9]+",
+    "mask_with": "<ERROR_CODE>"
+  },
+  {
+    "regex": "\\bDW-[0-9]+[A-Z0-9]*",
+    "mask_with": "<DW_CODE>"
+  },
+  {
+    "regex": "\\bRH-[0-9]+",
+    "mask_with": "<RH_CODE>"
+  },
+  {
+    "regex": "\\bKU-[0-9]+",
+    "mask_with": "<KU_CODE>"
+  },
+  {
+    "regex": "\\bCV-[0-9]+",
+    "mask_with": "<CV_CODE>"
+  },
+  {
+    "regex": "\\bRU-[A-Z0-9]+",
+    "mask_with": "<RU_CODE>"
+  },
+  {
+    "regex": "\\bde_err=[0-9.]+",
+    "mask_with": "de_err=<DOSE_ERR>"
+  },
+  {
+    "regex": "\\bESET:[0-9.]+",
+    "mask_with": "ESET:<ESET_VAL>"
+  },
+  {
+    "regex": "\\bfreq=[0-9]+",
+    "mask_with": "freq=<FREQ_VAL>"
+  },
+  {
+    "regex": "\\bn_slit=[0-9]+",
+    "mask_with": "n_slit=<NSLIT_VAL>"
+  },
+  {
+    "regex": "\\baction_handle=[0-9]+",
+    "mask_with": "action_handle=<ACT_HANDLE>"
+  },
+  {
+    "regex": "\\bexposure_handle=[0-9]+",
+    "mask_with": "exposure_handle=<EXP_HANDLE>"
+  },
+  {
+    "regex": "\\bSample delay: -?[0-9]+",
+    "mask_with": "Sample delay: <DELAY_VAL>"
+  },
+  {
+    "regex": "\\bOccurred [0-9]+ times",
+    "mask_with": "Occurred <COUNT> times"
+  },
+  {
+    "regex": "StrG=[0-9.]+",
+    "mask_with": "StrG=<STRG_VAL>"
+  },
+  {
+    "regex": "\\bUTC-offset: [+-][0-9]+",
+    "mask_with": "UTC-offset: <OFFSET>"
+  },
+  {
+    "regex": "<SetPoint>[0-9.eE+-]+</SetPoint>",
+    "mask_with": "<SetPoint><FLOAT></SetPoint>"
+  },
+  {
+    "regex": "<X>[0-9.eE+-]+</X>",
+    "mask_with": "<X><FLOAT></X>"
+  },
+  {
+    "regex": "<Y>[0-9.eE+-]+</Y>",
+    "mask_with": "<Y><FLOAT></Y>"
+  },
+  {
+    "regex": "<Na>[0-9.eE+-]+</Na>",
+    "mask_with": "<Na><FLOAT></Na>"
+  },
+  {
+    "regex": "<Value>[^<]+</Value>",
+    "mask_with": "<Value><*></Value>"
+  },
+  {
+    "regex": "\"Value\"\\s*:\\s*\"[^\"]+\"",
+    "mask_with": "\"Value\": \"<*>\""
+  },
+  {
+    "regex": "\"DateTime\"\\s*:\\s*\"[^\"]+\"",
+    "mask_with": "\"DateTime\": \"<ISO_TS>\""
+  },
+  {
+    "regex": "\"ExpirationDate\"\\s*:\\s*\"[^\"]+\"",
+    "mask_with": "\"ExpirationDate\": \"<DATE>\""
+  },
+  {
+    "regex": "\"RecipeStepID\"\\s*:\\s*\"[^\"]+\"",
+    "mask_with": "\"RecipeStepID\": \"<STEP_ID>\""
+  },
+  {
+    "regex": "constant_id: [A-Z0-9_]+",
+    "mask_with": "constant_id: <EC_ID>"
+  },
+  {
+    "regex": "value: -?[0-9]+\\.?[0-9]*(?:[eE][+-]?[0-9]+)?",
+    "mask_with": "value: <YAML_NUM>"
+  },
+  {
+    "regex": "lot_id: [A-Z0-9_]+",
+    "mask_with": "lot_id: <LOT_ID>"
+  },
+  {
+    "regex": "\\b[0-9]+(?:\\.[0-9]+)?\\s*(?:nm|mm|um|keV|eV|mJ|mTorr|Torr|sccm|rpm|psi|kHz|MHz|GHz|kW|mA|kV|ms)\\b",
+    "mask_with": "<QUANTITY_WITH_UNIT>"
+  },
+  {
+    "regex": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b",
+    "mask_with": "<IP_ADDR>"
+  },
+  {
+    "regex": "\\b[A-Za-z][A-Za-z0-9_-]*\\.(?:cpp|c|h|py|json|xml|yaml|log|db)\\b",
+    "mask_with": "<SOURCE_FILE>"
+  },
+  {
+    "regex": "\\b[A-Z]{2,5}_[A-Z]{2,5}_[0-9]{3,}",
+    "mask_with": "<FAB_ID>"
+  }
+]

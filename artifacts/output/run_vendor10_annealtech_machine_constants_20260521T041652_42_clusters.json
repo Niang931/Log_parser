@@ -1,0 +1,39 @@
+{
+  "run_id": "run_vendor10_annealtech_machine_constants_20260521T041652_42",
+  "total_clusters": 2,
+  "template_fingerprint": "ba1b9dee0bddf22f",
+  "drain_stats": {
+    "new_cluster": 2
+  },
+  "top_clusters": [
+    {
+      "cluster_id": 0,
+      "template": "{'CtrlJobID': None, 'ToolID': '<EQP_ID>', 'DateTime': '<DATE>T13:00:<FLOAT>Z'}",
+      "template_tokens": [
+        "{'CtrlJobID':",
+        "None,",
+        "'ToolID':",
+        "'<EQP_ID>',",
+        "'DateTime':",
+        "'<DATE>T13:00:<FLOAT>Z'}"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 1,
+      "template": "{'Vendor': '<VENDOR_ID>', 'FileGeneratorSoftwareVersion': '<VERSION>', 'ProcessType': 'Rapid_Thermal_Processing', 'Net",
+      "template_tokens": [
+        "{'Vendor':",
+        "'<VENDOR_ID>',",
+        "'FileGeneratorSoftwareVersion':",
+        "'<VERSION>',",
+        "'ProcessType':",
+        "'Rapid_Thermal_Processing',",
+        "'Net"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ]
+}

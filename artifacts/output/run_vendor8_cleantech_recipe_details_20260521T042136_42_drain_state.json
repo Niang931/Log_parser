@@ -1,0 +1,446 @@
+{
+  "config": {
+    "sim_threshold": 0.5,
+    "depth": 4,
+    "max_children": 100,
+    "max_clusters": 1024
+  },
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "template": "[<FAB_TOKEN>]",
+      "template_tokens": [
+        "[<FAB_TOKEN>]"
+      ],
+      "size": 8,
+      "stability": 0.35
+    },
+    {
+      "cluster_id": 1,
+      "template": "RecipeID = <RECIPE_ID>",
+      "template_tokens": [
+        "RecipeID",
+        "=",
+        "<RECIPE_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 2,
+      "template": "RecipeName = <FAB_TOKEN>v4",
+      "template_tokens": [
+        "RecipeName",
+        "=",
+        "<FAB_TOKEN>v4"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 3,
+      "template": "EquipmentID = <EQP_ID>",
+      "template_tokens": [
+        "EquipmentID",
+        "=",
+        "<EQP_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 4,
+      "template": "FileType = Recipe",
+      "template_tokens": [
+        "FileType",
+        "=",
+        "Recipe"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 5,
+      "template": "SoftwareVersion = <VERSION>",
+      "template_tokens": [
+        "SoftwareVersion",
+        "=",
+        "<VERSION>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 6,
+      "template": "TargetProcess = Post_Metal_Etch_Residue_Removal",
+      "template_tokens": [
+        "TargetProcess",
+        "=",
+        "Post_Metal_Etch_Residue_Removal"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 7,
+      "template": "LotID = <LOT_ID>",
+      "template_tokens": [
+        "LotID",
+        "=",
+        "<LOT_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 8,
+      "template": "LayerName = Metal_Clean_Post_Etch",
+      "template_tokens": [
+        "LayerName",
+        "=",
+        "Metal_Clean_Post_Etch"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 9,
+      "template": "CreatedBy = <CREATOR_ID>",
+      "template_tokens": [
+        "CreatedBy",
+        "=",
+        "<CREATOR_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 10,
+      "template": "ApprovedBy = <CREATOR_ID>",
+      "template_tokens": [
+        "ApprovedBy",
+        "=",
+        "<CREATOR_ID>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 11,
+      "template": "CreatedAt = <ISO_TS>",
+      "template_tokens": [
+        "CreatedAt",
+        "=",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 12,
+      "template": "ExpiresAt = <ISO_TS>",
+      "template_tokens": [
+        "ExpiresAt",
+        "=",
+        "<ISO_TS>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 13,
+      "template": "StepID = <FAB_TOKEN>",
+      "template_tokens": [
+        "StepID",
+        "=",
+        "<FAB_TOKEN>"
+      ],
+      "size": 6,
+      "stability": 0.25
+    },
+    {
+      "cluster_id": 14,
+      "template": "StepName = DIW Pre-Wet",
+      "template_tokens": [
+        "StepName",
+        "=",
+        "DIW",
+        "Pre-Wet"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 15,
+      "template": "MaxTime_s = <NUM>",
+      "template_tokens": [
+        "MaxTime_s",
+        "=",
+        "<NUM>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 16,
+      "template": "SpinSpeed_rpm = <NUM>",
+      "template_tokens": [
+        "SpinSpeed_rpm",
+        "=",
+        "<NUM>"
+      ],
+      "size": 3,
+      "stability": 0.1
+    },
+    {
+      "cluster_id": 17,
+      "template": "<*> = <NUM>",
+      "template_tokens": [
+        "<*>",
+        "=",
+        "<NUM>"
+      ],
+      "size": 3,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 18,
+      "template": "MegasonicPower_W = <NUM>",
+      "template_tokens": [
+        "MegasonicPower_W",
+        "=",
+        "<NUM>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 19,
+      "template": "Temperature_C = <NUM>",
+      "template_tokens": [
+        "Temperature_C",
+        "=",
+        "<NUM>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 20,
+      "template": "StepID = SC1_CLEAN",
+      "template_tokens": [
+        "StepID",
+        "=",
+        "SC1_CLEAN"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 21,
+      "template": "StepName = SC1 Particle Remove (NH4OH:H2O2:H2O)",
+      "template_tokens": [
+        "StepName",
+        "=",
+        "SC1",
+        "Particle",
+        "Remove",
+        "(NH4OH:H2O2:H2O)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 22,
+      "template": "ChemicalFlow_ml_min = <NUM>",
+      "template_tokens": [
+        "ChemicalFlow_ml_min",
+        "=",
+        "<NUM>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 23,
+      "template": "MegasonicFreq_kHz = <NUM>",
+      "template_tokens": [
+        "MegasonicFreq_kHz",
+        "=",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 24,
+      "template": "NH4OH_pct = <FLOAT>",
+      "template_tokens": [
+        "NH4OH_pct",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 25,
+      "template": "H2O2_pct = <FLOAT>",
+      "template_tokens": [
+        "H2O2_pct",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 26,
+      "template": "Ratio = 1:1:5",
+      "template_tokens": [
+        "Ratio",
+        "=",
+        "1:1:5"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 27,
+      "template": "StepName = DIW Overflow Rinse <NUM>",
+      "template_tokens": [
+        "StepName",
+        "=",
+        "DIW",
+        "Overflow",
+        "Rinse",
+        "<NUM>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 28,
+      "template": "ResistivityTarget_MOhm_cm = <FLOAT>",
+      "template_tokens": [
+        "ResistivityTarget_MOhm_cm",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 2,
+      "stability": 0.05
+    },
+    {
+      "cluster_id": 29,
+      "template": "StepName = Dilute HF Native Oxide Strip (1:200)",
+      "template_tokens": [
+        "StepName",
+        "=",
+        "Dilute",
+        "HF",
+        "Native",
+        "Oxide",
+        "Strip",
+        "(1:200)"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 30,
+      "template": "HF_pct = <FLOAT>",
+      "template_tokens": [
+        "HF_pct",
+        "=",
+        "<FLOAT>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 31,
+      "template": "<FAB_TOKEN>nabled = false",
+      "template_tokens": [
+        "<FAB_TOKEN>nabled",
+        "=",
+        "false"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 32,
+      "template": "StepName = IPA Marangoni Dry",
+      "template_tokens": [
+        "StepName",
+        "=",
+        "IPA",
+        "Marangoni",
+        "Dry"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 33,
+      "template": "SpinSpeed_rpm_ramp = 0-2000",
+      "template_tokens": [
+        "SpinSpeed_rpm_ramp",
+        "=",
+        "0-2000"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 34,
+      "template": "<FAB_TOKEN>arrier = true",
+      "template_tokens": [
+        "<FAB_TOKEN>arrier",
+        "=",
+        "true"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 35,
+      "template": "N2_Flow_slm = <NUM>",
+      "template_tokens": [
+        "N2_Flow_slm",
+        "=",
+        "<NUM>"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 36,
+      "template": "StepName = Final Spin Dry",
+      "template_tokens": [
+        "StepName",
+        "=",
+        "Final",
+        "Spin",
+        "Dry"
+      ],
+      "size": 1,
+      "stability": 0.0
+    },
+    {
+      "cluster_id": 37,
+      "template": "N2_Purge = true",
+      "template_tokens": [
+        "N2_Purge",
+        "=",
+        "true"
+      ],
+      "size": 1,
+      "stability": 0.0
+    }
+  ],
+  "stats": {
+    "new_cluster": 38,
+    "matched": 23
+  }
+}

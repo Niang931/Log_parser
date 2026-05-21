@@ -1,0 +1,23 @@
+ToolID,EQP_TD_001,,,
+Vendor,ThermalDyn Systems,,,
+ProcessType,Thermal Oxidation / Diffusion,,,
+SoftwareVersion,VER_TD_3.9,,,
+NetworkAddress,NET_TD_001,,,
+ExpirationDate,2027-09-30,,,
+,,,,
+ConstantID,Name,Units,DataType,Value
+TD_EC_001,NAME_0001,°C,Float,1050.0
+TD_EC_002,NAME_0002,°C,Float,1055.0
+TD_EC_003,NAME_0003,°C,Float,1048.0
+TD_EC_004,NAME_0004,°C,Float,1052.0
+TD_EC_005,NAME_0005,slm,Float,2.0
+TD_EC_006,NAME_0006,slm,Float,5.0
+TD_EC_007,NAME_0007,slm,Float,0.5
+TD_EC_008,NAME_0008,°C/min,Float,5.0
+TD_EC_009,NAME_0009,min,Float,60.0
+TD_EC_010,NAME_0010,Angstrom,Float,500.0
+TD_EC_011,NAME_0011,wafers,Integer,25
+TD_EC_012,NAME_0012,mTorr,Float,760000
+TD_EC_013,NAME_0013,%,Float,98.0
+TD_EC_014,NAME_0014,cycles,Integer,300
+TD_EC_015,NAME_0015,Å/min,Float,8.3

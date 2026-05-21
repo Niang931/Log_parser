@@ -1,0 +1,76 @@
+run_id,timestamp_utc,raw,template,variables,parsed,var_count
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.531382+00:00,# ============================================================,# ============================================================,{},0,0
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.531382+00:00,# Machine Constants File - IonBeam Technologies,# Machine Constants File - IonBeam Technologies,{},0,0
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.531382+00:00,# ToolID       : EQP_IB_001,# ToolID : <EQP_ID>,"{""var_0"": ""<EQP_ID>""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.592846+00:00,# ProcessType  : Ion Implantation,# ProcessType : Ion Implantation,{},0,0
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.592846+00:00,# Vendor       : IonBeam Technologies Inc.,# Vendor : IonBeam Technologies Inc.,{},0,0
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.592846+00:00,# SW_Version   : VER_IB_5.0.2,# SW_Version : <VERSION>,"{""var_0"": ""<VERSION>""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.654994+00:00,# Network      : NET_IB_001,# Network : <NET_ID>,"{""var_0"": ""<NET_ID>""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.654994+00:00,# Expiration   : 2027-06-30,# Expiration : <DATE>,"{""var_0"": ""<DATE>""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.654994+00:00,# Generated    : 2026-02-18T09:00:00Z,# Generated : <ISO_TS>,"{""var_0"": ""<ISO_TS>""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.716515+00:00,[TOOL_INFO],<INI_SECTION>,"{""INI_SECTION"": ""[TOOL_INFO]""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.716515+00:00,TOOL_ID              = EQP_IB_001,TOOL_ID = <EQP_ID>,"{""var_0"": ""<EQP_ID>""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.716515+00:00,TOOL_TYPE            = Medium_Current_Implanter,<INI_KV>,"{""INI_KV"": ""TOOL_TYPE            = Medium_Current_Implanter""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.776842+00:00,BEAM_LINE_ID         = BL_001,<INI_KV>,"{""INI_KV"": ""BEAM_LINE_ID         = BL_001""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.776842+00:00,MANUFACTURER_ID      = MFGR_IB_001,MANUFACTURER_ID = <FAB_ID>,"{""var_0"": ""<FAB_ID>""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.776842+00:00,[EQUIPMENT_CONSTANTS],<INI_SECTION>,"{""INI_SECTION"": ""[EQUIPMENT_CONSTANTS]""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.838837+00:00,EC_IB_001_NAME       = NAME_0001,<FAB_ID>_NAME = <NAME_TOKEN>,"{""var_0"": ""<FAB_ID>"", ""var_1"": ""<NAME_TOKEN>""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.838837+00:00,EC_IB_001_CONST_ID   = 31920001,<*> = <*>,"{""*"": ""31920001""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.838837+00:00,EC_IB_001_UNITS      = keV,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_001_UNITS      = keV""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.900656+00:00,EC_IB_001_DATATYPE   = Float,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_001_DATATYPE   = Float""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.900656+00:00,EC_IB_001_VALUE      = 60.0,<*> = <*>,"{""*"": ""60.0""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.900656+00:00,EC_IB_001_DESC       = Beam Energy Maximum,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_001_DESC       = Beam Energy Maximum""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.960962+00:00,EC_IB_002_NAME       = NAME_0002,<*> = <*>,"{""*"": ""NAME_0002""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.960962+00:00,EC_IB_002_CONST_ID   = 31920002,<*> = <*>,"{""*"": ""31920002""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:37.960962+00:00,EC_IB_002_UNITS      = mA,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_002_UNITS      = mA""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.022310+00:00,EC_IB_002_DATATYPE   = Float,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_002_DATATYPE   = Float""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.022310+00:00,EC_IB_002_VALUE      = 20.0,<*> = <*>,"{""*"": ""20.0""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.022310+00:00,EC_IB_002_DESC       = Beam Current Maximum,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_002_DESC       = Beam Current Maximum""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.084430+00:00,EC_IB_003_NAME       = NAME_0003,<*> = <*>,"{""*"": ""NAME_0003""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.084430+00:00,EC_IB_003_CONST_ID   = 31920003,<*> = <*>,"{""*"": ""31920003""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.084430+00:00,EC_IB_003_UNITS      = atoms/cm2,<FAB_ID>_<INI_KV>/cm2,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_003_UNITS      = atoms""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.147385+00:00,EC_IB_003_DATATYPE   = Float,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_003_DATATYPE   = Float""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.147385+00:00,EC_IB_003_VALUE      = 1.0e16,<*> = <*>,"{""*"": ""1.0e16""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.147385+00:00,EC_IB_003_DESC       = Dose Uniformity Calibration Factor,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_003_DESC       = Dose Uniformity Calibration Factor""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.210251+00:00,EC_IB_004_NAME       = NAME_0004,<*> = <*>,"{""*"": ""NAME_0004""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.210251+00:00,EC_IB_004_CONST_ID   = 31920004,<*> = <*>,"{""*"": ""31920004""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.210251+00:00,EC_IB_004_UNITS      = None,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_004_UNITS      = None""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.271587+00:00,EC_IB_004_DATATYPE   = String,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_004_DATATYPE   = String""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.271587+00:00,EC_IB_004_VALUE      = Boron_BF3,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_004_VALUE      = Boron_BF3""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.271587+00:00,EC_IB_004_DESC       = Default Ion Species,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_004_DESC       = Default Ion Species""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.334451+00:00,EC_IB_005_NAME       = NAME_0005,<*> = <*>,"{""*"": ""NAME_0005""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.334451+00:00,EC_IB_005_CONST_ID   = 31920005,<*> = <*>,"{""*"": ""31920005""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.334451+00:00,EC_IB_005_UNITS      = cycles,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_005_UNITS      = cycles""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.398804+00:00,EC_IB_005_DATATYPE   = Integer,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_005_DATATYPE   = Integer""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.398804+00:00,EC_IB_005_VALUE      = 5000,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_005_VALUE      = 5000""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.398804+00:00,EC_IB_005_DESC       = Faraday Cup Calibration Interval,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_005_DESC       = Faraday Cup Calibration Interval""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.461266+00:00,EC_IB_006_NAME       = NAME_0006,<*> = <*>,"{""*"": ""NAME_0006""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.461266+00:00,EC_IB_006_CONST_ID   = 31920006,<*> = <*>,"{""*"": ""31920006""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.461266+00:00,EC_IB_006_UNITS      = %,<FAB_ID>_UNITS = %,"{""var_0"": ""<FAB_ID>""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.522815+00:00,EC_IB_006_DATATYPE   = Float,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_006_DATATYPE   = Float""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.522815+00:00,EC_IB_006_VALUE      = 0.5,<*> = <*>,"{""*"": ""0.5""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.522815+00:00,EC_IB_006_DESC       = Dose Uniformity Spec (1-sigma),<FAB_ID>_<INI_KV>(1-sigma),"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_006_DESC       = Dose Uniformity Spec ""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.584105+00:00,EC_IB_007_NAME       = NAME_0007,<*> = <*>,"{""*"": ""NAME_0007""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.584105+00:00,EC_IB_007_CONST_ID   = 31920007,<*> = <*>,"{""*"": ""31920007""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.584105+00:00,EC_IB_007_UNITS      = Torr,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_007_UNITS      = Torr""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.647678+00:00,EC_IB_007_DATATYPE   = Float,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_007_DATATYPE   = Float""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.647678+00:00,EC_IB_007_VALUE      = 5.0e-7,<*> = <*>,"{""*"": ""5.0e-7""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.647678+00:00,EC_IB_007_DESC       = Beam Line Vacuum Limit,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_007_DESC       = Beam Line Vacuum Limit""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.711000+00:00,EC_IB_008_NAME       = NAME_0008,<*> = <*>,"{""*"": ""NAME_0008""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.711000+00:00,EC_IB_008_CONST_ID   = 31920008,<*> = <*>,"{""*"": ""31920008""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.711000+00:00,EC_IB_008_UNITS      = degrees,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_008_UNITS      = degrees""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.772275+00:00,EC_IB_008_DATATYPE   = Float,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_008_DATATYPE   = Float""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.772275+00:00,EC_IB_008_VALUE      = 7.0,<*> = <*>,"{""*"": ""7.0""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.772275+00:00,EC_IB_008_DESC       = Tilt Angle Default,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_008_DESC       = Tilt Angle Default""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.833396+00:00,EC_IB_009_NAME       = NAME_0009,<*> = <*>,"{""*"": ""NAME_0009""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.833396+00:00,EC_IB_009_CONST_ID   = 31920009,<*> = <*>,"{""*"": ""31920009""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.833396+00:00,EC_IB_009_UNITS      = degrees,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_009_UNITS      = degrees""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.896805+00:00,EC_IB_009_DATATYPE   = Float,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_009_DATATYPE   = Float""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.896805+00:00,EC_IB_009_VALUE      = 22.0,<*> = <*>,"{""*"": ""22.0""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.896805+00:00,EC_IB_009_DESC       = Rotation Angle Default,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_009_DESC       = Rotation Angle Default""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.958560+00:00,EC_IB_010_NAME       = NAME_0010,<*> = <*>,"{""*"": ""NAME_0010""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.958560+00:00,EC_IB_010_CONST_ID   = 31920010,<*> = <*>,"{""*"": ""31920010""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:38.958560+00:00,EC_IB_010_UNITS      = mm/s,<FAB_ID>_<INI_KV>/s,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_010_UNITS      = mm""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:39.019665+00:00,EC_IB_010_DATATYPE   = Float,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_010_DATATYPE   = Float""}",1,2
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:39.019665+00:00,EC_IB_010_VALUE      = 50.0,<*> = <*>,"{""*"": ""50.0""}",1,1
+run_vendor5_ionbeam_machine_constants_20260521T053732_42,2026-05-21T05:37:39.019665+00:00,EC_IB_010_DESC       = Scan Speed Maximum,<FAB_ID>_<INI_KV>,"{""FAB_ID"": ""EC"", ""INI_KV"": ""IB_010_DESC       = Scan Speed Maximum""}",1,2

@@ -1,0 +1,38 @@
+[
+  {
+    "run_id": "run_vendor10_annealtech_recipe_details_20260521T044757_42",
+    "timestamp_utc": "2026-05-21T04:47:57.274760+00:00",
+    "raw": "{'CtrlJobID': 'CJOB_AT_001', 'EquipmentID': 'EQP_AT_001'}",
+    "template": "{'CtrlJobID': '<CJOB_ID>', 'EquipmentID': '<EQP_ID>'}",
+    "variables": {
+      "CJOB_ID": "CJOB_AT_001",
+      "EQP_ID": "EQP_AT_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor10_annealtech_recipe_details_20260521T044757_42",
+    "timestamp_utc": "2026-05-21T04:47:57.274760+00:00",
+    "raw": "{'FileGeneratorSoftwareVersion': 'VER_RTP_3.3.0', 'FileType': 'Recipe'}",
+    "template": "{'FileGeneratorSoftwareVersion': '<VERSION>', 'FileType': 'Recipe'}",
+    "variables": {
+      "VERSION": "VER_RTP_3.3.0"
+    },
+    "parsed": 1,
+    "var_count": 1
+  },
+  {
+    "run_id": "run_vendor10_annealtech_recipe_details_20260521T044757_42",
+    "timestamp_utc": "2026-05-21T04:47:57.274760+00:00",
+    "raw": "[{'Keys': {'PRJobID': 'PRJOB_AT_001', 'RecipeID': 'RCP_AT_001'}, 'Attributes': {'LotID': 'LOT_AT_001', 'LayerName': 'Source_Drai",
+    "template": "[{'Keys': {'PRJobID': '<PRJOB_ID>', 'RecipeID': '<RECIPE_ID>'}, 'Attributes': {'LotID': '<LOT_ID>', 'LayerName': 'Source_Drai",
+    "variables": {
+      "PRJOB_ID": "PRJOB_AT_001",
+      "RECIPE_ID": "RCP_AT_001",
+      "LOT_ID": "LOT_AT_001"
+    },
+    "parsed": 1,
+    "var_count": 3
+  }
+]

@@ -1,0 +1,101 @@
+[
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:06.834567+00:00",
+    "raw": "# RecipeID: RCP_PM_001: RecipeName: STI_CMP_OXIDE_300A",
+    "template": "# RecipeID: <RECIPE_ID>: RecipeName: <FAB_TOKEN>",
+    "variables": {
+      "RECIPE_ID": "RCP_PM_001",
+      "FAB_TOKEN": "STI_CMP_OXIDE_300A"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:06.897583+00:00",
+    "raw": "# EquipmentID: EQP_PM_001: LotID: LOT_PM_001",
+    "template": "# EquipmentID: <EQP_ID>: LotID: <LOT_ID>",
+    "variables": {
+      "EQP_ID": "EQP_PM_001",
+      "LOT_ID": "LOT_PM_001"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:06.961508+00:00",
+    "raw": "# LayerName: STI_Oxide: TargetRemoval_nm: 300",
+    "template": "# LayerName: <FAB_TOKEN>xide: TargetRemoval_nm: <NUM>",
+    "variables": {
+      "FAB_TOKEN": "STI_O",
+      "NUM": "300"
+    },
+    "parsed": 1,
+    "var_count": 2
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:07.023279+00:00",
+    "raw": "StepID: StepName",
+    "template": "StepID: StepName",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:07.084338+00:00",
+    "raw": "PRECONDITIONING: Pad Condition",
+    "template": "PRECONDITIONING: Pad Condition",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:07.135924+00:00",
+    "raw": "LOAD: Wafer Load",
+    "template": "LOAD: Wafer Load",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:07.198454+00:00",
+    "raw": "STEP1_BULK: Bulk Removal",
+    "template": "STEP1_BULK: Bulk Removal",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:07.265460+00:00",
+    "raw": "STEP2_ENDPOINT: Endpoint Polish",
+    "template": "STEP2_ENDPOINT: Endpoint Polish",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:07.337935+00:00",
+    "raw": "RINSE: Post-CMP Rinse",
+    "template": "RINSE: Post-CMP Rinse",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  },
+  {
+    "run_id": "run_vendor7_polishmaster_recipe_details_20260521T055205_44",
+    "timestamp_utc": "2026-05-21T05:52:07.398808+00:00",
+    "raw": "UNLOAD: Wafer Unload",
+    "template": "UNLOAD: Wafer Unload",
+    "variables": {},
+    "parsed": 0,
+    "var_count": 0
+  }
+]
