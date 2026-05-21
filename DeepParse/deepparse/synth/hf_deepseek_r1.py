@@ -19,9 +19,10 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import re
-import textwrap
 from collections import Counter
+from pathlib import Path
 from typing import Any
 
 log = logging.getLogger("deepparse.synth")
@@ -243,29 +244,18 @@ def _specificity_score(mask: dict) -> int:
 # ---------------------------------------------------------------------------
 
 def _vote_masks(all_candidates: list[list[dict]], min_votes: int = 1) -> list[dict]:
-    """
-    Majority-vote across N candidate mask sets.
-    A mask survives if its regex appears in ≥ min_votes sets.
-    min_votes=1 means union (permissive); higher = intersection (strict).
-    """
-    regex_counts: Counter = Counter()
-    regex_to_mask: dict[str, dict] = {}
-
+    from collections import Counter as C
+    counts: C = C()
+    best: dict[str, dict] = {}
     for candidate_set in all_candidates:
-        seen_in_this = set()
+        seen = set()
         for m in candidate_set:
             r = m.get("regex", "")
-            if r and r not in seen_in_this:
-                regex_counts[r] += 1
-                regex_to_mask[r] = m
-                seen_in_this.add(r)
-
-    return [
-        regex_to_mask[r]
-        for r, count in regex_counts.items()
-        if count >= min_votes
-    ]
-
+            if r and r not in seen:
+                counts[r] += 1
+                best[r] = m
+                seen.add(r)
+    return [best[r] for r, c in counts.items() if c >= min_votes]
 
 # ---------------------------------------------------------------------------
 # Primary synthesis function
