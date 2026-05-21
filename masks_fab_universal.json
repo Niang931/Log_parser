@@ -330,5 +330,41 @@
   {
     "regex": "[A-Za-z][A-Za-z0-9_]+ = -?[0-9]+\\b",
     "mask_with": "<KEY_INT>"
+  },
+  {
+    "regex": "[A-Za-z][A-Za-z0-9_]+\\[\\*\\]\\.[A-Za-z][A-Za-z0-9_.]+ = .+",
+    "mask_with": "<YAML_ARRAY_KV>"
+  },
+  {
+    "regex": "[A-Za-z][A-Za-z0-9_.]+\\[\\*\\]: .+",
+    "mask_with": "<YAML_ARRAY_LINE>"
+  },
+  {
+    "regex": "[A-Za-z][A-Za-z0-9_.]+: -?[0-9]+\\.[0-9]+(?:[eE][+-]?[0-9]+)?",
+    "mask_with": "<YAML_FLOAT_KV>"
+  },
+  {
+    "regex": "[A-Za-z][A-Za-z0-9_.]+: -?[0-9]+\\b",
+    "mask_with": "<YAML_INT_KV>"
+  },
+  {
+    "regex": "[A-Za-z][A-Za-z0-9_.]+: [A-Za-z][A-Za-z0-9_\\-. ]+$",
+    "mask_with": "<YAML_STR_KV>"
+  },
+  {
+    "regex": "[A-Za-z][A-Za-z0-9_]+ = [A-Z]{2,}_[A-Z0-9_]+",
+    "mask_with": "<COL_FAB_ID>"
+  },
+  {
+    "regex": "[A-Za-z][A-Za-z0-9_]+ = [A-Za-z][A-Za-z0-9_\\-]+",
+    "mask_with": "<COL_STR_VAL>"
+  },
+  {
+    "regex": "\\b\\w+ \\w+=\"[^\"]+\" \\w+=\"[^\"]+\"",
+    "mask_with": "<XML_MULTI_ATTR>"
+  },
+  {
+    "regex": "\\b[A-Za-z][A-Za-z0-9_]+\\.[A-Za-z][A-Za-z0-9_]+ = [A-Za-z][A-Za-z0-9_./ -]+",
+    "mask_with": "<ATTR_STR_LINE>"
   }
 ]
