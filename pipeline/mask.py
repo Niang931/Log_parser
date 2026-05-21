@@ -41,7 +41,7 @@ def load_universal_masks(masks_path: Path | None = None) -> list[dict]:
         masks_path,
         Path(__file__).parent.parent / "masks_fab_universal.json",
         Path(__file__).parent.parent / "masks" / "masks_fab_universal.json",
-        Path(getattr(__main__, "__file__", ".")) .parent / "masks_fab_universal.json",
+        Path(getattr(__main__, "__file__", "..")) .parent / "masks_fab_universal.json",
     ]
     for p in candidates:
         if p and Path(p).exists():
