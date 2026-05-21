@@ -272,58 +272,48 @@ def synthesize_online(
     """
     Synthesise regex masks using an LLM with self-consistency voting.
 
-    Parameters
-    ----------
-    logs                      : sample log lines (up to 30 used)
-    llm                       : BaseLLM instance from llm.registry
-    max_length                : max chars per line sent to LLM
-    self_consistency_attempts : N independent completions to vote over
-    round_hint                : optional focus hint for adaptive re-synthesis
-    min_votes                 : minimum votes to include a mask in result
+    * Entropy-greedy selects 3-5 most diverse lines (~90% fewer tokens).
+    * RAG injects top-3 similar resolved templates as few-shot examples.
+    * Self-consistency: N temperature-varied completions → majority vote.
 
-    Returns
-    -------
-    List of validated mask dicts: [{"regex": ..., "mask_with": ...}, ...]
     """
-    sample = [l[:max_length] for l in logs[:30]]
-    prompt = _build_synthesis_prompt(sample, round_hint=round_hint)
-
+    # 1 — Entropy-greedy sample (doc section 1.3)
+    truncated = [l[:max_length] for l in logs]
+    sample = entropy_greedy_sample(truncated, k=5)
     log.info(
-        "Synthesising masks: %d sample lines, %d attempts, provider=%s",
-        len(sample), self_consistency_attempts, getattr(llm, "model", "?"),
+        "Entropy-greedy: selected %d/%d lines for LLM (provider=%s)",
+        len(sample), len(truncated), getattr(llm, "model", "?"),
     )
 
-    candidate_sets: list[list[dict]] = []
+    # 2 — Template-cache RAG grounding (doc section 3.1)
+    rag_templates = get_similar_templates(sample, top_k=3)
+    if rag_templates:
+        log.info("RAG: injecting %d similar templates as few-shot examples", len(rag_templates))
 
-    # Vary temperature to increase mask diversity across attempts
+    prompt = _build_synthesis_prompt(sample, rag_templates, round_hint=round_hint)
+
+    candidate_sets: list[list[dict]] = []
     temperatures = [0.0, 0.2, 0.4][:self_consistency_attempts]
+
     for i, temp in enumerate(temperatures):
         try:
-            raw_output = llm.complete_with_retry(
-                prompt,
-                max_tokens=1500,
-                temperature=temp,
-            )
+            raw_output = llm.complete_with_retry(prompt, max_tokens=1500, temperature=temp)
             masks = _extract_json_array(raw_output)
             valid = [m for m in masks if _is_valid_mask(m)]
-            log.debug(
-                "Attempt %d/%d temp=%.1f → %d raw / %d valid masks",
-                i+1, self_consistency_attempts, temp, len(masks), len(valid),
-            )
+            log.debug("Attempt %d/%d temp=%.1f → %d valid masks",
+                      i + 1, self_consistency_attempts, temp, len(valid))
             if valid:
                 candidate_sets.append(valid)
         except Exception as exc:
-            log.warning("Synthesis attempt %d failed: %s", i+1, exc)
+            log.warning("Synthesis attempt %d failed: %s", i + 1, exc)
 
     if not candidate_sets:
-        log.error("All synthesis attempts failed — returning empty mask list")
+        log.error("All synthesis attempts failed — empty mask list")
         return []
 
-    # Vote and sort by specificity (most specific first)
     voted = _vote_masks(candidate_sets, min_votes=min_votes)
     voted.sort(key=_specificity_score, reverse=True)
 
-    # Deduplicate by regex
     seen: set[str] = set()
     unique = []
     for m in voted:
@@ -331,8 +321,6 @@ def synthesize_online(
             seen.add(m["regex"])
             unique.append(m)
 
-    log.info(
-        "Synthesis complete: %d candidate sets → %d unique masks (voted)",
-        len(candidate_sets), len(unique),
-    )
+    log.info("Synthesis: %d candidates → %d unique masks (RAG+entropy-greedy)",
+             len(candidate_sets), len(unique))
     return unique
