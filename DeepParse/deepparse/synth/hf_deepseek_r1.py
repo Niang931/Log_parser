@@ -6,11 +6,13 @@ this module uses whichever LLM is injected via `llm` parameter.
 
 Key design patterns
 -------------------
-* Self-consistency voting  : N candidate mask sets → majority-vote per regex
-* Diversity sampling       : temperature varies across attempts to explore
-* Structured output forcing: JSON-only system instruction + fence stripping
-* Deduplication + sorting  : most-specific (longest) patterns first
-* Rubric alignment         : meaningful GenAI integration, cost/latency strategy
+* Self-consistency voting       : N candidate mask sets → majority-vote per regex
+* Entropy-greedy sampling       : select the most structurally diverse 3-5 lines to reduce token
+* Template-cache RAG grounding  : incorporates the top three similar resolved templates as few-shot examples
+* Deduplication + sorting       : most-specific (longest) patterns first
+* Self-consistency              : voting across temperature-varied completions
+* Structured JSON output        : forcing with robust fence stripping
+
 """
 
 from __future__ import annotations
@@ -28,35 +30,42 @@ log = logging.getLogger("deepparse.synth")
 # Prompt construction
 # ---------------------------------------------------------------------------
 
-_SYSTEM_INSTRUCTION = textwrap.dedent("""
-    You are a regex-mask engineer specialising in semiconductor equipment logs.
-    Your task: generate Python regex patterns to mask all variable tokens in
-    silicon-fab log lines so they collapse to a constant template.
-
-    Rules
-    -----
-    1. Return ONLY a JSON array — no preamble, no markdown fences, no commentary.
-    2. Each element: {"regex": "<valid Python regex>", "mask_with": "<TOKEN_NAME>"}
-    3. Patterns must be valid Python re module patterns.
-    4. Order by specificity: most specific (longest, fewest wildcards) FIRST.
-    5. Do NOT duplicate patterns. Do NOT include patterns that match nothing.
-    6. Token names must be UPPER_SNAKE_CASE inside angle brackets e.g. <LOT_ID>.
-    7. Capture all: numeric values, IDs, timestamps, IP addresses, hex addresses,
-       file paths, equipment constants, recipe IDs, error codes, vendor tokens.
-""").strip()
+# ---------------------------------------------------------------------------
+# Template cache (in-memory RAG store)
+# Populated by the pipeline as templates are resolved.
+# ---------------------------------------------------------------------------
+_TEMPLATE_CACHE: list[str] = []
 
 
-def _build_synthesis_prompt(sample_lines: list[str], round_hint: str = "") -> str:
-    numbered = "\n".join(f"  {i+1:3d}. {l}" for i, l in enumerate(sample_lines[:30]))
-    hint_block = f"\nFocus area for this round: {round_hint}\n" if round_hint else ""
-    return (
-        f"{_SYSTEM_INSTRUCTION}\n"
-        f"{hint_block}\n"
-        f"Log lines to analyse:\n{numbered}\n\n"
-        "Return JSON array now:"
-    )
+def register_resolved_template(template: str) -> None:
+    """Add a newly resolved template to the RAG cache."""
+    if template and template not in _TEMPLATE_CACHE:
+        _TEMPLATE_CACHE.append(template)
+        # Cap cache size
+        if len(_TEMPLATE_CACHE) > 500:
+            _TEMPLATE_CACHE.pop(0)
 
 
+def get_similar_templates(sample_lines: list[str], top_k: int = 3) -> list[str]:
+    """
+    Template-cache RAG (doc section 3.1).
+    Find the top_k cached templates most similar to the sample lines
+    using token overlap as a fast proxy for semantic similarity.
+    """
+    if not _TEMPLATE_CACHE:
+        return []
+    sample_tokens = set()
+    for line in sample_lines[:5]:
+        sample_tokens.update(re.findall(r'\b\w+\b', line.lower()))
+
+    scored = []
+    for tmpl in _TEMPLATE_CACHE:
+        tmpl_tokens = set(re.findall(r'\b\w+\b', tmpl.lower()))
+        overlap = len(sample_tokens & tmpl_tokens) / max(len(sample_tokens | tmpl_tokens), 1)
+        scored.append((overlap, tmpl))
+
+    scored.sort(reverse=True)
+    return [t for _, t in scored[:top_k] if _ > 0.05]  # min 5% overlap
 # ---------------------------------------------------------------------------
 # JSON extraction — robust fence / partial-JSON handling
 # ---------------------------------------------------------------------------
