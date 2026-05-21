@@ -27,10 +27,6 @@ from typing import Any
 log = logging.getLogger("deepparse.synth")
 
 # ---------------------------------------------------------------------------
-# Prompt construction
-# ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
 # Template cache (in-memory RAG store)
 # Populated by the pipeline as templates are resolved.
 # ---------------------------------------------------------------------------
@@ -66,51 +62,78 @@ def get_similar_templates(sample_lines: list[str], top_k: int = 3) -> list[str]:
 
     scored.sort(reverse=True)
     return [t for _, t in scored[:top_k] if _ > 0.05]  # min 5% overlap
+
+
 # ---------------------------------------------------------------------------
-# JSON extraction — robust fence / partial-JSON handling
+# Entropy-greedy sampling
 # ---------------------------------------------------------------------------
 
-_JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
-_ARRAY_RE      = re.compile(r"\[.*\]", re.DOTALL)
+def _tokenize_line(line: str) -> list[str]:
+    """Split a log line into tokens for entropy calculation."""
+    return re.findall(r'[A-Za-z0-9_\-\.]+', line)
 
 
-def _extract_json_array(raw: str) -> list[dict]:
+def entropy_greedy_sample(lines: list[str], k: int = 5) -> list[str]:
     """
-    Extract JSON array from LLM response that may contain markdown fences,
-    preamble text, or partial JSON. Returns empty list on failure.
+    Entropy-greedy sampling (doc section 1.3).
+
+    Greedily selects k lines that maximise token-level entropy across
+    the sample set. This ensures the LLM sees the most structurally
+    diverse representatives, producing higher-quality templates.
+
+    Doc claim: equal or better template quality at ~90% fewer tokens
+    vs sending all lines.
+
+    Args:
+        lines: candidate log lines
+        k:     number of lines to select (default 5, doc recommends 3-5)
+    Returns:
+        Up to k most diverse lines
     """
-    # 1 — Try fenced block first
-    m = _JSON_FENCE_RE.search(raw)
-    if m:
-        raw = m.group(1).strip()
+    if len(lines) <= k:
+        return list(lines)
 
-    # 2 — Find outermost [...] array
-    m2 = _ARRAY_RE.search(raw)
-    if m2:
-        raw = m2.group(0)
+    # Count token frequencies across all lines
+    global_freq: Counter = Counter()
+    tokenised = [_tokenize_line(l) for l in lines]
+    for toks in tokenised:
+        global_freq.update(set(toks))  # set: count unique per line
 
-    try:
-        result = json.loads(raw)
-        if isinstance(result, list):
-            return result
-        if isinstance(result, dict) and "masks" in result:
-            return result["masks"]
-    except json.JSONDecodeError as exc:
-        log.debug("JSON parse failed: %s — raw=%.120s", exc, raw)
+    # Entropy of a token = -log2(p) where p = fraction of lines containing it
+    n = len(lines)
 
-    # 3 — Line-by-line object extraction (last resort)
-    objects = []
-    for line in raw.splitlines():
-        line = line.strip().rstrip(",")
-        if line.startswith("{") and line.endswith("}"):
-            try:
-                obj = json.loads(line)
-                if "regex" in obj and "mask_with" in obj:
-                    objects.append(obj)
-            except json.JSONDecodeError:
-                pass
-    return objects
+    def token_entropy(tok: str) -> float:
+        p = global_freq[tok] / n
+        if p <= 0 or p >= 1:
+            return 0.0
+        return -p * math.log2(p) - (1 - p) * math.log2(1 - p)
 
+    # Score each line by sum of entropy of its UNIQUE tokens
+    def line_score(toks: list[str], already_seen: set[str]) -> float:
+        new_toks = set(toks) - already_seen
+        if not new_toks:
+            return 0.0
+        return sum(token_entropy(t) for t in new_toks)
+
+    selected: list[str] = []
+    seen_tokens: set[str] = set()
+
+    for _ in range(k):
+        best_idx = -1
+        best_score = -1.0
+        for i, (line, toks) in enumerate(zip(lines, tokenised)):
+            if line in selected:
+                continue
+            sc = line_score(toks, seen_tokens)
+            if sc > best_score:
+                best_score = sc
+                best_idx = i
+        if best_idx == -1:
+            break
+        selected.append(lines[best_idx])
+        seen_tokens.update(set(tokenised[best_idx]))
+
+    return selected
 
 # ---------------------------------------------------------------------------
 # Validation helpers
