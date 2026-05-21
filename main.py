@@ -128,3 +128,10 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# Start Loki + Grafana
+# docker compose up -d
+
+# Run the pipeline (metrics auto-ship to Loki)
+# python main.py --input-dir artifacts\data --llm-provider groq --static-masks masks_fab_universal.json

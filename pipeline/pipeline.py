@@ -186,8 +186,11 @@ def run(
     clust_file = write_cluster_report(drain, output_dir, run_id)
     tel_file   = output_dir / f"{run_id}_telemetry.json"
 
-    TELEMETRY.record("pipeline_done",
-                     elapsed_s=round(time.monotonic() - t_start, 3))
+    # ── Compute summary FIRST before any downstream use ──────────────────────
+    elapsed=time.monotonic() - t_start
+    tel_summary = TELEMETRY.summary()
+
+    TELEMETRY.record("pipeline_done", elapsed_s=round(elapsed, 3))
     TELEMETRY.write(tel_file)
 
     # Ship metrics to Loki/Grafana (non-fatal if Loki is down)
@@ -197,34 +200,32 @@ def run(
     except Exception:
         pass
 
-    # Optional PostgreSQL write
+        # Optional PostgreSQL write
     pg_url = os.environ.get("POSTGRES_URL")
     if pg_url:
         try:
             from pipeline.writers import write_postgres
             pg_records = [
                 {**r, "variables": r["variables"]
-                 if isinstance(r["variables"], str)
-                 else json.dumps(r["variables"])}
+                if isinstance(r["variables"], str)
+                else json.dumps(r["variables"])}
                 for r in valid_records
             ]
             write_postgres(pg_records, pg_url, run_meta, invalid_records)
         except Exception as exc:
             log.error("PostgreSQL write failed (non-fatal): %s", exc)
 
-    elapsed     = time.monotonic() - t_start
-    tel_summary = TELEMETRY.summary()
     n_fab = len([m for m in masks_dicts if any(
         tok in m.get("mask_with", "")
         for tok in ("LOT", "EQP", "WFR", "CJOB", "PRJOB", "RCP", "EC_ID")
     )])
 
-    print(f"\n{'='*62}")
+    print(f"\n{'=' * 62}")
     print(f"  DeepParse v2  |  {run_id}")
-    print(f"{'='*62}")
+    print(f"{'=' * 62}")
     print(f"  Logs processed     : {len(valid_records):>6,}  ({len(invalid_records)} quarantined)")
     print(f"  Templates found    : {eval_metrics.unique_templates:>6,}")
-    print(f"  Parse rate         : {run_meta['parse_rate']*100:>6.1f}%")
+    print(f"  Parse rate         : {run_meta['parse_rate'] * 100:>6.1f}%")
     print(f"  Avg wildcard ratio : {eval_metrics.avg_wildcard_ratio:>6.3f}")
     print(f"  Masks used         : {len(masks_dicts):>6,}  ({n_fab} fab-specific)")
     print(f"  Drain clusters     : {len(drain.get_clusters()):>6,}  fp={drain.template_fingerprint()}")
@@ -238,10 +239,10 @@ def run(
     print(f"    [Telemetry] {tel_file.name}")
 
     return {
-        "run_id":     run_id,
+        "run_id": run_id,
         "parse_rate": run_meta["parse_rate"],
-        "templates":  eval_metrics.unique_templates,
-        "masks":      len(masks_dicts),
-        "elapsed_s":  elapsed,
+        "templates": eval_metrics.unique_templates,
+        "masks": len(masks_dicts),
+        "elapsed_s": elapsed,
         "output_dir": str(output_dir),
     }
