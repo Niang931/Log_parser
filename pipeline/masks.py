@@ -188,6 +188,12 @@ def synthesize_masks_adaptive(
         log.info("Round %d parse-rate probe: %.1f%%", round_n, rate * 100)
         TELEMETRY.record("parse_rate_probe", round=round_n, rate=round(rate, 4))
 
+        try:
+            from pipeline.loki_logger import push_parse_rate_probe
+            push_parse_rate_probe(round_n, rate, threshold)
+        except Exception:
+            pass
+
         if rate >= threshold:
             log.info("Parse-rate %.1f%% ≥ threshold — accepted", rate * 100)
             break
