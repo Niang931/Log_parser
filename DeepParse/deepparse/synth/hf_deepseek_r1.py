@@ -135,6 +135,51 @@ def entropy_greedy_sample(lines: list[str], k: int = 5) -> list[str]:
 
     return selected
 
+
+# ---------------------------------------------------------------------------
+# Prompt construction with RAG grounding
+# ---------------------------------------------------------------------------
+
+_SYSTEM_INSTRUCTION = """You are a regex-mask engineer specialising in semiconductor equipment logs.
+Your task: generate Python regex patterns to mask all variable tokens in silicon-fab log lines.
+
+Rules
+-----
+1. Return ONLY a JSON array — no preamble, no markdown fences, no commentary.
+2. Each element: {"regex": "<valid Python regex>", "mask_with": "<TOKEN_NAME>"}
+3. Patterns must be valid Python re module patterns.
+4. Order by specificity: most specific (longest, fewest wildcards) FIRST.
+5. Do NOT duplicate patterns.
+6. Token names must be UPPER_SNAKE_CASE inside angle brackets e.g. <LOT_ID>.
+7. Cover: numeric values, IDs, timestamps, IP addresses, hex, file paths,
+   equipment constants, recipe IDs, error codes, vendor tokens, YAML keys,
+   INI section.key values, XML attribute values, TSV column values."""
+
+
+def _build_synthesis_prompt(
+        sample_lines: list[str],
+        rag_templates: list[str],
+        round_hint: str = "",
+) -> str:
+    numbered = "\n".join(f"  {i + 1:3d}. {l}" for i, l in enumerate(sample_lines))
+    hint_block = f"\nFocus: {round_hint}\n" if round_hint else ""
+
+    rag_block = ""
+    if rag_templates:
+        rag_block = (
+                "\nSimilar resolved templates (few-shot grounding — "
+                "use consistent variable names):\n" +
+                "\n".join(f"  • {t}" for t in rag_templates) + "\n"
+        )
+
+    return (
+        f"{_SYSTEM_INSTRUCTION}\n"
+        f"{rag_block}"
+        f"{hint_block}\n"
+        f"Log lines to analyse:\n{numbered}\n\n"
+        "Return JSON array now:"
+    )
+
 # ---------------------------------------------------------------------------
 # Validation helpers
 # ---------------------------------------------------------------------------
