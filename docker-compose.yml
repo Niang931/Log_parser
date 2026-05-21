@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: deepparse-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - deepparse
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: deepparse-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=deepparse
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - loki
+    networks:
+      - deepparse
+
+networks:
+  deepparse:
+    driver: bridge
+
+volumes:
+  grafana-storage:
