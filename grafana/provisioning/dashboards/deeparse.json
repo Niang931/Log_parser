@@ -1,0 +1,67 @@
+{
+  "title": "DeepParse v2",
+  "uid": "deepparse-main",
+  "panels": [
+    {
+      "title": "Parse Rate Over Time",
+      "type": "timeseries",
+      "gridPos": {"x":0,"y":0,"w":12,"h":8},
+      "targets": [{
+        "datasource": "Loki",
+        "expr": "{app=\"deepparse\",event=\"run_complete\"} | json | unwrap parse_rate",
+        "legendFormat": "parse_rate"
+      }]
+    },
+    {
+      "title": "LLM Calls Per Run",
+      "type": "timeseries",
+      "gridPos": {"x":12,"y":0,"w":12,"h":8},
+      "targets": [{
+        "datasource": "Loki",
+        "expr": "{app=\"deepparse\",event=\"run_complete\"} | json | unwrap llm_calls",
+        "legendFormat": "llm_calls"
+      }]
+    },
+    {
+      "title": "LLM Latency (seconds)",
+      "type": "timeseries",
+      "gridPos": {"x":0,"y":8,"w":12,"h":8},
+      "targets": [{
+        "datasource": "Loki",
+        "expr": "{app=\"deepparse\",event=\"llm\"} | json | unwrap latency_s",
+        "legendFormat": "latency_s"
+      }]
+    },
+    {
+      "title": "Quarantined Records",
+      "type": "timeseries",
+      "gridPos": {"x":12,"y":8,"w":12,"h":8},
+      "targets": [{
+        "datasource": "Loki",
+        "expr": "{app=\"deepparse\",event=\"run_complete\"} | json | unwrap quarantined",
+        "legendFormat": "quarantined"
+      }]
+    },
+    {
+      "title": "Security — Injection Attempts",
+      "type": "logs",
+      "gridPos": {"x":0,"y":16,"w":24,"h":6},
+      "targets": [{
+        "datasource": "Loki",
+        "expr": "{app=\"deepparse\",event=\"security\"}"
+      }]
+    },
+    {
+      "title": "Schema Drift Alerts",
+      "type": "logs",
+      "gridPos": {"x":0,"y":22,"w":24,"h":6},
+      "targets": [{
+        "datasource": "Loki",
+        "expr": "{app=\"deepparse\",event=\"schema_drift\"}"
+      }]
+    }
+  ],
+  "time": {"from":"now-24h","to":"now"},
+  "refresh": "10s",
+  "schemaVersion": 38
+}
