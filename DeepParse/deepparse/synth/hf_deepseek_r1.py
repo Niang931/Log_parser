@@ -217,8 +217,9 @@ def _extract_json_array(raw: str) -> list[dict]:
                 pass
     return objects
 
+
 # ---------------------------------------------------------------------------
-# Validation helpers
+# Validation
 # ---------------------------------------------------------------------------
 
 def _is_valid_mask(m: Any) -> bool:
@@ -234,7 +235,6 @@ def _is_valid_mask(m: Any) -> bool:
 
 
 def _specificity_score(mask: dict) -> int:
-    """Higher = more specific; used for ordering."""
     return len(mask.get("regex", ""))
 
 
