@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SELIS — Architecture Demo</title>
+<style>
+:root{
+  --bg:#0b0d14;--surface:#13162a;--card:#1a1d2e;--border:#252840;
+  --green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;
+  --cyan:#06b6d4;--text:#e2e8f0;--muted:#64748b;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);
+     height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Header ── */
+header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:.9rem 1.5rem;display:flex;align-items:center;
+  justify-content:space-between;flex-shrink:0;gap:1rem}
+.logo{display:flex;align-items:center;gap:.7rem;flex-shrink:0}
+.logo-icon{width:36px;height:36px;border-radius:8px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-name{font-size:1rem;font-weight:700}
+.logo-sub{font-size:.68rem;color:var(--muted)}
+.controls{display:flex;align-items:center;gap:.6rem}
+
+/* Mode toggle */
+.mode-toggle{display:flex;background:var(--card);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;flex-shrink:0}
+.mode-btn{padding:.45rem 1.1rem;font-size:.78rem;font-weight:600;border:none;
+  cursor:pointer;transition:all .2s;background:transparent;color:var(--muted)}
+.mode-btn.active-online{background:rgba(16,185,129,.15);color:var(--green)}
+.mode-btn.active-offline{background:rgba(245,158,11,.15);color:var(--amber)}
+
+.run-btn{padding:.45rem 1.3rem;border-radius:8px;font-size:.78rem;font-weight:600;
+  border:none;cursor:pointer;color:#fff;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);transition:all .2s;flex-shrink:0}
+.run-btn:hover:not(:disabled){opacity:.85;transform:translateY(-1px)}
+.run-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ── Pipeline flow bar ── */
+.flow-bar{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:.5rem 1.5rem;display:flex;align-items:center;gap:0;
+  flex-shrink:0;overflow-x:auto;min-height:44px}
+.flow-step{display:flex;align-items:center;gap:0;flex-shrink:0}
+.step-pill{padding:.28rem .75rem;border-radius:20px;font-size:.68rem;font-weight:600;
+  border:1px solid var(--border);color:var(--muted);background:var(--card);
+  transition:all .3s;white-space:nowrap}
+.step-pill.active{border-color:currentColor;background:rgba(255,255,255,.05)}
+.step-pill.done{opacity:.5}
+.step-pill.s-inject{color:var(--red)}
+.step-pill.s-masks {color:var(--cyan)}
+.step-pill.s-drain {color:var(--green)}
+.step-pill.s-llm   {color:var(--amber)}
+.step-pill.s-teach {color:var(--purple)}
+.step-pill.s-human {color:var(--red)}
+.arrow{color:var(--border);font-size:.75rem;padding:0 .35rem;flex-shrink:0}
+.arrow.active{color:var(--muted)}
+
+/* ── Stats row ── */
+.stats-row{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:.45rem 1.5rem;display:flex;align-items:center;gap:1.2rem;
+  flex-wrap:wrap;flex-shrink:0}
+.stat{display:flex;align-items:center;gap:.4rem}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sval{font-weight:700;font-size:.9rem;min-width:26px;font-variant-numeric:tabular-nums}
+.slbl{color:var(--muted);font-size:.68rem}
+.prog-wrap{flex:1;min-width:160px}
+.prog-lbl{display:flex;justify-content:space-between;font-size:.65rem;
+  color:var(--muted);margin-bottom:2px}
+.prog-track{height:4px;background:var(--border);border-radius:2px;
+  overflow:hidden;display:flex}
+.pf{height:100%;background:var(--green);transition:width .4s}
+.pl{height:100%;background:var(--amber);transition:width .4s}
+.ph{height:100%;background:var(--red);transition:width .4s}
+
+/* ── Main area ── */
+.main{display:flex;flex:1;overflow:hidden}
+
+/* ── Architecture panel (left) ── */
+.arch-panel{width:220px;flex-shrink:0;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  overflow-y:auto;padding:.75rem}
+.arch-title{font-size:.65rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted);margin-bottom:.6rem}
+.arch-step{border-radius:7px;padding:.5rem .65rem;margin-bottom:.35rem;
+  border-left:2px solid var(--border);transition:all .25s;
+  font-size:.72rem;color:var(--muted)}
+.arch-step.active{border-left-color:currentColor;background:rgba(255,255,255,.04);
+  color:var(--text)}
+.arch-step.done{opacity:.45}
+.arch-step-label{font-weight:600;margin-bottom:.15rem}
+.arch-step-desc{font-size:.65rem;line-height:1.4}
+
+.arch-step.s-inject{color:var(--red)}
+.arch-step.s-inject.active{background:rgba(239,68,68,.06);border-left-color:var(--red)}
+.arch-step.s-masks {color:var(--cyan)}
+.arch-step.s-masks.active{background:rgba(6,182,212,.06);border-left-color:var(--cyan)}
+.arch-step.s-drain {color:var(--green)}
+.arch-step.s-drain.active{background:rgba(16,185,129,.06);border-left-color:var(--green)}
+.arch-step.s-llm   {color:var(--amber)}
+.arch-step.s-llm.active{background:rgba(245,158,11,.06);border-left-color:var(--amber)}
+.arch-step.s-teach {color:var(--purple)}
+.arch-step.s-teach.active{background:rgba(139,92,246,.08);border-left-color:var(--purple)}
+.arch-step.s-human {color:var(--red)}
+.arch-step.s-human.active{background:rgba(239,68,68,.06);border-left-color:var(--red)}
+
+.arch-divider{border:none;border-top:1px dashed var(--border);margin:.4rem 0}
+
+/* ── Feed panels ── */
+.feeds{flex:1;display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+.panel{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
+.panel:last-child{border-right:none}
+.panel-head{padding:.55rem .85rem;font-size:.68rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
+  border-bottom:1px solid var(--border);background:var(--surface);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pcnt{background:var(--card);padding:.08rem .38rem;border-radius:8px;font-size:.65rem}
+.feed{flex:1;overflow-y:auto;padding:.4rem .5rem}
+
+/* ── Event cards ── */
+.ev{margin-bottom:.4rem;border-radius:7px;padding:.55rem .75rem;
+    border-left:3px solid;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateX(-3px)}to{opacity:1;transform:translateX(0)}}
+.ev.fast   {background:rgba(16,185,129,.07);border-color:var(--green)}
+.ev.llm    {background:rgba(245,158,11,.07);border-color:var(--amber)}
+.ev.human  {background:rgba(239,68,68,.07); border-color:var(--red)}
+.ev.blocked{background:rgba(239,68,68,.05); border-color:rgba(239,68,68,.3)}
+.ev.taught {background:rgba(139,92,246,.1); border-color:var(--purple)}
+.ev.miss   {background:rgba(100,116,139,.06);border-color:var(--muted)}
+.ev.info   {background:rgba(6,182,212,.06); border-color:var(--cyan)}
+
+.tag{font-size:.6rem;font-weight:700;padding:.08rem .38rem;border-radius:3px;
+     display:inline-block;margin-bottom:.28rem;letter-spacing:.03em}
+.tfast   {background:rgba(16,185,129,.18);color:var(--green)}
+.tllm    {background:rgba(245,158,11,.18);color:var(--amber)}
+.thuman  {background:rgba(239,68,68,.18); color:var(--red)}
+.tblocked{background:rgba(239,68,68,.12); color:var(--red)}
+.ttaught {background:rgba(139,92,246,.18);color:var(--purple)}
+.tmiss   {background:rgba(100,116,139,.12);color:var(--muted)}
+.tinfo   {background:rgba(6,182,212,.12); color:var(--cyan)}
+
+.raw {font-family:var(--mono);font-size:.65rem;color:var(--muted);
+      margin-bottom:.25rem;word-break:break-all;line-height:1.4}
+.tmpl{font-family:var(--mono);font-size:.67rem;margin-bottom:.3rem;
+      word-break:break-all;line-height:1.4}
+.mask{color:#818cf8;font-weight:700}
+.vars{display:flex;flex-wrap:wrap;gap:.22rem;margin-bottom:.22rem}
+.chip{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);
+      border-radius:9px;padding:.06rem .35rem;font-size:.6rem;font-family:var(--mono)}
+.ck{color:var(--muted)}.cv{color:#818cf8;font-weight:600}
+.meta{font-size:.62rem;color:var(--muted);margin-top:.18rem}
+.reason{font-size:.67rem;color:var(--red);margin-top:.18rem}
+.note{font-size:.62rem;color:var(--purple);margin-top:.18rem}
+.info-msg{font-size:.7rem;color:var(--cyan)}
+
+.empty{display:flex;flex-direction:column;align-items:center;
+       justify-content:center;height:100%;color:var(--muted);gap:.35rem;font-size:.78rem}
+.empty-icon{font-size:1.8rem;opacity:.2}
+
+/* ── Overlay ── */
+.overlay{position:fixed;inset:0;background:rgba(11,13,20,.88);
+  display:flex;align-items:center;justify-content:center;z-index:50;animation:fi .3s ease}
+.finish{background:var(--card);border:1px solid var(--border);border-radius:13px;
+  padding:1.6rem 2rem;min-width:400px;max-width:500px}
+.ft{font-size:1.15rem;font-weight:700;text-align:center;margin-bottom:1.1rem}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:1.1rem}
+.fs{background:var(--surface);border-radius:7px;padding:.65rem;text-align:center}
+.fv{font-size:1.5rem;font-weight:700;margin-bottom:.15rem}
+.fl{font-size:.65rem;color:var(--muted)}
+.fc-list{margin-bottom:1.1rem}
+.fc{display:flex;align-items:flex-start;gap:.45rem;font-size:.75rem;
+    margin-bottom:.3rem;line-height:1.35}
+.fbtns{display:flex;gap:.55rem;justify-content:center}
+.fbtn{padding:.42rem 1rem;border-radius:7px;font-size:.76rem;cursor:pointer;
+      border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.fbtn:hover{background:var(--card)}
+.fbtn-p{background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  border:none;color:#fff;font-weight:600}
+.fbtn-p:hover{opacity:.9}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚙</div>
+    <div>
+      <div class="logo-name">SELIS</div>
+      <div class="logo-sub">Self-Evolving Log Intelligence System</div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="mode-toggle">
+      <button class="mode-btn active-online" id="btn-online"
+              onclick="setMode('online')">⚡ Online</button>
+      <button class="mode-btn" id="btn-offline"
+              onclick="setMode('offline')">🤖 Offline (+ Gemini)</button>
+    </div>
+    <button class="run-btn" id="run-btn" onclick="startDemo()">▶ Run Demo</button>
+  </div>
+</header>
+
+<!-- Pipeline flow bar -->
+<div class="flow-bar" id="flow-bar">
+  <!-- filled by JS based on mode -->
+</div>
+
+<!-- Stats row -->
+<div class="stats-row">
+  <div class="stat">
+    <div class="sdot" style="background:var(--green)"></div>
+    <div><div class="sval" id="s-fast">0</div><div class="slbl">Fast-path</div></div>
+  </div>
+  <div class="stat">
+    <div class="sdot" style="background:var(--amber)"></div>
+    <div><div class="sval" id="s-llm">0</div><div class="slbl">LLM calls</div></div>
+  </div>
+  <div class="stat">
+    <div class="sdot" style="background:var(--red)"></div>
+    <div><div class="sval" id="s-blocked">0</div><div class="slbl">Blocked</div></div>
+  </div>
+  <div class="stat">
+    <div class="sdot" style="background:var(--red);opacity:.6"></div>
+    <div><div class="sval" id="s-human">0</div><div class="slbl">Human queue</div></div>
+  </div>
+  <div class="stat">
+    <div class="sdot" style="background:var(--purple)"></div>
+    <div><div class="sval" id="s-taught">0</div><div class="slbl">Teach-back</div></div>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-lbl">
+      <span>Pipeline distribution</span>
+      <span id="s-total">0 lines</span>
+    </div>
+    <div class="prog-track">
+      <div class="pf" id="pf" style="width:0%"></div>
+      <div class="pl" id="pl" style="width:0%"></div>
+      <div class="ph" id="ph" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <!-- Architecture steps sidebar -->
+  <div class="arch-panel" id="arch-panel">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Feed columns -->
+  <div class="feeds">
+    <div class="panel">
+      <div class="panel-head">
+        <span id="left-title">⚡ DRAIN FAST-PATH <span style="color:var(--green);font-weight:400">&lt;1ms</span></span>
+        <span class="pcnt" id="cnt-l">0</span>
+      </div>
+      <div class="feed" id="feed-l">
+        <div class="empty"><div class="empty-icon">⚡</div>
+          <div>Fast-path events here</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <span id="right-title">■ HUMAN QUEUE + BLOCKED</span>
+        <span class="pcnt" id="cnt-r">0</span>
+      </div>
+      <div class="feed" id="feed-r">
+        <div class="empty"><div class="empty-icon">■</div>
+          <div>Human queue / LLM / blocked events here</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let currentMode = 'online';
+let es = null, cntL = 0, cntR = 0, taughtCnt = 0;
+
+// ── Flow definitions ───────────────────────────────────────────────────────
+const FLOW_ONLINE = [
+  {key:'inject', cls:'s-inject', label:'Injection Guard'},
+  {key:'arr'},
+  {key:'drain',  cls:'s-drain',  label:'Drain Cache'},
+  {key:'arr'},
+  {key:'hit',    cls:'s-drain',  label:'Cache Hit → Extract Vars → Emit'},
+  {key:'arr-dashed'},
+  {key:'human',  cls:'s-human',  label:'Cache Miss → Human Queue'},
+];
+
+const FLOW_OFFLINE = [
+  {key:'inject', cls:'s-inject', label:'Injection Guard'},
+  {key:'arr'},
+  {key:'masks',  cls:'s-masks',  label:'Static Masks'},
+  {key:'arr'},
+  {key:'drain',  cls:'s-drain',  label:'Drain Parse'},
+  {key:'arr'},
+  {key:'llm',    cls:'s-llm',    label:'Cache Miss → Gemini LLM'},
+  {key:'arr'},
+  {key:'teach',  cls:'s-teach',  label:'Teach-back → Drain'},
+  {key:'arr-dashed'},
+  {key:'human',  cls:'s-human',  label:'LLM Fail → Human Queue'},
+];
+
+const ARCH_ONLINE = [
+  {step:'inject', cls:'s-inject', label:'1. Injection Guard',
+   desc:'Every raw line checked. Adversarial content dropped before reaching anything.'},
+  {step:'drain',  cls:'s-drain',  label:'2. Drain Cache Lookup',
+   desc:'Known templates matched instantly. Sub-millisecond. Zero external calls.'},
+  {step:'extract', cls:'s-drain', label:'3. Extract Variables',
+   desc:'Named tokens pulled from template. MCH_ID, LOT_ID, EQP_ID…'},
+  {step:'emit',   cls:'s-drain',  label:'4. Emit Structured Record',
+   desc:'SQLite + CSV + JSON. Downstream-ready.'},
+  {step:'human',  cls:'s-human',  label:'◆ Cache Miss → Human Queue',
+   desc:'No LLM in online mode. Unknown patterns queued for operator review.'},
+];
+
+const ARCH_OFFLINE = [
+  {step:'inject', cls:'s-inject', label:'1. Injection Guard',
+   desc:'Every raw line checked. Adversarial content dropped.'},
+  {step:'masks',  cls:'s-masks',  label:'2. Static Masks (92 rules)',
+   desc:'Curated regex masks pre-process fab tokens. Reduces Drain cluster space.'},
+  {step:'drain',  cls:'s-drain',  label:'3. Drain Parse',
+   desc:'Cache hit → extract vars → emit instantly.'},
+  {step:'llm',    cls:'s-llm',    label:'4. Cache Miss → Gemini LLM',
+   desc:'Novel tokens sent to Gemini. New regex masks synthesised.'},
+  {step:'teach',  cls:'s-teach',  label:'5. Teach-back to Drain',
+   desc:'LLM masks written to Drain cache. Future hits are instant — zero LLM.'},
+  {step:'emit',   cls:'s-drain',  label:'6. Emit Structured Record',
+   desc:'SQLite + CSV + JSON. Template fingerprint stored.'},
+  {step:'human',  cls:'s-human',  label:'◆ LLM Fail → Human Queue',
+   desc:'Corrupt / unparseable lines. Operator review required.'},
+];
+
+// ── Mode switching ─────────────────────────────────────────────────────────
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('btn-online').className  =
+    'mode-btn' + (m==='online'  ? ' active-online'  : '');
+  document.getElementById('btn-offline').className =
+    'mode-btn' + (m==='offline' ? ' active-offline' : '');
+  renderFlow(m);
+  renderArch(m);
+  updatePanelTitles(m);
+}
+
+function renderFlow(m) {
+  const flow = m==='online' ? FLOW_ONLINE : FLOW_OFFLINE;
+  const bar  = document.getElementById('flow-bar');
+  bar.innerHTML = flow.map(f => {
+    if (f.key==='arr')
+      return `<span class="arrow">→</span>`;
+    if (f.key==='arr-dashed')
+      return `<span class="arrow" style="opacity:.4">⤵</span>`;
+    return `<span class="step-pill ${f.cls||''}" id="fp-${f.key}">${f.label}</span>`;
+  }).join('');
+}
+
+function renderArch(m) {
+  const steps = m==='online' ? ARCH_ONLINE : ARCH_OFFLINE;
+  const panel = document.getElementById('arch-panel');
+  panel.innerHTML = `<div class="arch-title">${m==='online'?'Online':'Offline'} Architecture</div>` +
+    steps.map(s => `
+      <div class="arch-step ${s.cls}" id="as-${s.step}">
+        <div class="arch-step-label">${s.label}</div>
+        <div class="arch-step-desc">${s.desc}</div>
+      </div>
+    `).join('<hr class="arch-divider"/>');
+}
+
+function updatePanelTitles(m) {
+  if (m==='online') {
+    document.getElementById('left-title').innerHTML =
+      '⚡ DRAIN FAST-PATH <span style="color:var(--green);font-weight:400">&lt;1ms</span>';
+    document.getElementById('right-title').textContent = '■ HUMAN QUEUE + BLOCKED';
+  } else {
+    document.getElementById('left-title').innerHTML =
+      '⚡ FAST-PATH <span style="color:var(--green);font-weight:400">&lt;1ms</span>';
+    document.getElementById('right-title').textContent = '🤖 LLM + TEACH-BACK + HUMAN QUEUE';
+  }
+}
+
+function activateStep(key) {
+  // Flow bar
+  document.querySelectorAll('.step-pill').forEach(p => p.classList.remove('active'));
+  const fp = document.getElementById('fp-'+key);
+  if (fp) fp.classList.add('active');
+  // Arch panel
+  document.querySelectorAll('.arch-step').forEach(s => s.classList.remove('active'));
+  const as = document.getElementById('as-'+key);
+  if (as) as.classList.add('active');
+}
+
+// ── Start demo ─────────────────────────────────────────────────────────────
+function startDemo() {
+  const btn = document.getElementById('run-btn');
+
+  // Reset
+  cntL = cntR = taughtCnt = 0;
+  ['fast','llm','blocked','human','taught'].forEach(k =>
+    document.getElementById('s-'+k).textContent = '0');
+  document.getElementById('s-total').textContent = '0 lines';
+  ['pf','pl','ph'].forEach(id => document.getElementById(id).style.width='0%');
+  ['cnt-l','cnt-r'].forEach(id => document.getElementById(id).textContent='0');
+  document.getElementById('feed-l').innerHTML =
+    '<div class="empty"><div class="empty-icon">⚡</div><div>Waiting…</div></div>';
+  document.getElementById('feed-r').innerHTML =
+    '<div class="empty"><div class="empty-icon">■</div><div>Waiting…</div></div>';
+
+  if (es) es.close();
+  btn.disabled = true;
+  btn.textContent = '⏳ Running…';
+
+  es = new EventSource(`/api/demo/stream?mode=${currentMode}`);
+  es.onmessage = e => handleEvent(JSON.parse(e.data));
+  es.onerror   = () => { btn.disabled=false; btn.textContent='▶ Run Demo'; };
+}
+
+// ── Event handler ──────────────────────────────────────────────────────────
+function handleEvent(ev) {
+  if (ev.stats) updateStats(ev.stats);
+
+  switch(ev.type) {
+    case 'step':
+      activateStep(ev.step); break;
+    case 'blocked':
+      activateStep('inject');
+      addR(blockedCard(ev)); break;
+    case 'masks_info':
+      addR(infoCard(`🔧 ${ev.message}`)); break;
+    case 'cache_hit':
+      activateStep('drain');
+      addL(fastCard(ev)); break;
+    case 'cache_miss':
+      activateStep('llm');
+      addR(missCard(ev)); break;
+    case 'llm_start':
+      addR(llmStartCard(ev)); break;
+    case 'llm_resolved':
+      document.getElementById('llm-thinking')?.remove();
+      addR(llmCard(ev)); break;
+    case 'teachback':
+      activateStep('teach');
+      taughtCnt++;
+      document.getElementById('s-taught').textContent = taughtCnt;
+      addL(teachCard(ev)); break;
+    case 'human_queue':
+      activateStep('human');
+      addR(humanCard(ev)); break;
+    case 'done':
+      showFinish(ev);
+      document.getElementById('run-btn').disabled=false;
+      document.getElementById('run-btn').textContent='▶ Run Demo';
+      if (es) es.close(); break;
+  }
+}
+
+function updateStats(s) {
+  document.getElementById('s-fast').textContent    = s.fast;
+  document.getElementById('s-llm').textContent     = s.llm;
+  document.getElementById('s-blocked').textContent = s.blocked;
+  document.getElementById('s-human').textContent   = s.human;
+  document.getElementById('s-total').textContent   = s.total + ' lines';
+  const t = Math.max(s.total,1);
+  document.getElementById('pf').style.width = (s.fast/t*100)+'%';
+  document.getElementById('pl').style.width = (s.llm/t*100)+'%';
+  document.getElementById('ph').style.width = ((s.blocked+s.human)/t*100)+'%';
+}
+
+function addL(html) {
+  const f = document.getElementById('feed-l');
+  if (f.querySelector('.empty')) f.innerHTML='';
+  const d=document.createElement('div'); d.innerHTML=html;
+  f.prepend(d.firstChild);
+  while(f.children.length>80) f.removeChild(f.lastChild);
+  cntL++; document.getElementById('cnt-l').textContent=cntL;
+}
+function addR(html) {
+  const f = document.getElementById('feed-r');
+  if (f.querySelector('.empty')) f.innerHTML='';
+  const d=document.createElement('div'); d.innerHTML=html;
+  f.prepend(d.firstChild);
+  while(f.children.length>80) f.removeChild(f.lastChild);
+  cntR++; document.getElementById('cnt-r').textContent=cntR;
+}
+
+function ct(t) {
+  return esc(t).replace(/(&lt;[A-Z_*][A-Z0-9_*]*&gt;)/g,
+    '<span class="mask">$1</span>');
+}
+function chips(v) {
+  if (!v||!Object.keys(v).length) return '';
+  return '<div class="vars">'+
+    Object.entries(v).slice(0,5).map(([k,val])=>
+      `<span class="chip"><span class="ck">${esc(k)}:</span><span class="cv">${esc(val)}</span></span>`
+    ).join('')+'</div>';
+}
+
+function fastCard(ev) {
+  return `<div class="ev fast">
+    <span class="tag tfast">● CACHE HIT → EXTRACT → EMIT</span>
+    <div class="raw">▸ ${esc(ev.raw)}</div>
+    <div class="tmpl">${ct(ev.template)}</div>
+    ${chips(ev.variables)}
+    <div class="meta">${ev.latency_ms}ms · Drain fast-path</div>
+  </div>`;
+}
+function teachCard(ev) {
+  return `<div class="ev taught">
+    <span class="tag ttaught">↻ TEACH-BACK → CACHE HIT</span>
+    <div class="raw">▸ ${esc(ev.raw)}</div>
+    <div class="tmpl">${ct(ev.template)}</div>
+    ${chips(ev.variables)}
+    <div class="meta">${ev.latency_ms}ms</div>
+    <div class="note">${esc(ev.note||'Gemini taught this — now permanent Drain fast-path')}</div>
+  </div>`;
+}
+function blockedCard(ev) {
+  return `<div class="ev blocked">
+    <span class="tag tblocked">✗ BLOCKED — INJECTION</span>
+    <div class="raw">▸ ${esc(ev.raw)}</div>
+    <div class="reason">Dropped before reaching Drain or LLM. Never stored.</div>
+  </div>`;
+}
+function missCard(ev) {
+  return `<div class="ev miss">
+    <span class="tag tmiss">◇ DRAIN CACHE MISS</span>
+    <div class="raw">▸ ${esc(ev.raw)}</div>
+    <div class="meta">Routing to Gemini LLM…</div>
+  </div>`;
+}
+function llmStartCard(ev) {
+  return `<div class="ev llm" id="llm-thinking">
+    <span class="tag tllm">◆ GEMINI LLM</span>
+    <div class="raw">▸ ${esc(ev.raw)}</div>
+    <div class="meta" style="color:var(--amber)">${esc(ev.message||'Synthesising masks…')}</div>
+  </div>`;
+}
+function llmCard(ev) {
+  return `<div class="ev llm">
+    <span class="tag tllm">◆ GEMINI RESOLVED</span>
+    <div class="raw">▸ ${esc(ev.raw)}</div>
+    <div class="tmpl">${ct(ev.template)}</div>
+    ${chips(ev.variables)}
+    <div class="meta">${ev.latency_s}s · ${ev.new_masks} new masks</div>
+    <div class="note" style="color:var(--purple)">↻ Writing to Drain cache…</div>
+  </div>`;
+}
+function humanCard(ev) {
+  return `<div class="ev human">
+    <span class="tag thuman">■ HUMAN QUEUE</span>
+    <div class="raw">▸ ${esc(ev.raw)}</div>
+    <div class="reason">${esc(ev.reason)}</div>
+  </div>`;
+}
+function infoCard(msg) {
+  return `<div class="ev info">
+    <span class="tag tinfo">ℹ INFO</span>
+    <div class="info-msg">${esc(msg)}</div>
+  </div>`;
+}
+
+function showFinish(ev) {
+  const s=ev.stats, t=Math.max(s.total,1), fp=Math.round(s.fast/t*100);
+  const isOffline = currentMode==='offline';
+  const overlay=document.createElement('div');
+  overlay.className='overlay';
+  overlay.innerHTML=`<div class="finish">
+    <div class="ft">${isOffline?'Offline':'Online'} Run Complete</div>
+    <div class="fg">
+      <div class="fs"><div class="fv" style="color:var(--green)">${fp}%</div>
+        <div class="fl">Fast-path</div></div>
+      <div class="fs"><div class="fv" style="color:var(--amber)">${s.llm}</div>
+        <div class="fl">LLM calls</div></div>
+      <div class="fs"><div class="fv" style="color:var(--red)">${s.blocked}</div>
+        <div class="fl">Blocked</div></div>
+      <div class="fs"><div class="fv" style="color:var(--purple)">${ev.taught||0}</div>
+        <div class="fl">Teach-back</div></div>
+    </div>
+    <div class="fc-list">
+      ${fch(true,'Injection guard: adversarial content blocked before Drain or LLM')}
+      ${fch(s.fast>0,'Drain fast-path: '+s.fast+' lines resolved in <1ms with zero LLM calls')}
+      ${isOffline ? fch(s.llm>0,'Gemini LLM: '+s.llm+' novel patterns resolved and taught to Drain') : ''}
+      ${isOffline ? fch((ev.taught||0)>0,'Teach-back: '+(ev.taught||0)+' templates written to Drain cache') : ''}
+      ${fch(s.human>0,'Human queue: '+s.human+' lines flagged for operator review')}
+      ${!isOffline ? fch(true,'Online mode: zero LLM calls — Drain only, air-gap safe') : ''}
+    </div>
+    <div class="fbtns">
+      <button class="fbtn" onclick="this.closest('.overlay').remove()">View Feed</button>
+      <button class="fbtn" onclick="setMode('${isOffline?'online':'offline'}');this.closest('.overlay').remove()">
+        Switch to ${isOffline?'Online':'Offline'}</button>
+      <button class="fbtn fbtn-p"
+        onclick="this.closest('.overlay').remove();startDemo()">▶ Run Again</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+function fch(ok,label){
+  return `<div class="fc">
+    <span style="color:${ok?'var(--green)':'var(--muted)'};font-size:.9rem;flex-shrink:0">${ok?'✓':'○'}</span>
+    <span style="color:${ok?'var(--text)':'var(--muted)'}">${label}</span>
+  </div>`;
+}
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+setMode('online');
+</script>
+</body>
+</html>

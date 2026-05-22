@@ -165,7 +165,7 @@ class GroqLLM(BaseLLM):
 # ---------------------------------------------------------------------------
 
 class OllamaLLM(BaseLLM):
-    DEFAULT_MODEL = "llama3"
+    DEFAULT_MODEL = "qwen2.5-coder:7b"
 
     def __init__(self, model: str | None = None, base_url: str = "http://localhost:11434", **kw) -> None:
         super().__init__(model or self.DEFAULT_MODEL, **kw)
@@ -173,14 +173,41 @@ class OllamaLLM(BaseLLM):
 
     def complete(self, prompt: str, max_tokens: int = 1024, temperature: float = 0.0) -> str:
         import urllib.request
+        import urllib.error
+
+        # Check model exists first
+        try:
+            tags_req = urllib.request.Request(f"{self.base_url}/api/tags")
+            with urllib.request.urlopen(tags_req, timeout=5) as r:
+                tags = json.loads(r.read())
+            models = [m["name"] for m in tags.get("models", [])]
+            if not models:
+                raise RuntimeError(
+                    "Ollama has no models pulled. Run: "
+                    "docker exec deepparse-ollama ollama pull qwen2.5-coder:7b"
+                )
+            # Use first available model if default not found
+            if self.model not in models:
+                available = next(
+                    (m for m in models if "qwen" in m.lower() or "coder" in m.lower()),
+                    models[0]
+                )
+                log.warning("Model '%s' not found — using '%s'", self.model, available)
+                self.model = available
+        except urllib.error.URLError:
+            raise RuntimeError("Ollama not reachable at " + self.base_url)
+
         payload = json.dumps({
-            "model":  self.model,
+            "model": self.model,
             "prompt": prompt,
             "stream": False,
             "options": {"num_predict": max_tokens, "temperature": temperature},
         }).encode()
-        req  = urllib.request.Request(f"{self.base_url}/api/generate", data=payload,
-                                      headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            f"{self.base_url}/api/generate",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
         with urllib.request.urlopen(req, timeout=self.timeout) as resp:
             data = json.loads(resp.read())
         return data.get("response", "")
