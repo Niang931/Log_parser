@@ -1,21 +1,52 @@
 {
-  "title": "DeepParse v2",
+  "title": "DeepParse v2 \u2014 Silicon-Fab Log Intelligence",
   "uid": "deepparse-main",
+  "tags": [
+    "deepparse",
+    "fab",
+    "llm"
+  ],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "10s",
+  "schemaVersion": 38,
   "panels": [
     {
       "id": 1,
-      "title": "All Pipeline Events",
-      "type": "logs",
+      "title": "Total Runs",
+      "type": "stat",
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 24,
-        "h": 8
+        "w": 4,
+        "h": 4
       },
       "options": {
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": true
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          }
+        }
       },
       "targets": [
         {
@@ -23,24 +54,357 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{app=\"deepparse\"}"
+          "expr": "count_over_time({app=\"deepparse\", event_type=\"run_complete\"}[6h])"
         }
       ]
     },
     {
       "id": 2,
-      "title": "Run Complete Events",
+      "title": "LLM Fallback Calls",
+      "type": "stat",
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "count_over_time({app=\"deepparse\", event_type=\"llm_call\"}[6h])"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Injection Attempts Blocked",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "count_over_time({app=\"deepparse\", event_type=\"security\"}[6h])"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Adaptive Loop Rounds Fired",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "count_over_time({app=\"deepparse\", event_type=\"probe\", level=\"warn\"}[6h])"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Rate Limit Events",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "count_over_time({app=\"deepparse\"} |= \"rate_limit\"[6h])"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "LLM Provider",
+      "type": "stat",
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "options": {
+        "colorMode": "background",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "purple",
+                "value": 0
+              }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\", event_type=\"llm_call\"}",
+          "legendFormat": "{{event_type}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Pipeline Runs Over Time",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "count_over_time({app=\"deepparse\", event_type=\"run_complete\"}[5m])",
+          "legendFormat": "Completed Runs"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "LLM Calls vs Adaptive Probes",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "count_over_time({app=\"deepparse\", event_type=\"llm_call\"}[5m])",
+          "legendFormat": "LLM Calls (fallback)"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "count_over_time({app=\"deepparse\", event_type=\"probe\"}[5m])",
+          "legendFormat": "Adaptive Probes"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Run Complete Events \u2014 Full Detail",
       "type": "logs",
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 12,
         "w": 24,
         "h": 8
       },
       "options": {
         "showTime": true,
         "sortOrder": "Descending",
-        "wrapLogMessage": true
+        "wrapLogMessage": true,
+        "enableLogDetails": true
       },
       "targets": [
         {
@@ -53,18 +417,19 @@
       ]
     },
     {
-      "id": 3,
-      "title": "Adaptive Loop Probes",
+      "id": 10,
+      "title": "Adaptive Loop Probes (Loop 1 \u2014 Parse-Rate Monitor)",
       "type": "logs",
       "gridPos": {
         "x": 0,
-        "y": 16,
+        "y": 20,
         "w": 12,
-        "h": 6
+        "h": 7
       },
       "options": {
         "showTime": true,
-        "sortOrder": "Descending"
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
       },
       "targets": [
         {
@@ -77,12 +442,37 @@
       ]
     },
     {
-      "id": 4,
-      "title": "LLM Call Events",
+      "id": 11,
+      "title": "LLM Fallback Events (Loop 2 \u2014 Teach-back trigger)",
       "type": "logs",
       "gridPos": {
         "x": 12,
-        "y": 16,
+        "y": 20,
+        "w": 12,
+        "h": 7
+      },
+      "options": {
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\", event_type=\"llm_call\"}"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Security \u2014 Injection Sanitisation Pipeline",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 27,
         "w": 12,
         "h": 6
       },
@@ -96,45 +486,23 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{app=\"deepparse\", event_type=\"llm_call\"}"
-        }
-      ]
-    },
-    {
-      "id": 5,
-      "title": "Security - Injection Attempts",
-      "type": "logs",
-      "gridPos": {
-        "x": 0,
-        "y": 22,
-        "w": 12,
-        "h": 6
-      },
-      "options": {
-        "showTime": true
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
           "expr": "{app=\"deepparse\", event_type=\"security\"}"
         }
       ]
     },
     {
-      "id": 6,
-      "title": "Warnings and Errors",
+      "id": 13,
+      "title": "Warnings \u2014 Low Parse Rate / Rate Limits",
       "type": "logs",
       "gridPos": {
         "x": 12,
-        "y": 22,
+        "y": 27,
         "w": 12,
         "h": 6
       },
       "options": {
-        "showTime": true
+        "showTime": true,
+        "sortOrder": "Descending"
       },
       "targets": [
         {
@@ -145,12 +513,32 @@
           "expr": "{app=\"deepparse\", level=\"warn\"}"
         }
       ]
+    },
+    {
+      "id": 14,
+      "title": "All Pipeline Events",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 24,
+        "h": 6
+      },
+      "options": {
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableLogDetails": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\"}"
+        }
+      ]
     }
-  ],
-  "time": {
-    "from": "now-6h",
-    "to": "now"
-  },
-  "refresh": "10s",
-  "schemaVersion": 38
+  ]
 }

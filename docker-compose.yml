@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
 
   loki:
@@ -27,9 +25,20 @@ services:
     networks:
       - deepparse
 
+  ollama:
+    image: ollama/ollama
+    container_name: deepparse-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-storage:/root/.ollama
+    networks:
+      - deepparse
+
 networks:
   deepparse:
     driver: bridge
 
 volumes:
   grafana-storage:
+  ollama-storage:
