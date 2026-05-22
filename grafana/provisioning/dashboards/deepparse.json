@@ -1,0 +1,156 @@
+{
+  "title": "DeepParse v2",
+  "uid": "deepparse-main",
+  "panels": [
+    {
+      "id": 1,
+      "title": "All Pipeline Events",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "options": {
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\"}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Run Complete Events",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      },
+      "options": {
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\", event_type=\"run_complete\"}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Adaptive Loop Probes",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "showTime": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\", event_type=\"probe\"}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "LLM Call Events",
+      "type": "logs",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "showTime": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\", event_type=\"llm_call\"}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Security - Injection Attempts",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "showTime": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\", event_type=\"security\"}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Warnings and Errors",
+      "type": "logs",
+      "gridPos": {
+        "x": 12,
+        "y": 22,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "showTime": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{app=\"deepparse\", level=\"warn\"}"
+        }
+      ]
+    }
+  ],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "10s",
+  "schemaVersion": 38
+}
