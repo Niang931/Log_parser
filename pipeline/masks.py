@@ -41,7 +41,7 @@ def load_universal_masks(masks_path: Path | None = None) -> list[dict]:
         masks_path,
         Path(__file__).parent.parent / "masks_fab_universal.json",
         Path(__file__).parent.parent / "masks" / "masks_fab_universal.json",
-        Path(getattr(__main__, "__file__", "..")) .parent / "masks_fab_universal.json",
+        Path(getattr(__main__, "__file__", "..")).parent / "masks_fab_universal.json",
     ]
     for p in candidates:
         if p and Path(p).exists():
@@ -104,7 +104,7 @@ def _safe_compile(pattern: str) -> re.Pattern | None:
 
 
 # ---------------------------------------------------------------------------
-# LLM synthesis call
+# LLM synthesis call — with provider fallback chain
 # ---------------------------------------------------------------------------
 
 def call_llm_for_masks(
@@ -115,31 +115,73 @@ def call_llm_for_masks(
     telemetry: Telemetry,
     round_hint: str = "",
 ) -> list[dict]:
+    """
+    Call LLM to synthesise masks.
+    Fallback chain: primary provider -> gemini -> mock
+    so rate limits never crash the pipeline.
+    """
     from llm.registry import init_llm
     from DeepParse.deepparse.synth.hf_deepseek_r1 import synthesize_online
 
-    t0 = time.monotonic()
-    try:
-        llm       = init_llm(provider=llm_provider)
-        raw_masks = synthesize_online(
-            logs=logs, llm=llm, max_length=max_length,
-            self_consistency_attempts=3, round_hint=round_hint,
-        )
-        latency = time.monotonic() - t0
-        telemetry.record(
-            "llm_call",
-            provider=llm_provider,
-            latency_s=round(latency, 3),
-            tokens_out=len(raw_masks) * 10,
-            cost_usd=getattr(llm, "_total_cost_usd", 0.0),
-        )
-        result = [m.to_dict() if hasattr(m, "to_dict") else m
-                  for m in raw_masks]
-        return validate_mask_regex(result)
-    except Exception as exc:
-        log.error("LLM synthesis failed: %s", exc)
-        telemetry.record("llm_error", error=str(exc))
-        return []
+    # Build fallback chain
+    fallback_chain = [llm_provider]
+    if llm_provider not in ("gemini", "mock"):
+        fallback_chain.append("gemini")
+    if "mock" not in fallback_chain:
+        fallback_chain.append("mock")
+
+    for provider in fallback_chain:
+        t0 = time.monotonic()
+        try:
+            llm       = init_llm(provider=provider)
+            raw_masks = synthesize_online(
+                logs=logs,
+                llm=llm,
+                max_length=max_length,
+                self_consistency_attempts=3,
+                round_hint=round_hint,
+            )
+            latency = time.monotonic() - t0
+
+            # Record to telemetry
+            telemetry.record(
+                "llm_call",
+                provider=provider,
+                latency_s=round(latency, 3),
+                tokens_out=len(raw_masks) * 10,
+                cost_usd=getattr(llm, "_total_cost_usd", 0.0),
+            )
+
+            # Push to Loki — provider variable is correctly scoped here
+            try:
+                from pipeline.loki_logger import push_llm_call
+                push_llm_call(
+                    provider=provider,
+                    latency_s=round(latency, 3),
+                    mask_count=len(raw_masks),
+                )
+                log.info(
+                    "Loki: llm_call pushed — provider=%s latency=%.2fs masks=%d",
+                    provider, latency, len(raw_masks),
+                )
+            except Exception as loki_exc:
+                log.debug("Loki push failed (non-fatal): %s", loki_exc)
+
+            result = [m.to_dict() if hasattr(m, "to_dict") else m
+                      for m in raw_masks]
+            return validate_mask_regex(result)
+
+        except Exception as exc:
+            if "429" in str(exc) or "rate_limit" in str(exc).lower():
+                log.warning("Rate limit on '%s' — trying next provider", provider)
+                telemetry.record("rate_limit", provider=provider)
+                continue
+            log.error("LLM synthesis failed on '%s': %s", provider, exc)
+            telemetry.record("llm_error", provider=provider, error=str(exc))
+            continue
+
+    log.error("All LLM providers exhausted — returning empty mask list")
+    return []
 
 
 # ---------------------------------------------------------------------------
@@ -159,9 +201,9 @@ def synthesize_masks_adaptive(
 ) -> list[dict]:
     """
     Three-stage mask pipeline:
-      1. Load curated static masks (masks_fab_universal.json)
+      1. Load curated static masks  (masks_fab_universal.json)
       2. Load or synthesise LLM masks
-      3. Adaptive feedback: re-synthesise if parse-rate < threshold
+      3. Adaptive feedback loop — re-synthesise if parse-rate < threshold
     """
     # Stage 1 — static masks
     static_masks = load_universal_masks(static_masks_path)
@@ -175,7 +217,7 @@ def synthesize_masks_adaptive(
             llm_masks = cached
 
     if not llm_masks:
-        log.info("Synthesising masks via LLM (provider=%s)…", llm_provider)
+        log.info("Synthesising masks via LLM (provider=%s)...", llm_provider)
         llm_masks = call_llm_for_masks(
             logs, llm_provider, max_length, mask_cache_path, telemetry
         )
@@ -195,18 +237,24 @@ def synthesize_masks_adaptive(
             pass
 
         if rate >= threshold:
-            log.info("Parse-rate %.1f%% ≥ threshold — accepted", rate * 100)
+            log.info("Parse-rate %.1f%% >= threshold %.0f%% — masks accepted",
+                     rate * 100, threshold * 100)
             break
 
-        log.warning("%.1f%% < %.0f%% — re-synthesising (round %d/%d)",
-                    rate * 100, threshold * 100, round_n, max_rounds)
-        unparsed = get_unparsed_lines(logs[:50], combined)
-        hint     = (f"Round {round_n}: {len(unparsed)} unparsed lines. "
-                    "Cover all variable token families.")
+        log.warning(
+            "%.1f%% < %.0f%% — re-synthesising (round %d/%d)",
+            rate * 100, threshold * 100, round_n, max_rounds,
+        )
+        unparsed  = get_unparsed_lines(logs[:50], combined)
+        hint      = (
+            f"Round {round_n}: {len(unparsed)} unparsed lines. "
+            "Cover all variable token families."
+        )
         new_masks = call_llm_for_masks(
             unparsed, llm_provider, max_length,
             mask_cache_path.with_suffix(f".round{round_n}.json"),
-            telemetry=telemetry, round_hint=hint,
+            telemetry=telemetry,
+            round_hint=hint,
         )
         combined = merge_masks(combined, new_masks)
 
