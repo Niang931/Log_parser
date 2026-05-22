@@ -104,11 +104,50 @@ def load_structured(path: str, message_col: str = "message") -> list[str]:
         except UnicodeDecodeError:
             df = pd.read_csv(path, dtype=str, encoding="latin-1")
 
+
     elif ext in (".json", ".jsonl"):
+
+        import json as _json
+
         try:
-            df = pd.read_json(path, lines=True, dtype=str)
+
+            with open(path, encoding="utf-8") as f:
+
+                raw = _json.load(f)
+
+            # Flatten nested JSON directly — never use pandas for nested objects
+
+            return _flatten_obj(raw)
+
         except Exception:
-            df = pd.read_json(path, lines=False, dtype=str)
+
+            # Fallback: try JSONL (one object per line)
+
+            try:
+
+                lines_out: list[str] = []
+
+                with open(path, encoding="utf-8") as f:
+
+                    for line in f:
+
+                        line = line.strip()
+
+                        if line:
+                            obj = _json.loads(line)
+
+                            lines_out.extend(_flatten_obj(obj))
+
+                if lines_out:
+                    return lines_out
+
+            except Exception:
+
+                pass
+
+            # Last resort: read as plain text
+
+            return load_unstructured(path)
 
     elif ext == ".parquet":
         df = pd.read_parquet(path)
