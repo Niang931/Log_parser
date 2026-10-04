@@ -1,6 +1,6 @@
 """Build instruction-tuning data for the DeepParse mask synthesiser.
 
-Training format follows Listing 2 of the paper exactly: every example is
+Training format follows listing 2 of the paper exactly: every example is
 ``{"instruction": ..., "input": <log_line>, "output": <Python regex list>}``
 where ``<output>`` is a string containing a literal Python list of raw
 regex strings, one per variable slot detected in the line.
@@ -25,9 +25,9 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Tuple
 
 INSTRUCTION = (
     "Generate a Python list of regex patterns that capture the dynamic "
@@ -38,7 +38,7 @@ INSTRUCTION = (
 
 # Regex shape detectors → canonical regex emitted into the training output.
 # Order matters: more specific shapes first.
-_SHAPE_DETECTORS: List[Tuple[re.Pattern[str], str]] = [
+_SHAPE_DETECTORS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"^\d{4}[-/]\d{2}[-/]\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?$"),
      r"\d{4}[-/]\d{2}[-/]\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?"),
     (re.compile(r"^\d{6}$"),  # LogHub date 'YYMMDD' (e.g. 081109)
@@ -98,7 +98,7 @@ class TrainingExample:
         return {"instruction": self.instruction, "input": self.input, "output": self.output}
 
 
-def _align_template(line: str, template: str) -> List[str] | None:
+def _align_template(line: str, template: str) -> list[str] | None:
     """Return the list of variable-slot values in ``line`` matching ``template``.
 
     ``template`` is a LogHub-style string with ``<*>`` placeholders.
@@ -126,7 +126,7 @@ def build_examples(
     dataset_dir: Path,
     max_per_system: int | None = None,
     entropy_k: int | None = None,
-) -> List[TrainingExample]:
+) -> list[TrainingExample]:
     raw_path = dataset_dir / "raw.log"
     tpl_path = dataset_dir / "templates.json"
     if not raw_path.exists() or not tpl_path.exists():
@@ -149,13 +149,13 @@ def build_examples(
         lines = [lines[i] for i in keep]
         entries = [entries[i] for i in keep]
 
-    examples: List[TrainingExample] = []
+    examples: list[TrainingExample] = []
     for line, entry in zip(lines, entries):
         template = entry["template"]
         values = _align_template(line, template)
         if values is None:
             continue  # skip lines we can't align cleanly
-        regexes: List[str] = []
+        regexes: list[str] = []
         seen: set[str] = set()
         for value in values:
             regex = _classify_value(value.strip())
@@ -215,7 +215,7 @@ def main(argv: list[str] | None = None) -> int:
             n = write_jsonl(examples, out)
             print(f"[build_training_set] {system}: {n} examples -> {out}")
     else:
-        all_examples: List[TrainingExample] = []
+        all_examples: list[TrainingExample] = []
         for system in systems:
             examples = build_examples(args.data_dir / system, args.max_per_system, args.entropy_k)
             print(f"[build_training_set] {system}: {len(examples)} examples")

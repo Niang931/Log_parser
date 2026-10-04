@@ -1,7 +1,7 @@
 """Parsing accuracy metric."""
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 
 def parsing_accuracy(true_templates: Sequence[str], predicted_templates: Sequence[str]) -> float:

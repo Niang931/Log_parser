@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
@@ -19,7 +18,7 @@ class Mask:
         }
 
     @staticmethod
-    def from_dict(payload: dict[str, str]) -> "Mask":
+    def from_dict(payload: dict[str, str]) -> Mask:
         """Construct a :class:`Mask` from a mapping.
 
         The helper is used by the lightweight public API so that callers can
@@ -37,7 +36,7 @@ class Mask:
 @dataclass
 class MaskBundle:
     dataset: str
-    masks: List[Mask]
+    masks: list[Mask]
 
-    def to_json(self) -> List[dict[str, str]]:
+    def to_json(self) -> list[dict[str, str]]:
         return [mask.to_dict() for mask in self.masks]

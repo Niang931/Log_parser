@@ -18,9 +18,9 @@ import json
 import sys
 import urllib.error
 import urllib.request
+from collections.abc import Iterable
 from io import StringIO
 from pathlib import Path
-from typing import Iterable
 
 LOGHUB_BASE = (
     "https://raw.githubusercontent.com/logpai/loghub-2.0/main/2k_dataset/{system}/"

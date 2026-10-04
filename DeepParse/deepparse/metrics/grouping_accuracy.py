@@ -12,7 +12,7 @@ log indices matters, not the labels assigned to each part.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Hashable, Sequence
+from collections.abc import Hashable, Sequence
 
 
 def _partition(ids: Sequence[Hashable]) -> dict[Hashable, frozenset[int]]:
@@ -29,6 +29,7 @@ def grouping_accuracy(
 ) -> float:
     if len(true_group_ids) != len(predicted_group_ids):
         raise ValueError("Mismatched lengths for GA computation")
+
     n = len(true_group_ids)
     if n == 0:
         return 0.0

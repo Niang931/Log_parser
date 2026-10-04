@@ -18,9 +18,9 @@ from __future__ import annotations
 
 import csv
 import json
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Sequence, Tuple
 
 from ..dataset_loader import Dataset, load_dataset
 from ..drain.drain_engine import DrainEngine
@@ -36,14 +36,14 @@ from ..utils.yaml_loader import load_yaml
 LOGGER = get_logger(__name__)
 
 
-def _load_masks(path: Path) -> List[Mask]:
+def _load_masks(path: Path) -> list[Mask]:
     data = json.loads(path.read_text(encoding="utf-8"))
     masks = [Mask.from_dict(entry) for entry in data]
     validate_regexes([mask.pattern for mask in masks])
     return masks
 
 
-def _ground_truth_from_canonical(dataset: Dataset) -> Tuple[List[str], List[int]]:
+def _ground_truth_from_canonical(dataset: Dataset) -> tuple[list[str], list[int]]:
     """Derive ground-truth templates by running the canonical mask
     bundle through Drain.  This is the reference behaviour when no
     annotated ground truth file is available.
@@ -57,7 +57,7 @@ def _ground_truth_from_canonical(dataset: Dataset) -> Tuple[List[str], List[int]
     return templates, cluster_ids
 
 
-def _ground_truth_from_file(dataset: Dataset) -> Tuple[List[str], List[int]] | None:
+def _ground_truth_from_file(dataset: Dataset) -> tuple[list[str], list[int]] | None:
     gt_path = dataset.path / "templates.json"
     if not gt_path.exists():
         return None
@@ -89,7 +89,7 @@ class EvaluationConfig:
     timing_csv: Path
 
     @classmethod
-    def from_file(cls, path: Path) -> "EvaluationConfig":
+    def from_file(cls, path: Path) -> EvaluationConfig:
         config_data = load_yaml(path)
         base_path = Path(config_data["base_config"])
         datasets = config_data.get("datasets", [])
@@ -126,7 +126,7 @@ class EvaluationRunner:
             synthesize_masks(dataset, self.k, mask_path, mode=self.mode, strict=self.strict)
         return mask_path
 
-    def evaluate_dataset(self, dataset_name: str) -> Dict[str, float | str]:
+    def evaluate_dataset(self, dataset_name: str) -> dict[str, float | str]:
         # Loading dataset and loading drain engine
         dataset = load_dataset(dataset_name, self.paths)
         mask_path = self._ensure_masks(dataset)
@@ -141,6 +141,7 @@ class EvaluationRunner:
         predicted_templates = [pair[1] for pair in predicted_pairs]
 
         # extracting ground truth label from dataset
+        # NOTE: canonical ground truth is a bunch of predefined regex (not sure if I should include this)
         ground = _ground_truth_from_file(dataset) or _ground_truth_from_canonical(dataset)
         gt_templates, gt_ids = ground
 
@@ -154,7 +155,7 @@ class EvaluationRunner:
             "PA": round(pa, 4),
         }
 
-    def run(self) -> List[Dict[str, float | str]]:
+    def run(self) -> list[dict[str, float | str]]:
         set_global_seed(self.seed)
         rows = [self.evaluate_dataset(name) for name in self.config.datasets]
         if rows:

@@ -19,8 +19,8 @@ Properties guaranteed by this implementation:
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Sequence, Tuple
 
 from ..masks_types import Mask
 from ..tokenize import tokenize
@@ -47,31 +47,38 @@ def _to_wildcard(token: str) -> str:
 @dataclass
 class DrainCluster:
     cluster_id: int
-    template: List[str]
+    template: list[str]
     size: int = 0
 
     def similarity(self, tokens: Sequence[str]) -> float:
         if not self.template:
             return 0.0
+
+        # This is eq.1 in the paper
         matches = 0
-        for tmpl_tok, tok in zip(self.template, tokens):
-            if tmpl_tok == tok or tmpl_tok == WILDCARD:
+        for template_token, token in zip(self.template, tokens):
+            if template_token == token or template_token == WILDCARD:
                 matches += 1
         return matches / len(self.template)
 
     def update(self, tokens: Sequence[str]) -> None:
         self.size += 1
+
+        # If no template proivded yet, init with this list of tokens
         if not self.template:
             self.template = list(tokens)
             return
-        # Same length is required for clustering; merge by tokenwise
-        # generalisation.  Typed placeholders survive merges; identical
-        # literal tokens are kept; everything else collapses to <*>.
-        for idx, tok in enumerate(tokens):
-            current = self.template[idx]
-            if current == tok:
+
+        # This is what makes drain dynamic, if the log is identified the same type
+        # then it changes places that are not constant based on last log with wildcard 
+        for index, token in enumerate(tokens):
+            current = self.template[index]
+            # If the tempalate and token is same then pass (this current token is the template)
+            if current == token:
                 continue
-            self.template[idx] = WILDCARD
+
+            # If not then update then update the template at index with WILDCARD
+            self.template[index] = WILDCARD
 
     def template_str(self) -> str:
         """Render the cluster template as a string.
@@ -108,12 +115,12 @@ class DrainEngine:
         # Bucket clusters by length and a depth-bounded prefix so that
         # lookup is O(1) amortised.  Tokens of any kind that exceed the
         # bucket's depth do not affect grouping.
-        self._buckets: Dict[Tuple[int, str], List[DrainCluster]] = {}
+        self._buckets: dict[tuple[int, str], list[DrainCluster]] = {}
         self._next_id: int = 0
 
     # ---- internal helpers --------------------------------------------------
-    def _cluster_key(self, tokens: Sequence[str]) -> Tuple[int, str]:
-        prefix_tokens: List[str] = []
+    def _cluster_key(self, tokens: Sequence[str]) -> tuple[int, str]:
+        prefix_tokens: list[str] = []
         for tok in tokens[: self.depth]:
             # Treat typed placeholders and pure-digit tokens as the same
             # "bucket key" so messages with different concrete values
@@ -156,6 +163,7 @@ class DrainEngine:
             fallback = cluster_list[0]
             fallback.update(tokens)
             return fallback
+
         new_cluster = DrainCluster(
             cluster_id=self._allocate_id(),
             template=list(tokens),
@@ -165,16 +173,16 @@ class DrainEngine:
         cluster_list.append(new_cluster)
         return new_cluster
 
-    def parse(self, lines: Iterable[str]) -> List[str]:
+    def parse(self, lines: Iterable[str]) -> list[str]:
         """Parse a sequence of lines, returning *final* template strings.
 
         Drain mutates a cluster's template each time a new line is added
         to it; we therefore make two passes so that every returned
         template reflects the cluster's converged state.
         """
-        return [template for _cid, template in self.parse_with_ids(lines)]
+        return [template for _, template in self.parse_with_ids(lines)]
 
-    def parse_with_ids(self, lines: Iterable[str]) -> List[Tuple[int, str]]:
+    def parse_with_ids(self, lines: Iterable[str]) -> list[tuple[int, str]]:
         """Parse a sequence of lines and return ``(cluster_id, template)`` pairs.
 
         Two-pass: first add every line so the cluster templates converge,
@@ -186,13 +194,13 @@ class DrainEngine:
            :meth:`parse_with_ids` / :meth:`parse` again with new lines),
            the cluster templates may merge further and the strings
            previously returned will no longer reflect the engine's
-           current state.  For the paper-aligned usage (Listing 1:
+           current state.  For the paper-aligned usage (listing 1:
            ``Drain().load_masks(p).parse_all(logs)``) this is irrelevant
            because the entire corpus is processed in a single call.
         """
         line_list = list(lines)
-        cluster_ids: List[int] = [self.add_log(line).cluster_id for line in line_list]
-        templates_by_id: Dict[int, str] = {}
+        cluster_ids: list[int] = [self.add_log(line).cluster_id for line in line_list]
+        templates_by_id: dict[int, str] = {}
         for clusters in self._buckets.values():
             for cluster in clusters:
                 templates_by_id[cluster.cluster_id] = cluster.template_str()

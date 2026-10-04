@@ -1,11 +1,12 @@
 """Command line entrypoints for DeepParse artifact."""
+
 from __future__ import annotations
 
 import csv
 import glob
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Optional
 
 import click
 
@@ -39,16 +40,31 @@ def _load_base_config(path: str) -> dict:
 @click.option("--k", type=int, default=None)
 @click.option("--out", type=click.Path(), required=False)
 @click.option("--mode", type=click.Choice(["offline", "hf"]), default="offline")
-@click.option("--model", "model_name", type=str, default=None,
-              help="Override base model name (default: deepseek-ai/DeepSeek-R1-Distill-Llama-8B)")
-@click.option("--adapter", type=click.Path(), default=None,
-              help="Path to a fine-tuned LoRA adapter directory")
+@click.option(
+    "--model",
+    "model_name",
+    type=str,
+    default=None,
+    help="Override base model name (default: deepseek-ai/DeepSeek-R1-Distill-Llama-8B)",
+)
+@click.option(
+    "--adapter", type=click.Path(), default=None, help="Path to a fine-tuned LoRA adapter directory"
+)
 @click.option("--strict", is_flag=True, default=False)
 @click.option("--seed", type=int, default=None)
 @click.pass_context
-def synth(ctx: click.Context, dataset: Optional[str], config: Optional[str], k: Optional[int],
-          out: Optional[str], mode: str, model_name: Optional[str], adapter: Optional[str],
-          strict: bool, seed: Optional[int]) -> None:
+def synth(
+    ctx: click.Context,
+    dataset: str | None,
+    config: str | None,
+    k: int | None,
+    out: str | None,
+    mode: str,
+    model_name: str | None,
+    adapter: str | None,
+    strict: bool,
+    seed: int | None,
+) -> None:
     base = _load_base_config("configs/default.yaml")
 
     # Config here means the config yaml file path
@@ -76,9 +92,13 @@ def synth(ctx: click.Context, dataset: Optional[str], config: Optional[str], k: 
         dataset_obj = load_dataset(name, paths)
         out_path = Path(out or paths.mask_dir / f"{name}.json")
         synthesize_masks(
-            dataset_obj, k, out_path,
-            mode=mode, strict=strict,
-            model_name=model_name, adapter_path=adapter,
+            dataset_obj,
+            k,
+            out_path,
+            mode=mode,
+            strict=strict,
+            model_name=model_name,
+            adapter_path=adapter,
         )
 
 
@@ -87,7 +107,7 @@ def synth(ctx: click.Context, dataset: Optional[str], config: Optional[str], k: 
 @click.option("--output", type=click.Path(), required=False)
 @click.option("--seed", type=int, default=None)
 @click.pass_context
-def parse(ctx: click.Context, dataset: str, output: Optional[str], seed: Optional[int]) -> None:
+def parse(ctx: click.Context, dataset: str, output: str | None, seed: int | None) -> None:
     base = _load_base_config("configs/default.yaml")
     paths = build_paths(base["dataset_dir"], base["mask_dir"], base["output_dir"], base["log_dir"])
     dataset_obj = load_dataset(dataset, paths)
@@ -118,7 +138,7 @@ def parse(ctx: click.Context, dataset: str, output: Optional[str], seed: Optiona
 @click.option("--deterministic", is_flag=True, default=False)
 @click.option("--seed", type=int, default=None)
 @click.pass_context
-def eval(ctx: click.Context, config: str, deterministic: bool, seed: Optional[int]) -> None:
+def eval(ctx: click.Context, config: str, deterministic: bool, seed: int | None) -> None:
     from .evaluation.eval_runner import EvaluationRunner
 
     runner = EvaluationRunner(Path(config))

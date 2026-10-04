@@ -4,7 +4,7 @@
 Loads a base model (paper default: ``deepseek-ai/DeepSeek-R1-Distill-Llama-8B``)
 plus an optional LoRA adapter produced by :mod:`deepparse.training.finetune`,
 then prompts it with the exact instruction template used during training
-(Listing 2 of the paper).  The model is asked to emit a Python list of
+(listing 2 of the paper).  The model is asked to emit a Python list of
 raw regex strings.
 
 Output parsing is defensive: ``ast.literal_eval`` (a safe literal-only
@@ -20,13 +20,14 @@ category, ensuring graceful degradation").
 Self-consistency check (paper, same section): the LLM is re-prompted up
 to ``self_consistency_attempts`` times if the parsed regex list is empty.
 """
+
 from __future__ import annotations
 
 import ast as _ast  # used only for literal_eval; aliased to make intent clear
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Sequence
 
 from ..logging_utils import get_logger
 from ..masks_types import Mask
@@ -41,11 +42,7 @@ INSTRUCTION = (
     "structure."
 )
 
-PROMPT_TEMPLATE = (
-    "### Instruction:\n{instruction}\n\n"
-    "### Input:\n{input}\n\n"
-    "### Output:\n"
-)
+PROMPT_TEMPLATE = "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Output:\n"
 
 # Recover individual r"..." or r'...' strings from a free-form output.
 _FALLBACK_PATTERN_RE = re.compile(r"""r[\"']([^\"']+)[\"']""")
@@ -62,15 +59,18 @@ class HFInferenceConfig:
     self_consistency_attempts: int = 2
 
 
-def _parse_regex_list(raw: str) -> List[str]:
+def _parse_regex_list(raw: str) -> list[str]:
     """Best-effort safe parser for the model's textual output."""
     snippet = raw.strip()
+
+    # retrieve only the list, not respond template outside
     if "[" in snippet:
-        snippet = snippet[snippet.index("["):]
+        snippet = snippet[snippet.index("[") :]
     if "]" in snippet:
         end = snippet.rfind("]")
         snippet = snippet[: end + 1]
     parsed = None
+
     try:
         # ast.literal_eval only parses Python literals (lists, strings,
         # numbers, etc.) and cannot execute code, so it is safe to apply
@@ -78,8 +78,10 @@ def _parse_regex_list(raw: str) -> List[str]:
         parsed = _ast.literal_eval(snippet)
     except (SyntaxError, ValueError):
         parsed = _FALLBACK_PATTERN_RE.findall(raw)
+
     if isinstance(parsed, list):
         return [str(p) for p in parsed if isinstance(p, str)]
+
     return []
 
 
@@ -105,9 +107,9 @@ def _build_label(pattern: str, index: int) -> str:
     return f"VAR{index}"
 
 
-def _to_masks(patterns: Sequence[str]) -> List[Mask]:
-    # only add unseen paterns and validate the regex before creating mask instances 
-    masks: List[Mask] = []
+def _to_masks(patterns: Sequence[str]) -> list[Mask]:
+    # only add unseen paterns and validate the regex before creating mask instances
+    masks: list[Mask] = []
     seen_pattern: set[str] = set()
     for idx, pattern in enumerate(patterns):
         if not pattern or pattern in seen_pattern:
@@ -118,15 +120,16 @@ def _to_masks(patterns: Sequence[str]) -> List[Mask]:
         except re.error:
             LOGGER.warning("dropping invalid pattern: %r", pattern)
             continue
-        masks.append(Mask(label=_build_label(pattern, idx),
-                          pattern=pattern,
-                          justification="LLM-synthesised"))
+        masks.append(
+            Mask(label=_build_label(pattern, idx), pattern=pattern, justification="LLM-synthesised")
+        )
     return masks
 
 
-def _ensure_core_classes(masks: List[Mask]) -> List[Mask]:
+def _ensure_core_classes(masks: list[Mask]) -> list[Mask]:
     """Paper safety net: backfill the four core categories on validation failure."""
     present = {m.label for m in masks}
+    # TODO: isnt this shit pre-defined in stub file, why re-declare it here ?
     required = {"TIMESTAMP", "LOGLEVEL", "NUMBER", "IPV4"}
     if required.issubset(present):
         return masks
@@ -146,23 +149,23 @@ def synthesize_hf(
     max_length: int = 512,
     device: str = "auto",
     self_consistency_attempts: int = 2,
-) -> List[Mask]:
-    """Synthesise a regex mask bundle by prompting an LLM per Listing 2."""
+) -> list[Mask]:
+    """Synthesise a regex mask bundle by prompting an LLM per listing 2."""
     try:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
     except ImportError as exc:
         raise RuntimeError(
             "Hugging Face mode requires the optional 'hf' extra. Install with:\n"
-            "    pip install -e \".[hf]\""
+            '    pip install -e ".[hf]"'
         ) from exc
 
-    LOGGER.info("loading base model %s%s", model_name,
-                f" + adapter {adapter_path}" if adapter_path else "")
+    LOGGER.info(
+        "loading base model %s%s", model_name, f" + adapter {adapter_path}" if adapter_path else ""
+    )
 
     # Loading the tokenizer, apparently the tokenizer can also be retrieved from the LLM model
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -174,7 +177,6 @@ def synthesize_hf(
         trust_remote_code=True,
         low_cpu_mem_usage=True,
     )
-    # TODO: not sure about this LORA one
     if adapter_path:
         try:
             from peft import PeftModel
@@ -204,8 +206,7 @@ def synthesize_hf(
 
     for line in logs:
         # fill in the instruction and input first
-        base_prompt = PROMPT_TEMPLATE.format(
-            instruction=INSTRUCTION, input=line)
+        base_prompt = PROMPT_TEMPLATE.format(instruction=INSTRUCTION, input=line)
 
         patterns: list[str] = []
 
@@ -226,10 +227,9 @@ def synthesize_hf(
             else:
                 # Second attempt seems to set it more strict with lower temperature
                 prompt = (
-                    base_prompt
-                    + "Return ONLY a Python list of raw regex strings, e.g. "
-                      '[r"\\d+", r"\\b[A-Z]+\\b"]. No prose, no markdown.\n\n'
-                      "### Output:\n"
+                    base_prompt + "Return ONLY a Python list of raw regex strings, e.g. "
+                    '[r"\\d+", r"\\b[A-Z]+\\b"]. No prose, no markdown.\n\n'
+                    "### Output:\n"
                 )
                 attempt_kwargs = dict(gen_kwargs)
                 attempt_kwargs["do_sample"] = True
@@ -238,14 +238,13 @@ def synthesize_hf(
             # Tokenize the prompt
             inputs = tokenizer(prompt, return_tensors="pt").to(target_device)
 
-            # TODO: add an online module here
             # Generation is performed here tokenized prompt and the kwargs
             with torch.no_grad():
                 out_ids = model.generate(**inputs, **attempt_kwargs)
 
             # Decode the output from the LLM
             decoded = tokenizer.decode(
-                out_ids[0][inputs["input_ids"].shape[-1]:],
+                out_ids[0][inputs["input_ids"].shape[-1] :],
                 skip_special_tokens=True,
             )
 
@@ -258,7 +257,6 @@ def synthesize_hf(
 
             LOGGER.debug("self-consistency retry %d for line: %r", attempt + 1, line[:80])
 
-        # NOTE: not sure what the seen here is used for ? the aggregated make sense though
         # Add brand new patterns to seen
         for pattern in patterns:
             if pattern not in seen:
@@ -274,9 +272,9 @@ def synthesize_hf(
     return masks
 
 
-def synthesize_hf_from_checkpoint(checkpoint_dir: str | Path,
-                                  logs: Sequence[str],
-                                  **kwargs) -> List[Mask]:
+def synthesize_hf_from_checkpoint(
+    checkpoint_dir: str | Path, logs: Sequence[str], **kwargs
+) -> list[Mask]:
     """Detect whether ``checkpoint_dir`` is a base model or a LoRA adapter
     and delegate to :func:`synthesize_hf`.
     """

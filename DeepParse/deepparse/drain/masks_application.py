@@ -10,13 +10,13 @@ shallow, deterministic, and stable while preserving structural intent.
 from __future__ import annotations
 
 import re
-from typing import List, Sequence
+from collections.abc import Sequence
 
 from ..masks_types import Mask
 
 
 def _placeholder_for(label: str) -> str:
-    """Return the typed placeholder string for a mask label."""
+    """Return the typed placeholder (remove special characters) string for a mask label."""
     safe = re.sub(r"[^A-Z0-9]+", "", label.upper()) or "VAR"
     return f"<VAR:{safe}>"
 
@@ -38,7 +38,7 @@ class MaskApplier:
     """
 
     def __init__(self, masks: Sequence[Mask]):
-        self._compiled: List[tuple[Mask, re.Pattern[str], str]] = []
+        self._compiled: list[tuple[Mask, re.Pattern[str], str]] = []
         for mask in masks:
             try:
                 compiled = re.compile(_strip_named_groups(mask.pattern))
@@ -51,11 +51,11 @@ class MaskApplier:
             self._compiled.append((mask, compiled, _placeholder_for(mask.label)))
 
     @property
-    def masks(self) -> List[Mask]:
+    def masks(self) -> list[Mask]:
         return [mask for mask, _, _ in self._compiled]
 
     def apply(self, line: str) -> str:
         masked_line = line
-        for _mask, compiled, placeholder in self._compiled:
+        for _, compiled, placeholder in self._compiled:
             masked_line = compiled.sub(placeholder, masked_line)
         return masked_line

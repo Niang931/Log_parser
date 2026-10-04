@@ -29,7 +29,6 @@ import json
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
 
 
 @dataclass
@@ -56,13 +55,13 @@ class FineTuneConfig:
     eval_split: float = 0.0
     save_steps: int = 200
     log_steps: int = 25
-    target_modules: List[str] = field(default_factory=lambda: [
+    target_modules: list[str] = field(default_factory=lambda: [
         "q_proj", "k_proj", "v_proj", "o_proj",
         "gate_proj", "up_proj", "down_proj",
     ])
 
     @classmethod
-    def small(cls, train_file: Path, output_dir: Path) -> "FineTuneConfig":
+    def small(cls, train_file: Path, output_dir: Path) -> FineTuneConfig:
         return cls(
             train_file=train_file,
             output_dir=output_dir,
@@ -185,7 +184,7 @@ def run_training(cfg: FineTuneConfig) -> None:  # pragma: no cover - heavy
     # Force the LoRA adapter weights to float32 even when the base model
     # is bf16 — peft otherwise initialises them in the base dtype, which
     # is the single most common cause of "loss=0 grad_norm=NaN".
-    for name, param in model.named_parameters():
+    for _, param in model.named_parameters():
         if param.requires_grad:
             param.data = param.data.float()
     model.print_trainable_parameters()

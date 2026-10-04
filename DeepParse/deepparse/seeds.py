@@ -5,7 +5,6 @@ import logging
 import os
 import random
 from dataclasses import dataclass
-from typing import Optional
 
 try:
     import numpy as np
@@ -57,7 +56,7 @@ def set_global_seed(seed: int, deterministic: bool = True) -> SeedState:
     return state
 
 
-def resolve_seed(seed: Optional[int]) -> int:
+def resolve_seed(seed: int | None) -> int:
     """Return a consistent seed value if none provided."""
 
     return 1337 if seed is None else seed

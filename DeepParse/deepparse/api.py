@@ -1,6 +1,6 @@
 """Lightweight public API mirroring the example usage from the paper.
 
-The two helpers here implement Listing 1 of the paper verbatim::
+The two helpers here implement listing 1 of the paper verbatim::
 
     patterns = synth_masks(sys_logs, sample_size=50, temperature=0,
                            max_length=512)
@@ -11,8 +11,8 @@ The two helpers here implement Listing 1 of the paper verbatim::
 """
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Iterable, List, Sequence, Union
 
 from .drain.drain_engine import DrainEngine
 from .masks_types import Mask
@@ -22,14 +22,14 @@ from .utils.sampling import deterministic_sample
 
 try:  # Optional heavy dependency
     from .synth.hf_deepseek_r1 import synthesize_hf as _synthesize_hf
-except Exception:  # pragma: no cover - optional path
+except ImportError:  # pragma: no cover - optional path
     _synthesize_hf = None  # type: ignore[assignment]
 
-MaskLike = Union[Mask, dict]
+MaskLike = Mask | dict
 
 
-def _ensure_mask_objects(masks: Iterable[MaskLike]) -> List[Mask]:
-    converted: List[Mask] = []
+def _ensure_mask_objects(masks: Iterable[MaskLike]) -> list[Mask]:
+    converted: list[Mask] = []
     for mask in masks:
         if isinstance(mask, Mask):
             converted.append(mask)
@@ -53,7 +53,7 @@ def synth_masks(
     strict: bool = False,
     model_name: str | None = None,
     adapter_path: str | None = None,
-) -> List[dict]:
+) -> list[dict]:
     """Synthesise a regex mask bundle from raw log lines.
 
     Returns a list of ``{"label", "pattern", "justification"}``
@@ -116,10 +116,10 @@ class Drain:
             masks=mask_objs,
         )
 
-    def parse_all(self, logs: Sequence[str]) -> List[str]:
+    def parse_all(self, logs: Sequence[str]) -> list[str]:
         return self._engine.parse(logs)
 
-    def parse_with_ids(self, logs: Sequence[str]) -> List[tuple[int, str]]:
+    def parse_with_ids(self, logs: Sequence[str]) -> list[tuple[int, str]]:
         return self._engine.parse_with_ids(logs)
 
     def add_log(self, log: str) -> str:

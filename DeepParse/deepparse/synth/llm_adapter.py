@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from ..dataset_loader import Dataset
 from ..logging_utils import get_logger
@@ -31,8 +31,10 @@ def synthesize_masks(
     LOGGER.info("Synthesising masks for %s with mode=%s", dataset.name, mode)
     sample = deterministic_sample(dataset.logs, k)
     masks: Sequence[Mask]
+
     if mode == "offline":
         masks = synthesize_offline(sample)
+
     elif mode == "hf":
         from .hf_deepseek_r1 import synthesize_hf, synthesize_hf_from_checkpoint
 
@@ -50,6 +52,7 @@ def synthesize_masks(
     else:
         raise UnsupportedModeError(mode)
 
+    # TODO: the validation is actually getting ran twice, is this really necessary ?
     validate_regexes([mask.pattern for mask in masks], strict=strict)
     bundle = MaskBundle(dataset=dataset.name, masks=list(masks))
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -2,15 +2,15 @@
 from __future__ import annotations
 
 import csv
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, List
 
 from ..logging_utils import get_logger
 
 LOGGER = get_logger(__name__)
 
 
-def _read_csv(path: Path) -> List[dict[str, str]]:
+def _read_csv(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         return [dict(row) for row in reader]
@@ -23,7 +23,7 @@ def _format_value(value: str) -> str:
         return value
 
 
-def _latex_table(rows: List[dict[str, str]], caption: str, label: str) -> str:
+def _latex_table(rows: list[dict[str, str]], caption: str, label: str) -> str:
     if not rows:
         return ""
     headers = list(rows[0].keys())

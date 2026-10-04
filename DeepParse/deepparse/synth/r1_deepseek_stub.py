@@ -2,7 +2,7 @@
 
 This module produces a regex *mask bundle* without invoking any LLM.
 The bundle mirrors what the paper's fine-tuned ``DeepSeek-R1:8B``
-checkpoint emits in Listing 2 of Section "LLM Configuration":
+checkpoint emits in listing 2 of Section "LLM Configuration":
 
 * Always include the four core variable classes (timestamp, log level,
   named identifier, IPv4 address).
@@ -13,11 +13,12 @@ The function is fully deterministic: the output is a function of the
 sample contents only and never depends on insertion order, system
 locale, or hash randomisation.
 """
+
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import List, Sequence
 
 from ..masks_types import Mask
 from ..tokenize import tokenize
@@ -42,7 +43,9 @@ _OPTIONAL_CLASSES = {
         "Hexadecimal identifiers (e.g. 0xDEADBEEF)",
     ),
     "UUID": (
-        re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"),
+        re.compile(
+            r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        ),
         r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b",
         "RFC 4122 UUIDs",
     ),
@@ -69,16 +72,18 @@ _OPTIONAL_CLASSES = {
 }
 
 
-def _core_masks() -> List[Mask]:
+def _core_masks() -> list[Mask]:
     """Return the canonical four-class core bundle in deterministic order."""
     by_name = {cls.name: cls for cls in REGEX_CLASSES}
     return [
-        Mask(label=name, pattern=by_name[name].free_pattern, justification=by_name[name].description)
+        Mask(
+            label=name, pattern=by_name[name].free_pattern, justification=by_name[name].description
+        )
         for name in CORE_LABELS
     ]
 
 
-def _infer_optional_masks(logs: Sequence[str]) -> List[Mask]:
+def _infer_optional_masks(logs: Sequence[str]) -> list[Mask]:
     found: dict[str, Mask] = {}
     for line in logs:
         for token in tokenize(line):
@@ -91,7 +96,7 @@ def _infer_optional_masks(logs: Sequence[str]) -> List[Mask]:
     return [found[k] for k in sorted(found)]
 
 
-def synthesize_offline(logs: Sequence[str], config: StubConfig | None = None) -> List[Mask]:
+def synthesize_offline(logs: Sequence[str], config: StubConfig | None = None) -> list[Mask]:
     """Synthesise a deterministic regex bundle from a log sample.
 
     Always includes the four core mask classes, then opportunistically

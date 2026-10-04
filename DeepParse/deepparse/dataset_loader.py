@@ -16,9 +16,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Sequence
 
 from .io_paths import PathConfig
 from .logging_utils import get_logger
@@ -45,7 +45,7 @@ EXPECTED_FILES = ["raw.log"]
 # by the canonical regex bundle.  The ground truth is generated from the
 # same canonical pipeline so that a faithful DeepParse implementation
 # achieves GA = PA = 1.0 on this dataset.
-_DEMO_LOGS: List[str] = [
+_DEMO_LOGS: list[str] = [
     "2024-01-01 00:00:00 INFO Worker-1 Completed task 42 in 0.5s",
     "2024-01-01 00:00:01 INFO Worker-2 Completed task 43 in 0.7s",
     "2024-01-01 00:00:02 INFO Worker-3 Completed task 44 in 0.9s",
@@ -116,5 +116,5 @@ def load_dataset(name: str, paths: PathConfig, create_demo: bool = True) -> Data
     return dataset
 
 
-def load_many(names: Iterable[str], paths: PathConfig) -> List[Dataset]:
+def load_many(names: Iterable[str], paths: PathConfig) -> list[Dataset]:
     return [load_dataset(name, paths) for name in names]

@@ -4,11 +4,10 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Optional
 
 try:  # Rich is optional; fall back to basic StreamHandler when unavailable
     from rich.logging import RichHandler
-except Exception:  # pragma: no cover - exercised when rich is absent
+except ImportError:  # pragma: no cover - exercised when rich is absent
     class RichHandler(logging.StreamHandler):  # type: ignore[no-redef]
         """Fallback handler mimicking :class:`rich.logging.RichHandler` signature."""
 
@@ -51,7 +50,7 @@ def configure_logging(log_dir: str, log_name: str) -> Path:
     return log_path
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
+def get_logger(name: str | None = None) -> logging.Logger:
     """Return a module-specific logger."""
 
     return logging.getLogger(name)
