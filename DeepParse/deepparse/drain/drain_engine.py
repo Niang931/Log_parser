@@ -206,6 +206,49 @@ class DrainEngine:
                 templates_by_id[cluster.cluster_id] = cluster.template_str()
         return [(cid, templates_by_id[cid]) for cid in cluster_ids]
 
+    def match(self, line: str, threshold: float = 1.0) -> DrainCluster | None:
+        """Determine where the cluster belongs to mutating the tree."""
+        tokens = tokenize(self.applier.apply(line)) or [""]
+        key = self._cluster_key(tokens)
+        best = self._best_in(self._buckets.get(key, ()), tokens, threshold)
+        if best is not None:
+            return best
+        length, prefix = key
+        line_prefix = prefix.split(" ")
+        for (other_len, other_prefix), clusters in self._buckets.items():
+            if other_len != length or other_prefix == prefix:
+                continue
+            if all(p == WILDCARD or p == t for p, t in zip(other_prefix.split(" "), line_prefix)):
+                best = self._best_in(clusters, tokens, threshold)
+                if best is not None:
+                    return best
+        return None
+
+    @staticmethod
+    def _best_in(
+        clusters: Iterable[DrainCluster], tokens: Sequence[str], threshold: float
+    ) -> DrainCluster | None:
+        best: DrainCluster | None = None
+        best_score = -1.0
+        for cluster in clusters:
+            score = cluster.similarity(tokens)
+            if score > best_score:
+                best_score, best = score, cluster
+        return best if best is not None and best_score >= threshold else None
+
+    def add_template(self, cluster_id: int, template: Sequence[str]) -> DrainCluster:
+        tokens = list(template) or [""]
+        cluster = DrainCluster(cluster_id=cluster_id, template=tokens, size=0)
+        self._buckets.setdefault(self._cluster_key(tokens), []).append(cluster)
+        self._next_id = max(self._next_id, cluster_id + 1)
+        return cluster
+
+    @property
+    def clusters(self) -> list[DrainCluster]:
+        """Return all clusters ordered by cluster id."""
+        found = [c for bucket in self._buckets.values() for c in bucket]
+        return sorted(found, key=lambda c: c.cluster_id)
+
     @property
     def num_clusters(self) -> int:
         return sum(len(v) for v in self._buckets.values())
