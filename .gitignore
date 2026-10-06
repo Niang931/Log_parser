@@ -25,3 +25,7 @@ htmlcov/
 logs/
 *.log
 *.txt
+artifacts/
+
+# Test fixtures are committed
+!tests/fixtures/**/*.log

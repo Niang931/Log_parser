@@ -17,18 +17,26 @@ uv sync --group dev
 
 ## Running
 
+Set `LOGS_PATH` in `.env` to point to the directory containing your log files (default: `logs/`).
+
 ```sh
-make run
+make calibrate  # learn templates + key names from historical logs -> registry v1
+make run        # replay LOGS_PATH through the frozen parser (FINAL / PENDING per line)
 ```
 
-Set `LOGS_PATH` in `.env` to point to the directory containing your log files (default: `logs/`).
+Try it on the bundled fixtures:
+
+```sh
+uv run logpipe calibrate --logs tests/fixtures/iot
+uv run logpipe replay --logs tests/fixtures/iot
+```
 
 ## Other commands
 
 ```sh
 make test       # run tests
 make lint       # lint with ruff
-make docker-up  # start postgres
+make docker-up  # start ClickHouse
 make docker-down
 ```
 

@@ -4,10 +4,37 @@ version = "0.1.0"
 description = "Log parser with anomoly detection and schema insertion for visualization"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "deepparse-artifact",
+]
+
+[project.scripts]
+logpipe = "logpipe.cli:main"
+
+[tool.uv.sources]
+deepparse-artifact = { path = "DeepParse", editable = true }
 
 [dependency-groups]
 dev = [
     "pytest>=8.0",
     "ruff>=0.4",
+    "hypothesis>=6.92",
 ]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["logpipe*"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+markers = [
+    "integration: tests that need running services such as ClickHouse",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["DeepParse"]

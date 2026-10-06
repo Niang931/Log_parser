@@ -1,10 +1,13 @@
-.PHONY: run test lint docker-up docker-down
+.PHONY: run calibrate test lint docker-up docker-down
+
+calibrate:
+	uv run --env-file .env logpipe calibrate
 
 run:
-	PYTHONPATH=. uv run --env-file .env python parser/parser.py
+	uv run --env-file .env logpipe replay
 
 test:
-	PYTHONPATH=. uv run --env-file .env pytest
+	uv run pytest
 
 lint:
 	uv run ruff check .
