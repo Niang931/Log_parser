@@ -21,7 +21,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, Iterable, List
 
-from ..masks_types import Mask
+from deepparse.masks_types import Mask
 
 
 @dataclass(frozen=True)

@@ -7,12 +7,12 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..dataset_loader import load_dataset
-from ..drain.drain_engine import DrainEngine
-from ..io_paths import PathConfig
-from ..logging_utils import get_logger
-from ..masks_types import Mask
-from ..utils.regex_library import validate_regexes
+from deepparse.dataset_loader import load_dataset
+from deepparse.drain.drain_engine import DrainEngine
+from deepparse.io_paths import PathConfig
+from deepparse.logging_utils import get_logger
+from deepparse.masks_types import Mask
+from deepparse.utils.regex_library import validate_regexes
 
 LOGGER = get_logger(__name__)
 

@@ -1,5 +1,5 @@
 """Drain parser package."""
 
-from .drain_engine import DrainEngine
+from deepparse.drain.drain_engine import DrainEngine
 
 __all__ = ["DrainEngine"]

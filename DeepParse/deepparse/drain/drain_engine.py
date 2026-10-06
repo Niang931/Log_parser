@@ -22,9 +22,9 @@ import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 
-from ..masks_types import Mask
-from ..tokenize import tokenize
-from .masks_application import MaskApplier
+from deepparse.drain.masks_application import MaskApplier
+from deepparse.masks_types import Mask
+from deepparse.tokenize import tokenize
 
 WILDCARD = "<*>"
 _VAR_PLACEHOLDER_RE = re.compile(r"<VAR:[A-Z0-9]+>")

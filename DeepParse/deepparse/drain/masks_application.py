@@ -12,7 +12,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 
-from ..masks_types import Mask
+from deepparse.masks_types import Mask
 
 
 def _placeholder_for(label: str) -> str:
