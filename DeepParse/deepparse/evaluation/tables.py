@@ -5,7 +5,7 @@ import csv
 from collections.abc import Iterable
 from pathlib import Path
 
-from ..logging_utils import get_logger
+from deepparse.logging_utils import get_logger
 
 LOGGER = get_logger(__name__)
 

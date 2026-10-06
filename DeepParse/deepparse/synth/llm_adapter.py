@@ -1,16 +1,20 @@
-"""High level interface for mask synthesis (offline + Hugging Face)."""
+"""High level interface for mask synthesis (offline, Hugging Face, chat providers)."""
 from __future__ import annotations
 
 import json
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING, Sequence
 
-from ..dataset_loader import Dataset
-from ..logging_utils import get_logger
-from ..masks_types import Mask, MaskBundle
-from ..utils.regex_library import validate_regexes
-from ..utils.sampling import deterministic_sample
-from .r1_deepseek_stub import synthesize_offline
+from deepparse.dataset_loader import Dataset
+from deepparse.logging_utils import get_logger
+from deepparse.masks_types import Mask, MaskBundle
+from deepparse.synth.r1_deepseek_stub import synthesize_offline
+from deepparse.utils.regex_library import validate_regexes
+from deepparse.utils.sampling import deterministic_sample
+
+if TYPE_CHECKING:
+    from deepparse.synth.chat_provider import LLMSynthConfig
 
 LOGGER = get_logger(__name__)
 
@@ -27,6 +31,7 @@ def synthesize_masks(
     strict: bool = False,
     model_name: str | None = None,
     adapter_path: str | None = None,
+    llm_config: LLMSynthConfig | None = None,
 ) -> MaskBundle:
     LOGGER.info("Synthesising masks for %s with mode=%s", dataset.name, mode)
     sample = deterministic_sample(dataset.logs, k)
@@ -36,7 +41,7 @@ def synthesize_masks(
         masks = synthesize_offline(sample)
 
     elif mode == "hf":
-        from .hf_deepseek_r1 import synthesize_hf, synthesize_hf_from_checkpoint
+        from deepparse.synth.hf_deepseek_r1 import synthesize_hf, synthesize_hf_from_checkpoint
 
         # Either synth from a fine-tuned model or just the original DeepSeekModel
         if adapter_path and not model_name:
@@ -49,6 +54,10 @@ def synthesize_masks(
                 model_name=model_name or "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
                 adapter_path=adapter_path,
             )
+    elif mode == "llm":
+        from deepparse.synth.chat_provider import synthesize_llm
+
+        masks = synthesize_llm(sample, llm_config)
     else:
         raise UnsupportedModeError(mode)
 

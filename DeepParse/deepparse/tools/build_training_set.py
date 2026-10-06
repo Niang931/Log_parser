@@ -144,7 +144,7 @@ def build_examples(
     if entropy_k is not None and entropy_k < len(lines):
         # Paper, Section 'Implementation Details': training samples are
         # selected via the entropy-greedy algorithm.
-        from ..utils.sampling import entropy_greedy_sample
+        from deepparse.utils.sampling import entropy_greedy_sample
         keep = sorted(set(entropy_greedy_sample(lines, entropy_k)))
         lines = [lines[i] for i in keep]
         entries = [entries[i] for i in keep]

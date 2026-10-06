@@ -10,15 +10,18 @@ from pathlib import Path
 
 import click
 
-from .dataset_loader import load_dataset
-from .io_paths import build_paths
-from .logging_utils import configure_logging, get_logger
-from .masks_types import Mask
-from .seeds import resolve_seed, set_global_seed
-from .synth import synthesize_masks
-from .utils.yaml_loader import load_yaml
+from deepparse.dataset_loader import load_dataset
+from deepparse.io_paths import build_paths
+from deepparse.logging_utils import configure_logging, get_logger
+from deepparse.masks_types import Mask
+from deepparse.seeds import resolve_seed, set_global_seed
+from deepparse.synth import synthesize_masks
+from deepparse.utils.yaml_loader import load_yaml
 
 LOGGER = get_logger(__name__)
+
+# Kept literal so `--help` works without the optional LLM stack installed.
+LLM_PROVIDERS = ["anthropic", "openai", "gemini", "groq", "web"]
 
 
 @click.group()
@@ -39,32 +42,32 @@ def _load_base_config(path: str) -> dict:
 @click.option("--config", type=click.Path(), required=False)
 @click.option("--k", type=int, default=None)
 @click.option("--out", type=click.Path(), required=False)
-@click.option("--mode", type=click.Choice(["offline", "hf"]), default="offline")
-@click.option(
-    "--model",
-    "model_name",
-    type=str,
-    default=None,
-    help="Override base model name (default: deepseek-ai/DeepSeek-R1-Distill-Llama-8B)",
-)
-@click.option(
-    "--adapter", type=click.Path(), default=None, help="Path to a fine-tuned LoRA adapter directory"
-)
+@click.option("--mode", type=click.Choice(["offline", "hf", "llm"]), default=None,
+              help="Synthesis backend (default: `mode` in the config, else offline)")
+@click.option("--model", "model_name", type=str, default=None,
+              help="Override the model. hf: a Hugging Face id (default: "
+                   "deepseek-ai/DeepSeek-R1-Distill-Llama-8B). llm: the provider's model id, "
+                   "or for --provider web the site: claude, chatgpt or gemini")
+@click.option("--adapter", type=click.Path(), default=None,
+              help="Path to a fine-tuned LoRA adapter directory")
+@click.option("--provider", type=click.Choice(LLM_PROVIDERS), default=None,
+              help="llm mode: chat provider (default: llm.provider in the config)")
+@click.option("--effort", type=click.Choice(["low", "medium", "high", "xhigh", "max"]),
+              default=None, help="llm mode: reasoning effort, where the model has one")
+@click.option("--max-tokens", type=int, default=None,
+              help="llm mode: output token cap, reasoning included")
+@click.option("--browser", type=click.Choice(["camoufox", "chrome"]), default=None,
+              help="llm mode, --provider web: which signed-in browser profile to drive")
+@click.option("--headed", is_flag=True, default=False,
+              help="llm mode, --provider web: show the browser window")
 @click.option("--strict", is_flag=True, default=False)
 @click.option("--seed", type=int, default=None)
 @click.pass_context
-def synth(
-    ctx: click.Context,
-    dataset: str | None,
-    config: str | None,
-    k: int | None,
-    out: str | None,
-    mode: str,
-    model_name: str | None,
-    adapter: str | None,
-    strict: bool,
-    seed: int | None,
-) -> None:
+def synth(ctx: click.Context, dataset: Optional[str], config: Optional[str], k: Optional[int],
+          out: Optional[str], mode: Optional[str], model_name: Optional[str],
+          adapter: Optional[str], provider: Optional[str], effort: Optional[str],
+          max_tokens: Optional[int], browser: Optional[str], headed: bool,
+          strict: bool, seed: Optional[int]) -> None:
     base = _load_base_config("configs/default.yaml")
 
     # Config here means the config yaml file path
@@ -88,18 +91,38 @@ def synth(
     # Set the path and log sample size before synthesizing the masks for all datasets
     paths = build_paths(base["dataset_dir"], base["mask_dir"], base["output_dir"], base["log_dir"])
     k = k or base.get("k", 50)
+    mode = mode or base.get("mode", "offline")
+
+    llm_config = None
+    if mode == "llm":
+        from deepparse.synth.chat_provider import LLMSynthConfig
+
+        llm = base.get("llm") or {}
+        llm_config = LLMSynthConfig(
+            provider=provider or llm.get("provider", "anthropic"),
+            model_name=model_name or llm.get("model"),
+            effort=effort or llm.get("effort", "medium"),
+            max_tokens=max_tokens or llm.get("max_tokens", 8192),
+            seed=seed,
+            browser=browser or llm.get("browser", "camoufox"),
+            headless=not (headed or llm.get("headed", False)),
+        )
+
     for name in datasets:
         dataset_obj = load_dataset(name, paths)
         out_path = Path(out or paths.mask_dir / f"{name}.json")
-        synthesize_masks(
-            dataset_obj,
-            k,
-            out_path,
-            mode=mode,
-            strict=strict,
-            model_name=model_name,
-            adapter_path=adapter,
-        )
+        try:
+            synthesize_masks(
+                dataset_obj, k, out_path,
+                mode=mode, strict=strict,
+                model_name=model_name, adapter_path=adapter,
+                llm_config=llm_config,
+            )
+        except (LookupError, RuntimeError, ValueError) as error:
+            # Missing API key, unknown provider/site, or the browser could not be driven.
+            if mode != "llm":
+                raise
+            raise click.ClickException(f"{type(error).__name__}: {error}") from error
 
 
 @cli.command()
@@ -116,7 +139,7 @@ def parse(ctx: click.Context, dataset: str, output: str | None, seed: int | None
         raise click.ClickException(f"Mask file missing at {mask_path}")
     masks_data = json.loads(mask_path.read_text(encoding="utf-8"))
     masks = [Mask(**entry) for entry in masks_data]
-    from .drain.drain_engine import DrainEngine
+    from deepparse.drain.drain_engine import DrainEngine
 
     engine = DrainEngine(masks=masks)
     templates = engine.parse(dataset_obj.logs)
@@ -138,8 +161,8 @@ def parse(ctx: click.Context, dataset: str, output: str | None, seed: int | None
 @click.option("--deterministic", is_flag=True, default=False)
 @click.option("--seed", type=int, default=None)
 @click.pass_context
-def eval(ctx: click.Context, config: str, deterministic: bool, seed: int | None) -> None:
-    from .evaluation.eval_runner import EvaluationRunner
+def eval(ctx: click.Context, config: str, deterministic: bool, seed: Optional[int]) -> None:
+    from deepparse.evaluation.eval_runner import EvaluationRunner
 
     runner = EvaluationRunner(Path(config))
     if seed is not None:
@@ -153,7 +176,7 @@ def eval(ctx: click.Context, config: str, deterministic: bool, seed: int | None)
 @click.option("--out", type=click.Path(), required=True)
 @click.pass_context
 def table(ctx: click.Context, inputs: Iterable[str], out: str) -> None:
-    from .evaluation.tables import build_tables
+    from deepparse.evaluation.tables import build_tables
 
     paths = [Path(path) for path in (inputs or glob.glob("artifacts/outputs/*.csv"))]
     build_tables(paths, Path(out))
@@ -165,7 +188,7 @@ def table(ctx: click.Context, inputs: Iterable[str], out: str) -> None:
 @click.option("--config", type=click.Path(), default="configs/default.yaml")
 @click.pass_context
 def time(ctx: click.Context, dataset: str, n: int, config: str) -> None:
-    from .evaluation.timing_bench import run_timing_benchmark
+    from deepparse.evaluation.timing_bench import run_timing_benchmark
 
     base = _load_base_config(config)
     paths = build_paths(base["dataset_dir"], base["mask_dir"], base["output_dir"], base["log_dir"])

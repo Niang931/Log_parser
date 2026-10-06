@@ -60,6 +60,24 @@ hf = [
     "accelerate>=0.24",
     "peft>=0.7",
 ]
+# Hosted chat providers for synth --mode llm (anthropic, openai, gemini, groq).
+llm = [
+    "pydantic>=2.7",
+    "langchain-core>=1.0",
+    "langchain-anthropic>=1.0",
+    "langchain-openai>=1.0",
+    "langchain-google-genai>=3.0",
+    "langchain-groq>=1.0",
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+]
+# The signed-in browser provider (--provider web). Needs the browser itself once: `camoufox fetch` (or `playwright install chromium` for --browser chrome).
+web = [
+    "pydantic>=2.7",
+    "langchain-core>=1.0",
+    "playwright>=1.45",
+    "camoufox>=0.4",
+]
 # Adds the fine-tuning toolchain on top of `hf` extras.
 train = [
     "torch>=2.1",
@@ -101,6 +119,8 @@ omit = [
     "deepparse/tools/fetch_loghub.py",  # exercised by integration tests
     "deepparse/cli.py",          # exercised by tests/test_cli_e2e.py via subprocess
     "deepparse/seeds.py",        # mostly torch/cuda branches not reachable on CI
+    "deepparse/providers/*",     # vendor SDKs and network calls
+    "deepparse/ai_scraper/*",    # drives a real, signed-in browser
 ]
 
 [tool.coverage.report]

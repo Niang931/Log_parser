@@ -29,10 +29,12 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..logging_utils import get_logger
-from ..masks_types import Mask
-from ..utils.regex_library import canonical_masks, validate_regexes
-from .prompt_templates import MASK_SYNTH_PROMPT  # noqa: F401  (kept for backwards compat)
+from deepparse.logging_utils import get_logger
+from deepparse.masks_types import Mask
+from deepparse.synth.prompt_templates import (
+    MASK_SYNTH_PROMPT,  # noqa: F401  (kept for backwards compat)
+)
+from deepparse.utils.regex_library import canonical_masks, validate_regexes
 
 LOGGER = get_logger(__name__)
 

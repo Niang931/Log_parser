@@ -22,16 +22,16 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..dataset_loader import Dataset, load_dataset
-from ..drain.drain_engine import DrainEngine
-from ..io_paths import build_paths
-from ..logging_utils import get_logger
-from ..masks_types import Mask
-from ..metrics import grouping_accuracy, parsing_accuracy
-from ..seeds import resolve_seed, set_global_seed
-from ..synth import synthesize_masks
-from ..utils.regex_library import canonical_masks, validate_regexes
-from ..utils.yaml_loader import load_yaml
+from deepparse.dataset_loader import Dataset, load_dataset
+from deepparse.drain.drain_engine import DrainEngine
+from deepparse.io_paths import build_paths
+from deepparse.logging_utils import get_logger
+from deepparse.masks_types import Mask
+from deepparse.metrics import grouping_accuracy, parsing_accuracy
+from deepparse.seeds import resolve_seed, set_global_seed
+from deepparse.synth import synthesize_masks
+from deepparse.utils.regex_library import canonical_masks, validate_regexes
+from deepparse.utils.yaml_loader import load_yaml
 
 LOGGER = get_logger(__name__)
 

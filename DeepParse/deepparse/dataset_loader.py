@@ -20,8 +20,8 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from .io_paths import PathConfig
-from .logging_utils import get_logger
+from deepparse.io_paths import PathConfig
+from deepparse.logging_utils import get_logger
 
 LOGGER = get_logger(__name__)
 
@@ -72,8 +72,8 @@ def _create_demo_dataset(path: Path) -> None:
 
     # Build ground truth using the canonical mask bundle so that any
     # faithful DeepParse implementation matches it exactly.
-    from .drain.drain_engine import DrainEngine  # local import to avoid cycle
-    from .utils.regex_library import canonical_masks
+    from deepparse.drain.drain_engine import DrainEngine  # local import to avoid cycle
+    from deepparse.utils.regex_library import canonical_masks
 
     engine = DrainEngine(masks=canonical_masks())
     pairs = engine.parse_with_ids(_DEMO_LOGS)

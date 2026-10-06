@@ -164,19 +164,39 @@ drain.load_masks(patterns)
 parsed = drain.parse_all(sys_logs)
 ```
 
-`synth_masks` returns a list of `{"label", "pattern", "justification"}` dicts. `mode="offline"` (default) is fully deterministic and pure-CPU; `mode="hf"` invokes the Hugging Face backend, optionally loading a fine-tuned LoRA adapter via `adapter_path=`.
+`synth_masks` returns a list of `{"label", "pattern", "justification"}` dicts. `mode="offline"` (default) is fully deterministic and pure-CPU; `mode="hf"` invokes the Hugging Face backend, optionally loading a fine-tuned LoRA adapter via `adapter_path=`. `mode="llm"` asks a hosted chat model instead — see below.
+
+### Hosted and browser LLMs (`mode="llm"`)
+
+Install the extras (`pip install -e '.[llm]'`, plus `'.[web]'` for the browser), then pick a provider:
+
+| `provider` | Key from | Default `model_name` |
+|---|---|---|
+| `anthropic` | `ANTHROPIC_API_KEY` | `claude-opus-5` |
+| `openai` | `OPENAI_API_KEY` | `gpt-6-astra` |
+| `gemini` | `GOOGLE_API_KEY` or `GEMINI_API_KEY` | `gemini-3.8-flash` |
+| `groq` | `GROQ_API_KEY` | `openai/gpt-oss-120b` |
+| `web` | none — your signed-in browser | `claude` (or `chatgpt`, `gemini`) |
+
+```python
+patterns = synth_masks(sys_logs, sample_size=50, mode="llm", provider="openai", effort="high")
+```
+
+The reply is held to a schema through each vendor's structured output, so there is no free-form parsing; patterns that do not compile are dropped, and the four core classes are backfilled as in the paper. The `web` provider drives the chat site in a real browser: sign in once with `python -m deepparse.ai_scraper login claude`, and fetch the browser with `camoufox fetch` the first time. Profiles live in `DeepParse/.webchat/` (or `$DEEPPARSE_WEBCHAT_DIR`). Runs through `web` are not reproducible — the site picks the model and the sampling.
 
 ## CLI
 
 ```bash
 deepparse synth   --dataset HDFS --mode hf --adapter artifacts/checkpoints/deepparse-r1-8b
+deepparse synth   --dataset HDFS --mode llm --provider anthropic --effort high
+deepparse synth   --dataset HDFS --mode llm --provider web --model chatgpt --headed
 deepparse parse   --dataset HDFS --output artifacts/outputs/HDFS_parsed.csv
 deepparse eval    --config configs/eval_16_datasets.yaml --deterministic
 deepparse time    --dataset HDFS --n 100
 deepparse table   --inputs artifacts/outputs/table_I_ga_pa.csv --out artifacts/outputs/tables/
 ```
 
-`deepparse --help` and `deepparse <subcommand> --help` list every option.
+`deepparse --help` and `deepparse <subcommand> --help` list every option. The `llm:` block in `configs/default.yaml` sets the provider defaults that `--provider`, `--model`, `--effort` and `--max-tokens` override.
 
 ## Results (paper Table I)
 
@@ -211,7 +231,9 @@ deepparse/                  Python package
   api.py                    Public Drain + synth_masks helpers (paper Listing 1)
   cli.py                    `deepparse` Click CLI (synth/parse/eval/time/table)
   drain/                    Mask applier + Drain engine (typed placeholders)
-  synth/                    Offline stub + Hugging Face backend
+  synth/                    Offline stub, Hugging Face and chat-provider backends
+  providers/                Anthropic, OpenAI, Gemini, Groq and browser chat adapters
+  ai_scraper/               Drives signed-in Claude/ChatGPT/Gemini web apps (Playwright)
   training/                 LoRA fine-tuning script (paper hyperparameters)
   tools/                    LogHub-2k fetcher + Listing-2 training-set builder
   utils/                    Entropy-greedy sampling, regex library, YAML loader

@@ -18,3 +18,5 @@ coverage.xml
 dist/
 build/
 release_notes.md
+# Browser profiles (signed-in sessions), conversations and error captures
+.webchat/

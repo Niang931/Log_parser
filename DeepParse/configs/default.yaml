@@ -9,3 +9,13 @@ dataset_dir: artifacts/data
 log_dir: artifacts/outputs/logs
 device: cpu
 deterministic: true
+# Used when mode is llm (or --mode llm). CLI flags override these.
+# API keys come from the environment: ANTHROPIC_API_KEY, OPENAI_API_KEY,
+# GOOGLE_API_KEY (or GEMINI_API_KEY), GROQ_API_KEY. provider "web" needs none.
+llm:
+  provider: anthropic
+  model: null          # null = the provider's default; for web: claude | chatgpt | gemini
+  effort: medium
+  max_tokens: 8192
+  browser: camoufox    # web only
+  headed: false        # web only

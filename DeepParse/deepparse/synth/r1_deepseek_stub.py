@@ -20,9 +20,9 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from ..masks_types import Mask
-from ..tokenize import tokenize
-from ..utils.regex_library import REGEX_CLASSES
+from deepparse.masks_types import Mask
+from deepparse.tokenize import tokenize
+from deepparse.utils.regex_library import REGEX_CLASSES
 
 
 @dataclass

@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 
-from .utils.regex_library import classify_token
+from deepparse.utils.regex_library import classify_token
 
 TOKEN_SPLIT = re.compile(r"\s+")
 

@@ -14,15 +14,15 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
-from .drain.drain_engine import DrainEngine
-from .masks_types import Mask
-from .synth.r1_deepseek_stub import synthesize_offline
-from .utils.regex_library import validate_regexes
-from .utils.sampling import deterministic_sample
+from deepparse.drain.drain_engine import DrainEngine
+from deepparse.masks_types import Mask
+from deepparse.synth.r1_deepseek_stub import synthesize_offline
+from deepparse.utils.regex_library import validate_regexes
+from deepparse.utils.sampling import deterministic_sample
 
 try:  # Optional heavy dependency
-    from .synth.hf_deepseek_r1 import synthesize_hf as _synthesize_hf
-except ImportError:  # pragma: no cover - optional path
+    from deepparse.synth.hf_deepseek_r1 import synthesize_hf as _synthesize_hf
+except Exception:  # pragma: no cover - optional path
     _synthesize_hf = None  # type: ignore[assignment]
 
 MaskLike = Mask | dict
@@ -53,14 +53,21 @@ def synth_masks(
     strict: bool = False,
     model_name: str | None = None,
     adapter_path: str | None = None,
-) -> list[dict]:
+    provider: str = "anthropic",
+    effort: str = "medium",
+    max_tokens: int = 8192,
+    seed: int | None = None,
+) -> List[dict]:
     """Synthesise a regex mask bundle from raw log lines.
 
     Returns a list of ``{"label", "pattern", "justification"}``
     dictionaries.  In ``mode="offline"`` (the default) the result is
     deterministic and produced entirely on CPU.  ``mode="hf"`` invokes
     the optional Hugging Face pipeline with the requested generation
-    controls.
+    controls.  ``mode="llm"`` asks a chat ``provider`` (``anthropic``,
+    ``openai``, ``gemini``, ``groq`` — keyed from the environment — or
+    ``web``, a signed-in browser) with ``model_name`` or the provider's
+    default; ``max_tokens`` caps its output, reasoning included.
     """
     if not logs:
         raise ValueError("Cannot synthesise masks from an empty log sequence")
@@ -81,6 +88,19 @@ def synth_masks(
             temperature=temperature,
             num_beams=num_beams,
             max_length=max_length,
+        )
+    elif mode == "llm":
+        from deepparse.synth.chat_provider import LLMSynthConfig, synthesize_llm
+
+        masks = synthesize_llm(
+            sample,
+            LLMSynthConfig(
+                provider=provider,
+                model_name=model_name,
+                effort=effort,
+                max_tokens=max_tokens,
+                seed=seed,
+            ),
         )
     else:
         raise ValueError(f"Unsupported synthesis mode: {mode!r}")
