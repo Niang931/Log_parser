@@ -1,0 +1,10 @@
+2026-04-13 10:15:23.123 [INFO] Thermostat SN:TH-45678 temp=22.5C target=23.0C mode=auto humidity=45%
+2026-04-13 10:15:33.101 [INFO] Thermostat SN:TH-45678 temp=22.6C target=23.0C mode=auto humidity=46%
+2026-04-13 10:15:43.087 [INFO] Thermostat SN:TH-45678 temp=22.8C target=23.0C mode=heat humidity=46%
+2026-04-13 10:15:44.002 [INFO] Heater relay switched state=on duty=40
+2026-04-13 10:15:53.119 [INFO] Thermostat SN:TH-45678 temp=23.0C target=23.0C mode=auto humidity=47%
+2026-04-13 10:15:54.010 [INFO] Heater relay switched state=off duty=0
+2026-04-13 10:16:00.500 [WARN] Wifi rssi=-71 dBm below threshold -70 dBm
+2026-04-13 10:16:03.140 [INFO] Thermostat SN:TH-45678 temp=22.9C target=23.0C mode=auto humidity=47%
+2026-04-13 10:16:10.000 [INFO] MQTT publish topic=home/th/telemetry qos=1 bytes=212
+2026-04-13 10:16:20.000 [INFO] MQTT publish topic=home/th/telemetry qos=1 bytes=215

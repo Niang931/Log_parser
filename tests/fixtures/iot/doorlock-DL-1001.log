@@ -1,0 +1,7 @@
+2026-04-13 10:15:20.000 [INFO] Lock DL-1001 state=locked battery=87% user=none
+2026-04-13 10:17:02.331 [INFO] Keypad code accepted user=alice slot=2
+2026-04-13 10:17:02.512 [INFO] Lock DL-1001 state=unlocked battery=87% user=alice
+2026-04-13 10:17:35.020 [INFO] Door sensor contact=open
+2026-04-13 10:17:41.790 [INFO] Door sensor contact=closed
+2026-04-13 10:17:50.000 [INFO] Lock DL-1001 state=locked battery=86% user=auto
+2026-04-13 10:18:10.000 [INFO] MQTT publish topic=home/dl/events qos=1 bytes=98
