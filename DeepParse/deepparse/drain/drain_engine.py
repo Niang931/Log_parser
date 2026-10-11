@@ -16,6 +16,7 @@ Properties guaranteed by this implementation:
 * Identical log lines always receive the same template id (matches the
   guarantee called out in the paper, Section "Integration with Drain").
 """
+
 from __future__ import annotations
 
 import re
@@ -70,7 +71,7 @@ class DrainCluster:
             return
 
         # This is what makes drain dynamic, if the log is identified the same type
-        # then it changes places that are not constant based on last log with wildcard 
+        # then it changes places that are not constant based on last log with wildcard
         for index, token in enumerate(tokens):
             current = self.template[index]
             # If the tempalate and token is same then pass (this current token is the template)
@@ -109,6 +110,7 @@ class DrainEngine:
     similarity_threshold: float = 0.4
     max_children: int = 100
     masks: Sequence[Mask] = field(default_factory=list)
+    numeric_wildcard: bool = False
 
     def __post_init__(self) -> None:
         self.applier = MaskApplier(self.masks)
@@ -116,34 +118,46 @@ class DrainEngine:
         # lookup is O(1) amortised.  Tokens of any kind that exceed the
         # bucket's depth do not affect grouping.
         self._buckets: dict[tuple[int, str], list[DrainCluster]] = {}
+        self._wild: dict[int, list[tuple[list[str], list[DrainCluster]]]] = {}
         self._next_id: int = 0
 
-    # ---- internal helpers --------------------------------------------------
     def _cluster_key(self, tokens: Sequence[str]) -> tuple[int, str]:
+        """Returns (count of words / tokens, space separated token sequence (with VAR replaced with wildcard <*>)."""
         prefix_tokens: list[str] = []
         for tok in tokens[: self.depth]:
-            # Treat typed placeholders and pure-digit tokens as the same
-            # "bucket key" so messages with different concrete values
-            # cluster together at the prefix layer.
-            if _is_placeholder(tok) or tok.isdigit():
+            if (
+                _is_placeholder(tok)
+                or tok.isdigit()
+                # Checking if any character in the token is a digit if mode enabled
+                or (self.numeric_wildcard and any(ch.isdigit() for ch in tok))
+            ):
                 prefix_tokens.append(WILDCARD)
             else:
                 prefix_tokens.append(tok)
         return len(tokens), " ".join(prefix_tokens)
+
+    def _bucket(self, key: tuple[int, str]) -> list[DrainCluster]:
+        """Create and return a bucket if not init yet, update _wild while its at that."""
+        bucket = self._buckets.get(key)
+        if bucket is None:
+            bucket = self._buckets[key] = []
+            prefix = key[1].split(" ")
+            if WILDCARD in prefix:
+                self._wild.setdefault(key[0], []).append((prefix, bucket))
+        return bucket
 
     def _allocate_id(self) -> int:
         cid = self._next_id
         self._next_id += 1
         return cid
 
-    # ---- public API --------------------------------------------------------
     def add_log(self, line: str) -> DrainCluster:
         masked_line = self.applier.apply(line)
         tokens = tokenize(masked_line)
         if not tokens:
             tokens = [""]
         key = self._cluster_key(tokens)
-        cluster_list = self._buckets.setdefault(key, [])
+        cluster_list = self._bucket(key)
 
         best_cluster: DrainCluster | None = None
         best_score = -1.0
@@ -207,7 +221,7 @@ class DrainEngine:
         return [(cid, templates_by_id[cid]) for cid in cluster_ids]
 
     def match(self, line: str, threshold: float = 1.0) -> DrainCluster | None:
-        """Determine where the cluster belongs to mutating the tree."""
+        """Find the cluster ``line`` belongs to without mutating the tree; ``None`` if none fits."""
         tokens = tokenize(self.applier.apply(line)) or [""]
         key = self._cluster_key(tokens)
         best = self._best_in(self._buckets.get(key, ()), tokens, threshold)
@@ -215,10 +229,11 @@ class DrainEngine:
             return best
         length, prefix = key
         line_prefix = prefix.split(" ")
-        for (other_len, other_prefix), clusters in self._buckets.items():
-            if other_len != length or other_prefix == prefix:
+        for other_prefix, clusters in self._wild.get(length, ()):
+            if other_prefix == line_prefix:
                 continue
-            if all(p == WILDCARD or p == t for p, t in zip(other_prefix.split(" "), line_prefix)):
+
+            if all(p == WILDCARD or p == t for p, t in zip(other_prefix, line_prefix)):
                 best = self._best_in(clusters, tokens, threshold)
                 if best is not None:
                     return best
@@ -239,7 +254,7 @@ class DrainEngine:
     def add_template(self, cluster_id: int, template: Sequence[str]) -> DrainCluster:
         tokens = list(template) or [""]
         cluster = DrainCluster(cluster_id=cluster_id, template=tokens, size=0)
-        self._buckets.setdefault(self._cluster_key(tokens), []).append(cluster)
+        self._bucket(self._cluster_key(tokens)).append(cluster)
         self._next_id = max(self._next_id, cluster_id + 1)
         return cluster
 

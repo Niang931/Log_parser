@@ -12,7 +12,6 @@ from deepparse.utils.deterministic import timed_block
 from deepparse.utils.yaml_loader import load_yaml, loads_yaml
 
 
-# --- tokenize ----------------------------------------------------------------
 def test_tokenize_strips_and_splits():
     assert tokenize("  a  b\tc\n") == ["a", "b", "c"]
 
@@ -26,9 +25,8 @@ def test_mask_tokens_substitutes_known_classes():
     assert out == ["<LOGLEVEL>", "<IPV4>", "hello"]
 
 
-# --- yaml_loader -------------------------------------------------------------
 def test_loads_yaml_scalars_and_lists():
-    text = "\n".join([
+    text = "\n".join([  # noqa: FLY002
         "k_int: 42",
         "k_float: 3.14",
         "k_true: true",
@@ -51,7 +49,6 @@ def test_load_yaml_from_file(tmp_path):
     assert load_yaml(path) == {"foo": "bar", "baz": 1}
 
 
-# --- tables ------------------------------------------------------------------
 def test_build_tables_writes_table_i_and_ii(tmp_path):
     table_i = tmp_path / "metrics.csv"
     with table_i.open("w", encoding="utf-8", newline="") as fh:
@@ -75,14 +72,12 @@ def test_build_tables_writes_table_i_and_ii(tmp_path):
     assert "DeepParse" in (out_dir / "table_I.tex").read_text(encoding="utf-8")
 
 
-# --- logging -----------------------------------------------------------------
 def test_configure_logging_creates_log_file(tmp_path, monkeypatch):
     log_path = configure_logging(str(tmp_path), "deepparse-test")
     assert Path(log_path).exists()
     assert isinstance(get_logger("deepparse.tests"), logging.Logger)
 
 
-# --- deterministic helpers ---------------------------------------------------
 def test_timed_block_yields_label_and_start(capsys):
     with timed_block("hello") as (label, start):
         assert label == "hello"
