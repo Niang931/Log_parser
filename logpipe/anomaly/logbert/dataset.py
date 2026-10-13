@@ -29,11 +29,11 @@ from ..vocab import FIRST_KEY, MASK, PAD, SOS, UNK
 
 
 def mask_sequence(
-    seq: Sequence[int],
+    *,
+    sequence: Sequence[int],
     vocab_size: int,
     mask_ratio: float,
     rng: random.Random,
-    *,
     predict: bool,
     unk_ratio: float = 0.0,
     ensure_one: bool = False,
@@ -44,7 +44,7 @@ def mask_sequence(
     short windows still get scored.
     """
     inputs, labels = [SOS], [PAD]
-    for token in seq:
+    for token in sequence:
 
         # If UNK then we dont even consider masking the token
         if token == UNK:
@@ -75,7 +75,7 @@ def mask_sequence(
 
     # Ensure at least one token is masked (optional)
     if ensure_one and not any(labels):
-        known = [i for i, tok in enumerate(seq, start=1) if tok != UNK]
+        known = [i for i, tok in enumerate(sequence, start=1) if tok != UNK]
         if known:
             pos = rng.choice(known)
             labels[pos], inputs[pos] = inputs[pos], MASK
