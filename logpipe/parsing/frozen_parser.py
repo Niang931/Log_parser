@@ -3,9 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-from deepparse.drain.drain_engine import DrainEngine
-
-from ..registry import UNK_TEMPLATE_ID, RegistrySnapshot
+from ..registry import RegistrySnapshot, UniqueTemplateID
+from .engine import make_engine
 from .kv import compile_extractor, extract
 
 
@@ -25,7 +24,7 @@ class ParseResult:
 class FrozenParser:
     def __init__(self, snapshot: RegistrySnapshot, depth: int = 5):
         self.snapshot = snapshot
-        self._engine = DrainEngine(depth=depth, masks=list(snapshot.masks))
+        self._engine = make_engine(snapshot.masks, depth=depth)
         self._extractors = {}
         for entry in snapshot.templates.values():
             self._engine.add_template(entry.template_id, entry.tokens)
@@ -37,7 +36,7 @@ class FrozenParser:
 
         # If there is no pre-defined cluster
         if cluster is None:
-            return ParseResult(UNK_TEMPLATE_ID, Status.PENDING, {}, version)
+            return ParseResult(UniqueTemplateID.UNK_TEMPLATE_ID, Status.PENDING, {}, version)
 
         pattern, keys = self._extractors[cluster.cluster_id]
         payload = extract(pattern, keys, line) or {}

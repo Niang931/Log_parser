@@ -27,6 +27,7 @@ from typing import Literal
 from ..parsing.kv import SLOT_RE
 from ..registry import RegistrySnapshot
 from .llm import LLMAdapter
+from .worker import GuardedAdapter
 
 DiffKind = Literal["identical", "slot_only", "wording", "literal", "conflict"]
 
@@ -211,7 +212,7 @@ def classify_difference(a: Sequence[str], b: Sequence[str]) -> DiffKind:
 def find_alias(
     tokens: Sequence[str],
     snapshot: RegistrySnapshot,
-    adapter: LLMAdapter,
+    adapter: LLMAdapter | GuardedAdapter,
     samples: Sequence[str],
     *,
     threshold: float = 0.75,
