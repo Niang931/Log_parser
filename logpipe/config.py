@@ -13,6 +13,7 @@ class Settings:
     llm_backend: str
     store: str
     model_path: Path
+    web_browser: str
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -22,4 +23,5 @@ class Settings:
             llm_backend=os.environ.get("LLM_BACKEND", "offline"),
             store=os.environ.get("STORE", "memory"),
             model_path=Path(os.environ.get("MODEL_PATH", "artifacts/logbert")),
+            web_browser=os.environ.get("WEB_BROWSER", "camoufox").replace("chromium", "chrome"),
         )

@@ -12,6 +12,7 @@ can carry prompt injection, so callers validate the output (see
 """
 from __future__ import annotations
 
+import atexit
 from collections.abc import Sequence
 from functools import lru_cache
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
@@ -22,6 +23,9 @@ from deepparse.masks_types import Mask
 from ..parsing.kv import default_keys
 
 if TYPE_CHECKING:
+    from deepparse.ai_scraper.session import Browser
+    from deepparse.providers.base import ChatProvider
+    from deepparse.synth.chat_provider import LLMSynthConfig
     from langchain_core.runnables import Runnable
 
 
@@ -105,34 +109,61 @@ def _schemas():
 
 
 class ChatAdapter(OfflineAdapter):
-    """Hosted chat model through ``deepparse.providers`` (``anthropic``, ``openai``, ...)."""
+    """Chat model through ``deepparse.providers``: hosted (``anthropic``, ``openai``, ...) or
+    ``web``, a signed-in browser driven by ``deepparse.ai_scraper``."""
 
-    def __init__(self, provider: str, model_name: str | None = None, key_vocab: Sequence[str] = ()):
+    def __init__(self, provider: str, model_name: str | None = None, key_vocab: Sequence[str] = (),
+                 browser: Browser = "camoufox"):
         self.provider_name = provider
         self.model_name = model_name
         self.key_vocab = list(key_vocab)
+        self.browser = browser
+        self._provider: ChatProvider | None = None
+        self._api_key = ""
         self._runnables: dict[type, Runnable] = {}
 
+    def _config(self) -> LLMSynthConfig:
+        from deepparse.synth.chat_provider import LLMSynthConfig
+
+        return LLMSynthConfig(
+            provider=self.provider_name, model_name=self.model_name, browser=self.browser
+        )
+
     def _invoke(self, schema: type, prompt: str):
-        from deepparse.synth.chat_provider import LLMSynthConfig, _load_provider
+        from deepparse.synth.chat_provider import _load_provider
         from langchain_core.messages import HumanMessage
 
+        # One provider for every schema: a web provider's browser profile takes a lock,
+        # so a second one on the same profile cannot start.
+        if self._provider is None:
+            self._provider, self._api_key = _load_provider(self._config())
+            atexit.register(self.close)
         if schema not in self._runnables:
-            provider, api_key = _load_provider(LLMSynthConfig(provider=self.provider_name))
-            model = self.model_name or provider.default_model
-            chat = provider.build(
-                api_key=api_key, model=model, max_tokens=1024, effort="low",
-                timeout=60.0, max_retries=2,
+            chat = self._provider.build(
+                api_key=self._api_key, model=self.model_name or self._provider.default_model,
+                max_tokens=1024, effort="low", timeout=60.0, max_retries=2,
             )
-            self._runnables[schema] = provider.structured(chat, schema)
+            self._runnables[schema] = self._provider.structured(chat, schema)
         result = self._runnables[schema].invoke([HumanMessage(prompt)])
         return result.get("parsed")
 
+    def close(self) -> None:
+        """Release the provider (and with ``web``, its browser)."""
+        if self._provider is not None and (close := getattr(self._provider, "close", None)):
+            close()
+        self._provider, self._runnables = None, {}
+
     def synth_masks(self, lines: Sequence[str], sample_size: int) -> list[Mask]:
-        masks = synth_masks(
-            lines, sample_size, mode="llm", provider=self.provider_name, model_name=self.model_name
-        )
-        return [Mask.from_dict(m) for m in masks]
+        from deepparse.synth.chat_provider import synthesize_llm
+        from deepparse.utils.regex_library import validate_regexes
+        from deepparse.utils.sampling import deterministic_sample
+
+        # synthesize_llm opens and closes its own provider; free the browser profile first.
+        self.close()
+        sample = deterministic_sample(lines, min(sample_size, len(lines)))
+        masks = synthesize_llm(sample, self._config())
+        validate_regexes([m.pattern for m in masks])
+        return masks
 
     def name_keys(self, tokens: Sequence[str], samples: Sequence[str]) -> list[str]:
         keys_out, _ = _schemas()
@@ -156,11 +187,14 @@ class ChatAdapter(OfflineAdapter):
         return bool(parsed and parsed.same_event)
 
 
-def get_adapter(backend: str) -> LLMAdapter:
-    """``offline`` | ``hf`` | ``llm:<provider>[:<model>]``."""
+def get_adapter(backend: str, *, browser: Browser = "camoufox") -> LLMAdapter:
+    """``offline`` | ``hf`` | ``llm:<provider>[:<model>]``.
+
+    ``browser`` is only read by ``llm:web:<site>``.
+    """
     if backend.startswith("llm:"):
         _, provider, *model = backend.split(":", 2)
-        return ChatAdapter(provider, model[0] if model else None)
+        return ChatAdapter(provider, model[0] if model else None, browser=browser)
     adapters = {"offline": OfflineAdapter, "hf": HFDeepSeekAdapter}
     if backend not in adapters:
         raise ValueError(

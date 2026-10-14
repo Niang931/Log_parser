@@ -61,12 +61,17 @@ The LLM backend is set by `LLM_BACKEND`:
 Any make target takes `LLM=...` to override it for one run. To set up the web backend:
 
 ```sh
-make web-setup                 # download the browser once (BROWSER=chrome for Playwright Chromium)
+make web-setup                 # download Camoufox once
 make web-login SITE=gemini     # sign in in a visible window; claude | chatgpt | gemini
 make web-check SITE=gemini     # confirm the saved login still works headless
 make web-ask SITE=gemini PROMPT="Reply with OK."
 make eval-iot LLM=llm:web:gemini
 ```
+
+To drive the Chromium on your `PATH` instead of Camoufox, add `BROWSER=chromium` to each
+command (or set `WEB_BROWSER=chromium` in `.env`). Each browser keeps its own profile, so sign
+in with the same browser you evaluate with, e.g.
+`make web-login BROWSER=chromium && make eval LLM=llm:web:gemini BROWSER=chromium`.
 
 ## Calibration and evaluation
 

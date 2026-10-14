@@ -16,6 +16,8 @@ from collections import Counter, defaultdict
 from dataclasses import replace
 from pathlib import Path
 
+from deepparse.ai_scraper.session import BROWSERS
+
 from .calibrate import GroundTruth, calibrate
 from .config import Settings
 from .enrich.llm import get_adapter
@@ -31,7 +33,7 @@ def _calibrate(args: argparse.Namespace) -> None:
     else:
         lines = [event.line for event in replay(args.logs)]
     result = calibrate(
-        lines, get_adapter(args.llm), sample_size=args.sample, ground_truth=truth, tune=args.tune,
+        lines, get_adapter(args.llm, browser=args.browser), sample_size=args.sample, ground_truth=truth, tune=args.tune,
         depth=args.depth, similarity_threshold=args.similarity,
     )
     SchemaRegistry(result.snapshot).save(args.registry)
@@ -78,7 +80,7 @@ def _run(args: argparse.Namespace) -> None:
     has_model = args.model and (args.model / "config.json").exists()
     pipeline = Pipeline.assemble(
         SchemaRegistry.load(args.registry), store,
-        adapter=None if args.no_enrich else get_adapter(args.llm),
+        adapter=None if args.no_enrich else get_adapter(args.llm, browser=args.browser),
         scorer=LogBERTScorer.load(args.model) if has_model else None,
         detector_config=DetectorConfig(window=args.window, stride=args.stride),
         registry_path=args.registry,
@@ -143,7 +145,7 @@ def _fetch_data(args: argparse.Namespace) -> None:
 
 def _eval(args: argparse.Namespace) -> None:
     out = args.out
-    adapter = get_adapter(args.llm)
+    adapter = get_adapter(args.llm, browser=args.browser)
     if args.benchmark == "report":
         from .eval.report import write_report
 
@@ -186,6 +188,8 @@ def _eval(args: argparse.Namespace) -> None:
 def main(argv: list[str] | None = None) -> None:
     settings = Settings.from_env()
     parser = argparse.ArgumentParser(prog="logpipe")
+    parser.add_argument("--browser", choices=BROWSERS, default=settings.web_browser,
+                        help="browser for LLM backend llm:web:<site>")
     sub = parser.add_subparsers(dest="command", required=True)
 
     cal = sub.add_parser("calibrate", help="build registry v1 from historical logs")
