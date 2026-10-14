@@ -3,7 +3,7 @@ import threading
 from logpipe.calibrate import calibrate
 from logpipe.enrich.llm import OfflineAdapter
 from logpipe.parsing.frozen_parser import FrozenParser, ParserHandle
-from logpipe.registry import UNK_TEMPLATE_ID, NewTemplate, SchemaRegistry
+from logpipe.registry import NewTemplate, SchemaRegistry, UniqueTemplateID
 
 NEW_LINE = "2026-04-13 10:20:00.000 [ERROR] OTA update failed code=0x1F retry=3"
 
@@ -34,10 +34,10 @@ def test_opposite_states_stay_distinct_event_types(snapshot):
 def test_unknown_line_is_pending_and_resolves_after_swap(snapshot):
     handle = ParserHandle(snapshot)
     pending = handle.parse(NEW_LINE)
-    assert (pending.template_id, pending.status, pending.payload) == (UNK_TEMPLATE_ID, "PENDING", {})
+    assert (pending.template_id, pending.status, pending.payload) == (UniqueTemplateID.UNK_TEMPLATE_ID, "PENDING", {})
 
     registry = SchemaRegistry(snapshot)
-    learned = calibrate([NEW_LINE], OfflineAdapter())
+    learned = calibrate([NEW_LINE], OfflineAdapter()).snapshot
     (entry,) = learned.templates.values()
     new_snapshot, (new_id,) = registry.publish([NewTemplate(entry.tokens, entry.keys)])
     handle.swap(new_snapshot)

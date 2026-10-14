@@ -1,6 +1,8 @@
 import pytest
 
-from logpipe.registry import FIRST_TEMPLATE_ID, NewTemplate, SchemaRegistry
+from logpipe.registry import NewTemplate, SchemaRegistry, UniqueTemplateID
+
+FIRST_TEMPLATE_ID = UniqueTemplateID.FIRST_TEMPLATE_ID
 
 
 def _t(*tokens, keys=None, alias_of=None):

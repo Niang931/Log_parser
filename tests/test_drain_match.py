@@ -14,7 +14,7 @@ _line = st.lists(_token, min_size=1, max_size=8).map(" ".join)
 
 
 def _state(engine: DrainEngine):
-    return [(c.cluster_id, list(c.template), c.size) for c in engine.clusters()], engine._next_id
+    return [(c.cluster_id, list(c.template), c.size) for c in engine.clusters], engine._next_id
 
 
 @given(train=st.lists(_line, min_size=1, max_size=30), probe=st.lists(_line, max_size=30))
@@ -51,3 +51,25 @@ def test_seeded_template_keeps_caller_id_and_matches_through_prefix_wildcard():
     engine.add_template(42, ["Heater", WILDCARD, "switched"])
     assert engine.match("Heater relay switched").cluster_id == 42
     assert engine.add_log("brand new line").cluster_id == 43
+
+
+def test_numeric_wildcard_keys_tokens_containing_digits_together():
+    plain = DrainEngine(depth=3)
+    drain3 = DrainEngine(depth=3, numeric_wildcard=True)
+    lines = [f"Receiving block blk_{i}{i} from node" for i in range(1, 6)]
+    for line in lines:
+        plain.add_log(line)
+        drain3.add_log(line)
+    assert plain.num_clusters == 5  # DeepParse default: one bucket per block id
+    assert drain3.num_clusters == 1
+    assert drain3.clusters[0].template[2] == WILDCARD
+
+
+def test_match_fallback_only_visits_wildcard_buckets():
+    engine = DrainEngine(depth=2)
+    for i in range(500):
+        engine.add_log(f"literal{i} event happened")
+    engine.add_template(9_999, ["Heater", WILDCARD, "switched"])
+    assert sum(len(b) for b in engine._wild.values()) == 1
+    assert engine.match("Heater relay switched").cluster_id == 9_999
+    assert engine.match("unknown thing here") is None

@@ -16,4 +16,4 @@ def fixture_lines() -> list[str]:
 
 @pytest.fixture(scope="session")
 def snapshot(fixture_lines):
-    return calibrate(fixture_lines, OfflineAdapter())
+    return calibrate(fixture_lines, OfflineAdapter()).snapshot
