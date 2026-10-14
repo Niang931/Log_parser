@@ -49,7 +49,8 @@ def test_unknown_line_returns_none():
 def test_seeded_template_keeps_caller_id_and_matches_through_prefix_wildcard():
     engine = DrainEngine()
     engine.add_template(42, ["Heater", WILDCARD, "switched"])
-    assert engine.match("Heater relay switched").cluster_id == 42
+    match = engine.match("Heater relay switched")
+    assert match is not None and match.cluster_id == 42
     assert engine.add_log("brand new line").cluster_id == 43
 
 
@@ -71,5 +72,6 @@ def test_match_fallback_only_visits_wildcard_buckets():
         engine.add_log(f"literal{i} event happened")
     engine.add_template(9_999, ["Heater", WILDCARD, "switched"])
     assert sum(len(b) for b in engine._wild.values()) == 1
-    assert engine.match("Heater relay switched").cluster_id == 9_999
+    match = engine.match("Heater relay switched")
+    assert match is not None and match.cluster_id == 9_999
     assert engine.match("unknown thing here") is None

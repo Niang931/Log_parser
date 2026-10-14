@@ -23,7 +23,7 @@ from collections.abc import Sequence
 from collections.abc import Set as AbstractSet
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Protocol
 
 import numpy as np
 import torch
@@ -62,6 +62,21 @@ class WindowScore:
     @property
     def novelty_ratio(self) -> float:
         return self.unknown / self.length if self.length else 0.0
+
+
+class Scorer(Protocol):
+    """What the streaming detector needs from a window scorer."""
+
+    version: str
+    vocab: TemplateVocab
+
+    def score(
+        self, windows: Sequence[Sequence[int]], familiar: AbstractSet[int] = ...
+    ) -> list[WindowScore]: ...
+
+    def reasons(
+        self, score: WindowScore, thresholds: Thresholds | None = None
+    ) -> tuple[str, ...]: ...
 
 
 @dataclass

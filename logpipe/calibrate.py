@@ -66,6 +66,8 @@ class GroundTruth:
         lines = (path / "raw.log").read_text(encoding="utf-8").splitlines()
         payload = json.loads((path / "templates.json").read_text(encoding="utf-8"))
         entries = payload.get("entries") if isinstance(payload, dict) else payload
+        if not isinstance(entries, list):
+            raise TypeError(f"{path}: templates.json holds no list of entries")
         if len(entries) != len(lines):
             raise ValueError(f"{path}: {len(entries)} labels for {len(lines)} lines")
         return lines, cls(

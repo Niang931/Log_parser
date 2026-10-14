@@ -27,6 +27,8 @@ class LogBERTConfig:
 
 
 class PositionalEmbedding(nn.Module):
+    pe: torch.Tensor
+
     def __init__(self, d_model: int, max_len: int):
         super().__init__()
         pe = torch.zeros(max_len, d_model)

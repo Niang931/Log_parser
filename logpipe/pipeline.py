@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 
 from .anomaly.detector import DetectorConfig, StreamingDetector
-from .anomaly.scorer import LogBERTScorer
+from .anomaly.scorer import Scorer
 from .enrich.llm import LLMAdapter
 from .enrich.worker import CycleReport, EnrichmentWorker
 from .parsing.frozen_parser import ParseResult, ParserHandle, Status
@@ -92,7 +92,7 @@ class Pipeline:
         store: LogStore,
         *,
         adapter: LLMAdapter | None = None,
-        scorer: LogBERTScorer | None = None,
+        scorer: Scorer | None = None,
         detector_config: DetectorConfig | None = None,
         registry_path: Path | None = None,
         enrich_every: int = 5_000,

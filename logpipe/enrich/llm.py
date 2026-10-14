@@ -14,12 +14,15 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from functools import lru_cache
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from deepparse.api import synth_masks
 from deepparse.masks_types import Mask
 
 from ..parsing.kv import default_keys
+
+if TYPE_CHECKING:
+    from langchain_core.runnables import Runnable
 
 
 class LLMAdapter(Protocol):
@@ -33,6 +36,13 @@ class LLMAdapter(Protocol):
         old_tokens: Sequence[str],
         new_samples: Sequence[str],
     ) -> bool: ...
+
+
+@runtime_checkable
+class KeyVocabAware(Protocol):
+    """Adapters that can be told the registry's existing key names before naming slots."""
+
+    key_vocab: list[str]
 
 
 class OfflineAdapter:
@@ -101,7 +111,7 @@ class ChatAdapter(OfflineAdapter):
         self.provider_name = provider
         self.model_name = model_name
         self.key_vocab = list(key_vocab)
-        self._runnables: dict[type, object] = {}
+        self._runnables: dict[type, Runnable] = {}
 
     def _invoke(self, schema: type, prompt: str):
         from deepparse.synth.chat_provider import LLMSynthConfig, _load_provider

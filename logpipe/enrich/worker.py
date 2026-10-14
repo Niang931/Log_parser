@@ -32,7 +32,7 @@ from ..parsing.engine import make_engine
 from ..parsing.frozen_parser import ParserHandle, Status
 from ..registry import NewTemplate, SchemaRegistry
 from ..storage.base import LogRow, LogStore
-from .llm import LLMAdapter
+from .llm import KeyVocabAware, LLMAdapter
 from .similarity import find_alias
 from .validate import clean_keys, generalize_digits, template_problem
 
@@ -159,8 +159,7 @@ class EnrichmentWorker:
             return report
 
         snapshot = self.registry.current
-        key_vocab = getattr(self.adapter, "key_vocab", None)
-        if key_vocab is not None:
+        if isinstance(self.adapter, KeyVocabAware):
             # Let the LLM reuse existing key names instead of inventing synonyms.
             self.adapter.key_vocab = sorted(snapshot.key_vocab)
 

@@ -165,6 +165,8 @@ def train_logbert(
             if stale >= cfg.patience:
                 log(f"early stop at epoch {epoch}")
                 break
+    if best_state is None or best_center is None:
+        raise ValueError(f"no epoch reached a finite validation loss ({cfg.epochs} epochs)")
     model.load_state_dict(best_state)
     model.eval()
     return TrainResult(model=model, center=best_center, radius=best_radius, history=history)

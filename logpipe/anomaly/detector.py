@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 
 from ..registry import UniqueTemplateID
 from ..storage.base import AnomalyAlert
-from .scorer import LogBERTScorer, WindowScore
+from .scorer import Scorer, WindowScore
 
 
 def sliding_windows(seq: Sequence, size: int, stride: int) -> list[list]:
@@ -69,7 +69,7 @@ class _Window:
 class StreamingDetector:
     def __init__(
         self,
-        scorer: LogBERTScorer,
+        scorer: Scorer,
         config: DetectorConfig | None = None,
         registry_version: Callable[[], int] = lambda: 0,
         resolver: Callable[[str], int] | None = None,
