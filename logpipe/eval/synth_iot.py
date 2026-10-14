@@ -236,6 +236,7 @@ def _run_phase(
                 tagged = [(lvl, msg, None) for lvl, msg in episode]
             for lvl, msg, tag in tagged:
                 now += timedelta(milliseconds=rng.randint(40, 900))
+                now = now.replace(microsecond=now.microsecond // 1000 * 1000)
                 events.append(SynthEvent(device.id, now, device.line(now, lvl, msg), phase, tag, device.firmware))
             now += timedelta(seconds=rng.uniform(5, 25))
     events.sort(key=lambda e: (e.timestamp, e.device_id))

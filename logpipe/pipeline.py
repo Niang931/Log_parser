@@ -10,12 +10,16 @@ import time
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 
 import numpy as np
 
-from .anomaly.detector import StreamingDetector
+from .anomaly.detector import DetectorConfig, StreamingDetector
+from .anomaly.scorer import LogBERTScorer
+from .enrich.llm import LLMAdapter
 from .enrich.worker import CycleReport, EnrichmentWorker
 from .parsing.frozen_parser import ParseResult, ParserHandle, Status
+from .registry import SchemaRegistry
 from .sources.file_replay import LogEvent
 from .sources.timestamps import event_time
 from .storage.base import AnomalyAlert, LogRow, LogStore
@@ -80,6 +84,36 @@ class Pipeline:
         self.enrich_every = enrich_every
         self.stats = PipelineStats()
         self._event_time: datetime | None = None
+
+    @classmethod
+    def assemble(
+        cls,
+        registry: SchemaRegistry,
+        store: LogStore,
+        *,
+        adapter: LLMAdapter | None = None,
+        scorer: LogBERTScorer | None = None,
+        detector_config: DetectorConfig | None = None,
+        registry_path: Path | None = None,
+        enrich_every: int = 5_000,
+    ) -> Pipeline:
+        """Wire parser, enrichment and detector around one live registry.
+
+        No ``adapter`` means no enrichment loop; no ``scorer`` means no detector.
+        With both, the detector re-resolves PENDING lines against the latest
+        registry when their window is scored.
+        """
+        handle = ParserHandle(registry.current)
+        worker = (EnrichmentWorker(registry, handle, store, adapter, registry_path=registry_path)
+                  if adapter is not None else None)
+        detector = None
+        if scorer is not None:
+            detector = StreamingDetector(
+                scorer, detector_config,
+                registry_version=lambda: handle.version,
+                resolver=(lambda line: handle.parse(line).template_id) if worker else None,
+            )
+        return cls(handle, store, worker=worker, detector=detector, enrich_every=enrich_every)
 
     def process(self, event: LogEvent) -> ParseResult:
         start = time.perf_counter_ns()

@@ -26,7 +26,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ..anomaly.detector import DetectorConfig, ScoredWindow, StreamingDetector, sliding_windows
+from ..anomaly.detector import DetectorConfig, ScoredWindow, sliding_windows
 from ..anomaly.logbert import LogBERTConfig, TrainConfig, train_logbert
 from ..anomaly.scorer import (
     LogBERTScorer,
@@ -39,8 +39,7 @@ from ..anomaly.scorer import (
 from ..anomaly.vocab import TemplateVocab
 from ..calibrate import calibrate
 from ..enrich.llm import LLMAdapter
-from ..enrich.worker import EnrichmentWorker
-from ..parsing.frozen_parser import FrozenParser, ParserHandle
+from ..parsing.frozen_parser import FrozenParser
 from ..pipeline import Pipeline
 from ..registry import SchemaRegistry
 from ..storage.memory import MemoryStore
@@ -157,18 +156,9 @@ def _device_sequences(parser: FrozenParser, events: list[SynthEvent]) -> dict[st
     return seqs
 
 
-def _replay_detector(
-    scorer: LogBERTScorer, parser: FrozenParser, events: list[SynthEvent], variant: Variant,
-    cfg: IoTEvalConfig,
-) -> list[ScoredWindow]:
-    detector = StreamingDetector(scorer, DetectorConfig(
-        window=cfg.window, stride=cfg.stride, fleet_min_devices=variant.fleet_min_devices,
-        record_windows=True,
-    ))
-    for e in events:
-        detector.observe(e.device_id, int(parser.parse(e.line).template_id), e.timestamp)
-    detector.flush()
-    return detector.scored
+def _detector_config(variant: Variant, cfg: IoTEvalConfig) -> DetectorConfig:
+    return DetectorConfig(window=cfg.window, stride=cfg.stride,
+                          fleet_min_devices=variant.fleet_min_devices, record_windows=True)
 
 
 def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
@@ -212,7 +202,12 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
         best = None
         for g in cfg.candidate_grid:
             scorer.settings.num_candidates = g
-            val_windows = _replay_detector(scorer, parser, fleet.validation, variant, cfg)
+            # Detector only: enrichment here would mutate the registry between g values.
+            val = Pipeline.assemble(SchemaRegistry(cal.snapshot), MemoryStore(), scorer=scorer,
+                                    detector_config=_detector_config(variant, cfg))
+            val.run(as_log_events(fleet.validation))
+            assert val.detector is not None
+            val_windows = val.detector.scored
             normal = [w.score for w in val_windows if not validation_labels.kinds_in(w)]
             abnormal = [w.score for w in val_windows if validation_labels.kinds_in(w)]
             t, m = tune_thresholds(scorer, normal, abnormal, use_novelty=variant.novelty)
@@ -223,17 +218,13 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
         scorer.settings.thresholds = thresholds
 
         registry = SchemaRegistry(cal.snapshot)
-        handle = ParserHandle(cal.snapshot)
         store = MemoryStore()
-        worker = (EnrichmentWorker(registry, handle, store, adapter)
-                  if variant.enrichment else None)
-        detector = StreamingDetector(scorer, DetectorConfig(
-            window=cfg.window, stride=cfg.stride, fleet_min_devices=variant.fleet_min_devices,
-            record_windows=True,
-        ), registry_version=lambda h=handle: h.version,
-           resolver=(lambda line, h=handle: h.parse(line).template_id) if variant.enrichment else None)
-        pipeline = Pipeline(handle, store, worker=worker, detector=detector,
-                            enrich_every=cfg.enrich_every)
+        pipeline = Pipeline.assemble(
+            registry, store, adapter=adapter if variant.enrichment else None, scorer=scorer,
+            detector_config=_detector_config(variant, cfg), enrich_every=cfg.enrich_every,
+        )
+        handle, detector = pipeline.handle, pipeline.detector
+        assert detector is not None
         stats = pipeline.run(as_log_events(fleet.test))
         lags = [lag for c in stats.cycles for lag in c.resolve_lag_sec]
         counts = store.count_by_status()

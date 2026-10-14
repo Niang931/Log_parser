@@ -22,12 +22,14 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from ..parsing.kv import SLOT_RE
 from ..registry import RegistrySnapshot
 from .llm import LLMAdapter
-from .worker import GuardedAdapter
+
+if TYPE_CHECKING:
+    from .worker import GuardedAdapter
 
 DiffKind = Literal["identical", "slot_only", "wording", "literal", "conflict"]
 

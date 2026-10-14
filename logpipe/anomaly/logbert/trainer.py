@@ -70,7 +70,7 @@ def _sos_embeddings(
     outputs = []
     for start in range(0, len(sequences), batch_size):
         batch = [
-            mask_sequence(s, 0, 0.0, random.Random(0), predict=True)
+            mask_sequence(sequence=s, vocab_size=0, mask_ratio=0.0, rng=random.Random(0), predict=True)
             for s in sequences[start : start + batch_size]
         ]
         x, _ = collate(batch)
@@ -97,10 +97,10 @@ def _epoch(
     for start in range(0, len(order), cfg.batch_size):
         batch = [
             mask_sequence(
-                sequences[i],
-                vocab_size,
-                cfg.mask_ratio,
-                rng,
+                sequence=sequences[i],
+                vocab_size=vocab_size,
+                mask_ratio=cfg.mask_ratio,
+                rng=rng,
                 predict=False,
                 unk_ratio=cfg.unk_ratio if training else 0.0,
             )

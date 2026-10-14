@@ -40,9 +40,9 @@ class DetectorConfig:
     lateness: timedelta = timedelta(seconds=2)
     # TODO: increasing these 2 might cause problems for security intensive systems so I need to reconsider it
     # minimum number of distinct devices that must report a template
-    fleet_min_devices: int = 1
+    fleet_min_devices: int = 2
     # minimum number of minutes a single device a single device must record the template
-    fleet_min_minutes: int = 1
+    fleet_min_minutes: int = 10
     record_windows: bool = False
 
 
