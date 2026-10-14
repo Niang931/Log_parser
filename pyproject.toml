@@ -9,6 +9,7 @@ dependencies = [
     "clickhouse-connect>=0.8",
     "numpy>=2.0",
     "torch>=2.4",
+    "tqdm>=4.66",
 ]
 
 [project.scripts]
@@ -20,6 +21,7 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.4",
     "hypothesis>=6.92",
+    "types-tqdm>=4.70.0.20260906",
 ]
 
 [tool.uv.sources]

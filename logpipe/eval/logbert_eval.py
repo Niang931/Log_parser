@@ -39,6 +39,7 @@ from ..anomaly.vocab import TemplateVocab
 from ..calibrate import calibrate
 from ..enrich.llm import LLMAdapter
 from ..parsing.frozen_parser import FrozenParser
+from ..progress import progress, write
 from .datasets import Sessions
 
 
@@ -77,7 +78,7 @@ def parse_sessions(parser: FrozenParser, sessions: Sessions, keys: Sequence[str]
     """Template ids per session.  ``memo`` caches by line (BGL windows overlap 5x)."""
     memo = {} if memo is None else memo
     seqs: dict[str, list[int]] = {}
-    for key in keys:
+    for key in progress(keys, "parsing sessions", unit="session"):
         ids = []
         for line in sessions.lines[key]:
             tid = memo.get(line)
@@ -96,7 +97,7 @@ def run_logbert_eval(
     adapter: LLMAdapter,
     cfg: LogBERTEvalConfig | None = None,
     out_dir: Path | None = None,
-    log=print,
+    log=write,
 ) -> dict:
     cfg = cfg or LogBERTEvalConfig()
     rng = random.Random(cfg.seed)
@@ -142,7 +143,7 @@ def run_logbert_eval(
         settings=ScorerSettings(num_candidates=cfg.num_candidates, mask_ratio=cfg.mask_ratio),
         version=f"logbert-{sessions.name.lower()}",
     )
-    for mode in cfg.unknown_modes:
+    for mode in progress(cfg.unknown_modes, "unknown-mode ablations", unit="mode"):
         scorer.settings.unknown_mode = mode
         scores = {name: scorer.score(seqs[name]) for name in ("tune_n", "tune_a", "test_n", "test_a")}
         for novelty in (True, False):

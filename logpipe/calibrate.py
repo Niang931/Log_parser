@@ -33,6 +33,7 @@ from .enrich.validate import clean_keys, safe_masks
 from .parsing.engine import make_engine
 from .parsing.frozen_parser import FrozenParser, Status
 from .parsing.kv import slot_labels
+from .progress import progress
 from .registry import NewTemplate, RegistrySnapshot, SchemaRegistry
 
 # Most damn common mask, added here as a safeguard to never miss
@@ -104,7 +105,7 @@ class CalibrationResult:
 def _mine(lines: Sequence[str], masks: Sequence[Mask], depth: int, sim: float) -> DrainEngine:
     """Utility function to make an engine and add all the logs in one line."""
     engine = make_engine(masks, depth=depth, similarity_threshold=sim)
-    for line in lines:
+    for line in progress(lines, "mining templates", unit="line"):
         engine.add_log(line)
     return engine
 
@@ -139,7 +140,7 @@ def _snapshot(
 
     # same pipeline as in worker
     new_templates = []
-    for cluster in engine.clusters:
+    for cluster in progress(engine.clusters, "naming keys", unit="template"):
         tokens = tuple(cluster.template)
         proposed = adapter.name_keys(tokens, samples.get(cluster.cluster_id, [])) if adapter else None
         new_templates.append(NewTemplate(tokens=tokens, keys=tuple(clean_keys(proposed, tokens))))
@@ -199,7 +200,7 @@ def calibrate(
     # this tune the model parameters to output best benchmark results
     tuning: list[dict] = []
     if tune and ground_truth is not None:
-        for d, s in grid:
+        for d, s in progress(grid, "tuning drain", unit="config"):
             ga, pa, n = _accuracy(lines, masks, d, s, ground_truth)
             tuning.append({"depth": d, "similarity_threshold": s, "GA": ga, "PA": pa, "templates": n})
         best = max(tuning, key=lambda r: (r["GA"], r["PA"], -r["templates"]))

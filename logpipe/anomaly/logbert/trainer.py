@@ -34,6 +34,7 @@ from torch import nn
 
 from .dataset import collate, mask_sequence
 from .model import LogBERT, LogBERTConfig
+from ...progress import progress, write
 
 
 @dataclass
@@ -94,7 +95,8 @@ def _epoch(
     nll = nn.NLLLoss(ignore_index=0)
     total, batches, dists = 0.0, 0, []
     vocab_size = model.config.vocab_size
-    for start in range(0, len(order), cfg.batch_size):
+    starts = range(0, len(order), cfg.batch_size)
+    for start in progress(starts, "train" if training else "validate", unit="batch"):
         batch = [
             mask_sequence(
                 sequence=sequences[i],
@@ -127,7 +129,7 @@ def train_logbert(
     valid_seqs: Sequence[Sequence[int]],
     model_config: LogBERTConfig,
     cfg: TrainConfig | None = None,
-    log: Callable[[str], None] = print,
+    log: Callable[[str], None] = write,
 ) -> TrainResult:
     """Train on vocab-encoded sequences of *normal* behaviour."""
     cfg = cfg or TrainConfig()
@@ -147,7 +149,8 @@ def train_logbert(
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr, betas=(0.9, 0.999))
     best_loss, best_state, best_center, best_radius, stale = float("inf"), None, None, 0.0, 0
     history: list[dict] = []
-    for epoch in range(cfg.epochs):
+    epochs = progress(range(cfg.epochs), "training LogBERT", unit="epoch")
+    for epoch in epochs:
         center = _sos_embeddings(model, train + valid, cfg.batch_size * 4).mean(dim=0)
         train_loss, train_dist = _epoch(model, train, center, cfg, rng, optimizer)
         valid_loss, valid_dist = _epoch(model, valid, center, cfg, rng, None)
@@ -155,6 +158,7 @@ def train_logbert(
         history.append(
             {"epoch": epoch, "train_loss": train_loss, "valid_loss": valid_loss, "radius": radius}
         )
+        epochs.set_postfix(train=f"{train_loss:.4f}", valid=f"{valid_loss:.4f}")
         log(f"epoch {epoch}: train={train_loss:.4f} valid={valid_loss:.4f} radius={radius:.4f}")
         if valid_loss < best_loss:
             best_loss, stale = valid_loss, 0

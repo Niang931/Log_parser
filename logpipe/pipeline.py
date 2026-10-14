@@ -21,6 +21,7 @@ from .enrich.worker import CycleReport, EnrichmentWorker
 from .parsing.frozen_parser import ParseResult, ParserHandle, Status
 from .registry import SchemaRegistry
 from .sources.file_replay import LogEvent
+from .progress import progress
 from .sources.timestamps import event_time
 from .storage.base import AnomalyAlert, LogRow, LogStore
 
@@ -155,9 +156,9 @@ class Pipeline:
             self.store.insert_alerts(alerts)
             self.stats.alerts.extend(alerts)
 
-    def run(self, events: Iterable[LogEvent]) -> PipelineStats:
+    def run(self, events: Iterable[LogEvent], *, total: int | None = None) -> PipelineStats:
         started = time.perf_counter()
-        for event in events:
+        for event in progress(events, "ingest", total=total, unit="line"):
             self.process(event)
         self.finish()
         self.stats.seconds = time.perf_counter() - started

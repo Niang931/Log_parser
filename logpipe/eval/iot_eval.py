@@ -42,6 +42,7 @@ from ..enrich.llm import LLMAdapter
 from ..parsing.frozen_parser import FrozenParser
 from ..pipeline import Pipeline
 from ..registry import SchemaRegistry
+from ..progress import progress, write
 from ..storage.memory import MemoryStore
 from .synth_iot import SynthEvent, as_log_events, generate
 
@@ -162,7 +163,7 @@ def _detector_config(variant: Variant, cfg: IoTEvalConfig) -> DetectorConfig:
 
 
 def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
-                 out_dir: Path | None = None, log=print) -> dict:
+                 out_dir: Path | None = None, log=write) -> dict:
     cfg = cfg or IoTEvalConfig()
     fleet = generate(cfg.devices_per_kind, cfg.history_hours, cfg.validation_hours,
                      cfg.test_hours, cfg.anomaly_rate, seed=cfg.seed)
@@ -191,7 +192,7 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
     validation_labels, test_labels = _Labels(fleet.validation), _Labels(fleet.test)
 
     results = {}
-    for variant in VARIANTS:
+    for variant in progress(VARIANTS, "iot variants", unit="variant"):
         scorer = LogBERTScorer.from_training(
             trained, vocab, settings=ScorerSettings(unknown_mode=variant.unknown_mode),
             version="logbert-iot",
@@ -200,12 +201,12 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
         # anomalies).  g matters: with a ~20-template vocabulary, LogBERT's HDFS
         # setting g=6 accepts almost any key and the sequence signal goes quiet.
         best = None
-        for g in cfg.candidate_grid:
+        for g in progress(cfg.candidate_grid, "tuning top-g", unit="g"):
             scorer.settings.num_candidates = g
             # Detector only: enrichment here would mutate the registry between g values.
             val = Pipeline.assemble(SchemaRegistry(cal.snapshot), MemoryStore(), scorer=scorer,
                                     detector_config=_detector_config(variant, cfg))
-            val.run(as_log_events(fleet.validation))
+            val.run(as_log_events(fleet.validation), total=len(fleet.validation))
             assert val.detector is not None
             val_windows = val.detector.scored
             normal = [w.score for w in val_windows if not validation_labels.kinds_in(w)]
@@ -225,7 +226,7 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
         )
         handle, detector = pipeline.handle, pipeline.detector
         assert detector is not None
-        stats = pipeline.run(as_log_events(fleet.test))
+        stats = pipeline.run(as_log_events(fleet.test), total=len(fleet.test))
         lags = [lag for c in stats.cycles for lag in c.resolve_lag_sec]
         counts = store.count_by_status()
         results[variant.name] = {

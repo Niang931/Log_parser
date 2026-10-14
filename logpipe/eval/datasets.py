@@ -11,7 +11,6 @@ from __future__ import annotations
 import csv
 import random
 import re
-import shutil
 import tarfile
 import urllib.request
 from collections.abc import Iterator
@@ -19,6 +18,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from deepparse.tools.fetch_loghub import DEFAULT_SYSTEMS, fetch_systems
+
+from ..progress import copy_bytes
 
 DATA_DIR = Path("artifacts/datasets")
 ZENODO = "https://zenodo.org/record/3227177/files/{name}?download=1"
@@ -43,11 +44,13 @@ def fetch_archive(name: str, root: Path = DATA_DIR) -> Path:
     target.mkdir(parents=True, exist_ok=True)
     archive = target / ARCHIVES[name]
     if not archive.exists():
-        print(f"[datasets] downloading {ARCHIVES[name]} ...")
         request = urllib.request.Request(ZENODO.format(name=ARCHIVES[name]),
                                          headers={"User-Agent": "logpipe-eval/1.0"})
-        with urllib.request.urlopen(request, timeout=120) as resp, archive.open("wb") as fh:
-            shutil.copyfileobj(resp, fh, length=1 << 20)
+        partial = archive.with_suffix(".part")
+        with urllib.request.urlopen(request, timeout=120) as resp, partial.open("wb") as fh:
+            size = int(resp.headers.get("Content-Length") or 0) or None
+            copy_bytes(resp, fh, f"downloading {ARCHIVES[name]}", total=size)
+        partial.rename(archive)
     with tarfile.open(archive) as tar:
         tar.extractall(target, filter="data")
     marker.touch()

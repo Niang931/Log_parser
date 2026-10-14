@@ -17,14 +17,15 @@ from deepparse.tools.fetch_loghub import DEFAULT_SYSTEMS
 
 from ..calibrate import GroundTruth, calibrate
 from ..enrich.llm import LLMAdapter
+from ..progress import progress, write
 from .datasets import fetch_loghub2k
 
 
 def run_parsing_eval(adapter: LLMAdapter, systems=DEFAULT_SYSTEMS, tune: bool = True,
-                     out_dir: Path | None = None, log=print) -> list[dict]:
+                     out_dir: Path | None = None, log=write) -> list[dict]:
     root = fetch_loghub2k(systems)
     rows = []
-    for system in systems:
+    for system in progress(systems, "parsing eval", unit="system"):
         path = root / system
         if not (path / "templates.json").exists():
             log(f"[parsing] {system}: missing, skipped")
