@@ -9,8 +9,10 @@ from logpipe.enrich.validate import (
 
 
 def test_template_problem_rejects_over_general_and_misfitting_templates():
-    assert "over-general" == template_problem(("<*>", "<*>", "<*>"), ["a b c"])
-    assert "misses" == template_problem(("Door", "contact=<*>"), ["Window contact=open"])
+    over_general = template_problem(("<*>", "<*>", "<*>"), ["a b c"])
+    assert over_general is not None and over_general.startswith("over-general")
+    misfit = template_problem(("Door", "contact=<*>"), ["Window contact=open"])
+    assert misfit is not None and misfit.startswith("extractor misses")
     assert template_problem(("Door", "contact=<*>"), ["Door contact=open"]) is None
 
 

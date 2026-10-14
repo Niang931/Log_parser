@@ -133,6 +133,14 @@ def _gen_iot(args: argparse.Namespace) -> None:
     print(f"wrote history/validation/test logs and labels.tsv to {args.out}")
 
 
+def _fetch_data(args: argparse.Namespace) -> None:
+    from .eval.datasets import fetch_archive, fetch_loghub2k
+
+    for name in args.datasets:
+        path = fetch_loghub2k() if name == "loghub2k" else fetch_archive(name)
+        print(f"{name} -> {path}")
+
+
 def _eval(args: argparse.Namespace) -> None:
     out = args.out
     adapter = get_adapter(args.llm)
@@ -230,6 +238,11 @@ def main(argv: list[str] | None = None) -> None:
     gen.add_argument("--test-hours", type=float, default=6)
     gen.add_argument("--seed", type=int, default=7)
     gen.set_defaults(func=_gen_iot)
+
+    fd = sub.add_parser("fetch-data", help="download the evaluation datasets up front")
+    fd.add_argument("datasets", nargs="*", choices=["loghub2k", "HDFS", "BGL"],
+                    default=["loghub2k", "HDFS", "BGL"])
+    fd.set_defaults(func=_fetch_data)
 
     ev = sub.add_parser("eval", help="run a benchmark")
     ev.add_argument("benchmark", choices=["parsing", "logbert", "iot", "alias", "report"])

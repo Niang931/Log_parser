@@ -40,7 +40,7 @@ make train      # train LogBERT on per-device windows of the history
 make run        # full pipeline: parse, store, enrich PENDING lines, detect anomalies
 ```
 
-Try it end to end on a synthetic fleet:
+Try it end to end on a synthetic fleet with `make demo`, or step by step:
 
 ```sh
 uv run logpipe gen-iot --out artifacts/fleet
@@ -55,6 +55,18 @@ The LLM backend is set by `LLM_BACKEND`:
 - `hf`: local DeepSeek.
 - `llm:<provider>[:<model>]`: a hosted provider through `deepparse.providers`, e.g.
   `llm:anthropic`. API keys come from the environment.
+- `llm:web:<site>`: drives your own signed-in Claude, ChatGPT or Gemini web app in a browser,
+  no API key. Runs are not reproducible, since the site picks the model.
+
+Any make target takes `LLM=...` to override it for one run. To set up the web backend:
+
+```sh
+make web-setup                 # download the browser once (BROWSER=chrome for Playwright Chromium)
+make web-login SITE=gemini     # sign in in a visible window; claude | chatgpt | gemini
+make web-check SITE=gemini     # confirm the saved login still works headless
+make web-ask SITE=gemini PROMPT="Reply with OK."
+make eval-iot LLM=llm:web:gemini
+```
 
 ## Calibration and evaluation
 
@@ -71,15 +83,25 @@ similarity threshold.
 | `make eval-iot` | end-to-end on the synthetic fleet with a firmware rollout and injected anomalies, plus ablations |
 | `make eval-hdfs` / `make eval-bgl` | LogBERT on CPU-sized HDFS/BGL subsets: `[UNK]` / `[MASK]` / drop, novelty on/off |
 
-Results go to `artifacts/eval/`; the latest numbers and findings are in [docs/evaluation.md](docs/evaluation.md). Datasets are downloaded to `artifacts/datasets/` on first use.
+`make eval` runs all of them and then `make eval-report`. Results go to `artifacts/eval/`
+(`EVAL_OUT=...` to change); the latest numbers and findings are in
+[docs/evaluation.md](docs/evaluation.md). Training benchmarks take `EPOCHS=` and `THREADS=`.
+
+Datasets go to `artifacts/datasets/`. The eval targets fetch what they need, or download
+up front with `make data` (all), `make data-loghub`, `make data-hdfs` or `make data-bgl`.
 
 ## Other commands
 
 ```sh
-make test              # unit tests
+make help              # every target
+make setup             # uv sync + .env from the example
+make test              # all tests except integration
+make test-fast         # skip slow (model-training) tests
 make test-integration  # ClickHouse tests (starts the container)
-make lint              # lint with ruff
-make docker-up         # start ClickHouse
+make lint              # ruff
+make typecheck         # pyright
+make check             # lint + typecheck + test
+make docker-up         # start ClickHouse and wait until healthy
 make docker-down
 ```
 
