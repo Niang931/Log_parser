@@ -5,7 +5,10 @@ description = "Log parser with anomoly detection and schema insertion for visual
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "deepparse-artifact[llm,web,drain3]",
+    "deepparse-artifact[llm,web]",
+    "clickhouse-connect>=0.8",
+    "numpy>=2.0",
+    "torch>=2.4",
 ]
 
 [project.scripts]
@@ -21,6 +24,13 @@ dev = [
 
 [tool.uv.sources]
 deepparse-artifact = { path = "DeepParse", editable = true }
+torch = { index = "pytorch-cpu" }
+
+# CPU-only torch wheels (~200MB instead of ~2GB of CUDA libraries).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
@@ -28,3 +38,25 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["logpipe*"]
+
+[tool.setuptools.package-data]
+logpipe = ["storage/*.sql"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+markers = [
+    "integration: tests that need running services such as ClickHouse",
+    "slow: tests that train a model or take more than a few seconds",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["DeepParse"]
+
+[tool.pyright]
+include = ["logpipe", "tests"]
+venvPath = "."
+venv = ".venv"
+# DeepParse is an editable install via an import hook, which pyright can't follow.
+extraPaths = ["DeepParse"]
