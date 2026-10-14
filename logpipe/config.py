@@ -11,6 +11,8 @@ class Settings:
     logs_path: Path
     registry_path: Path
     llm_backend: str
+    store: str
+    model_path: Path
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -18,4 +20,6 @@ class Settings:
             logs_path=Path(os.environ.get("LOGS_PATH", "logs")),
             registry_path=Path(os.environ.get("REGISTRY_PATH", "artifacts/registry.json")),
             llm_backend=os.environ.get("LLM_BACKEND", "offline"),
+            store=os.environ.get("STORE", "memory"),
+            model_path=Path(os.environ.get("MODEL_PATH", "artifacts/logbert")),
         )

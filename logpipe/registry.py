@@ -14,7 +14,7 @@ import os
 import threading
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
-from enum import Enum, IntEnum
+from enum import IntEnum
 from pathlib import Path
 from types import MappingProxyType
 
