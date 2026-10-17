@@ -5,8 +5,11 @@ description = "Log parser with anomoly detection and schema insertion for visual
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "deepparse-artifact[llm,web]",
+    "deepparse-artifact[llm,web,drain3]",
 ]
+
+[project.scripts]
+logpipe = "logpipe.cli:main"
 
 [dependency-groups]
 dev = [
@@ -18,3 +21,10 @@ dev = [
 
 [tool.uv.sources]
 deepparse-artifact = { path = "DeepParse", editable = true }
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["logpipe*"]
