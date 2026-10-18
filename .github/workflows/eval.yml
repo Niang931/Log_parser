@@ -1,0 +1,79 @@
+name: Nightly eval gate
+
+on:
+  schedule:
+    - cron: "0 19 * * *"      # 02:00 Asia/Ho_Chi_Minh
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      write_baseline:
+        description: "Record this run as the new eval/baseline.json (uploaded as an artifact to commit by hand)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  LLM_BACKEND: offline
+  PYTHONUTF8: "1"
+  UV_LOCKED: "1"
+  EVAL_OUT: artifacts/eval
+
+jobs:
+  eval:
+    name: Offline benchmark subset + regression gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            DeepParse/uv.lock
+      - run: uv python install 3.13
+      - run: uv sync --group dev
+
+      # Loghub-2k is ~5 MB
+      - name: cache Loghub-2k
+        uses: actions/cache@v4
+        with:
+          path: artifacts/datasets/loghub2k
+          key: loghub2k-${{ hashFiles('logpipe/eval/datasets.py') }}
+      - name: fetch Loghub-2k
+        run: uv run logpipe fetch-data loghub2k
+
+      # Small subset, same params as eval/baseline.json
+      - name: parsing GA/PA (Loghub-2k + IoT_fleet, offline masks, untuned Drain)
+        run: uv run logpipe eval parsing --no-tune --out $EVAL_OUT
+      - name: alias decisions
+        run: uv run logpipe eval alias --out $EVAL_OUT
+      - name: IoT fleet end to end (reduced)
+        run: uv run logpipe eval iot --out $EVAL_OUT --epochs 3 --devices 3 --test-hours 2
+      - name: report
+        run: uv run logpipe eval report --out $EVAL_OUT
+
+      - name: regression gate
+        if: ${{ !inputs.write_baseline }}
+        run: uv run logpipe eval gate --out $EVAL_OUT --baseline eval/baseline.json
+      - name: write new baseline (manual runs only)
+        if: ${{ inputs.write_baseline }}
+        run: uv run logpipe eval gate --out $EVAL_OUT --baseline $EVAL_OUT/baseline.json --write-baseline
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-report-${{ github.run_number }}
+          path: |
+            artifacts/eval/REPORT.md
+            artifacts/eval/*.json
+            artifacts/eval/*.csv
+            artifacts/eval/iot/results.json
+          retention-days: 30

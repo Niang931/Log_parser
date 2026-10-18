@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# New push to same PR cancel the going run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Offline LLM adapter
+  LLM_BACKEND: offline
+  PYTHONUTF8: "1"
+  UV_LOCKED: "1"      # fail instead of re-resolving uv.lock
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4     # Download code
+      - uses: astral-sh/setup-uv@v6   # Download uv
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            DeepParse/uv.lock
+      - run: uv python install 3.13
+      - run: uv sync --group dev
+      - name: ruff check
+        run: uv run ruff check logpipe tests
+      - name: ruff format --check (advisory)
+        # 37 files predate the formatter. Reformatting them in one sweep would conflict with every open PR, so this reports but does not fail yet. Flip to blocking once `ruff format logpipe tests` has landed on main.
+        continue-on-error: true
+        run: uv run ruff format --check logpipe tests
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            DeepParse/uv.lock
+      - run: uv python install 3.13
+      - run: uv sync --group dev
+      - name: logpipe tests (not integration) with coverage
+        run: >
+          uv run pytest -m "not integration"
+          --cov=logpipe --cov-report=term-missing --cov-report=xml:coverage.xml
+          -p no:cacheprovider
+      - name: DeepParse tests (not integration)
+        run: uv run pytest DeepParse/tests -m "not integration" -p no:cacheprovider
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 14
+
+  integration:
+    name: Integration (ClickHouse)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:25.8
+        ports:
+          - 8123:8123
+          - 9000:9000
+        env:
+          CLICKHOUSE_USER: logpipe
+          CLICKHOUSE_PASSWORD: ci-password
+          CLICKHOUSE_DB: logpipe
+          CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+        options: >-
+          --ulimit nofile=262144:262144
+          --health-cmd "clickhouse-client --user logpipe --password ci-password -q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CLICKHOUSE_HOST: 127.0.0.1
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_USER: logpipe
+      CLICKHOUSE_PASSWORD: ci-password
+      CLICKHOUSE_DB: logpipe
+      STORE: clickhouse
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            DeepParse/uv.lock
+      - run: uv python install 3.13
+      - run: uv sync --group dev
+      - name: integration tests
+        run: uv run pytest -m integration -p no:cacheprovider
+
+  docker:
+    name: Docker build (no push)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: build DeepParse image
+        uses: docker/build-push-action@v6
+        with:
+          context: DeepParse
+          push: false
+          load: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -22,7 +22,7 @@ SCRAPER  := $(RUN) python -m deepparse.ai_scraper
 .DEFAULT_GOAL := help
 .PHONY: help setup calibrate train run replay gen-iot demo \
         data data-loghub data-hdfs data-bgl \
-        eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report \
+        eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
         web-setup web-login web-check web-ask \
         test test-fast test-slow test-integration lint format typecheck check \
         docker-up docker-down clean
@@ -93,6 +93,12 @@ eval-bgl: data-bgl ## LogBERT on a BGL subset
 
 eval-report: ## summarise EVAL_OUT into a report
 	$(EVAL) report
+
+eval-gate: ## compare EVAL_OUT with eval/baseline.json (the nightly CI check)
+	$(EVAL) gate --baseline eval/baseline.json
+
+eval-baseline: ## record EVAL_OUT as the new eval/baseline.json
+	$(EVAL) gate --baseline eval/baseline.json --write-baseline
 
 ## --- web LLM (LLM=llm:web:<site>, no API key) -------------------------------
 
