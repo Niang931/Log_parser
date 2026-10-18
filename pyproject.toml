@@ -22,6 +22,7 @@ dev = [
     "ruff>=0.4",
     "hypothesis>=6.92",
     "types-tqdm>=4.70.0.20260906",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.uv.sources]

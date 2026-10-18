@@ -1,0 +1,26 @@
+{
+  "tolerance": {
+    "ga": 0.02,
+    "iot_f1": 0.05
+  },
+  "parsing": {
+    "systems": 15,
+    "mean_GA": 0.6694,
+    "mean_PA": 0.5142
+  },
+  "alias": {
+    "decider": "rules_offline",
+    "false_merges": 0,
+    "missed_merges": 4,
+    "pairs": 28
+  },
+  "iot": {
+    "F1": 0.518,
+    "P": 0.6425,
+    "R": 0.434
+  },
+  "eval_params": {
+    "parsing": "--no-tune",
+    "iot": "--epochs 3 --devices 3 --test-hours 2"
+  }
+}

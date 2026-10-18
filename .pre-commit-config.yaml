@@ -1,0 +1,24 @@
+# Install once: `uv run pre-commit install` / `pipx install pre-commit`
+# Mirror CI lint job -> Not fail on things could fixed.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^(logpipe|tests)/
+      - id: ruff-format
+        files: ^(logpipe|tests)/
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.0
+    hooks:
+      - id: uv-lock          # keep uv.lock in step with pyproject.toml
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=2048]   # adapters and datasets belong in artifacts/, not in git
+ 

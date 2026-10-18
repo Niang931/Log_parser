@@ -145,6 +145,15 @@ def _fetch_data(args: argparse.Namespace) -> None:
 
 def _eval(args: argparse.Namespace) -> None:
     out = args.out
+    if args.benchmark == "gate":
+        from .eval.gate import collect, run_gate, write_baseline
+
+        if args.write_baseline:
+            path = write_baseline(collect(out), args.baseline,
+                                  params={"parsing": "--no-tune", "iot": "--epochs 3 --devices 3 --test-hours 2"})
+            print(f"[gate] baseline written -> {path}")
+            return
+        raise SystemExit(run_gate(out, args.baseline))
     adapter = get_adapter(args.llm, browser=args.browser)
     if args.benchmark == "report":
         from .eval.report import write_report
@@ -249,8 +258,12 @@ def main(argv: list[str] | None = None) -> None:
     fd.set_defaults(func=_fetch_data)
 
     ev = sub.add_parser("eval", help="run a benchmark")
-    ev.add_argument("benchmark", choices=["parsing", "logbert", "iot", "alias", "report"])
+    ev.add_argument("benchmark", choices=["parsing", "logbert", "iot", "alias", "report", "gate"])
     ev.add_argument("--out", type=Path, default=Path("artifacts/eval"))
+    ev.add_argument("--baseline", type=Path, default=Path("eval/baseline.json"),
+                    help="gate: committed numbers to compare against")
+    ev.add_argument("--write-baseline", action="store_true",
+                    help="gate: record the current results as the new baseline instead of checking")
     ev.add_argument("--llm", default=settings.llm_backend)
     ev.add_argument("--no-tune", action="store_true")
     ev.add_argument("--dataset", choices=["HDFS", "BGL"], default="HDFS")
