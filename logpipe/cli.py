@@ -3,6 +3,7 @@
 * ``calibrate``: build registry v1 from historical logs (+ evaluation report).
 * ``replay``: parse files with the frozen registry only.
 * ``run``: full pipeline (store, enrichment loop, LogBERT detector).
+* ``worker``: learning worker consuming the unresolved queue (Kafka consumer group).
 * ``train-logbert``: train the detector on per-device windows of parsed logs.
 * ``gen-iot``: write the synthetic IoT fleet to disk.
 * ``eval``: ``parsing`` | ``logbert`` | ``iot`` | ``alias`` benchmarks, ``report`` to summarise.
@@ -75,8 +76,10 @@ def _run(args: argparse.Namespace) -> None:
     from .anomaly.scorer import LogBERTScorer
     from .pipeline import Pipeline
     from .storage import open_store
+    from .unresolved import open_queue
 
     store = open_store(args.store)
+    queue = open_queue(args.queue)
     has_model = args.model and (args.model / "config.json").exists()
     pipeline = Pipeline.assemble(
         SchemaRegistry.load(args.registry), store,
@@ -85,16 +88,62 @@ def _run(args: argparse.Namespace) -> None:
         detector_config=DetectorConfig(window=args.window, stride=args.stride),
         registry_path=args.registry,
         enrich_every=args.enrich_every,
+        queue=queue,
     )
     if pipeline.worker is not None and args.rehydrate:
         print(f"rehydrated {pipeline.worker.rehydrate()} pending rows from the store")
     stats = pipeline.run(replay(args.logs))
+    queue.close()
     store.close()
     print(json.dumps(stats.summary(), indent=2, default=str))
     for alert in stats.alerts[: args.show_alerts]:
         print(f"ALERT {alert.device_id} {alert.window_start:%H:%M:%S}-{alert.window_end:%H:%M:%S} "
               f"reasons={','.join(alert.reasons)} miss={alert.miss_ratio:.2f} "
               f"novelty={alert.novelty_ratio:.2f}")
+
+
+def _worker(args: argparse.Namespace) -> None:
+    """Consume the unresolved queue until ``--max-cycles`` or Stop."""
+    import time
+
+    from .enrich.worker import EnrichmentWorker
+    from .storage import open_store
+    from .unresolved import open_queue
+
+    registry = SchemaRegistry.load(args.registry)
+    handle = ParserHandle(registry.current)
+    store = open_store(args.store)
+    queue = open_queue(args.queue)
+    worker = EnrichmentWorker(
+        registry, handle, store, get_adapter(args.llm, browser=args.browser),
+        registry_path=args.registry, queue=queue, max_buffer=args.batch,
+        max_attempts=args.max_attempts, consume_timeout=args.poll,
+    )
+    print(f"worker: registry v{handle.version}, queue {args.queue}, store {args.store}")
+
+    cycles = 0
+    try:
+        while args.max_cycles is None or cycles < args.max_cycles:
+            report = worker.run_cycle()
+            cycles += 1
+            if report.buffered:
+                print(json.dumps({
+                    "cycle": cycles, "buffered": report.buffered, "clusters": report.clusters,
+                    "published": report.published, "aliased": report.aliased,
+                    "rejected": len(report.rejected), "resolved": report.resolved,
+                    "still_pending": report.still_pending, "dead_lettered": report.dead_lettered,
+                    "registry_version": report.registry_version, "queue_lag": report.queue_lag,
+                    "llm_calls": report.llm_calls, "seconds": round(report.seconds, 2),
+                }))
+            elif args.interval:
+                time.sleep(args.interval)
+    
+    except KeyboardInterrupt:
+        print("worker: stopping")
+    finally:
+        queue.close()
+        store.close()
+    print(json.dumps({"cycles": cycles, "queue": worker.queue.stats().to_json()}))
 
 
 def _train_logbert(args: argparse.Namespace) -> None:
@@ -213,15 +262,28 @@ def main(argv: list[str] | None = None) -> None:
     run.add_argument("--logs", type=Path, default=settings.logs_path)
     run.add_argument("--registry", type=Path, default=settings.registry_path)
     run.add_argument("--store", choices=["memory", "clickhouse"], default=settings.store)
+    run.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue, help="unresolved queue; kafka + --no-enrich is the publish-only fast path")
     run.add_argument("--llm", default=settings.llm_backend)
     run.add_argument("--model", type=Path, default=settings.model_path)
     run.add_argument("--enrich-every", type=int, default=5_000)
-    run.add_argument("--no-enrich", action="store_true")
+    run.add_argument("--no-enrich", action="store_true", help="no learning in this process (use `logpipe worker`)")
     run.add_argument("--rehydrate", action="store_true", help="reload PENDING rows from the store")
     run.add_argument("--window", type=int, default=20)
     run.add_argument("--stride", type=int, default=5)
     run.add_argument("--show-alerts", type=int, default=20)
     run.set_defaults(func=_run)
+
+    wk = sub.add_parser("worker", help="learning worker: consume the unresolved queue")
+    wk.add_argument("--registry", type=Path, default=settings.registry_path)
+    wk.add_argument("--store", choices=["memory", "clickhouse"], default=settings.store)
+    wk.add_argument("--queue", choices=["memory", "kafka"], default="kafka")
+    wk.add_argument("--llm", default=settings.llm_backend)
+    wk.add_argument("--batch", type=int, default=10_000, help="rows per cycle")
+    wk.add_argument("--poll", type=float, default=1.0, help="seconds to wait for a batch")
+    wk.add_argument("--interval", type=float, default=2.0, help="sleep after an empty cycle")
+    wk.add_argument("--max-attempts", type=int, default=3, help="failed validations before a row goes to the dead-letter topic")
+    wk.add_argument("--max-cycles", type=int, default=None, help="stop after N cycles (default: run forever)")
+    wk.set_defaults(func=_worker)
 
     tl = sub.add_parser("train-logbert", help="train LogBERT on per-device windows")
     tl.add_argument("--logs", type=Path, default=settings.logs_path)
