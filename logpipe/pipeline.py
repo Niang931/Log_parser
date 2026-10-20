@@ -1,7 +1,7 @@
 """The ingest loop: parse → store → detect, with periodic enrichment cycles.
 
-Kafka/MQTT sources slot in later; anything yielding
-:class:`~logpipe.sources.file_replay.LogEvent` works.
+PENDING rows go to `class UnresolvedQueue`.  With the in-process queue the enrichment worker runs inside this loop every ``enrich_every`` lines;
+with Kafka this process can be a pure fast path (``worker=None``) and ``logpipe worker`` processes consume the topic.
 """
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ from .sources.file_replay import LogEvent
 from .progress import progress
 from .sources.timestamps import event_time
 from .storage.base import AnomalyAlert, LogRow, LogStore
+from .unresolved import QueueStats, UnresolvedQueue
 
 
 @dataclass
@@ -36,6 +37,7 @@ class PipelineStats:
     # Reservoir sample of per-line parse latency, bounded for long runs.
     parse_ns: list[int] = field(default_factory=list)
     seconds: float = 0.0
+    queue: QueueStats | None = None
     _rng: random.Random = field(default_factory=lambda: random.Random(0), repr=False)
 
     def record_latency(self, ns: int, cap: int = 500_000) -> None:
@@ -59,12 +61,14 @@ class PipelineStats:
             "final_at_ingest": self.final,
             "pending_at_ingest": self.pending,
             "resolved_by_enrichment": resolved,
+            "dead_lettered": sum(c.dead_lettered for c in self.cycles),
             "templates_learned": sum(len(c.published) for c in self.cycles),
             "aliases": sum(len(c.aliased) for c in self.cycles),
             "adapter_calls": sum(c.llm_calls for c in self.cycles),
             "alerts": len(self.alerts),
             "parse_latency_us": self.latency_us(),
             "lines_per_second": round(self.lines / self.seconds, 1) if self.seconds else None,
+            "unresolved_queue": self.queue.to_json() if self.queue else None,
         }
 
 
@@ -77,12 +81,15 @@ class Pipeline:
         worker: EnrichmentWorker | None = None,
         detector: StreamingDetector | None = None,
         enrich_every: int = 5_000,
+        queue: UnresolvedQueue | None = None,
     ):
         self.handle = handle
         self.store = store
         self.worker = worker
         self.detector = detector
         self.enrich_every = enrich_every
+        # PENDING rows go here. Defaults to the worker's own queue; a queue without a worker is the publish-only fast path (workers run elsewhere).
+        self.queue: UnresolvedQueue | None = (queue if queue is not None else (worker.queue if worker is not None else None))
         self.stats = PipelineStats()
         self._event_time: datetime | None = None
 
@@ -97,16 +104,18 @@ class Pipeline:
         detector_config: DetectorConfig | None = None,
         registry_path: Path | None = None,
         enrich_every: int = 5_000,
+        queue: UnresolvedQueue | None = None,
     ) -> Pipeline:
         """Wire parser, enrichment and detector around one live registry.
 
-        No ``adapter`` means no enrichment loop; no ``scorer`` means no detector.
-        With both, the detector re-resolves PENDING lines against the latest
-        registry when their window is scored.
+        No ``adapter`` means no enrichment loop in this process: PENDING rows are only published to ``queue`` for external workers. No ``scorer`` means no detector.
+        With adapter and scorer, the detector re-resolves PENDING lines against the latest registry when their window is scored.
         """
         handle = ParserHandle(registry.current)
-        worker = (EnrichmentWorker(registry, handle, store, adapter, registry_path=registry_path)
-                  if adapter is not None else None)
+        worker = (EnrichmentWorker(registry, handle, store, adapter, registry_path=registry_path, queue=queue)
+            if adapter is not None
+            else None
+        )
         detector = None
         if scorer is not None:
             detector = StreamingDetector(
@@ -114,7 +123,7 @@ class Pipeline:
                 registry_version=lambda: handle.version,
                 resolver=(lambda line: handle.parse(line).template_id) if worker else None,
             )
-        return cls(handle, store, worker=worker, detector=detector, enrich_every=enrich_every)
+        return cls(handle, store, worker=worker, detector=detector, enrich_every=enrich_every, queue=queue)
 
     def process(self, event: LogEvent) -> ParseResult:
         start = time.perf_counter_ns()
@@ -132,8 +141,8 @@ class Pipeline:
             self.stats.final += 1
         else:
             self.stats.pending += 1
-            if self.worker is not None:
-                self.worker.submit(row)
+            if self.queue is not None:
+                self.queue.publish(row)
 
         if self.detector is not None:
             self._alerts(self.detector.observe(
@@ -144,10 +153,12 @@ class Pipeline:
         return result
 
     def enrich(self) -> CycleReport | None:
-        if self.worker is None or not len(self.worker):
+        if self.worker is None:
             return None
         self.store.flush()
         report = self.worker.run_cycle(now=self._event_time)
+        if report.buffered == 0:
+            return None
         self.stats.cycles.append(report)
         return report
 
@@ -166,7 +177,11 @@ class Pipeline:
 
     def finish(self) -> None:
         self.store.flush()
+        if self.queue is not None:
+            self.queue.flush()
         self.enrich()
         if self.detector is not None:
             self._alerts(self.detector.flush())
         self.store.flush()
+        if self.queue is not None:
+            self.stats.queue = self.queue.stats()

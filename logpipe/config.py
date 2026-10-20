@@ -14,6 +14,8 @@ class Settings:
     store: str
     model_path: Path
     web_browser: str
+    # Unresolved queue: ``memory`` (in-process) or ``kafka`` (``KAFKA_*`` settings).
+    queue: str
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -24,4 +26,5 @@ class Settings:
             store=os.environ.get("STORE", "memory"),
             model_path=Path(os.environ.get("MODEL_PATH", "artifacts/logbert")),
             web_browser=os.environ.get("WEB_BROWSER", "camoufox").replace("chromium", "chrome"),
+            queue=os.environ.get("QUEUE", "memory"),
         )

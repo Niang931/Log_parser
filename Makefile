@@ -20,7 +20,7 @@ TRAIN    := --epochs $(EPOCHS) $(if $(THREADS),--threads $(THREADS))
 SCRAPER  := $(RUN) python -m deepparse.ai_scraper
 
 .DEFAULT_GOAL := help
-.PHONY: help setup calibrate train run replay gen-iot demo \
+.PHONY: help setup calibrate train run run-fast worker replay gen-iot demo \
         data data-loghub data-hdfs data-bgl \
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
         web-setup web-login web-check web-ask \
@@ -46,6 +46,12 @@ train: ## train LogBERT on per-device windows of LOGS_PATH
 
 run: ## full pipeline: parse, store, enrich, detect
 	$(LOGPIPE) run $(LLM_ARG)
+
+run-fast: ## fast path only: parse, store, publish unknown lines to Kafka
+	$(LOGPIPE) run --queue kafka --no-enrich
+
+worker: ## learning worker: consume the Kafka unresolved queue
+	$(LOGPIPE) worker --queue kafka $(LLM_ARG)
 
 replay: ## parse LOGS_PATH with the frozen registry only
 	$(LOGPIPE) replay --quiet
@@ -129,7 +135,7 @@ test-fast: ## skip slow and integration tests
 test-slow: ## only tests that train a model
 	$(RUN) pytest -m slow
 
-test-integration: docker-up ## ClickHouse tests
+test-integration: docker-up ## ClickHouse and Kafka tests
 	$(RUN) pytest -m integration
 
 lint: ## ruff
@@ -145,10 +151,10 @@ check: lint typecheck test ## lint, typecheck and test
 
 ## --- services ---------------------------------------------------------------
 
-docker-up: ## start ClickHouse and wait until healthy
+docker-up: ## start ClickHouse and Kafka, wait until healthy
 	docker compose up -d --wait
 
-docker-down: ## stop ClickHouse
+docker-down: ## stop the services
 	docker compose down
 
 clean: ## remove caches (keeps datasets, models and eval results)
