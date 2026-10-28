@@ -1,0 +1,24 @@
+# DeepSeek-R1-Distill-Llama-8B, 4-bit QLoRA — laptop target (RTX 4060 8 GB), ~7 GB budget.
+train_file: artifacts/training/train_combined.jsonl
+output_dir: artifacts/checkpoints/deepparse-iot-r1-8b
+model_name: deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+
+epochs: 5
+learning_rate: 0.0002
+batch_size: 1
+grad_accum: 16
+lora_rank: 8
+lora_alpha: 32
+lora_dropout: 0.01
+max_length: 384
+bf16: true
+attn_implementation: sdpa
+load_in_4bit: true
+optim: null
+completion_only: true
+group_by_length: true
+warmup_ratio: 0.05
+save_steps: 25
+log_steps: 10
+seed: 1337
+gpu_memory_fraction: 0.85

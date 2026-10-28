@@ -88,39 +88,85 @@ def _parse_regex_list(raw: str) -> list[str]:
 
 
 def _build_label(pattern: str, index: int) -> str:
-    """Heuristically derive a mask label from the regex shape."""
+    """Derive the variable *category* of a regex from its shape.
+
+    The label matters beyond readability: the Drain stage keys on the typed
+    placeholder, so two regexes that can match the same slot must carry the
+    same label (every pure-digit pattern is ``NUMBER``) or a label whose
+    priority in ``masks_application`` settles the overlap the same way on
+    every line (``HEXSTR`` beats the generic ``WORDVAL`` on a sha256 whether
+    the digest starts with a digit or a letter).  Otherwise the slot renders
+    as two different tokens and Drain wildcards the whole ``key=value``.
+    """
     p = pattern.lower()
+    if pattern.startswith('(?<=[=\\s]")') or '[^"]*' in pattern:
+        return "QUOTED"
+    if pattern.startswith("(?<==)"):
+        return "WORDVAL"
+    if "(?::[0-9a-fa-f]{2}){5}" in p:
+        return "MAC"
     if "0x" in p and "f" in p:
         return "HEX"
     if "uuid" in p or ("8}" in pattern and "12}" in pattern):
         return "UUID"
+    if re.search(r"\[0-9a-fa-f\]\{\d+,?\d*\}", p):
+        return "HEXSTR"  # long hex digests without 0x (sha256, EPC tags)
     if "trace|debug|info" in p:
         return "LOGLEVEL"
     if "ipv4" in p or ("\\d{1,3}\\." in pattern and ".){3}" in pattern):
         return "IPV4"
     if "blk_" in p:
         return "BLK"
+    if "true|false" in p:
+        return "BOOLEAN"
+    if r"\d+x\d+" in pattern:
+        return "DIMS"
+    if r"\d{3}_\d{2,3}" in pattern:
+        return "MCCMNC"
+    if r"\d+\.\d+\.\d+" in pattern:
+        return "SEMVER"
     if pattern.startswith(r"\d{4}") or "datetime" in p or "timestamp" in p:
         return "TIMESTAMP"
+    if "(?:[a-za-z]+-)+" in p:
+        return "ID"  # dash-joined identifiers: TH-75230, gw-edge-53
+    if pattern.startswith("/") or "/[a-z" in p or "(?<!\\s)/" in p or "(?<=[\\s=])/" in p:
+        return "PATH"
+    if not re.search(r"[a-z]", re.sub(r"\\[dswb]", "", p)):
+        return "NUMBER"  # digits-only shapes: \d{6}, -?\d+(?:\.\d+)?, \d{6}\s+\d{6}
     if r"-?\d" in pattern or pattern.endswith(r"\d+"):
         return "NUMBER"
-    if pattern.startswith("/") or "/[a-z" in p or "(?<!\\s)/" in p:
-        return "PATH"
     return f"VAR{index}"
+
+
+# Plain static words a sane variable regex must never swallow whole.  A pattern
+# that fully matches any of them (``[\w.\-:/]+``, ``\b(?:[A-Za-z_][\w.-]*)+``
+# and every other spelling of "any token") would turn static template text
+# into wildcards and collapse the whole dataset; the exact-string deny-list in
+# ``masks_application`` cannot enumerate those spellings, so they are caught
+# behaviourally here (paper Section 4.5: masks that fail validation are dropped).
+_OVER_BROAD_PROBES = ("hello", "connection", "started", "Thunderbolt", "pressure", "kernel")
+
+
+def _is_over_broad(compiled: re.Pattern[str]) -> bool:
+    return any(compiled.fullmatch(word) for word in _OVER_BROAD_PROBES)
 
 
 def _to_masks(patterns: Sequence[str]) -> list[Mask]:
     # only add unseen paterns and validate the regex before creating mask instances
     masks: list[Mask] = []
     seen_pattern: set[str] = set()
+    forbidden = {r"[^\s]+", r"[\w.\-:/]+", r".*", r".+"}
     for idx, pattern in enumerate(patterns):
-        if not pattern or pattern in seen_pattern:
+        if not pattern or pattern in seen_pattern or pattern in forbidden:
             continue
         seen_pattern.add(pattern)
         try:
-            re.compile(pattern)
+            compiled = re.compile(pattern)
         except re.error:
             LOGGER.warning("dropping invalid pattern: %r", pattern)
+            continue
+        if _is_over_broad(compiled):
+            LOGGER.warning("dropping over-broad pattern (matches plain words): %r", pattern)
             continue
         masks.append(
             Mask(label=_build_label(pattern, idx), pattern=pattern, justification="LLM-synthesised")
@@ -146,11 +192,14 @@ def synthesize_hf(
     *,
     model_name: str = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
     adapter_path: str | None = None,
+    load_in_4bit: bool = False,
+    quantization_config=None,
     temperature: float = 0.0,
     num_beams: int = 1,
     max_length: int = 512,
     device: str = "auto",
     self_consistency_attempts: int = 2,
+    **kwargs,
 ) -> list[Mask]:
     """Synthesise a regex mask bundle by prompting an LLM per listing 2."""
     try:
@@ -163,7 +212,7 @@ def synthesize_hf(
         ) from exc
 
     LOGGER.info(
-        "loading base model %s%s", model_name, f" + adapter {adapter_path}" if adapter_path else ""
+        "loading base model %s%s (4bit=%s)", model_name, f" + adapter {adapter_path}" if adapter_path else "", load_in_4bit or (quantization_config is not None)
     )
 
     # Loading the tokenizer, apparently the tokenizer can also be retrieved from the LLM model
@@ -172,12 +221,30 @@ def synthesize_hf(
         tokenizer.pad_token = tokenizer.eos_token
 
     # Initializing the model
-    dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
+    model_kwargs = {
+        "trust_remote_code": True,
+        "low_cpu_mem_usage": True,
+    }
+    use_4bit = load_in_4bit or (quantization_config is not None)
+    if use_4bit:
+        if quantization_config is None:
+            from transformers import BitsAndBytesConfig
+            compute_dtype = torch.bfloat16 if (torch.cuda.is_available() and torch.cuda.is_bf16_supported()) else torch.float16
+            quantization_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_compute_dtype=compute_dtype,
+            )
+        model_kwargs["quantization_config"] = quantization_config
+        model_kwargs["device_map"] = "auto"
+    else:
+        dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
+        model_kwargs["torch_dtype"] = dtype
+
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=dtype,
-        trust_remote_code=True,
-        low_cpu_mem_usage=True,
+        **model_kwargs,
     )
     if adapter_path:
         try:
@@ -189,8 +256,11 @@ def synthesize_hf(
             ) from exc
         model = PeftModel.from_pretrained(model, adapter_path)
 
-    target_device = "cuda" if torch.cuda.is_available() and device != "cpu" else "cpu"
-    model.to(target_device)
+    if not use_4bit:
+        target_device = "cuda" if torch.cuda.is_available() and device != "cpu" else "cpu"
+        model.to(target_device)
+    else:
+        target_device = "cuda" if torch.cuda.is_available() else "cpu"
     model.eval()
 
     # Setting all of the configuration
@@ -287,6 +357,8 @@ def synthesize_hf_from_checkpoint(
     cfg_path = checkpoint_dir / "deepparse_finetune_config.json"
     if cfg_path.exists():
         cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+        if "load_in_4bit" not in kwargs and cfg.get("load_in_4bit"):
+            kwargs["load_in_4bit"] = True
         return synthesize_hf(
             logs,
             model_name=cfg["model_name"],

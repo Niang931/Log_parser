@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "deepparse-artifact[llm,web]",
     "clickhouse-connect>=0.8",
+    "confluent-kafka>=2.6",
     "numpy>=2.0",
     "torch>=2.4",
     "tqdm>=4.66",
@@ -22,6 +23,7 @@ dev = [
     "ruff>=0.4",
     "hypothesis>=6.92",
     "types-tqdm>=4.70.0.20260906",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.uv.sources]
@@ -48,7 +50,7 @@ logpipe = ["storage/*.sql"]
 addopts = "-ra --strict-markers"
 testpaths = ["tests"]
 markers = [
-    "integration: tests that need running services such as ClickHouse",
+    "integration: tests that need running services such as ClickHouse or Kafka",
     "slow: tests that train a model or take more than a few seconds",
 ]
 

@@ -1,0 +1,23 @@
+# Qwen2.5-3B-Instruct, 16-bit LoRA
+train_file: artifacts/training/train_combined.jsonl
+output_dir: artifacts/checkpoints/deepparse-iot-qwen-3b
+model_name: Qwen/Qwen2.5-3B-Instruct
+
+epochs: 5
+learning_rate: 0.0002
+batch_size: 4
+grad_accum: 4
+lora_rank: 8
+lora_alpha: 32
+lora_dropout: 0.01
+max_length: 512
+bf16: true
+attn_implementation: sdpa
+load_in_4bit: false
+optim: null   # auto -> adamw_torch_fused
+completion_only: true
+group_by_length: true
+warmup_ratio: 0.05
+save_steps: 25
+log_steps: 10
+seed: 1337

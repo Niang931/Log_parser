@@ -45,6 +45,11 @@ def set_global_seed(seed: int, deterministic: bool = True) -> SeedState:
         np.random.seed(seed)
     if torch is not None:  # pragma: no branch - optional
         torch.manual_seed(seed)
+        if deterministic:
+            # cuBLAS refuses to run matmuls under deterministic mode unless its
+            # workspace is pinned; without this every GPU synth run on a bare
+            # shell dies with "CUBLAS_WORKSPACE_CONFIG ... must be set".
+            os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
         torch.use_deterministic_algorithms(deterministic)
         if torch.cuda.is_available():  # pragma: no branch - depends on hardware
             torch.cuda.manual_seed_all(seed)

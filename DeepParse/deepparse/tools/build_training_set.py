@@ -13,9 +13,19 @@ How regex strings are derived:
    slot is paired with its corresponding substring in the raw line.
 3. The substring is *generalised* to a canonical regex chosen by token
    shape (digits → ``\\d+``, IPv4 → standard regex, hex → ``0x[0-9a-fA-F]+``,
-   timestamp/uuid/path → standard regexes, alphanumerics → ``[\\w.-]+``).
+   timestamp/uuid/path → standard regexes, dash-joined ids → ``(?:[A-Za-z]+-)+\\d+``).
+   Values that have no intrinsic shape (``region=front_door``,
+   ``method="unlock_door"``) are generalised by their *context* instead:
+   a quoted value becomes ``(?<=[=\\s]")[^"]*(?=")`` and a bare word after
+   ``=`` becomes ``(?<==)[A-Za-z_][\\w.\\-:/]*``.  Both anchor on the
+   delimiter so static key names (``cell_id``, ``power_source``) are never
+   masked.  This is what lets the deterministic Drain stage render
+   ``key=<*>`` instead of collapsing the whole ``key=value`` token to ``<*>``.
 4. Resulting regex list is deduplicated *preserving order* — exactly
    matches the post-processing the paper describes.
+5. Every emitted regex is checked against the runtime deny-list of the
+   mask applier (``_FORBIDDEN_PATTERNS``), so the model is never taught a
+   pattern that the parser would later discard.
 
 Output: a single ``train.jsonl`` file (or one per system if
 ``--per-system`` is passed) under ``--out``.
@@ -29,6 +39,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from deepparse.drain.masks_application import _FORBIDDEN_PATTERNS
+
 INSTRUCTION = (
     "Generate a Python list of regex patterns that capture the dynamic "
     "(variable) parts in the input log message while preserving the static "
@@ -37,7 +49,9 @@ INSTRUCTION = (
 
 
 # Regex shape detectors → canonical regex emitted into the training output.
-# Order matters: more specific shapes first.
+# Order matters: more specific shapes first.  Every free pattern here must
+# be safe to apply to a whole line: anchored on a boundary or a delimiter so
+# it cannot eat static template text.
 _SHAPE_DETECTORS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"^\d{4}[-/]\d{2}[-/]\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?$"),
      r"\d{4}[-/]\d{2}[-/]\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?"),
@@ -49,21 +63,48 @@ _SHAPE_DETECTORS: list[tuple[re.Pattern[str], str]] = [
      r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"),
     (re.compile(r"^(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?$"),
      r"\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b"),
+    # MAC addresses (before HEX/NUMBER so the whole address wins the span)
+    (re.compile(r"^[0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5}$"),
+     r"\b[0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5}\b"),
     (re.compile(r"^0x[0-9a-fA-F]+$"),
      r"\b0x[0-9a-fA-F]+\b"),
+    # Long hex digests / tag ids without a 0x prefix (sha256, EPC tags).
+    (re.compile(r"^[0-9a-fA-F]{16,}$"),
+     r"\b[0-9a-fA-F]{16,}\b"),
+    # Unix paths, both free-standing (" /var/log") and as a value ("=/dev/mtd3").
     (re.compile(r"^/[A-Za-z0-9_./\-]+$"),
-     r"(?<!\S)/[A-Za-z0-9_./\-]+"),
+     r"(?<=[\s=])/[A-Za-z0-9_./\-]+"),
     (re.compile(r"^(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)$"),
      r"\b(?:TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)\b"),
+    # semver / kernel versions: v3.3.2, 5.10.120-v7+, 6.1.21-iot
+    (re.compile(r"^v?\d+\.\d+\.\d+(?:[-+.][\w+]+)*$"),
+     r"(?<![\w.])v?\d+\.\d+\.\d+(?:[-+.][\w+]+)*"),
+    # resolution dimensions (e.g. 1280x720)
+    (re.compile(r"^\d+x\d+$"),
+     r"\b\d+x\d+\b"),
+    # cellular MCC_MNC codes
+    (re.compile(r"^\d{3}_\d{2,3}$"),
+     r"\b\d{3}_\d{2,3}\b"),
     (re.compile(r"^-?\d+(?:\.\d+)?$"),
      r"-?\d+(?:\.\d+)?"),
     (re.compile(r"^blk_-?\d+$"),  # HDFS block IDs
      r"blk_-?\d+"),
-    # Compound identifier with letters + digits + underscores.
-    (re.compile(r"^[A-Za-z_][\w.\-:/]*\d[\w.\-:/]*$"),
-     r"[\w.\-:/]+"),
+    # Dash-joined identifiers: TH-75230, cmd-4960, gw-edge-53, CAM-030.
+    # The whole id is one variable (LogHub convention for blk_123).
+    (re.compile(r"^(?:[A-Za-z]+-)+\d+$"),
+     r"\b(?:[A-Za-z]+-)+\d+\b"),
+    # booleans
+    (re.compile(r"^(?:true|false)$", re.IGNORECASE),
+     r"\b(?:true|false)\b"),
 ]
-_FALLBACK_REGEX = r"[^\s]+"
+
+# Context-anchored patterns for values that have no shape of their own.
+# They fire only when the surrounding template text proves the value is a
+# delimited field, so a bare word in free text is never masked.
+_QUOTED_VALUE_REGEX = r'(?<=[=\s]")[^"]*(?=")'
+_WORD_VALUE_REGEX = r"(?<==)[A-Za-z_][\w.\-:/]*"
+_WORD_SHAPE = re.compile(r"^[A-Za-z_][\w.\-:/]*$")
+
 
 
 def _as_raw_literal(pattern: str) -> str:
@@ -78,14 +119,33 @@ def _as_raw_literal(pattern: str) -> str:
     return '"' + pattern.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def _classify_value(value: str) -> str:
-    # Match the values extrated from _align_template to retrieve accurate regex for each variable
-    # Its essentially just matching the common data type variables that appear in logs like IPv4, paths, numbers, etc
+def _classify_value(value: str, before: str = "", after: str = "") -> str | None:
+    """Return the canonical regex for a variable value, or ``None`` to skip it.
 
-    for detector, pattern in _SHAPE_DETECTORS:
-        if detector.match(value):
-            return pattern
-    return _FALLBACK_REGEX
+    ``before`` / ``after`` are the literal template characters surrounding
+    the ``<*>`` slot (see :func:`_align_template_with_context`).  Shape
+    detectors run first; when none fits, the context decides:
+
+    * ``key="value"`` → the quoted-value regex (keeps the quotes static);
+    * ``key=value``   → the word-value regex anchored on ``=``;
+    * anything else   → ``None`` (left for Drain's whole-token wildcard).
+
+    A pattern on the mask applier's deny-list is never returned.
+    """
+    pattern: str | None = None
+    quoted = before.endswith('"') and after.startswith('"')
+    if quoted:
+        pattern = _QUOTED_VALUE_REGEX
+    else:
+        for detector, canonical in _SHAPE_DETECTORS:
+            if detector.match(value):
+                pattern = canonical
+                break
+        if pattern is None and before.endswith("=") and _WORD_SHAPE.match(value):
+            pattern = _WORD_VALUE_REGEX
+    if pattern is None or pattern in _FORBIDDEN_PATTERNS:
+        return None
+    return pattern
 
 
 @dataclass
@@ -122,10 +182,53 @@ def _align_template(line: str, template: str) -> list[str] | None:
     return list(match.groups())
 
 
+def _align_template_with_context(
+    line: str, template: str
+) -> list[tuple[str, str, str]] | None:
+    """Like :func:`_align_template` but also return the literal context of each slot.
+
+    Each item is ``(value, before, after)`` where ``before`` is the static
+    template text immediately preceding the ``<*>`` and ``after`` the text
+    immediately following it (both may be empty).
+    """
+    values = _align_template(line, template)
+    if values is None:
+        return None
+    parts = template.split("<*>")
+    out: list[tuple[str, str, str]] = []
+    for idx, value in enumerate(values):
+        before = parts[idx]
+        after = parts[idx + 1] if idx + 1 < len(parts) else ""
+        out.append((value, before, after))
+    return out
+
+
+def _per_template_indices(entries: list[dict], per_template: int) -> list[int]:
+    """Pick up to ``per_template`` line indices for every ground-truth template.
+
+    Entropy-greedy sampling saturates once every *structurally distinct* line
+    is in (Jaccard dedupe), so a template whose variables have a rare shape
+    (``resolution=1280x720``) ends up with a single example no matter how
+    large ``k`` is.  Stratifying by template guarantees each regex class the
+    corpus needs is seen several times during fine-tuning.
+    """
+    buckets: dict[object, list[int]] = {}
+    for idx, entry in enumerate(entries):
+        buckets.setdefault(entry.get("cluster_id", entry["template"]), []).append(idx)
+    keep: list[int] = []
+    for indices in buckets.values():
+        # Spread the picks over the template's occurrences instead of taking
+        # the first N, so the values vary as much as the corpus allows.
+        step = max(1, len(indices) // per_template)
+        keep.extend(indices[::step][:per_template])
+    return sorted(keep)
+
+
 def build_examples(
     dataset_dir: Path,
     max_per_system: int | None = None,
     entropy_k: int | None = None,
+    per_template: int | None = None,
 ) -> list[TrainingExample]:
     raw_path = dataset_dir / "raw.log"
     tpl_path = dataset_dir / "templates.json"
@@ -141,7 +244,11 @@ def build_examples(
             f"Length mismatch in {dataset_dir}: {len(lines)} logs vs {len(entries)} templates"
         )
 
-    if entropy_k is not None and entropy_k < len(lines):
+    if per_template is not None:
+        keep = _per_template_indices(entries, per_template)
+        lines = [lines[i] for i in keep]
+        entries = [entries[i] for i in keep]
+    elif entropy_k is not None and entropy_k < len(lines):
         # Paper, Section 'Implementation Details': training samples are
         # selected via the entropy-greedy algorithm.
         from deepparse.utils.sampling import entropy_greedy_sample
@@ -152,14 +259,14 @@ def build_examples(
     examples: list[TrainingExample] = []
     for line, entry in zip(lines, entries):
         template = entry["template"]
-        values = _align_template(line, template)
-        if values is None:
+        slots = _align_template_with_context(line, template)
+        if slots is None:
             continue  # skip lines we can't align cleanly
         regexes: list[str] = []
         seen: set[str] = set()
-        for value in values:
-            regex = _classify_value(value.strip())
-            if regex not in seen:
+        for value, before, after in slots:
+            regex = _classify_value(value.strip(), before, after)
+            if regex is not None and regex not in seen:
                 regexes.append(regex)
                 seen.add(regex)
         # Format the output as a literal Python list of *raw strings*.  We
@@ -168,7 +275,10 @@ def build_examples(
         # the regex (e.g. \\d+ instead of \d+).  Instead we emit each
         # pattern verbatim inside r"..." and only escape embedded double
         # quotes.
-        output = "[\n    " + ",\n    ".join(_as_raw_literal(r) for r in regexes) + ",\n]"
+        if regexes:
+            output = "[\n    " + ",\n    ".join(_as_raw_literal(r) for r in regexes) + ",\n]"
+        else:
+            output = "[]"
         examples.append(TrainingExample(INSTRUCTION, line, output))
         if max_per_system is not None and len(examples) >= max_per_system:
             break
@@ -195,9 +305,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--entropy-k", type=int, default=None,
                         help="If set, select this many examples per system via entropy-greedy "
                              "sampling (paper Algorithm 1). Use 50 to match the paper.")
+    parser.add_argument("--system-k", action="append", default=[], metavar="SYSTEM=K",
+                        help="Per-system override of --entropy-k, e.g. IoT_fleet=150 to sample the "
+                             "target domain more densely than the benchmark systems (repeatable)")
+    parser.add_argument("--system-per-template", action="append", default=[], metavar="SYSTEM=N",
+                        help="For SYSTEM, take up to N lines per ground-truth template instead of "
+                             "entropy-greedy sampling (e.g. IoT_fleet=4 so rare variable shapes are "
+                             "seen several times). Repeatable.")
     parser.add_argument("--per-system", action="store_true",
                         help="Write one JSONL per system instead of a combined file")
     args = parser.parse_args(argv)
+
+    system_per_template: dict[str, int] = {}
+    for item in args.system_per_template:
+        name, _, value = item.partition("=")
+        if not value.isdigit():
+            parser.error(f"--system-per-template expects SYSTEM=N, got {item!r}")
+        system_per_template[name] = int(value)
+
+    system_k: dict[str, int] = {}
+    for item in args.system_k:
+        name, _, value = item.partition("=")
+        if not value.isdigit():
+            parser.error(f"--system-k expects SYSTEM=K, got {item!r}")
+        system_k[name] = int(value)
 
     if args.systems is None:
         systems = [p.name for p in sorted(args.data_dir.iterdir()) if (p / "raw.log").exists()]
@@ -210,14 +341,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.per_system:
         for system in systems:
-            examples = build_examples(args.data_dir / system, args.max_per_system, args.entropy_k)
+            examples = build_examples(args.data_dir / system, args.max_per_system,
+                                      system_k.get(system, args.entropy_k),
+                                      system_per_template.get(system))
             out = args.out.parent / f"{system}.jsonl"
             n = write_jsonl(examples, out)
             print(f"[build_training_set] {system}: {n} examples -> {out}")
     else:
         all_examples: list[TrainingExample] = []
         for system in systems:
-            examples = build_examples(args.data_dir / system, args.max_per_system, args.entropy_k)
+            examples = build_examples(args.data_dir / system, args.max_per_system,
+                                      system_k.get(system, args.entropy_k),
+                                      system_per_template.get(system))
             print(f"[build_training_set] {system}: {len(examples)} examples")
             all_examples.extend(examples)
         n = write_jsonl(all_examples, args.out)

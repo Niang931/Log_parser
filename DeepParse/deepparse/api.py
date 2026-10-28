@@ -11,8 +11,10 @@ The two helpers here implement listing 1 of the paper verbatim::
 """
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 
 from deepparse.drain.drain_engine import DrainEngine
 from deepparse.masks_types import Mask
@@ -38,6 +40,26 @@ def _ensure_mask_objects(masks: Iterable[MaskLike]) -> list[Mask]:
     return converted
 
 
+def _adapter_defaults(adapter_path: str | None) -> dict:
+    """Read ``deepparse_finetune_config.json`` next to a LoRA adapter, if present.
+
+    The fine-tuning script writes the base model name and whether the base was
+    trained in 4-bit.  Reusing them here means ``--adapter`` alone is enough:
+    a Qwen adapter is not silently stacked on the DeepSeek base, and an 8B
+    QLoRA adapter is served in 4-bit so it fits the GPU it was trained on.
+    """
+    if not adapter_path:
+        return {}
+    cfg_path = Path(adapter_path) / "deepparse_finetune_config.json"
+    if not cfg_path.exists():
+        return {}
+    try:
+        cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {k: cfg[k] for k in ("model_name", "load_in_4bit") if k in cfg}
+
+
 def synth_masks(
     logs: Sequence[str],
     sample_size: int = 50,
@@ -57,7 +79,7 @@ def synth_masks(
     effort: str = "medium",
     max_tokens: int = 8192,
     seed: int | None = None,
-) -> List[dict]:
+) -> list[dict]:
     """Synthesise a regex mask bundle from raw log lines.
 
     Returns a list of ``{"label", "pattern", "justification"}``
@@ -81,10 +103,14 @@ def synth_masks(
     elif mode == "hf":
         if _synthesize_hf is None:  # pragma: no cover - optional dependency
             raise RuntimeError("Hugging Face mode requested but transformers is unavailable")
+        adapter_cfg = _adapter_defaults(adapter_path)
         masks = _synthesize_hf(
             sample,
-            model_name=model_name or "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+            model_name=model_name
+            or adapter_cfg.get("model_name")
+            or "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
             adapter_path=adapter_path,
+            load_in_4bit=bool(adapter_cfg.get("load_in_4bit", False)),
             temperature=temperature,
             num_beams=num_beams,
             max_length=max_length,

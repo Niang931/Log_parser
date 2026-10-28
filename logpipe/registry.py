@@ -29,6 +29,11 @@ class UniqueTemplateID(IntEnum):
     FIRST_TEMPLATE_ID = 2
 
 
+UNSET_TEMPLATE_ID = UniqueTemplateID.UNSET_TEMPLATE_ID
+UNK_TEMPLATE_ID = UniqueTemplateID.UNK_TEMPLATE_ID
+FIRST_TEMPLATE_ID = UniqueTemplateID.FIRST_TEMPLATE_ID
+
+
 @dataclass(frozen=True)
 class TemplateEntry:
     template_id: int

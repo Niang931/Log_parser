@@ -14,4 +14,5 @@ def test_cli_demo_pipeline(tmp_path):
     run([sys.executable, "-m", "deepparse.cli", "synth", "--dataset", "DemoTiny", "--mode", "offline", "--out", "artifacts/masks/DemoTiny.json"])
     result = run([sys.executable, "-m", "deepparse.cli", "eval", "--config", "configs/demo_small.yaml"])
     golden = (ROOT / "tests" / "golden" / "demo_eval.txt").read_text(encoding="utf-8").strip()
-    assert golden in result.stdout
+    # The CLI prints the CSV path with the OS separator; the golden file uses '/'.
+    assert golden in result.stdout.replace("\\", "/")

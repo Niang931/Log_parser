@@ -1,0 +1,23 @@
+# Evaluation config covering the 14 LogHub-2k benchmark datasets and the new synthetic IoT benchmark (IoT_fleet).
+#   1. GA/PA on the 14 LogHub datasets must not regress.
+#   2. Holdout coverage and parsing accuracy on IoT_fleet must improve.
+
+base_config: configs/default.yaml
+datasets:
+  - Apache
+  - BGL
+  - HDFS
+  - HPC
+  - Hadoop
+  - HealthApp
+  - Linux
+  - Mac
+  - OpenSSH
+  - OpenStack
+  - Proxifier
+  - Spark
+  - Thunderbird
+  - Zookeeper
+  - IoT_fleet
+output_csv: artifacts/outputs/eval_with_iot_metrics.csv
+timing_csv: artifacts/outputs/eval_with_iot_timing.csv
