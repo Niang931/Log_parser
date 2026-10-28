@@ -6,9 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "deepparse-artifact[llm,web]",
-    "clickhouse-connect>=0.8",
+    "clickhouse-connect>=1.11.0",
     "confluent-kafka>=2.6",
-    "numpy>=2.0",
+    "numpy>=2.5.4",
     "torch>=2.4",
     "tqdm>=4.66",
 ]
@@ -19,9 +19,9 @@ logpipe = "logpipe.cli:main"
 [dependency-groups]
 dev = [
     "deepparse-artifact[test]",
-    "pytest>=8.0",
-    "ruff>=0.4",
-    "hypothesis>=6.92",
+    "pytest>=9.1.1",
+    "ruff>=0.17.2",
+    "hypothesis>=6.170.9",
     "types-tqdm>=4.70.0.20260906",
     "pytest-cov>=7.1.0",
 ]
@@ -37,7 +37,7 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=84.2.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
