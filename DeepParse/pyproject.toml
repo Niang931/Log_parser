@@ -53,10 +53,6 @@ lint = [
     "ruff>=0.1",
     "mypy>=1.7",
 ]
-# The real Drain3 library, for Drain3Engine (paper's "extended Drain3" setup).
-drain3 = [
-    "drain3>=0.9.11",
-]
 # Inference-only LLM stack (required when synth_masks(mode="hf") is used).
 hf = [
     "torch>=2.1",

@@ -19,9 +19,9 @@ from .anomaly.scorer import Scorer
 from .enrich.llm import LLMAdapter
 from .enrich.worker import CycleReport, EnrichmentWorker
 from .parsing.frozen_parser import ParseResult, ParserHandle, Status
+from .progress import progress
 from .registry import SchemaRegistry
 from .sources.file_replay import LogEvent
-from .progress import progress
 from .sources.timestamps import event_time
 from .storage.base import AnomalyAlert, LogRow, LogStore
 from .unresolved import QueueStats, UnresolvedQueue

@@ -117,11 +117,6 @@ class EvaluationRunner:
         self.mode = base_data.get("mode", "offline")
         self.k = int(base_data.get("k", 50))
         self.strict = bool(base_data.get("strict", False))
-        # "port" = the in-repo DrainEngine (default); "drain3" = the real
-        # Drain3 library behind the same mask-first preprocessing.
-        self.engine_name = str(base_data.get("engine", "port")).lower()
-        if self.engine_name not in ("port", "drain3"):
-            raise ValueError(f"engine must be 'port' or 'drain3', got {self.engine_name!r}")
 
     def _ensure_masks(self, dataset: Dataset) -> Path:
         # load the synthesized mask template or do it anyway if not exists here
@@ -131,19 +126,12 @@ class EvaluationRunner:
             synthesize_masks(dataset, self.k, mask_path, mode=self.mode, strict=self.strict)
         return mask_path
 
-    def _make_engine(self, masks):
-        if self.engine_name == "drain3":
-            from deepparse.drain.drain3_engine import Drain3Engine
-
-            return Drain3Engine(masks=masks)
-        return DrainEngine(masks=masks)
-
     def evaluate_dataset(self, dataset_name: str) -> dict[str, float | str]:
         # Loading dataset and loading drain engine
         dataset = load_dataset(dataset_name, self.paths)
         mask_path = self._ensure_masks(dataset)
         masks = _load_masks(mask_path)
-        engine = self._make_engine(masks)
+        engine = DrainEngine(masks=masks)
 
         # predicted_pairs has both the cluster_id and the template
         predicted_pairs = engine.parse_with_ids(dataset.logs)
