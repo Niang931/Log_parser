@@ -37,7 +37,6 @@ jobs:
       - name: ruff check
         run: uv run ruff check logpipe tests
       - name: ruff format --check (advisory)
-        # 37 files predate the formatter. Reformatting them in one sweep would conflict with every open PR, so this reports but does not fail yet. Flip to blocking once `ruff format logpipe tests` has landed on main.
         continue-on-error: true
         run: uv run ruff format --check logpipe tests
 

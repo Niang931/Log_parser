@@ -274,12 +274,13 @@ class EnrichmentWorker:
             else:
                 remaining.append((message, outcome.get(cluster_of[index], "deferred")))
 
-        # 1. backfill, 2. re-queue the rest, 3. commit: a crash before the commit
-        # redelivers the batch and the backfill simply happens again.
+        # backfill all the resolved logs into store (dynamodb or clickhouse)
         if resolved:
-            self.store.insert_logs(resolved)        # 1.
+            self.store.insert_logs(resolved)
             self.store.flush()
-        for message, why in remaining:              # 2.
+
+        # Re-queue the rest for re-processing
+        for message, why in remaining:
             attempts = message.attempts + (0 if why == "deferred" else 1)
             if attempts >= self.max_attempts:
                 self.queue.dead_letter(message, why)
@@ -287,7 +288,7 @@ class EnrichmentWorker:
             else:
                 self.queue.publish(message.row, attempts=attempts)
                 report.still_pending += 1
-        self.queue.commit()                         # 3.
+        self.queue.commit()
 
         if now is not None:
             report.resolve_lag_sec = [(now - r.timestamp).total_seconds() for r in resolved]
