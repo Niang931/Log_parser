@@ -237,7 +237,7 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
             "test": _metrics(detector.scored, test_labels, vocab, registry),
             "pipeline": stats.summary(),
             "enrichment": {
-                "cycles": len(stats.cycles),
+                "cycles": stats.cycle_count,
                 "final_rows": counts.get("FINAL", 0),
                 "pending_rows_at_end": counts.get("PENDING", 0),
                 "pending_share_at_end": round(counts.get("PENDING", 0) / max(1, sum(counts.values())), 5),

@@ -13,6 +13,7 @@ can carry prompt injection, so callers validate the output (see
 from __future__ import annotations
 
 import atexit
+import os
 from collections.abc import Sequence
 from functools import lru_cache
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
@@ -187,11 +188,37 @@ class ChatAdapter(OfflineAdapter):
         return bool(parsed and parsed.same_event)
 
 
+class OutageAdapter:
+    """Chaos testing: every call raises while the file ``LLM_DOWN_FILE`` exists."""
+
+    def __init__(self, inner: LLMAdapter, flag: str):
+        self._inner, self._flag = inner, flag
+
+    def __getattr__(self, name):
+        attr = getattr(self._inner, name)
+        if not callable(attr):
+            return attr
+
+        def guarded(*args):
+            if os.path.exists(self._flag):
+                raise ConnectionError(f"LLM outage injected by {self._flag}")
+            return attr(*args)
+
+        return guarded
+
+
 def get_adapter(backend: str, *, browser: Browser = "camoufox") -> LLMAdapter:
     """``offline`` | ``hf`` | ``llm:<provider>[:<model>]``.
 
-    ``browser`` is only read by ``llm:web:<site>``.
+    ``browser`` is only read by ``llm:web:<site>``. With ``LLM_DOWN_FILE`` set, the adapter
+    fails while that file exists (``scripts/chaos.sh llm``).
     """
+    adapter = _get_adapter(backend, browser=browser)
+    flag = os.environ.get("LLM_DOWN_FILE")
+    return OutageAdapter(adapter, flag) if flag else adapter  # type: ignore[return-value]
+
+
+def _get_adapter(backend: str, *, browser: Browser = "camoufox") -> LLMAdapter:
     if backend.startswith("llm:"):
         _, provider, *model = backend.split(":", 2)
         return ChatAdapter(provider, model[0] if model else None, browser=browser)
