@@ -23,6 +23,8 @@ Injected anomaly kinds, labelled per event:
 from __future__ import annotations
 
 import random
+import time
+from collections import deque
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -167,6 +169,7 @@ class Gateway(_Device):
 
 
 KINDS = [Thermostat, DoorLock, SmartPlug, Gateway]
+_PREFIX = {"thermostat": "TH", "doorlock": "DL", "plug": "PL", "gateway": "GW"}
 
 
 def _inject(device: _Device, kind: str, episode: list[tuple[str, str]]) -> list[tuple[str, str, bool]]:
@@ -266,6 +269,59 @@ class Fleet:
                         fh.write(f"{phase}\t{e.device_id}\t{e.timestamp.isoformat()}\t{e.anomaly}\t{e.line}\n")
 
 
+class Stream:
+    """Live load: ``rate`` lines/s from ``devices`` devices, stamped with the wall clock.
+
+    Iterate to get ``LogEvent``s. ``generated`` counts the lines yielded so far, so a run can
+    be checked by counting. ``rollout_at_s`` seconds in, ``rollout_share`` of the devices
+    switch to firmware 2 (as in ``_run_phase``). Stops after ``duration_s`` (never if None).
+    """
+
+    def __init__(
+        self, devices: int, rate: float, rollout_at_s: float | None = None,
+        rollout_share: float = 0.6, seed: int = 7, duration_s: float | None = None,
+    ):
+        if devices < 1 or rate <= 0:
+            raise ValueError(f"need devices >= 1 and rate > 0, got {devices=} {rate=}")
+        rng = random.Random(seed)
+        self.devices: list[_Device] = []
+        for i in range(devices):
+            kind = KINDS[i % len(KINDS)]
+            device_id = f"{_PREFIX[kind.kind]}-{1000 + i // len(KINDS)}"
+            self.devices.append(kind(device_id, random.Random(rng.random())))
+        self._upgrade = [d for d in self.devices if rng.random() < rollout_share]
+        self._rng = rng
+        self.rate, self.rollout_at_s, self.duration_s = rate, rollout_at_s, duration_s
+        self.generated = 0
+
+    def __iter__(self) -> Iterator[LogEvent]:
+        # The lines of each device's current episode, so one device keeps its causal order.
+        pending: dict[str, deque[tuple[str, str]]] = {d.id: deque() for d in self.devices}
+        start = time.monotonic()
+        rolled_out = False
+        sent = 0  # per iteration, so iterating again starts a fresh schedule
+        while True:
+            offset = sent / self.rate  # when this line is due
+            if self.duration_s is not None and offset >= self.duration_s:
+                return
+            # ponytail: sleeps only when >1 ms ahead; behind schedule it emits back to back
+            if (ahead := start + offset - time.monotonic()) > 0.001:
+                time.sleep(ahead)
+            if (not rolled_out and self.rollout_at_s is not None
+                    and time.monotonic() - start >= self.rollout_at_s):
+                for device in self._upgrade:
+                    device.firmware = 2
+                rolled_out = True
+            device = self._rng.choice(self.devices)
+            if not pending[device.id]:
+                pending[device.id].extend(device.episode())
+            level, message = pending[device.id].popleft()
+            line = device.line(datetime.now(UTC), level, message)
+            sent += 1
+            self.generated += 1
+            yield LogEvent(device.id, "synth:load", self.generated, line)
+
+
 def generate(
     devices_per_kind: int = 5,
     history_hours: float = 12,
@@ -280,8 +336,7 @@ def generate(
     devices: list[_Device] = []
     for kind in KINDS:
         for i in range(devices_per_kind):
-            prefix = {"thermostat": "TH", "doorlock": "DL", "plug": "PL", "gateway": "GW"}[kind.kind]
-            devices.append(kind(f"{prefix}-{1000 + i}", random.Random(rng.random())))
+            devices.append(kind(f"{_PREFIX[kind.kind]}-{1000 + i}", random.Random(rng.random())))
     t0 = datetime(2026, 4, 13, tzinfo=UTC)
     history = _run_phase(devices, "history", t0, history_hours, rng, 0.0, None, 0.0)
     t1 = t0 + timedelta(hours=history_hours)
