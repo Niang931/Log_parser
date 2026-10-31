@@ -96,6 +96,12 @@ jobs:
       CLICKHOUSE_PASSWORD: ci-password
       CLICKHOUSE_DB: logpipe
       STORE: clickhouse
+      # tests/test_backup_restore.py skips when the bucket secret is unset
+      BACKUP_B2_ENDPOINT: ${{ secrets.BACKUP_B2_ENDPOINT }}
+      BACKUP_B2_BUCKET: ${{ secrets.BACKUP_B2_BUCKET }}
+      BACKUP_B2_KEY_ID: ${{ secrets.BACKUP_B2_KEY_ID }}
+      BACKUP_B2_SECRET: ${{ secrets.BACKUP_B2_SECRET }}
+    # TODO:(Task 5.1, 5.2) thêm service mongo + MONGO_URI/MONGO_DB; chạy integration cho cả STORE=mongo
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
