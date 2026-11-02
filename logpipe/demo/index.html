@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>logpipe demo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f5f4; --panel: #fff; --line: #dcdcda; --text: #1f1f1f; --muted: #6b6b6b;
+    --soft: #eeeeec; --accent: #1f5fa8;
+    --good: #2f7d4a; --warn: #a86a12; --bad: #b3261e;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: baseline; gap: 24px; padding: 14px 24px;
+           background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  #status { color: var(--muted); font-variant-numeric: tabular-nums; }
+  nav { display: flex; gap: 4px; padding: 0 24px; background: var(--panel);
+        border-bottom: 1px solid var(--line); overflow-x: auto; }
+  nav button { border: 0; background: none; padding: 10px 12px; cursor: pointer; font: inherit;
+               color: var(--muted); border-bottom: 2px solid transparent; }
+  nav button.on { color: var(--text); border-bottom-color: var(--accent); }
+  main { padding: 20px 24px; }
+  section[hidden] { display: none; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+       color: var(--muted); margin: 0 0 10px; }
+  p.note { color: var(--muted); margin: 0 0 14px; max-width: 80ch; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 14px; }
+  .split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; }
+  @media (max-width: 1000px) { .split { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--soft); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; position: sticky; top: 0; background: var(--panel); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .mono, code, pre, textarea { font-family: var(--mono); font-size: 12px; }
+  .scroll { max-height: calc(100vh - 230px); overflow: auto; }
+  tr.click { cursor: pointer; }
+  tr.click:hover td { background: #f7f7f6; }
+  tr.sel td { background: #e8eef7; }
+  .badge { display: inline-block; padding: 0 6px; border-radius: 3px; font-size: 11px;
+           border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .badge.pending, .badge.flag { border-color: var(--accent); color: var(--accent); }
+  .trunc { max-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 45%; }
+  .stage { border-top: 1px solid var(--soft); padding: 10px 0; }
+  .stage:first-of-type { border-top: 0; padding-top: 0; }
+  .stage h3 { font-size: 12px; font-weight: 600; margin: 0 0 6px; }
+  .stage h3 span { color: var(--muted); font-weight: 400; }
+  pre { margin: 0; white-space: pre-wrap; word-break: break-all; background: var(--soft);
+        padding: 6px 8px; border-radius: 3px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 1px 6px; border-radius: 3px;
+          background: var(--soft); }
+  .chip.var { color: var(--accent); }
+  .chip.unk { outline: 1px solid var(--accent); }
+  .muted { color: var(--muted); }
+  .kv td:first-child { color: var(--muted); width: 35%; }
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr)); gap: 16px; }
+  .charts .panel { height: 300px; display: flex; flex-direction: column; }
+  .charts .panel div { flex: 1; position: relative; min-height: 0; }
+  .row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  select, button.act { font: inherit; padding: 4px 8px; border: 1px solid var(--line);
+                       background: var(--panel); border-radius: 3px; }
+  button.act { cursor: pointer; }
+  button.act.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  textarea { width: 100%; min-height: 170px; padding: 8px; border: 1px solid var(--line);
+             border-radius: 3px; resize: vertical; }
+  .error { color: #a12; }
+  #lines.pendonly tr:not(.p), #lines.anononly tr:not(.a) { display: none; }
+  .controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-left: auto; }
+  #graph { width: 100%; height: auto; display: block; }
+  #graph .node rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.2; rx: 4; }
+  #graph .node text { font-size: 12px; fill: var(--text); text-anchor: middle; }
+  #graph .node text.sub { font-size: 10.5px; fill: var(--muted); font-family: var(--mono); }
+  #graph .node.loop rect { fill: #f8f9fb; }
+  #graph .edge path { fill: none; stroke: #b8b8b5; stroke-width: 1.4; }
+  #graph .edge.back path { stroke-dasharray: 5 4; }
+  #graph .edge text { font-size: 10.5px; fill: var(--muted); font-family: var(--mono); }
+  #graph .edge text.bg { stroke: var(--bg); stroke-width: 4; }
+  #graph .on rect { stroke: var(--accent); stroke-width: 2.4; }
+  #graph .edge.on path { stroke: var(--accent); stroke-width: 2.4; }
+  #graph .node.flash rect { fill: #e8eef7; }
+  #timeline { list-style: none; margin: 0; padding: 0; }
+  #timeline li { display: grid; grid-template-columns: 62px 86px 1fr; gap: 8px; padding: 4px 6px;
+                 border-bottom: 1px solid var(--soft); cursor: pointer; font-size: 13px; }
+  #timeline li:hover { background: #f7f7f6; }
+  #timeline .k { font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  #timeline.hide-truth li.truth, #timeline.hide-backfill li.backfill { display: none; }
+  .k.tp, .k.alias { color: var(--good); } .k.fp, .k.requeue, .k.rejected { color: var(--warn); }
+  .k.fn, .k.dead { color: var(--bad); } .k.new, .k.rollout, .k.control { color: var(--accent); }
+  .k.truth, .k.backfill, .k.end { color: var(--muted); }
+  ol.trail { margin: 0; padding-left: 20px; font-family: var(--mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>logpipe demo</h1>
+  <span id="status">preparing</span>
+  <div class="controls">
+    <button class="act" id="c-pause">Pause</button>
+    <button class="act" id="c-step" title="pause and feed one line">Step</button>
+    <select id="c-speed" title="lines per second">
+      <option value="5">5 / s</option><option value="25" selected>25 / s</option>
+      <option value="100">100 / s</option><option value="500">500 / s</option>
+    </select>
+    <button class="act" id="c-rollout" title="upgrade the rollout share of devices to firmware 2.x now">Rollout now</button>
+    <select id="c-device"></select><select id="c-kind"></select>
+    <button class="act" id="c-inject" title="make the device's next episode anomalous">Inject</button>
+  </div>
+</header>
+<nav id="tabs">
+  <button data-tab="system" class="on">System</button>
+  <button data-tab="stream">Stream and trace</button>
+  <button data-tab="templates">Templates</button>
+  <button data-tab="query">Query</button>
+  <button data-tab="charts">Charts</button>
+  <button data-tab="eval">Eval report</button>
+</nav>
+<main>
+  <section id="system">
+    <p class="note">Every stage of the system with live counters. Solid edges are the hot path, dashed
+      ones the learning loop. Select a line (in the timeline or in Stream and trace) to light up the
+      path it took. Masks were synthesised once at calibration; the LLM node in the loop names slot
+      keys and confirms re-associations.</p>
+    <div class="panel"><svg id="graph" viewBox="0 0 960 420" role="img" aria-label="System flow graph"></svg></div>
+    <div class="split" style="margin-top:16px">
+      <div class="panel scroll">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0">Timeline</h2>
+          <span><label><input type="checkbox" id="t-truth"> ground truth</label>
+            <label><input type="checkbox" id="t-backfill"> backfills</label></span>
+        </div>
+        <ul id="timeline" class="hide-truth hide-backfill"></ul>
+      </div>
+      <div class="panel scroll" id="sel"><p class="muted">Select an event or a line.</p></div>
+    </div>
+  </section>
+
+  <section id="stream" hidden>
+    <p class="note">The test stream of the synthetic IoT fleet (injected anomalies and a firmware
+      rollout half way through) is replayed line by line through the frozen parser, the store,
+      the enrichment worker (offline adapter) and the LogBERT detector. Click a line to follow it
+      through every stage.</p>
+    <div class="row">
+      <button class="act" id="pause">Pause view</button>
+      <label><input type="checkbox" id="pendonly"> Only lines PENDING at ingest</label>
+      <label><input type="checkbox" id="anononly"> Only injected anomalies</label>
+    </div>
+    <div class="split">
+      <div class="panel scroll">
+        <table>
+          <thead><tr><th>#</th><th>Time</th><th>Device</th><th>Status</th><th class="num">Template</th><th>Payload (without timestamp and level)</th></tr></thead>
+          <tbody id="lines"></tbody>
+        </table>
+      </div>
+      <div class="panel scroll" id="trace"><p class="muted">Select a line.</p></div>
+    </div>
+  </section>
+
+  <section id="templates" hidden>
+    <p class="note">The schema registry. Templates from calibration (DeepParse masks plus Drain on the
+      history) are version 1; templates learned by enrichment cycles from PENDING lines carry the
+      registry version that published them. Click a template to query it.</p>
+    <div class="panel"><table>
+      <thead><tr><th class="num">Id</th><th>Template</th><th>Slot keys</th><th class="num">Lines</th><th>Version</th></tr></thead>
+      <tbody id="tpl"></tbody>
+    </table></div>
+    <h2 style="margin-top:20px">Enrichment cycles</h2>
+    <div class="panel"><table>
+      <thead><tr><th class="num">Registry</th><th class="num">Buffered</th><th>Published</th><th>Aliased</th><th class="num">Resolved</th><th class="num">Still pending</th></tr></thead>
+      <tbody id="cycles"></tbody>
+    </table></div>
+  </section>
+
+  <section id="query" hidden>
+    <p class="note">The repo has no query generator and no ClickHouse store yet, so this demo
+      generates a plain SQL SELECT per template from its slot keys. It runs on SQLite over a snapshot
+      of the in-memory store, as a <code>logs</code> table with the payload as JSON. The query can be edited.</p>
+    <div class="row">
+      <select id="qtpl"></select>
+      <button class="act primary" id="qrun">Run</button>
+      <span class="muted" id="qinfo"></span>
+    </div>
+    <textarea id="qsql" spellcheck="false"></textarea>
+    <div class="panel scroll" style="margin-top:12px"><table id="qres"></table></div>
+  </section>
+
+  <section id="charts" hidden>
+    <p class="note">Throughput and parse status are bucketed per minute of event time. Scores are one
+      point per LogBERT window; thresholds were tuned on a separate validation stream.</p>
+    <div class="charts">
+      <div class="panel"><h2>Throughput, lines per minute</h2><div><canvas id="c-through"></canvas></div></div>
+      <div class="panel"><h2>Status at ingest, share per minute</h2><div><canvas id="c-share"></canvas></div></div>
+      <div class="panel"><h2>Window scores and thresholds</h2><div><canvas id="c-score"></canvas></div></div>
+      <div class="panel"><h2>Flags by reason</h2><div><canvas id="c-reason"></canvas></div></div>
+    </div>
+  </section>
+
+  <section id="eval" hidden>
+    <p class="note">Contents of <code>artifacts/eval/REPORT.md</code> if an evaluation has been run
+      (<code>logpipe eval ...</code> then <code>logpipe eval report</code>).</p>
+    <pre id="report" class="panel"></pre>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+function el(tag, props = {}, ...kids) {
+  const n = Object.assign(document.createElement(tag), props);
+  for (const k of kids.flat()) if (k != null) n.append(k instanceof Node ? k : String(k));
+  return n;
+}
+const getJSON = (url) => fetch(url).then(async (r) => {
+  const body = await r.json();
+  if (!r.ok) throw new Error(body.error || r.statusText);
+  return body;
+});
+const short = (iso) => iso.slice(11, 19);
+const badge = (status) => el("span", { className: "badge" + (status === "PENDING" ? " pending" : "") }, status);
+const payloadText = (p) => Object.entries(p).filter(([k]) => k !== "timestamp" && k !== "loglevel").map(([k, v]) => `${k}=${v}`).join(" ");
+const tplText = (t) => t.tokens.join(" ");
+
+/* tabs */
+let tab = "system";
+$("tabs").onclick = (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  tab = b.dataset.tab;
+  for (const x of $("tabs").children) x.classList.toggle("on", x === b);
+  for (const s of document.querySelectorAll("main section")) s.hidden = s.id !== tab;
+  refreshTab();
+};
+
+/* stream */
+let after = 0, paused = false;
+$("pause").onclick = (e) => { paused = !paused; e.target.textContent = paused ? "Resume view" : "Pause view"; };
+$("pendonly").onchange = (e) => $("lines").classList.toggle("pendonly", e.target.checked);
+$("anononly").onchange = (e) => $("lines").classList.toggle("anononly", e.target.checked);
+const MAX_ROWS = 2000;
+async function pollStream() {
+  if (paused) return setTimeout(pollStream, 500);
+  const s = await getJSON(`/api/stream?after=${after}`);
+  $("status").textContent = `${s.done} lines (until ${short(s.end)}) · registry v${s.registry_version} · ` +
+    `${s.alerts} alerts · ${s.finished ? "finished" : s.paused ? "paused" : `streaming ${s.rate}/s`}`;
+  const body = $("lines");
+  for (const l of s.lines.slice(-MAX_ROWS)) {
+    const tr = el("tr", { className: "click" + (l.status === "PENDING" ? " p" : "") + (l.anomaly ? " a" : "") },
+      el("td", { className: "num muted" }, l.i),
+      el("td", { className: "mono" }, short(l.time)),
+      el("td", {}, l.device_id),
+      el("td", {}, badge(l.status), l.anomaly ? [" ", el("span", { className: "badge", title: "injected anomaly (ground truth)" }, l.anomaly)] : null),
+      el("td", { className: "num" }, l.template_id),
+      el("td", { className: "mono trunc", title: payloadText(l.payload) }, payloadText(l.payload) || "-"));
+    tr.onclick = () => select(l.i, tr);
+    body.prepend(tr);
+  }
+  while (body.children.length > MAX_ROWS) body.lastChild.remove();
+  after += s.lines.length;
+  if (!s.finished || s.lines.length) setTimeout(pollStream, 1000);
+}
+
+async function select(i, tr) {
+  document.querySelectorAll("tr.sel").forEach((x) => x.classList.remove("sel"));
+  tr?.classList.add("sel");
+  const t = await getJSON(`/api/trace?i=${i}`);
+  renderTrace(t);
+  showPath(t);
+}
+
+function stage(title, hint, ...content) {
+  return el("div", { className: "stage" }, el("h3", {}, title, hint ? el("span", {}, " · " + hint) : null), ...content);
+}
+function kvTable(obj) {
+  const rows = Object.entries(obj);
+  if (!rows.length) return el("p", { className: "muted" }, "empty");
+  return el("table", { className: "kv" }, rows.map(([k, v]) => el("tr", {}, el("td", {}, k), el("td", { className: "mono" }, v))));
+}
+const tokenChips = (tokens) => el("div", { className: "chips" },
+  tokens.map((t) => el("span", { className: "chip" + (/<\*>|<VAR:/.test(t) ? " var" : "") }, t)));
+
+function renderTrace(t) {
+  const l = t.line, c = t.current, out = $("trace");
+  out.replaceChildren(
+    el("h2", {}, `Line ${l.i} · ${l.device_id} · ${l.time.replace("T", " ").slice(0, 23)}`),
+    stage("1. Raw line", l.anomaly ? `injected anomaly: ${l.anomaly}` : "from the replayed stream",
+      el("pre", {}, l.raw)),
+    stage("2. Masked line", "DeepParse regex masks replace variable spans", el("pre", {}, t.masked)),
+    stage("3. Tokens", "what Drain matches against templates", tokenChips(t.tokens)),
+    stage("4. Template at ingest", `frozen parser, registry v${l.registry_version}`,
+      el("p", {}, badge(l.status), " template ", el("b", {}, l.template_id),
+        l.status === "PENDING" ? el("span", { className: "muted" }, " (no template matched; row stored as PENDING and queued for enrichment)") : null),
+      t.ingest_template ? tokenChips(t.ingest_template.tokens) : null),
+    stage("5. Payload at ingest", "slot values keyed by the template's slot keys", kvTable(l.payload)),
+    stage("6. Row in the store now", c.registry_version !== l.registry_version
+        ? `rewritten by enrichment with registry v${c.registry_version}` : "unchanged since ingest",
+      el("p", {}, badge(c.status), " template ", el("b", {}, c.template_id)),
+      c.template ? tokenChips(c.template.tokens) : null,
+      c.registry_version !== l.registry_version ? kvTable(c.payload) : null),
+    stage("7. Path through the system", "ingest, then every enrichment cycle that touched the row",
+      el("ol", { className: "trail" }, t.trail.map((x) => el("li", {}, x)))),
+    stage("8. LogBERT windows containing this line", t.windows.length
+        ? `${t.windows.length} window(s) of template ids on ${l.device_id}`
+        : "not scored yet (windows close every few lines per device)",
+      t.windows.map(windowView)),
+  );
+}
+
+function windowView(w) {
+  const s = w.score;
+  const th = thresholds;
+  return el("div", { style: "margin-bottom:12px" },
+    el("p", { className: "muted", style: "margin:0 0 4px" }, `${short(w.start)} to ${short(w.end)} `,
+      w.reasons.length ? w.reasons.map((r) => el("span", { className: "badge flag" }, r)) : el("span", { className: "badge" }, "not flagged"),
+      " ", w.truth.length ? el("span", { className: "badge", title: "ground truth" }, "truth: " + w.truth.join(", ")) : el("span", { className: "badge" }, "truth: normal")),
+    el("div", { className: "chips", style: "margin-bottom:6px" }, w.template_ids.map((id, k) =>
+      el("span", { className: "chip" + (w.in_vocab[k] ? "" : " unk"), title: w.in_vocab[k] ? "in LogBERT vocabulary" : "unknown to the model" }, id))),
+    el("table", { className: "kv" },
+      el("tr", {}, el("td", {}, "masked keys / missed"), el("td", { className: "mono" }, `${s.masked} / ${s.undetected}`)),
+      el("tr", {}, el("td", {}, "miss ratio"), el("td", { className: "mono" }, `${s.miss_ratio.toFixed(3)}` + (th ? `  (flag if > ${th.miss_ratio})` : ""))),
+      el("tr", {}, el("td", {}, "unknown templates"), el("td", { className: "mono" }, `${s.unknown} of ${s.length}`)),
+      el("tr", {}, el("td", {}, "novelty ratio"), el("td", { className: "mono" }, `${s.novelty_ratio.toFixed(3)}` + (th ? `  (flag if > ${th.novelty_ratio})` : ""))),
+      el("tr", {}, el("td", {}, "distance to centre"), el("td", { className: "mono" }, `${s.distance.toFixed(3)}` + (th ? `  (radius ${th.radius.toFixed(3)}, ${th.use_distance ? "used" : "not used"})` : "")))));
+}
+
+/* system graph */
+const W = 136, H = 48;
+const NODES = {
+  source:   [90, 60, "Fleet stream"],     parser:   [270, 60, "Frozen Drain"],
+  store:    [470, 60, "Store"],           detector: [670, 60, "LogBERT detector"],
+  alert:    [870, 60, "Alerts"],
+  dead:     [90, 200, "Dead-letter"],     queue:    [270, 200, "Unresolved queue"],
+  shadow:   [470, 200, "Shadow Drain"],   llm:      [670, 200, "LLM: keys, alias"],
+  validate: [870, 200, "Validate"],
+  backfill: [470, 340, "Backfill rows"],  registry: [670, 340, "Registry vN+1"],
+  alias:    [870, 340, "Alias check"],
+};
+const LOOP = new Set(["dead", "queue", "shadow", "llm", "validate", "backfill", "registry", "alias"]);
+// [from, to, waypoints, label(s), back-edge, label position (default: middle of the longest segment)]
+const EDGES = [
+  ["source", "parser", [], (s) => `${s.lines}`],
+  ["parser", "store", [], (s) => `hit ${s.hit}`],
+  ["store", "detector", [], (s) => `${s.lines - s.miss + s.resolved}`],
+  ["detector", "alert", [], (s) => `TP ${s.tp} FP ${s.fp}`],
+  ["parser", "queue", [], (s) => `miss ${s.miss}`],
+  ["queue", "shadow", [], (s) => `${s.queue.consumed}`],
+  ["shadow", "llm", [], (s) => `${s.clusters}`],
+  ["llm", "validate", [], () => ""],
+  ["validate", "alias", [], (s) => `${s.rejected} rejected`],
+  ["alias", "registry", [], (s) => `+${s.published}`],
+  ["registry", "backfill", [], (s) => `${s.resolved}`],
+  ["queue", "dead", [], (s) => `${s.dead_lettered}`],
+  ["alias", "queue", [[870, 395], [270, 395]], (s) => `requeue ${s.requeued}`, true],
+  ["registry", "parser", [[650, 280], [370, 280], [370, 75]], () => "hot-swap", true],
+  ["backfill", "store", [[500, 290], [570, 290], [570, 115], [500, 115]], () => "upsert", true, [576, 140]],
+];
+function border([x, y], [tx, ty]) {  // where the segment from the centre towards (tx, ty) leaves the box
+  const dx = tx - x, dy = ty - y;
+  const t = Math.min(dx ? W / 2 / Math.abs(dx) : Infinity, dy ? H / 2 / Math.abs(dy) : Infinity);
+  return [x + dx * t, y + dy * t];
+}
+const SVG = "http://www.w3.org/2000/svg";
+const svgEl = (tag, attrs = {}, text) => {
+  const n = document.createElementNS(SVG, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (text != null) n.textContent = text;
+  return n;
+};
+const graph = { nodes: {}, edges: [] };
+function buildGraph() {
+  const g = $("graph");
+  g.append(svgEl("defs", {}), svgEl("g", { id: "edges" }), svgEl("g", { id: "nodes" }));
+  const m = svgEl("marker", { id: "arr", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7,
+    markerHeight: 7, orient: "auto-start-reverse" });
+  m.append(svgEl("path", { d: "M0,0 L10,5 L0,10 z", fill: "#8a8a87" }));
+  g.firstChild.append(m);
+  for (const [from, to, via, label, back, pos] of EDGES) {
+    const a = NODES[from], b = NODES[to];
+    const pts = [border(a, via[0] ?? b), ...via, border(b, via.at(-1) ?? a)];
+    const grp = svgEl("g", { class: "edge" + (back ? " back" : "") });
+    grp.append(svgEl("path", { d: "M" + pts.map((p) => p.join(",")).join(" L"), "marker-end": "url(#arr)" }));
+    // label at the middle of the longest segment
+    let best = 0, mid = pts[0];
+    for (let k = 1; k < pts.length; k++) {
+      const len = Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]);
+      if (len > best) { best = len; mid = [(pts[k][0] + pts[k - 1][0]) / 2, (pts[k][1] + pts[k - 1][1]) / 2]; }
+    }
+    const vertical = Math.abs(pts[1][0] - pts[0][0]) < 1 && pts.length === 2;
+    const at = pos ? { x: pos[0], y: pos[1], "text-anchor": "start" }
+      : { x: mid[0] + (vertical ? 6 : 0), y: mid[1] - (vertical ? 0 : 5), "text-anchor": vertical ? "start" : "middle" };
+    const bg = svgEl("text", { ...at, class: "bg" }), fg = svgEl("text", at);
+    grp.append(bg, fg);
+    $("edges").append(grp);
+    graph.edges.push({ from, to, label, grp, bg, fg });
+  }
+  for (const [id, [x, y, title]] of Object.entries(NODES)) {
+    const grp = svgEl("g", { class: "node" + (LOOP.has(id) ? " loop" : ""), transform: `translate(${x - W / 2},${y - H / 2})` });
+    const sub = svgEl("text", { x: W / 2, y: 36, class: "sub" });
+    grp.append(svgEl("rect", { width: W, height: H }), svgEl("text", { x: W / 2, y: 19 }, title), sub);
+    $("nodes").append(grp);
+    graph.nodes[id] = { grp, sub };
+  }
+}
+const SUB = {
+  source: (s) => `${Object.keys(s.devices).length} devices`,
+  parser: (s) => `v${s.registry_version} · masks: ${s.mask_backend}`,
+  store: (s) => `${s.pending_now} PENDING now`,
+  detector: (s) => `${s.windows} scored`,
+  alert: (s) => `${s.alerts} windows · FN ${s.fn}`,
+  dead: (s) => `${s.dead_lettered} rows`,
+  queue: (s) => `${s.queue.kind} · lag ${s.queue.lag ?? "?"}`,
+  shadow: (s) => `${s.cycles} cycles`,
+  llm: (s) => `${s.llm} · ${s.llm_calls} calls`,
+  validate: (s) => `${s.rejected} rejected`,
+  backfill: (s) => `${s.resolved} resolved`,
+  registry: (s) => `${s.templates} templates`,
+  alias: (s) => `${s.aliased} re-associated`,
+};
+let lastSystem = null;
+function renderSystem(s) {
+  for (const [id, n] of Object.entries(graph.nodes)) {
+    const text = SUB[id](s);
+    if (lastSystem && n.sub.textContent !== text) {  // brief highlight when a counter moves
+      n.grp.classList.add("flash");
+      setTimeout(() => n.grp.classList.remove("flash"), 400);
+    }
+    n.sub.textContent = text;
+  }
+  for (const e of graph.edges) e.bg.textContent = e.fg.textContent = e.label(s);
+  $("c-pause").textContent = s.paused ? "Resume" : "Pause";
+  if (!lastSystem) {
+    $("c-device").replaceChildren(...Object.keys(s.devices).map((d) => el("option", { value: d }, d)));
+    fillKinds(s);
+  }
+  lastSystem = s;
+}
+function fillKinds(s) {
+  const kinds = s.devices[$("c-device").value] || [];
+  $("c-kind").replaceChildren(...kinds.map((k) => el("option", { value: k }, k)));
+}
+$("c-device").onchange = () => lastSystem && fillKinds(lastSystem);
+function showPath(t) {
+  const on = new Set(t.path);
+  for (const [id, n] of Object.entries(graph.nodes)) n.grp.classList.toggle("on", on.has(id));
+  for (const e of graph.edges) {
+    const requeue = e.from === "alias" && e.to === "queue";
+    e.grp.classList.toggle("on", on.has(e.from) && on.has(e.to) && (!requeue || on.has("requeue")));
+  }
+  const l = t.line;
+  $("sel").replaceChildren(
+    el("h2", {}, `Line ${l.i} · ${l.device_id} · fw ${l.firmware}`),
+    el("pre", {}, l.raw),
+    el("p", {}, badge(t.current.status), " now template ", el("b", {}, t.current.template_id),
+      l.anomaly ? [" ", el("span", { className: "badge flag" }, "truth: " + l.anomaly)] : null),
+    el("ol", { className: "trail" }, t.trail.map((x) => el("li", {}, x))),
+    t.windows.length ? el("p", { className: "muted" }, `${t.windows.length} LogBERT window(s); flagged: ` +
+      ([...new Set(t.windows.flatMap((w) => w.reasons))].join(", ") || "no")) : el("p", { className: "muted" }, "not scored yet"));
+}
+
+/* timeline */
+let evAfter = 0;
+const LABEL = { tp: "TP", fp: "FP", fn: "missed", new: "new tpl", alias: "re-assoc", requeue: "requeue",
+  dead: "dead", rejected: "rejected", backfill: "backfill", rollout: "rollout", control: "you", truth: "truth", end: "end" };
+async function pollEvents() {
+  const r = await getJSON(`/api/events?after=${evAfter}`);
+  const list = $("timeline");
+  for (const e of r.events) {
+    const li = el("li", { className: e.kind },
+      el("span", { className: "mono muted" }, e.time ? short(e.time) : ""),
+      el("span", { className: "k " + e.kind }, LABEL[e.kind] ?? e.kind),
+      el("span", { title: e.tokens ?? "" }, e.text));
+    if (e.i >= 0) li.onclick = async () => showPath(await getJSON(`/api/trace?i=${e.i}`));
+    list.prepend(li);
+  }
+  evAfter += r.events.length;
+}
+$("t-truth").onchange = (e) => $("timeline").classList.toggle("hide-truth", !e.target.checked);
+$("t-backfill").onchange = (e) => $("timeline").classList.toggle("hide-backfill", !e.target.checked);
+
+/* controls */
+const control = (action, value = "") => fetch(`/api/control?action=${action}&value=${encodeURIComponent(value)}`, { method: "POST" })
+  .then(async (r) => { const b = await r.json(); if (!r.ok) throw new Error(b.error); return b; })
+  .then(tick).catch((e) => { $("status").textContent = e.message; });
+$("c-pause").onclick = () => control(lastSystem?.paused ? "resume" : "pause");
+$("c-step").onclick = () => control("step");
+$("c-speed").onchange = (e) => control("speed", e.target.value);
+$("c-rollout").onclick = () => control("rollout");
+$("c-inject").onclick = () => control("inject", `${$("c-device").value}:${$("c-kind").value}`);
+
+async function tick() {
+  renderSystem(await getJSON("/api/system"));
+  await pollEvents();
+}
+
+/* templates */
+let templates = [];
+async function loadTemplates() {
+  const r = await getJSON("/api/templates");
+  templates = r.templates;
+  const addedIn = {};
+  for (const c of r.cycles) for (const id of c.published) addedIn[id] = c.registry_version;
+  $("tpl").replaceChildren(
+    ...templates.map((t) => {
+      const tr = el("tr", { className: "click" },
+        el("td", { className: "num" }, t.template_id),
+        el("td", { className: "mono" }, tplText(t), t.alias_of ? el("span", { className: "muted" }, ` alias of ${t.alias_of}`) : null),
+        el("td", { className: "mono" }, t.keys.join(", ")),
+        el("td", { className: "num" }, t.count),
+        el("td", {}, t.learned ? el("span", { className: "badge pending" }, `v${addedIn[t.template_id] ?? "?"} learned`) : "v1"));
+      tr.onclick = () => { pickTemplate(t.template_id); $("tabs").querySelector('[data-tab="query"]').click(); };
+      return tr;
+    }),
+    el("tr", {}, el("td", { className: "num" }, 1), el("td", { className: "muted" }, "PENDING (no template yet)"), el("td"), el("td", { className: "num" }, r.pending_rows), el("td")));
+  $("cycles").replaceChildren(...(r.cycles.length ? r.cycles.map((c) => el("tr", {},
+    el("td", { className: "num" }, "v" + c.registry_version), el("td", { className: "num" }, c.buffered),
+    el("td", {}, c.published.join(", ") || "-"),
+    el("td", {}, Object.entries(c.aliased).map(([a, b]) => `${a} to ${b}`).join(", ") || "-"),
+    el("td", { className: "num" }, c.resolved), el("td", { className: "num" }, c.still_pending)))
+    : [el("tr", {}, el("td", { colSpan: 6, className: "muted" }, "No cycle has run yet."))]));
+  const sel = $("qtpl"), keep = sel.value;
+  sel.replaceChildren(...templates.map((t) => el("option", { value: t.template_id }, `${t.template_id}: ${tplText(t).slice(0, 90)}`)));
+  if (keep) sel.value = keep;
+  if (!$("qsql").value) pickTemplate(templates[0]?.template_id);
+}
+
+/* query */
+function pickTemplate(id) {
+  const t = templates.find((x) => x.template_id === Number(id)); if (!t) return;
+  $("qtpl").value = id;
+  $("qsql").value = t.sql;
+  runQuery();
+}
+$("qtpl").onchange = (e) => pickTemplate(e.target.value);
+$("qrun").onclick = () => runQuery();
+async function runQuery() {
+  const out = $("qres");
+  try {
+    const r = await getJSON("/api/query?sql=" + encodeURIComponent($("qsql").value));
+    $("qinfo").textContent = `${r.rows.length} row(s) shown, ${r.table_rows} rows in the logs table`;
+    out.replaceChildren(el("thead", {}, el("tr", {}, r.columns.map((c) => el("th", {}, c)))),
+      el("tbody", {}, r.rows.map((row) => el("tr", {}, row.map((v) => el("td", { className: "mono" }, v ?? "NULL"))))));
+  } catch (err) {
+    $("qinfo").textContent = "";
+    out.replaceChildren(el("tr", {}, el("td", { className: "error" }, err.message)));
+  }
+}
+
+/* charts */
+let thresholds = null;
+const charts = {};
+const GREY = "#9a9a97", DARK = "#4a4a48", ACCENT = "#1f5fa8";
+function chart(id, config) {
+  if (!window.Chart) return;
+  if (charts[id]) { charts[id].data = config.data; charts[id].update("none"); return; }
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.color = "#6b6b6b";
+  Chart.defaults.borderColor = "#eeeeec";
+  config.options = Object.assign({ maintainAspectRatio: false, animation: false }, config.options);
+  charts[id] = new Chart($(id), config);
+}
+async function loadCharts() {
+  const m = await getJSON("/api/metrics");
+  thresholds = m.thresholds;
+  if (!window.Chart) {
+    document.querySelector(".charts").replaceChildren(el("p", { className: "muted" }, "Chart.js could not be loaded from the CDN (offline?)."));
+    return;
+  }
+  const labels = m.minutes.map((x) => x.minute.slice(11));
+  chart("c-through", { type: "bar", data: { labels, datasets: [
+    { label: "lines", data: m.minutes.map((x) => x.FINAL + x.PENDING), backgroundColor: GREY }] },
+    options: { plugins: { legend: { display: false } } } });
+  const share = (k) => m.minutes.map((x) => 100 * x[k] / Math.max(1, x.FINAL + x.PENDING));
+  chart("c-share", { type: "bar", data: { labels, datasets: [
+    { label: "FINAL %", data: share("FINAL"), backgroundColor: "#d4d4d1" },
+    { label: "PENDING %", data: share("PENDING"), backgroundColor: ACCENT }] },
+    options: { scales: { x: { stacked: true }, y: { stacked: true, max: 100 } } } });
+  const w = m.windows, t0 = w.length ? Date.parse(w[0].end) : 0;
+  const xs = w.map((x) => Date.parse(x.end)), x1 = Math.max(t0, ...xs);
+  const pts = (k) => w.map((x, i) => ({ x: xs[i], y: x.score[k] }));
+  const hline = (y) => [{ x: Math.min(...xs, t0), y }, { x: x1, y }];
+  chart("c-score", { type: "scatter", data: { datasets: [
+    { label: "miss ratio", data: pts("miss_ratio"), pointRadius: 2.5,
+      backgroundColor: w.map((x) => x.reasons.includes("sequence") ? ACCENT : GREY), borderWidth: 0 },
+    { label: "novelty ratio", data: pts("novelty_ratio"), pointRadius: 2.5, pointStyle: "triangle",
+      backgroundColor: w.map((x) => x.reasons.includes("novelty") ? ACCENT : DARK), borderWidth: 0 },
+    { label: `miss threshold ${m.thresholds.miss_ratio}`, type: "line", data: hline(m.thresholds.miss_ratio),
+      borderColor: ACCENT, borderDash: [5, 4], borderWidth: 1, pointRadius: 0 },
+    { label: `novelty threshold ${m.thresholds.novelty_ratio}`, type: "line", data: hline(m.thresholds.novelty_ratio),
+      borderColor: DARK, borderDash: [2, 3], borderWidth: 1, pointRadius: 0 }] },
+    options: { scales: { x: { type: "linear", ticks: { callback: (v) => new Date(v).toISOString().slice(11, 16) } },
+                         y: { min: 0, max: 1 } },
+               plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(3)}` } } } } });
+  const reasons = ["sequence", "hypersphere", "novelty"];
+  chart("c-reason", { type: "bar", data: { labels: reasons, datasets: [
+    { label: "flagged windows", data: reasons.map((r) => m.flags_by_reason[r] || 0), backgroundColor: ACCENT }] },
+    options: { indexAxis: "y", plugins: { legend: { display: false } } } });
+}
+
+/* eval */
+async function loadEval() {
+  const r = await getJSON("/api/eval");
+  $("report").textContent = r.report ?? "No artifacts/eval/REPORT.md in the working directory.";
+}
+
+function refreshTab() {
+  ({ templates: loadTemplates, query: loadTemplates, charts: loadCharts, eval: loadEval })[tab]?.().catch(console.error);
+}
+setInterval(() => { if (tab === "templates" || tab === "charts") refreshTab(); }, 3000);
+buildGraph();
+setInterval(() => tick().catch(console.error), 1000);
+tick().catch(console.error);
+getJSON("/api/metrics").then((m) => { thresholds = m.thresholds; });
+loadTemplates().catch(console.error);
+pollStream().catch((e) => { $("status").textContent = "connection lost: " + e.message; });
+</script>
+</body>
+</html>
