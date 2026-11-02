@@ -89,9 +89,13 @@ class _Labels:
         self.times: dict[str, list] = defaultdict(list)
         self.kinds: dict[str, list[str]] = defaultdict(list)
         for e in events:
-            if e.anomaly:
-                self.times[e.device_id].append(e.timestamp)
-                self.kinds[e.device_id].append(e.anomaly)
+            self.add(e)
+
+    def add(self, e: SynthEvent) -> None:
+        """Events must arrive in timestamp order per device (bisect below)."""
+        if e.anomaly:
+            self.times[e.device_id].append(e.timestamp)
+            self.kinds[e.device_id].append(e.anomaly)
 
     def kinds_in(self, window: ScoredWindow) -> set[str]:
         """Returns anomolies window in in proviided time range."""
