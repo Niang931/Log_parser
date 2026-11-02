@@ -242,5 +242,10 @@ def find_alias(
         # ask LLM to output the final verdict
         if adapter.confirm_alias(tokens, entry.tokens, samples):
             return AliasDecision(entry.template_id, score, kind, "confirmed by LLM")
-    best = scored[0][0] if scored else 0.0  # scored[0][0] is entry with highest similarity score
-    return AliasDecision(None, best, None, "no compatible template above threshold")
+    if not scored:
+        return AliasDecision(None, 0.0, None, "no existing template")
+    best, nearest = scored[0][0], scored[0][1].template_id  # highest similarity first
+    if best < threshold:
+        return AliasDecision(None, best, None, f"nearest #{nearest} below threshold {threshold}")
+    return AliasDecision(None, best, None, f"nearest #{nearest} not the same event "
+                         "(opposite states, or the LLM did not confirm the wording change)")

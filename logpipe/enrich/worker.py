@@ -52,12 +52,18 @@ class CycleReport:
     clusters: int = 0
     published: list[int] = field(default_factory=list)
     aliased: dict[int, int] = field(default_factory=dict)
+    # template id -> (similarity to the nearest template, why it was or was not aliased)
+    alias_decisions: dict[int, tuple[float, str]] = field(default_factory=dict)
     rejected: dict[str, str] = field(default_factory=dict)
     deferred: int = 0
     resolved: int = 0
     still_pending: int = 0
     dead_lettered: int = 0
     queue_lag: int | None = None
+    # Per-row outcomes, for tracing one line through the loop (the demo's timeline).
+    resolved_rows: list[tuple[str, int]] = field(default_factory=list)  # (log_id, template_id)
+    requeued_rows: list[tuple[str, int, str]] = field(default_factory=list)  # (log_id, attempts, why)
+    dead_letter_rows: list[tuple[str, str]] = field(default_factory=list)  # (log_id, why)
     llm_calls: int = 0
     llm_errors: int = 0
     registry_version: int = 0
@@ -244,6 +250,7 @@ class EnrichmentWorker:
             new_templates.append(NewTemplate(tokens, tuple(keys), decision.alias_of))
             if decision.alias_of is not None:
                 report.aliased[len(new_templates) - 1] = decision.alias_of
+            report.alias_decisions[len(new_templates) - 1] = (decision.score, decision.reason)
 
         if new_templates:
             snapshot, ids = self.registry.publish(
@@ -251,6 +258,7 @@ class EnrichmentWorker:
             )
             report.published = ids
             report.aliased = {ids[i]: target for i, target in report.aliased.items()}
+            report.alias_decisions = {ids[i]: d for i, d in report.alias_decisions.items()}
             
             # swapping the mainstream drain engine with new snapshoy 
             self.handle.swap(snapshot)
@@ -271,6 +279,7 @@ class EnrichmentWorker:
             result = self.handle.parse(message.row.raw_message)
             if result.status == Status.FINAL:
                 resolved.append(message.row.resolved(result))
+                report.resolved_rows.append((str(message.row.log_id), int(result.template_id)))
             else:
                 remaining.append((message, outcome.get(cluster_of[index], "deferred")))
 
@@ -285,9 +294,11 @@ class EnrichmentWorker:
             if attempts >= self.max_attempts:
                 self.queue.dead_letter(message, why)
                 report.dead_lettered += 1
+                report.dead_letter_rows.append((str(message.row.log_id), why))
             else:
                 self.queue.publish(message.row, attempts=attempts)
                 report.still_pending += 1
+                report.requeued_rows.append((str(message.row.log_id), attempts, why))
         self.queue.commit()
 
         if now is not None:
