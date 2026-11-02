@@ -49,10 +49,37 @@ uv run logpipe train-logbert --logs artifacts/fleet/history
 uv run logpipe run --logs artifacts/fleet/test              # STORE=clickhouse after make docker-up
 ```
 
+### Browser demo
+
+```sh
+uv run logpipe demo        # then open http://127.0.0.1:8000/
+```
+
+Builds a small synthetic fleet, calibrates, trains a tiny LogBERT and tunes its thresholds
+(about 10 seconds), then generates the test stream live and runs it through the whole system.
+The **System** tab draws every stage with live counters: frozen Drain → hit/miss → unresolved
+queue → shadow Drain → LLM (key names, alias check) → validate → alias check → registry vN+1 →
+hot-swap and backfill, plus LogBERT → alerts. Its timeline lists true positives, false positives
+and missed anomalies, firmware-2 template shifts (with whether each was re-associated to an
+existing template and why), requeues and dead-letters. Clicking an event or a line lights up
+the path that line took. From the header you can pause, step, change speed, trigger the
+firmware rollout now, or inject an anomaly into a device's next episode. The other tabs show
+the stream with a per-line trace, the registry, a SQL query per template and charts.
+
+| flag | effect |
+|---|---|
+| `--queue kafka` | use the Kafka broker from `make docker-up` (a fresh topic per run) instead of the in-memory queue |
+| `--llm llm:web:gemini` | key names and alias confirmation by your signed-in web chat (default: offline rules, which never confirm a wording change) |
+| `--registry demo_registry.json` | skip calibration and load masks made by the fine-tuned model on Colab (section 4 of `notebooks/colab_finetune_eval.ipynb`, i.e. `logpipe demo --llm hf --save-registry ...`) |
+
+`--rate`, `--port`, `--devices`, `--test-hours` and `--epochs` change the setup; the charts load
+Chart.js from a CDN.
+
 The LLM backend is set by `LLM_BACKEND`:
 
 - `offline` (default): deterministic, no network.
-- `hf`: local DeepSeek.
+- `hf`: DeepSeek-R1-8B with the fine-tuned LoRA adapter (`HF_ADAPTER`, default
+  `MThien213/deepparse-iot-r1-8b`) in 4-bit, for masks only; needs a GPU (Colab).
 - `llm:<provider>[:<model>]`: a hosted provider through `deepparse.providers`, e.g.
   `llm:anthropic`. API keys come from the environment.
 - `llm:web:<site>`: drives your own signed-in Claude, ChatGPT or Gemini web app in a browser,
