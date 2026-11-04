@@ -146,6 +146,23 @@ class SchemaRegistry:
             self._snapshot = snapshot
             return snapshot, assigned
 
+    def alias(self, template_id: int, target: int) -> RegistrySnapshot:
+        """Declare an existing template the same event as ``target`` (a new snapshot)."""
+        with self._lock:
+            base = self._snapshot
+            entry = base.templates.get(template_id)
+            if entry is None or target not in base.templates or template_id == target:
+                raise ValueError(f"cannot alias template {template_id} to {target}")
+            if base.canonical_id(target) == template_id:
+                raise ValueError(f"template {target} already resolves to {template_id}")
+            templates = dict(base.templates)
+            templates[template_id] = TemplateEntry(entry.template_id, entry.tokens, entry.keys, target)
+            self._snapshot = RegistrySnapshot(
+                version=base.version + 1, next_id=base.next_id, masks=base.masks,
+                templates=MappingProxyType(templates), key_vocab=base.key_vocab,
+            )
+            return self._snapshot
+
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(path.suffix + ".tmp")

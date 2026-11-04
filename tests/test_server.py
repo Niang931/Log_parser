@@ -1,0 +1,184 @@
+"""``logpipe server`` end to end on the memory store: intake, agents, setup, calibration,
+per-stream LogBERT, warnings and their actions."""
+from __future__ import annotations
+
+import gzip
+import json
+import random
+from datetime import UTC, datetime, timedelta
+
+import pytest
+from fastapi.testclient import TestClient
+
+from logpipe.enrich.llm import get_adapter
+from logpipe.server.app import create_app
+from logpipe.server.control import ControlStore
+from logpipe.server.core import Server, remote_hash
+from logpipe.storage.memory import MemoryStore
+
+T0 = datetime.now(UTC) - timedelta(hours=2)
+
+
+def app_lines(n: int, seed: int = 1) -> list[str]:
+    rng = random.Random(seed)
+    shapes = [
+        lambda i: f"user {rng.randint(1, 99)} logged in from 10.0.0.{rng.randint(1, 250)}",
+        lambda i: f"request GET /api/items/{rng.randint(1, 999)} took {rng.randint(1, 900)} ms",
+        lambda i: f"cache hit ratio={rng.random():.2f} size={rng.randint(10, 99)}",
+        lambda i: f"worker {rng.randint(1, 8)} finished job {rng.randint(1000, 9999)}",
+    ]
+    return [shapes[i % len(shapes)](i) for i in range(n)]
+
+
+def events(lines, host="web-1", service="api", source="python", start=0):
+    return [{"ts": (T0 + timedelta(seconds=start + i)).isoformat(), "host": host,
+             "service": service, "source": source, "tags": ["env:test"], "message": m}
+            for i, m in enumerate(lines)]
+
+
+@pytest.fixture
+def env(tmp_path):
+    server = Server(MemoryStore(), ControlStore(), data_dir=tmp_path,
+                    adapter_factory=lambda: get_adapter("offline"), epochs=1,
+                    start_threads=False)
+    client = TestClient(create_app(server))
+    key = client.post("/api/keys", json={"name": "test"}).json()["token"]
+    return server, client, {"X-API-Key": key}
+
+
+def pump(server: Server) -> None:
+    while not server.inbox.empty():
+        server.process(server.inbox.get_nowait())
+
+
+def send(server, client, headers, evs, gz=False):
+    body = json.dumps({"events": evs}).encode()
+    h = dict(headers)
+    if gz:
+        body, h["Content-Encoding"] = gzip.compress(body), "gzip"
+    r = client.post("/intake/v1/logs", content=body, headers=h)
+    assert r.status_code == 202, r.text
+    pump(server)
+
+
+def run_jobs(server):
+    while not server.jobs.empty():
+        job = server.run_job(server.jobs.get_nowait())
+        assert job["status"] == "done", job
+
+
+def test_intake_requires_a_valid_key(env):
+    _, client, headers = env
+    assert client.post("/intake/v1/logs", json={"events": []}).status_code == 401
+    assert client.get("/intake/v1/ping", headers={"X-API-Key": "lp_wrong"}).status_code == 401
+    assert client.get("/intake/v1/ping", headers=headers).json()["ok"]
+    key_id = client.get("/api/keys").json()["keys"][0]["id"]
+    assert "hash" not in client.get("/api/keys").json()["keys"][0]
+    client.delete(f"/api/keys/{key_id}")
+    assert client.get("/intake/v1/ping", headers=headers).status_code == 401
+
+
+def test_intake_rejects_bad_bodies_and_backpressures(env):
+    server, client, headers = env
+    assert server.inbox.empty()
+    assert client.post("/intake/v1/logs", content=b"nope", headers=headers).status_code == 400
+    server.inbox.maxsize = 2
+    r = client.post("/intake/v1/logs", json={"events": events(["a", "b", "c"])}, headers=headers)
+    assert r.status_code == 429
+
+
+def test_heartbeat_and_remote_config(env):
+    _, client, headers = env
+    status = {"hostname": "web-1", "version": "1.0", "sources": [], "remote_hash": ""}
+    assert client.post("/intake/v1/heartbeat", json=status, headers=headers).json() == {"remote_hash": ""}
+    assert client.put("/api/agents/web-1/remote-config", json={"yaml": "logs: [{type: nope}]"}).status_code == 400
+    text = "logs:\n  - type: file\n    path: /var/log/x.log\n"
+    assert client.put("/api/agents/web-1/remote-config", json={"yaml": text}).status_code == 200
+    answer = client.post("/intake/v1/heartbeat", json=status, headers=headers).json()
+    assert answer["remote_hash"] == remote_hash(text)
+    assert client.get("/intake/v1/config", params={"hostname": "web-1"}, headers=headers).json()["yaml"] == text
+    agent = client.get("/api/agents/web-1").json()
+    assert agent["online"] and not agent["remote_applied"]
+
+
+def test_full_lifecycle(env):
+    server, client, headers = env
+    # 1. before calibration: stored PENDING, nothing learned
+    send(server, client, headers, events(app_lines(300)), gz=True)
+    send(server, client, headers, events(app_lines(200, seed=2), host="web-2"))
+    logs = client.get("/api/logs", params={"host": "web-1", "limit": 5}).json()["logs"]
+    assert len(logs) == 5 and logs[0]["status"] == "PENDING" and logs[0]["service"] == "api"
+    setup = client.get("/api/setup").json()
+    assert len(setup["sources"]) == 2 and not setup["settings"]["calibrated"]
+
+    # 2. calibration: templates, backfill, a model for the default stream
+    job = client.post("/api/setup/calibrate", json={"sample_cap": 150}).json()
+    assert job["kind"] == "calibrate"
+    run_jobs(server)
+    assert client.post("/api/setup/calibrate", json={}).status_code == 400  # only once
+    overview = client.get("/api/overview").json()
+    assert overview["settings"]["calibrated"] and overview["templates"] >= 4
+    assert overview["status"].get("FINAL", 0) >= 450 and overview["models"] == 1
+    streams = client.get("/api/streams").json()["streams"]
+    assert streams[0]["id"] == "all" and streams[0]["has_model"]
+    tpl = client.get("/api/templates").json()["templates"]
+    assert all(t["seen_by"] == ["all"] for t in tpl if t["count"])
+
+    # 3. a new source after calibration -> warning; "same as" resolves it
+    send(server, client, headers, events(app_lines(20, seed=3), host="web-3"))
+    warns = {w["id"]: w for w in client.get("/api/warnings").json()["warnings"]}
+    wid = "new_source:web-3|api|python"
+    assert warns[wid]["status"] == "open" and warns[wid]["count"] == 20
+    assert client.post(f"/api/warnings/{wid}/same-as", json={"target": "web-1|api|python"}).json()["status"] == "resolved"
+    assert client.get("/api/overview").json()["warnings"] == {}
+
+    # 4. a different app -> recalibrate appends templates and retrains, ids kept
+    before = {t["template_id"]: t["text"] for t in client.get("/api/templates").json()["templates"]}
+    other = [f"disk /dev/sd{'abc'[i % 3]} usage {i % 97} percent" for i in range(120)]
+    send(server, client, headers, events(other, host="db-1", service="disk", source="agent"))
+    wid = "new_source:db-1|disk|agent"
+    assert client.post(f"/api/warnings/{wid}/recalibrate").json()["kind"] == "recalibrate"
+    run_jobs(server)
+    after = {t["template_id"]: t["text"] for t in client.get("/api/templates").json()["templates"]}
+    assert all(after[k] == v for k, v in before.items()) and len(after) > len(before)
+    assert client.get("/api/logs?host=db-1&limit=1").json()["logs"][0]["status"] == "FINAL"
+    warns = {w["id"]: w for w in client.get("/api/warnings").json()["warnings"]}
+    assert warns[wid]["status"] == "resolved"
+
+    # 5. online learning finds a new template -> novelty warning (not an alert) -> retrain clears it
+    novel = [f"payment {i} refused by bank code {i % 7}" for i in range(40)]
+    send(server, client, headers, events(novel, start=1000))
+    server.pipeline.enrich()
+    send(server, client, headers, events(novel, start=2000))
+    novel_warns = [w for w in client.get("/api/warnings").json()["warnings"]
+                   if w["kind"] == "novel_template" and w["status"] == "open"]
+    assert novel_warns and novel_warns[0]["streams"] == ["all"]
+    assert all("novelty" not in a["reasons"] for a in client.get("/api/alerts").json()["alerts"])
+    # due only once the stream's retrain period has passed
+    assert server.due_retrains() == []
+    server.control.update("stream", "all", trained_at=(datetime.now(UTC) - timedelta(days=8)).isoformat())
+    assert server.due_retrains() == ["all"]
+    client.post("/api/streams/all/train")
+    run_jobs(server)
+    assert not [w for w in client.get("/api/warnings").json()["warnings"]
+                if w["kind"] == "novel_template" and w["status"] == "open"]
+
+
+def test_streams_settings_query_stats(env):
+    server, client, headers = env
+    send(server, client, headers, events(app_lines(30)))
+    s = client.post("/api/streams", json={"name": "Web tier", "selectors": [{"host": "web-*"}],
+                                          "retrain_days": 3}).json()
+    assert s["id"] == "web-tier"
+    streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
+    assert streams["web-tier"]["sources"] == ["web-1|api|python"]
+    assert client.delete("/api/streams/all").status_code == 400
+    assert client.put("/api/settings", json={"sample_cap": 5}).status_code == 400
+    assert client.put("/api/settings", json={"retrain_days": 14}).json()["retrain_days"] == 14
+    q = client.post("/api/query", json={"sql": "SELECT device_id, count(*) FROM logs GROUP BY 1"}).json()
+    assert q["rows"] == [["web-1", 30]]
+    assert client.post("/api/query", json={"sql": "DELETE FROM logs"}).status_code == 400
+    stats = client.get("/api/stats", params={"minutes": 24 * 60}).json()
+    assert stats["hosts"] == [["web-1", 30]] and stats["per_minute"]
+    assert client.get("/demo/").status_code == 404
+    assert client.get("/api/nope").status_code == 404

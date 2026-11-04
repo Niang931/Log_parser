@@ -30,6 +30,9 @@ def encode_row(row: LogRow) -> bytes:
             "payload": row.payload,
             "raw_message": row.raw_message,
             "version": row.version,
+            "service": row.service,
+            "source": row.source,
+            "tags": list(row.tags),
         },
         ensure_ascii=False,
         separators=(",", ":"),
@@ -48,6 +51,9 @@ def decode_row(data: bytes | str) -> LogRow:
         payload=dict(obj.get("payload") or {}),
         raw_message=obj["raw_message"],
         version=int(obj.get("version", 0)),
+        service=obj.get("service", ""),
+        source=obj.get("source", ""),
+        tags=tuple(obj.get("tags", ())),
     )
 
 

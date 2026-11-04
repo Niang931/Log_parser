@@ -130,10 +130,11 @@ class Pipeline:
         result = self.handle.parse(event.line)
         self.stats.record_latency(time.perf_counter_ns() - start)
 
-        timestamp = event_time(event.line, result.payload, fallback=datetime.now(UTC))
+        timestamp = event_time(event.line, result.payload, fallback=event.time or datetime.now(UTC))
         self._event_time = timestamp
         row = LogRow.from_result(
-            result, device_id=event.device_id, timestamp=timestamp, raw_message=event.line
+            result, device_id=event.device_id, timestamp=timestamp, raw_message=event.line,
+            service=event.service, source=event.source, tags=event.tags,
         )
         self.store.insert_logs([row])
         self.stats.lines += 1
