@@ -1,5 +1,5 @@
-import deepparse.synth.chat_provider as chat_provider
 from deepparse.masks_types import Mask
+from deepparse.synth import chat_provider
 
 from logpipe.enrich.llm import ChatAdapter, get_adapter
 

@@ -5,12 +5,14 @@ from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+import pytest
+
 from logpipe.demo.server import Demo, make_handler, save_registry
 
 
 def _demo(**kw) -> Demo:
     return Demo(devices=1, history_hours=0.5, validation_hours=0.25, test_hours=0.5, epochs=1,
-                enrich_every=50, log=lambda _: None, **kw)
+                enrich_every=50, **{"log": lambda _: None} | kw)
 
 
 def test_demo_endpoints_controls_and_timeline():
@@ -83,8 +85,15 @@ def test_demo_endpoints_controls_and_timeline():
         after = get("/api/system")
         assert after["templates"] == learned and after["queue"]["published"] <= after["miss"]
         assert get("/api/events?after=0")["events"][0]["text"].startswith("session 2 started")
-        post("action=restart&value=new")
+        post("action=restart&value=new,queue=memory,llm=offline")
         assert get("/api/system")["templates"] == len(demo.initial.templates)
+        try:
+            post("action=restart&value=same,store=postgres")
+        except HTTPError as exc:
+            assert exc.code == 400
+        else:
+            raise AssertionError("an unknown store must be rejected")
+        assert get("/api/system")["session"] == 3  # the running session is untouched
     finally:
         server.shutdown()
 
@@ -94,3 +103,34 @@ def test_saved_registry_is_loaded_with_its_mask_backend(tmp_path):
     save_registry(path, devices=1, history_hours=0.5, log=lambda _: None)
     demo = _demo(registry_path=path)
     assert demo.mask_backend == "offline" and demo.registry.current.templates
+
+
+@pytest.mark.integration
+def test_clickhouse_store_receives_rows_and_answers_queries():
+    pytest.importorskip("clickhouse_connect")
+    try:
+        demo = _demo(store="clickhouse")
+    except RuntimeError as error:
+        pytest.skip(f"ClickHouse not available: {error}")
+    for _ in range(300):
+        demo.step()
+    first = next(t for t in demo.templates()["templates"] if t["count"])
+    assert "FROM iot_logs FINAL" in first["sql"]
+    result = demo.query(first["sql"])
+    assert result["engine"] == "clickhouse" and result["rows"]
+    total = demo.query("SELECT count() FROM iot_logs FINAL")["rows"][0][0]
+    assert total == len(demo.lines)
+    demo.store.close()
+
+
+def test_calibration_is_cached_per_backend_and_fleet(tmp_path):
+    logs: list[str] = []
+    first = _demo(cache_dir=tmp_path, log=logs.append)
+    assert any("calibrating" in m for m in logs)
+    logs.clear()
+    again = _demo(cache_dir=tmp_path, log=logs.append)
+    assert not any("calibrating" in m for m in logs) and any("reusing" in m for m in logs)
+    assert again.initial.templates.keys() == first.initial.templates.keys()
+    logs.clear()
+    _demo(cache_dir=tmp_path, recalibrate=True, log=logs.append)
+    assert any("calibrating" in m for m in logs)

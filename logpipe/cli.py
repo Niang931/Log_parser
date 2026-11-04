@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import sys
 from collections import Counter, defaultdict
 from dataclasses import replace
 from pathlib import Path
@@ -189,13 +190,19 @@ def _gen_iot(args: argparse.Namespace) -> None:
 def _demo(args: argparse.Namespace) -> None:
     from .demo.server import Demo, save_registry, serve
 
+    if args.raw == ["demo"] and sys.stdin.isatty():  # no flags: ask instead
+        from .start import start
+
+        return start(mode="demo")
+
     if args.save_registry:
         save_registry(args.save_registry, devices=args.devices, history_hours=args.history_hours,
                       llm=args.llm, browser=args.browser)
         return
     demo = Demo(devices=args.devices, history_hours=args.history_hours,
                 test_hours=args.test_hours, epochs=args.epochs, enrich_every=args.enrich_every,
-                llm=args.llm, queue=args.queue, registry_path=args.registry, browser=args.browser)
+                llm=args.llm, queue=args.queue, store=args.store, registry_path=args.registry,
+                browser=args.browser, cache_dir=Path("artifacts/demo"), recalibrate=args.recalibrate)
     serve(demo, args.host, args.port, args.rate)
 
 
@@ -351,9 +358,13 @@ def main(argv: list[str] | None = None) -> None:
     dm.add_argument("--llm", default="offline",
                     help="key naming + alias check (and masks when calibrating), e.g. llm:web:gemini")
     dm.add_argument("--queue", choices=["memory", "kafka"], default="memory",
-                    help="unresolved queue; kafka needs `make docker-up`")
+                    help="unresolved queue; kafka is started in Docker if needed")
+    dm.add_argument("--store", choices=["memory", "clickhouse"], default="memory",
+                    help="clickhouse also writes every row there (started in Docker if needed)")
     dm.add_argument("--registry", type=Path,
                     help="load a saved registry (e.g. fine-tuned masks from Colab) instead of calibrating")
+    dm.add_argument("--recalibrate", action="store_true",
+                    help="redo the calibration cached in artifacts/demo/ (kept per mask backend and fleet size)")
     dm.add_argument("--save-registry", type=Path, metavar="PATH",
                     help="calibrate the demo history with --llm, save the registry and exit (Colab: --llm hf)")
     dm.set_defaults(func=_demo)
@@ -383,6 +394,7 @@ def main(argv: list[str] | None = None) -> None:
     ev.set_defaults(func=_eval)
 
     args = parser.parse_args(argv)
+    args.raw = sys.argv[1:] if argv is None else argv
     args.func(args)
 
 

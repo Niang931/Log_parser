@@ -66,8 +66,11 @@ uv run logpipe run --logs artifacts/fleet/test              # STORE=clickhouse a
 ### Browser demo
 
 ```sh
-uv run logpipe demo        # then open http://127.0.0.1:8000/
+uv run logpipe demo        # asks: queue, store, LLM, masks, size, port; then open the page
 ```
+
+Plain `logpipe demo` in a terminal asks its questions (your last answers are the defaults);
+with any flag it runs straight away.
 
 Builds a small synthetic fleet, calibrates, trains a tiny LogBERT and tunes its thresholds
 (about 10 seconds), then generates the test stream live and runs it through the whole system.
@@ -80,13 +83,18 @@ the path that line took. The header has pause, step and speed; the panel beside 
 triggers the firmware rollout now, injects an anomaly into a device's next episode, and
 restarts the session: the same stream or a new one replayed from the first line with an empty
 store and queue, either from calibration or keeping the templates learned so far (so the
-firmware-2 lines that missed the first time now hit). Calibration and LogBERT are kept across
-restarts; your rollout and inject clicks are not replayed. The other tabs show
+firmware-2 lines that missed the first time now hit). The restart also picks the queue
+(memory or Kafka), the store (memory or ClickHouse) and the LLM that names keys and confirms
+re-associations (offline rules, a web chat such as `llm:web:gemini`, or a hosted API), so the
+same stream can be compared across setups; Kafka and ClickHouse are started in Docker when
+picked. Calibration and LogBERT are kept across restarts; your rollout and inject clicks are
+not replayed. The other tabs show
 the stream with a per-line trace, the registry, a SQL query per template and charts.
 
 | flag | effect |
 |---|---|
-| `--queue kafka` | use the Kafka broker from `make docker-up` (a fresh topic per run) instead of the in-memory queue |
+| `--queue kafka` | the Kafka broker (started in Docker if needed, a fresh topic per session) instead of the in-memory queue |
+| `--store clickhouse` | also write every row to ClickHouse (database `logpipe_demo`, emptied per session); the Query tab then runs on it |
 | `--llm llm:web:gemini` | key names and alias confirmation by your signed-in web chat (default: offline rules, which never confirm a wording change) |
 | `--registry demo_registry.json` | skip calibration and load masks made by the fine-tuned model on Colab (section 4 of `notebooks/colab_finetune_eval.ipynb`, i.e. `logpipe demo --llm hf --save-registry ...`) |
 

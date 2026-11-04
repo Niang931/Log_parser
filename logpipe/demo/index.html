@@ -87,6 +87,7 @@
   .side label select { flex: 1; min-width: 0; }
   .side .field { display: grid; grid-template-columns: 52px 1fr; gap: 6px; align-items: center; font-size: 13px; }
   .side button.act { align-self: flex-start; }
+  .side p#sess-err { color: var(--bad); }
   .legend { margin: 8px 2px 0; color: var(--muted); font-size: 12.5px; }
   #graph { width: 100%; height: auto; display: block; }
   #graph .node rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.2; rx: 4; }
@@ -159,10 +160,14 @@
         <div class="group">
           <h2>Session</h2>
           <p id="sess-info"></p>
+          <div class="field"><span>Queue</span><select id="r-queue"></select></div>
+          <div class="field"><span>Store</span><select id="r-store"></select></div>
+          <div class="field"><span>LLM</span><select id="r-llm" title="names slot keys and confirms re-associations"></select></div>
           <label><input type="radio" name="r-stream" value="same" checked> Same stream again</label>
           <label><input type="radio" name="r-stream" value="new"> A new random stream</label>
           <label><input type="checkbox" id="r-keep"> Keep templates learned so far</label>
           <button class="act primary" id="c-restart">Restart session</button>
+          <p class="error" id="sess-err"></p>
         </div>
       </aside>
     </div>
@@ -214,9 +219,7 @@
   </section>
 
   <section id="query" hidden>
-    <p class="note">The repo has no query generator and no ClickHouse store yet, so this demo
-      generates a plain SQL SELECT per template from its slot keys. It runs on SQLite over a snapshot
-      of the in-memory store, as a <code>logs</code> table with the payload as JSON. The query can be edited.</p>
+    <p class="note" id="qnote"></p>
     <div class="row">
       <select id="qtpl"></select>
       <button class="act primary" id="qrun">Run</button>
@@ -446,7 +449,7 @@ function buildGraph() {
 const SUB = {
   source: (s) => `${Object.keys(s.devices).length} devices`,
   parser: (s) => `v${s.registry_version} · masks: ${s.mask_backend}`,
-  store: (s) => `${s.pending_now} PENDING now`,
+  store: (s) => `${s.store} · ${s.pending_now} PENDING`,
   detector: (s) => `${s.windows} scored`,
   alert: (s) => `${s.alerts} windows · FN ${s.fn}`,
   dead: (s) => `${s.dead_lettered} rows`,
@@ -477,6 +480,11 @@ function renderSystem(s) {
   if (!lastSystem) {
     $("c-device").replaceChildren(...Object.keys(s.devices).map((d) => el("option", { value: d }, d)));
     fillKinds(s);
+    const current = { queue: s.queue.kind, store: s.store, llm: s.llm };
+    for (const k of ["queue", "store", "llm"]) {
+      $("r-" + k).replaceChildren(...s.choices[k].map((v) => el("option", { value: v }, v)));
+      $("r-" + k).value = current[k];
+    }
   }
   lastSystem = s;
 }
@@ -532,9 +540,18 @@ $("c-step").onclick = () => control("step");
 $("c-speed").onchange = (e) => control("speed", e.target.value);
 $("c-rollout").onclick = () => control("rollout");
 $("c-inject").onclick = () => control("inject", `${$("c-device").value}:${$("c-kind").value}`);
-$("c-restart").onclick = () => {
+$("c-restart").onclick = async () => {
   const stream = document.querySelector('input[name="r-stream"]:checked').value;
-  control("restart", stream + ($("r-keep").checked ? ",keep" : ""));
+  const b = $("c-restart");
+  b.disabled = true;
+  b.textContent = "Starting (Docker may take a moment)";
+  const value = [stream, $("r-keep").checked ? "keep" : "",
+    ...["queue", "store", "llm"].map((k) => `${k}=${$("r-" + k).value}`)].filter(Boolean).join(",");
+  const r = await fetch(`/api/control?action=restart&value=${encodeURIComponent(value)}`, { method: "POST" });
+  $("sess-err").textContent = r.ok ? "" : (await r.json()).error;  // the old session keeps running
+  if (r.ok) await tick();
+  b.disabled = false;
+  b.textContent = "Restart session";
 };
 // Every view keeps cursors into the session; on a new session start the page over.
 let session = null;
@@ -550,8 +567,15 @@ async function tick() {
 
 /* templates */
 let templates = [];
+const QNOTE = {
+  sqlite: "This session's store is in memory, so the query runs on SQLite over a snapshot of it, as a " +
+    "logs table with the payload as JSON. Pick the ClickHouse store in the Session panel to query the real table.",
+  clickhouse: "Runs on ClickHouse: the demo's own logpipe_demo database (emptied at every session start), " +
+    "table iot_logs read with FINAL so backfilled rows replace their PENDING version. Read-only.",
+};
 async function loadTemplates() {
   const r = await getJSON("/api/templates");
+  $("qnote").textContent = "One SELECT per template, generated from its slot keys; it can be edited. " + QNOTE[r.engine];
   templates = r.templates;
   const addedIn = {};
   for (const c of r.cycles) for (const id of c.published) addedIn[id] = c.registry_version;
@@ -592,7 +616,7 @@ async function runQuery() {
   const out = $("qres");
   try {
     const r = await getJSON("/api/query?sql=" + encodeURIComponent($("qsql").value));
-    $("qinfo").textContent = `${r.rows.length} row(s) shown, ${r.table_rows} rows in the logs table`;
+    $("qinfo").textContent = `${r.rows.length} row(s) shown, ${r.table_rows} rows ingested (${r.engine})`;
     out.replaceChildren(el("thead", {}, el("tr", {}, r.columns.map((c) => el("th", {}, c)))),
       el("tbody", {}, r.rows.map((row) => el("tr", {}, row.map((v) => el("td", { className: "mono" }, v ?? "NULL"))))));
   } catch (err) {
@@ -659,7 +683,8 @@ async function loadEval() {
 }
 
 function refreshTab() {
-  ({ templates: loadTemplates, query: loadTemplates, charts: loadCharts, eval: loadEval })[tab]?.().catch(console.error);
+  const query = () => loadTemplates().then(runQuery);  // results from page load would be stale
+  ({ templates: loadTemplates, query, charts: loadCharts, eval: loadEval })[tab]?.().catch(console.error);
 }
 setInterval(() => { if (tab === "templates" || tab === "charts") refreshTab(); }, 3000);
 buildGraph();

@@ -32,9 +32,9 @@ import numpy as np
 import torch
 from torch import nn
 
+from ...progress import progress, write
 from .dataset import collate, mask_sequence
 from .model import LogBERT, LogBERTConfig
-from ...progress import progress, write
 
 
 @dataclass

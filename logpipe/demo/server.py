@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import json
 import random
+import re
 import sqlite3
 import threading
 import time
 import uuid
 from collections import Counter, defaultdict
+from collections.abc import Sequence
 from dataclasses import asdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -36,6 +38,7 @@ from ..eval.synth_iot import LiveFleet, as_log_events, generate
 from ..parsing.frozen_parser import FrozenParser
 from ..pipeline import Pipeline
 from ..registry import UNK_TEMPLATE_ID, RegistrySnapshot, SchemaRegistry, TemplateEntry
+from ..storage.base import AnomalyAlert, LogRow, LogStore
 from ..storage.memory import MemoryStore
 from ..unresolved import open_queue
 
@@ -45,26 +48,72 @@ if TYPE_CHECKING:
 INDEX = Path(__file__).with_name("index.html")
 EVAL_REPORT = Path("artifacts/eval/REPORT.md")
 ANOMALY_RATE = 0.02
+# The demo's own ClickHouse database, emptied at every session start.
+DEMO_DB = "logpipe_demo"
 
 
-def template_sql(entry: TemplateEntry) -> str:
+def template_sql(entry: TemplateEntry, engine: str = "sqlite") -> str:
     """A SELECT that turns one template's rows into a table, one column per slot key."""
-    cols = "".join(f",\n  json_extract(payload, '$.\"{k}\"') AS \"{k}\"" for k in entry.keys)
+    # A payload ``timestamp`` repeats the row's column, and its alias would shadow it in ORDER BY.
+    keys = [k for k in entry.keys if k not in ("timestamp", "device_id")]
+    if engine == "clickhouse":
+        cols = "".join(f",\n  payload.`{k}` AS `{k}`" for k in keys)
+        return (f"SELECT timestamp, device_id{cols}\nFROM iot_logs FINAL\n"
+                f"WHERE template_id = {entry.template_id} AND log_status = 'FINAL'\n"
+                "ORDER BY timestamp DESC\nLIMIT 50")
+    cols = "".join(f",\n  json_extract(payload, '$.\"{k}\"') AS \"{k}\"" for k in keys)
     return (f"SELECT timestamp, device_id{cols}\nFROM logs\n"
             f"WHERE template_id = {entry.template_id} AND status = 'FINAL'\n"
             "ORDER BY timestamp DESC\nLIMIT 50;")
+
+
+class _Mirror(MemoryStore):
+    """The page reads the in-memory rows; every write also goes to ClickHouse."""
+
+    def __init__(self, sink: LogStore):
+        super().__init__()
+        self.sink = sink
+
+    def insert_logs(self, rows: Sequence[LogRow]) -> None:
+        super().insert_logs(rows)
+        self.sink.insert_logs(rows)
+
+    def insert_alerts(self, alerts: Sequence[AnomalyAlert]) -> None:
+        super().insert_alerts(alerts)
+        self.sink.insert_alerts(alerts)
+
+    def flush(self) -> None:
+        self.sink.flush()
+
+    def close(self) -> None:
+        self.sink.close()
+
+
+def llm_choices() -> list[str]:
+    from deepparse.ai_scraper.sites import SITES
+    from deepparse.synth.chat_provider import API_KEY_ENV
+
+    return ["offline", *(f"llm:web:{s}" for s in sorted(SITES)), *(f"llm:{p}" for p in API_KEY_ENV)]
 
 
 def _meta_path(registry_path: Path) -> Path:
     return registry_path.with_suffix(".demo.json")
 
 
+def cache_path(cache_dir: Path, llm: str, devices: int, history_hours: float, seed: int) -> Path:
+    """Where a calibration of this fleet with this mask backend is kept between runs."""
+    backend = re.sub(r"[^a-z0-9]+", "-", llm.lower()).strip("-")
+    return cache_dir / f"registry_{backend}_d{devices}_h{history_hours:g}_s{seed}.json"
+
+
 def save_registry(path: Path, *, devices: int = 2, history_hours: float = 2, seed: int = 7,
-                  llm: str = "offline", browser: Browser = "camoufox", log=print) -> None:
+                  llm: str = "offline", browser: Browser = "camoufox", log=print,
+                  adapter=None) -> None:
     """Calibrate the demo's history with ``llm`` and save the registry (the Colab step for ``hf``)."""
     fleet = generate(devices, history_hours, 0, 0, anomaly_rate=0.0, seed=seed)
     log(f"[demo] calibrating {len(fleet.history)} history lines with {llm}")
-    cal = calibrate([e.line for e in fleet.history], get_adapter(llm, browser=browser))
+    cal = calibrate([e.line for e in fleet.history], adapter or get_adapter(llm, browser=browser))
+    path.parent.mkdir(parents=True, exist_ok=True)
     SchemaRegistry(cal.snapshot).save(path)
     _meta_path(path).write_text(json.dumps({"mask_backend": llm, "devices": devices,
                                             "history_hours": history_hours, "seed": seed}))
@@ -76,10 +125,22 @@ class Demo:
     def __init__(self, devices: int = 2, history_hours: float = 2, test_hours: float = 1,
                  validation_hours: float = 1, epochs: int = 8, window: int = 20, stride: int = 5,
                  enrich_every: int = 300, seed: int = 7, llm: str = "offline", queue: str = "memory",
-                 registry_path: Path | None = None, browser: Browser = "camoufox", log=print):
+                 store: str = "memory", registry_path: Path | None = None,
+                 browser: Browser = "camoufox", cache_dir: Path | None = None,
+                 recalibrate: bool = False, log=print):
+        """``cache_dir`` keeps the calibration between runs (reused unless ``recalibrate``);
+        ``registry_path`` loads a given registry instead, e.g. fine-tuned masks from Colab."""
         fleet = generate(devices, history_hours, validation_hours, 0, anomaly_rate=ANOMALY_RATE,
                          seed=seed)
         adapter = get_adapter(llm, browser=browser)
+        if registry_path is None and cache_dir is not None:
+            cached = cache_path(cache_dir, llm, devices, history_hours, seed)
+            if recalibrate or not cached.exists():
+                save_registry(cached, devices=devices, history_hours=history_hours, seed=seed,
+                              llm=llm, log=log, adapter=adapter)
+            else:
+                log(f"[demo] reusing the calibration in {cached} (--recalibrate to redo it)")
+            registry_path = cached
         if registry_path is not None:
             snapshot = SchemaRegistry.load(registry_path).current
             meta_file = _meta_path(registry_path)
@@ -95,7 +156,6 @@ class Demo:
             log(f"[demo] calibrating on {len(fleet.history)} history lines with {llm}")
             snapshot = calibrate([e.line for e in fleet.history], adapter).snapshot
             self.mask_backend = llm
-        self.llm = llm
 
         parser, seqs = FrozenParser(snapshot), defaultdict(list)
         for e in fleet.history:
@@ -124,8 +184,8 @@ class Demo:
             self.scorer, [w.score for w in val.detector.scored if not val_labels.kinds_in(w)],
             [w.score for w in val.detector.scored if val_labels.kinds_in(w)])
 
-        self.queue_kind = queue
         self.initial: RegistrySnapshot = snapshot
+        self.browser: Browser = browser
         self.adapter, self.detector_config = adapter, detector_config
         self.enrich_every = enrich_every
         self._fleet_args = (devices, history_hours, validation_hours, test_hours, seed)
@@ -133,10 +193,41 @@ class Demo:
         self.rate = 25.0
         self.lock = threading.RLock()
         self._appliers: dict[int, MaskApplier] = {}
+        self._stats_lock = threading.Lock()
+        self._stats_cache: tuple | None = None
         self.session = 0
-        self._reset(snapshot, seed + 1, "session 1 started")
+        self._reset(snapshot, seed + 1, "session 1 started", (queue, store, llm),
+                    self._open(queue, store, llm, adapter))
 
-    def _reset(self, snapshot: RegistrySnapshot, stream_seed: int, note: str) -> None:
+    def _open(self, queue: str, store: str, llm: str, adapter=None) -> tuple:
+        """Queue, store and adapter for a session, starting their Docker services first.
+
+        Done outside the lock: Docker and a web LLM can take a while, and a failure here
+        leaves the running session untouched.
+        """
+        if queue not in ("memory", "kafka") or store not in ("memory", "clickhouse"):
+            raise ValueError(f"queue {queue!r} / store {store!r}")
+        services = [name for name, on in (("kafka", queue == "kafka"),
+                                          ("clickhouse", store == "clickhouse")) if on]
+        if services:
+            from ..start import docker_up
+            docker_up(services)
+        # A fresh topic per session, so a broker kept up between demos never replays old rows.
+        run = uuid.uuid4().hex[:8]
+        q = (open_queue("kafka", topic=f"logpipe-demo-{run}", group=f"logpipe-demo-{run}")
+             if queue == "kafka" else open_queue("memory"))
+        st: MemoryStore = MemoryStore()
+        if store == "clickhouse":
+            from ..storage.clickhouse import ClickHouseStore
+
+            sink = ClickHouseStore.from_env(database=DEMO_DB, batch_size=200)
+            for table in ("iot_logs", "anomaly_alerts"):
+                sink.client.command(f"TRUNCATE TABLE {table}")
+            st = _Mirror(sink)
+        return q, st, adapter or get_adapter(llm, browser=self.browser)
+
+    def _reset(self, snapshot: RegistrySnapshot, stream_seed: int, note: str,
+               kinds: tuple[str, str, str], opened: tuple) -> None:
         """Start a session: empty store and queue, ``snapshot`` as the registry, a fresh stream.
 
         Calibration, LogBERT and its thresholds are kept; they are the slow part.
@@ -144,12 +235,12 @@ class Demo:
         devices, history_hours, validation_hours, test_hours, seed = self._fleet_args
         if self.session:
             self.queue.close()
-        # A fresh topic per session, so a broker kept up between demos never replays old rows.
-        run = uuid.uuid4().hex[:8]
-        self.queue = (open_queue("kafka", topic=f"logpipe-demo-{run}", group=f"logpipe-demo-{run}")
-                      if self.queue_kind == "kafka" else open_queue("memory"))
+            self.store.close()
+            if opened[2] is not self.adapter and (close := getattr(self.adapter, "close", None)):
+                close()  # a web LLM's browser
+        self.queue_kind, self.store_kind, self.llm = kinds
+        self.queue, self.store, self.adapter = opened
         self.registry = SchemaRegistry(snapshot)
-        self.store = MemoryStore()
         # The demo runs cycles itself (see step) so it can map each cycle back to its lines.
         self.pipeline = Pipeline.assemble(
             self.registry, self.store, adapter=self.adapter, scorer=self.scorer,
@@ -176,16 +267,24 @@ class Demo:
         self.session += 1
         self._event("control", note)
 
-    def restart(self, new_stream: bool = False, keep_learned: bool = False) -> None:
+    def restart(self, new_stream: bool = False, keep_learned: bool = False,
+                queue: str | None = None, store: str | None = None, llm: str | None = None) -> None:
         """Replay from the start: the same stream (or a new one), from calibration or keeping
-        what enrichment learned, which shows learned templates hitting on the first pass."""
+        what enrichment learned, with this or another queue, store and keys/alias LLM."""
+        kinds = (queue or self.queue_kind, store or self.store_kind, llm or self.llm)
+        try:
+            opened = self._open(*kinds, self.adapter if kinds[2] == self.llm else None)
+        except Exception as error:
+            raise RuntimeError(f"session not restarted: {error}") from error
         with self.lock:
             snapshot = self.registry.current if keep_learned else self.initial
             seed = random.randrange(1 << 30) if new_stream else self.stream_seed
             learned = len(snapshot.templates) - len(self.initial.templates)
             self._reset(snapshot, seed, f"session {self.session + 1} started: "
                         f"{'new' if new_stream else 'same'} stream, registry v{snapshot.version}"
-                        + (f" keeping {learned} learned templates" if keep_learned else " from calibration"))
+                        + (f" keeping {learned} learned templates" if keep_learned else " from calibration")
+                        + f"; {kinds[0]} queue, {kinds[1]} store, keys/alias by {kinds[2]}",
+                        kinds, opened)
             self.paused = False
 
     # --- ingest -------------------------------------------------------------
@@ -309,6 +408,12 @@ class Demo:
 
     # --- controls -------------------------------------------------------------
     def control(self, action: str, value: str = "") -> dict:
+        if action == "restart":  # outside the lock: it may wait for Docker
+            flags = {x for x in value.split(",") if "=" not in x}
+            opts = dict(x.split("=", 1) for x in value.split(",") if "=" in x)
+            self.restart(new_stream="new" in flags, keep_learned="keep" in flags,
+                         queue=opts.get("queue"), store=opts.get("store"), llm=opts.get("llm"))
+            return {"paused": self.paused, "rate": self.rate, "session": self.session}
         with self.lock:
             if action == "pause":
                 self.paused = True
@@ -330,9 +435,6 @@ class Demo:
                 self._event("control", f"injected {kind} into the next episode of {device_id}", device=device_id)
             elif action == "enrich":
                 self._cycle(self.pipeline.enrich())
-            elif action == "restart":
-                options = set(value.split(","))
-                self.restart(new_stream="new" in options, keep_learned="keep" in options)
             else:
                 raise ValueError(f"unknown action {action!r}")
             return {"paused": self.paused, "rate": self.rate, "session": self.session}
@@ -346,8 +448,21 @@ class Demo:
                     "registry_version": self.registry.current.version,
                     "alerts": len(self.pipeline.stats.alerts), "session": self.session}
 
+    def _queue_stats(self) -> dict:
+        """Kafka's lag asks the broker (~1.5 s); the page polls every second, so it is read
+        outside the demo lock and reused for a few seconds."""
+        queue, now = self.queue, time.monotonic()
+        if self.queue_kind == "memory":
+            return queue.stats().to_json()
+        with self._stats_lock:
+            cached = self._stats_cache
+            if cached is None or cached[0] is not queue or now - cached[1] > 3:
+                cached = self._stats_cache = (queue, now, queue.stats().to_json())
+        return cached[2]
+
     def system(self) -> dict:
         """Counters for every node and edge of the flow graph."""
+        queue_stats = self._queue_stats()
         with self.lock:
             stats, cycles = self.pipeline.stats, self.pipeline.stats.cycles
             outcomes = Counter(e["kind"] for e in self.events)
@@ -358,7 +473,9 @@ class Demo:
                 "registry_version": self.registry.current.version,
                 "templates": len(self.registry.current.templates),
                 "masks": len(self.registry.current.masks), "mask_backend": self.mask_backend,
-                "llm": self.llm, "queue": self.queue.stats().to_json(),
+                "llm": self.llm, "queue": queue_stats, "store": self.store_kind,
+                "choices": {"queue": ["memory", "kafka"], "store": ["memory", "clickhouse"],
+                            "llm": llm_choices()},
                 "cycles": len(cycles), "clusters": sum(c.clusters for c in cycles),
                 "published": sum(len(c.published) for c in cycles),
                 "aliased": sum(len(c.aliased) for c in cycles),
@@ -396,14 +513,27 @@ class Demo:
                 "templates": [asdict(t) | {
                     "count": counts.get(t.template_id, 0),
                     "learned": t.template_id not in self.initial.templates,
-                    "sql": template_sql(t),
+                    "sql": template_sql(t, self._engine()),
                 } for t in sorted(snap.templates.values(), key=lambda t: t.template_id)],
-                "cycles": cycles,
+                "cycles": cycles, "engine": self._engine(),
             }
+
+    def _engine(self) -> str:
+        return "clickhouse" if isinstance(self.store, _Mirror) else "sqlite"
 
     def query(self, sql: str) -> dict:
         with self.lock:
-            rows = list(self.store.rows.values())
+            store = self.store
+            rows = list(store.rows.values())
+        if isinstance(store, _Mirror):
+            store.flush()
+            client = store.sink.client  # type: ignore[attr-defined]
+            try:
+                result = client.query(sql, settings={"readonly": 2})
+            except Exception as error:  # the server's message, shown under the editor
+                raise ValueError(str(error).strip().splitlines()[0]) from error
+            return {"columns": list(result.column_names), "rows": result.result_rows[:200],
+                    "table_rows": len(rows), "engine": "clickhouse"}
         db = sqlite3.connect(":memory:")
         db.execute("CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, "
                    "template_id INTEGER, status TEXT, registry_version INTEGER, "
@@ -414,7 +544,7 @@ class Demo:
         db.execute("PRAGMA query_only = ON")
         cur = db.execute(sql)
         return {"columns": [d[0] for d in cur.description or ()], "rows": cur.fetchmany(200),
-                "table_rows": len(rows)}
+                "table_rows": len(rows), "engine": "sqlite"}
 
     def metrics(self) -> dict:
         with self.lock:
@@ -510,7 +640,7 @@ def make_handler(demo: Demo):
             q = {k: v[0] for k, v in parse_qs(url.query).items()}
             try:
                 payload, code = routes[url.path](q), 200
-            except (KeyError, ValueError, IndexError, sqlite3.Error) as exc:
+            except (KeyError, ValueError, IndexError, RuntimeError, sqlite3.Error) as exc:
                 payload, code = {"error": f"{type(exc).__name__}: {exc}"}, 400
             self._send(code, json.dumps(payload, default=str).encode())
 
@@ -539,7 +669,7 @@ def serve(demo: Demo, host: str = "127.0.0.1", port: int = 8000, rate: float = 2
     threading.Thread(target=demo.replay, daemon=True).start()
     server = ThreadingHTTPServer((host, port), make_handler(demo))
     print(f"[demo] live stream until {demo.fleet.end:%H:%M} event time at {rate} lines/s, "
-          f"{demo.queue_kind} queue, keys/alias by {demo.llm} -> http://{host}:{port}/", flush=True)
+          f"{demo.queue_kind} queue, {demo.store_kind} store, keys/alias by {demo.llm} -> http://{host}:{port}/", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

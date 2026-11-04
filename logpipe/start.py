@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 from collections.abc import Callable
@@ -80,10 +81,21 @@ def _exists(kind: str) -> Callable[[str], str | None]:
     return lambda p: None if Path(p).exists() else f"no {kind} at {p}"
 
 
-def ask_setup(saved: dict) -> dict:
+def _free_port(answer: str) -> str | None:
+    if not answer.isdigit():
+        return "not a port number"
+    with socket.socket() as sock:
+        try:
+            sock.bind(("127.0.0.1", int(answer)))
+        except OSError:
+            return f"port {answer} is in use (another demo running?); pick another"
+    return None
+
+
+def ask_setup(saved: dict, mode: str | None = None) -> dict:
     """The questions; returns the answers (saved as next time's defaults)."""
     a: dict = {}
-    a["mode"] = choose("What do you want to run?", [
+    a["mode"] = mode or choose("What do you want to run?", [
         ("demo", "browser demo: a live synthetic IoT fleet through every stage"),
         ("pipeline", "the pipeline on your own log files"),
     ], saved.get("mode"))
@@ -91,24 +103,33 @@ def ask_setup(saved: dict) -> dict:
         ("memory", "in-process, nothing to install (straightforward)"),
         ("kafka", "Kafka broker in Docker, started for you"),
     ], saved.get("queue"))
+    a["store"] = choose("Where do parsed rows go?", [
+        ("memory", "in memory, gone when the run ends"),
+        ("clickhouse", "ClickHouse in Docker, started for you"
+         + (" (the demo's Query tab then runs on it)" if a["mode"] == "demo" else "")),
+    ], saved.get("store"))
     a["llm_kind"] = choose("Who names slot keys and confirms template re-associations?", [
         ("offline", "rules, no model (never re-associates a reworded template)"),
-        ("web", "a chat site in a browser you are signed in to, no API key"),
+        ("web", "a chat site driven in a browser (web scrape), no API key"),
         ("api", "a hosted API, needs its API key in the environment or .env"),
     ], saved.get("llm_kind"))
     if a["llm_kind"] == "web":
-        a["site"] = choose("Which chat site?", [(s, "") for s in sorted(SITES)], saved.get("site"))
-        a["browser"] = choose("Which browser drives it?", [
-            ("camoufox", "bundled Firefox build (fetched on first use)"),
-            ("chromium", "the chromium on your PATH"),
-        ], saved.get("browser"))
+        a["site"] = choose("Which chat site?", [
+            (name, "works signed out" if site.anonymous else "needs a one-time sign-in")
+            for name, site in sorted(SITES.items())], saved.get("site"))
+        browsers = [("camoufox", "bundled Firefox build (one-time download)"),
+                    ("chromium", "the chromium on your PATH")]
+        if shutil.which("chromium"):  # nothing to download, so offer it first
+            browsers.reverse()
+        a["browser"] = choose("Which browser drives it?", browsers, saved.get("browser"))
     elif a["llm_kind"] == "api":
         a["provider"] = choose("Which provider?", [
             (p, " or ".join(env)) for p, env in API_KEY_ENV.items()], saved.get("provider"))
 
     if a["mode"] == "demo":
         a["masks"] = choose("Where do the regex masks come from?", [
-            ("calibrate", "calibrate now on the demo history (about a minute)"),
+            ("calibrate", "calibrate on the demo history once, then reuse it (artifacts/demo/)"),
+            ("recalibrate", "calibrate again, replacing that saved calibration"),
             ("file", "a registry saved on Colab with the fine-tuned model"),
         ], saved.get("masks"))
         if a["masks"] == "file":
@@ -116,17 +137,13 @@ def ask_setup(saved: dict) -> dict:
                                  _exists("registry"))
         a["devices"] = number("Devices per kind", saved.get("devices", 2))
         a["test_hours"] = number("Hours of live stream (event time)", saved.get("test_hours", 1), float)
-        a["port"] = number("Port for the page", saved.get("port", 8000))
+        a["port"] = int(text("Port for the page", str(saved.get("port", 8000)), _free_port))
     else:
         a["logs"] = text("Log directory", saved.get("logs", "logs"), _exists("directory"))
         a["registry"] = text("Registry file (created by calibrating if missing)",
                              saved.get("registry", "artifacts/registry.json"))
         a["model"] = text("LogBERT model directory (trained if missing)",
                           saved.get("model", "artifacts/logbert"))
-        a["store"] = choose("Where do parsed rows go?", [
-            ("memory", "in memory, gone when the run ends"),
-            ("clickhouse", "ClickHouse in Docker, started for you"),
-        ], saved.get("store"))
     return a
 
 
@@ -135,15 +152,17 @@ def plan(a: dict) -> tuple[list[str], list[list[str]]]:
     llm = {"offline": "offline", "web": f"llm:web:{a.get('site')}",
            "api": f"llm:{a.get('provider')}"}[a["llm_kind"]]
     top = ["--browser", "chrome" if a.get("browser") == "chromium" else a.get("browser", "camoufox")]
-    services = ["kafka"] if a["queue"] == "kafka" else []
+    services = [name for name, on in (("kafka", a["queue"] == "kafka"),
+                                      ("clickhouse", a["store"] == "clickhouse")) if on]
     if a["mode"] == "demo":
-        cmd = [*top, "demo", "--llm", llm, "--queue", a["queue"], "--devices", str(a["devices"]),
+        cmd = [*top, "demo", "--llm", llm, "--queue", a["queue"], "--store", a["store"],
+               "--devices", str(a["devices"]),
                "--test-hours", str(a["test_hours"]), "--port", str(a["port"])]
         if a["masks"] == "file":
             cmd += ["--registry", a["registry"]]
+        elif a["masks"] == "recalibrate":
+            cmd.append("--recalibrate")
         return services, [cmd]
-    if a["store"] == "clickhouse":
-        services.append("clickhouse")
     commands = []
     if not Path(a["registry"]).exists():
         commands.append([*top, "calibrate", "--logs", a["logs"], "--registry", a["registry"], "--llm", llm])
@@ -155,28 +174,40 @@ def plan(a: dict) -> tuple[list[str], list[list[str]]]:
     return services, commands
 
 
-def _docker_up(services: list[str], run: Callable) -> None:
+def docker_up(services: list[str], run: Callable = subprocess.run) -> None:
+    """``docker compose up -d --wait`` (a no-op for services already healthy)."""
     if not shutil.which("docker"):
-        raise SystemExit("docker is not on PATH; install Docker or pick the in-memory options")
+        raise RuntimeError("docker is not on PATH; install Docker or pick the in-memory options")
     if not Path("docker-compose.yaml").exists():
-        raise SystemExit("run this from the repository root (docker-compose.yaml not found)")
+        raise RuntimeError("run from the repository root (docker-compose.yaml not found)")
     if not Path(".env").exists() and Path(".env.example").exists():
         shutil.copy(".env.example", ".env")  # compose reads the ClickHouse settings from it
-        load_env()
         print("created .env from .env.example")
-    print(f"\n$ docker compose up -d --wait {' '.join(services)}")
-    run(["docker", "compose", "up", "-d", "--wait", *services], check=True)
+    load_env()
+    print(f"$ docker compose up -d --wait {' '.join(services)}", flush=True)
+    try:
+        run(["docker", "compose", "up", "-d", "--wait", *services], check=True)
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError(f"docker compose up {' '.join(services)} failed ({error.returncode})") from error
 
 
-def start(run: Callable = subprocess.run, launch: Callable[[list[str]], None] | None = None) -> None:
+def _save(a: dict, signed_in: list[str]) -> None:
+    SAVED.parent.mkdir(exist_ok=True)
+    # A one-off recalibration must not become the default.
+    masks = {"masks": "calibrate"} if a.get("masks") == "recalibrate" else {}
+    SAVED.write_text(json.dumps(a | masks | {"signed_in": signed_in}, indent=2))
+
+
+def start(run: Callable = subprocess.run, launch: Callable[[list[str]], None] | None = None,
+          mode: str | None = None) -> None:
+    """``mode`` skips the first question (``logpipe demo`` asks only the demo's questions)."""
     load_env()
     saved = json.loads(SAVED.read_text()) if SAVED.exists() else {}
     if saved:
         print(f"defaults are your last answers ({SAVED}); press Enter to keep each one")
-    a = ask_setup(saved)
+    a = ask_setup(saved, mode)
     services, commands = plan(a)
-    SAVED.parent.mkdir(exist_ok=True)
-    SAVED.write_text(json.dumps(a | {"signed_in": saved.get("signed_in", [])}, indent=2))
+    _save(a, saved.get("signed_in", []))
 
     print("\nThis will run:")
     if services:
@@ -190,17 +221,25 @@ def start(run: Callable = subprocess.run, launch: Callable[[list[str]], None] | 
         return
 
     if services:
-        _docker_up(services, run)
+        try:
+            docker_up(services, run)
+        except RuntimeError as error:
+            raise SystemExit(str(error)) from None
     if a["llm_kind"] == "web":
         signed_in = saved.get("signed_in", [])
-        if confirm(f"Sign in to {a['site']} in a browser window now? (needed once per site)",
-                   a["site"] not in signed_in):
-            cmd = [sys.executable, "-m", "deepparse.ai_scraper", "login", a["site"], "--browser",
-                   "chrome" if a["browser"] == "chromium" else "camoufox"]
-            if a["browser"] == "camoufox":
-                run([sys.executable, "-m", "camoufox", "fetch"], check=True)
-            run(cmd, check=True)
-            SAVED.write_text(json.dumps(a | {"signed_in": sorted({*signed_in, a["site"]})}, indent=2))
+        if a["browser"] == "camoufox" and confirm(
+                "Download or update the camoufox browser now? (needed once, and after camoufox "
+                "upgrades)", "camoufox" not in signed_in):
+            run([sys.executable, "-m", "camoufox", "fetch"], check=True)
+            signed_in = sorted({*signed_in, "camoufox"})
+        anonymous = SITES[a["site"]].anonymous
+        question = (f"Sign in to {a['site']}? Optional, it answers signed out" if anonymous
+                    else f"Sign in to {a['site']} in a browser window now? (needed once)")
+        if confirm(question, not anonymous and a["site"] not in signed_in):
+            run([sys.executable, "-m", "deepparse.ai_scraper", "login", a["site"], "--browser",
+                 "chrome" if a["browser"] == "chromium" else "camoufox"], check=True)
+            signed_in = sorted({*signed_in, a["site"]})
+        _save(a, signed_in)
     if launch is None:
         from .cli import main as launch
     for cmd in commands:

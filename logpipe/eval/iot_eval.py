@@ -41,8 +41,8 @@ from ..calibrate import calibrate
 from ..enrich.llm import LLMAdapter
 from ..parsing.frozen_parser import FrozenParser
 from ..pipeline import Pipeline
-from ..registry import SchemaRegistry
 from ..progress import progress, write
+from ..registry import SchemaRegistry
 from ..storage.memory import MemoryStore
 from .synth_iot import SynthEvent, as_log_events, generate
 

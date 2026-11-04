@@ -29,6 +29,8 @@ class ChatSite:
     logged_out: tuple[str, ...] = ()
     # Elements the site uses to show a failed reply.
     error_banners: tuple[str, ...] = ()
+    # Answers a signed-out visitor, so ``login`` is optional.
+    anonymous: bool = False
 
 
 SITES: dict[str, ChatSite] = {
@@ -42,6 +44,7 @@ SITES: dict[str, ChatSite] = {
         login_urls=("accounts.google.com", "/ServiceLogin", "/signin"),
         logged_out=("a[href*='ServiceLogin']", "a[aria-label='Sign in']"),
         error_banners=("model-response .error-message", "snack-bar-container"),
+        anonymous=True,
     ),
     "claude": ChatSite(
         name="Claude",
