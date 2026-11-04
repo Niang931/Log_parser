@@ -72,6 +72,13 @@ uv run logpipe demo        # asks: queue, store, LLM, masks, size, port; then op
 Plain `logpipe demo` in a terminal asks its questions (your last answers are the defaults);
 with any flag it runs straight away.
 
+The calibration is saved in `artifacts/demo/` (one file per mask backend, fleet size and
+seed) and reused on later runs, so only LogBERT is retrained at start-up (a few seconds);
+`--recalibrate` redoes it. This matters with a web LLM, where calibrating asks the site to
+name the keys of every template (about a minute each). Gemini answers signed out, so
+`--llm llm:web:gemini` needs no login; `--browser chrome` uses the chromium on your PATH,
+while camoufox needs `uv run camoufox fetch` once (and again after camoufox upgrades).
+
 Builds a small synthetic fleet, calibrates, trains a tiny LogBERT and tunes its thresholds
 (about 10 seconds), then generates the test stream live and runs it through the whole system.
 The **System** tab draws every stage with live counters: frozen Drain → hit/miss → unresolved

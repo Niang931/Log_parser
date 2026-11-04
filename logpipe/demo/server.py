@@ -631,7 +631,10 @@ def make_handler(demo: Demo):
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
-            self.wfile.write(body)
+            try:
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                pass  # the page reloaded or the client gave up; nothing to answer
 
         def _route(self, routes: dict) -> None:
             url = urlparse(self.path)
