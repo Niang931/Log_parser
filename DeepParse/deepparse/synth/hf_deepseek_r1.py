@@ -25,9 +25,9 @@ from __future__ import annotations
 
 import ast as _ast  # used only for literal_eval; aliased to make intent clear
 import re
-from functools import lru_cache
 from collections.abc import Sequence
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 from deepparse.logging_utils import get_logger
@@ -262,7 +262,7 @@ def synthesize_hf(
     """Synthesise a regex mask bundle by prompting an LLM per listing 2."""
     try:
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        # from transformers import AutoModelForCausalLM, AutoTokenizer
     except ImportError as exc:
         raise RuntimeError(
             "Hugging Face mode requires the optional 'hf' extra. Install with:\n"

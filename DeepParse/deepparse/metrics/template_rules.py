@@ -29,9 +29,7 @@ def normalise_template(template: str) -> str:
     )  # PS
     parts = []
     for part in _TOKEN_DELIMS.split(template):
-        if part.lower() in _USER_STRINGS or part.isdigit():  # BL, US, DG
-            part = WILDCARD
-        elif part != "<*>/<*>" and _WORD_WITH_VAR.match(part):  # WV
+        if part.lower() in _USER_STRINGS or part.isdigit() or part != "<*>/<*>" and _WORD_WITH_VAR.match(part):  # BL, US, DG
             part = WILDCARD
         parts.append(part)
     template = "".join(parts)
