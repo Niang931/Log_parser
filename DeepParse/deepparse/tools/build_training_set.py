@@ -19,7 +19,11 @@ How regex strings are derived:
    a quoted value becomes ``(?<=[=\\s]")[^"]*(?=")`` and a bare word after
    ``=`` becomes ``(?<==)[A-Za-z_][\\w.\\-:/]*``.  Both anchor on the
    delimiter so static key names (``cell_id``, ``power_source``) are never
-   masked.  This is what lets the deterministic Drain stage render
+   masked.  Any other value is anchored on the gold template's literal
+   text around the slot: ``(?<=open through proxy )\\S+?(?=:)``, or ``^``
+   when the slot starts the line.  A slot with only whitespace on its left
+   gets no label (an unanchored pattern would match anywhere), and every
+   anchored regex must reproduce the gold span on its own line.  This is what lets the deterministic Drain stage render
    ``key=<*>`` instead of collapsing the whole ``key=value`` token to ``<*>``.
 4. Resulting regex list is deduplicated *preserving order* — exactly
    matches the post-processing the paper describes.
@@ -119,7 +123,33 @@ def _as_raw_literal(pattern: str) -> str:
     return '"' + pattern.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def _classify_value(value: str, before: str = "", after: str = "") -> str | None:
+_ANCHOR_CHARS = 24
+
+
+def _anchored_regex(value: str, before: str, after: str, at_line_start: bool) -> str | None:
+    """Regex for a shapeless value, anchored on the template text around its slot."""
+    if at_line_start and not before:
+        left = "^"
+    elif before.strip():
+        left = f"(?<={re.escape(before[-_ANCHOR_CHARS:])})"
+    else:
+        return None
+    if after:
+        # Stop at the right anchor's first character so the match cannot run on from an
+        # earlier occurrence of the left anchor (", " in "a, b, c").
+        stop = after[0] if not after[0].isalnum() and after[0] not in value else ""
+        stop = re.escape(stop)
+        body = rf"[^\s{stop}]+?" if not re.search(r"\s", value) else rf"[^\n{stop}]+?"
+        right = f"(?={re.escape(after[:_ANCHOR_CHARS])})"
+    else:
+        body, right = (r"\S+" if not re.search(r"\s", value) else ".+"), "$"
+    return left + body + right
+
+
+def _classify_value(
+    value: str, before: str = "", after: str = "", *, line: str | None = None,
+    at_line_start: bool = False,
+) -> str | None:
     """Return the canonical regex for a variable value, or ``None`` to skip it.
 
     ``before`` / ``after`` are the literal template characters surrounding
@@ -128,7 +158,8 @@ def _classify_value(value: str, before: str = "", after: str = "") -> str | None
 
     * ``key="value"`` → the quoted-value regex (keeps the quotes static);
     * ``key=value``   → the word-value regex anchored on ``=``;
-    * anything else   → ``None`` (left for Drain's whole-token wildcard).
+    * any other value → a regex anchored on the template text around the slot,
+      kept only if it reproduces the gold span on ``line``; else ``None``.
 
     A pattern on the mask applier's deny-list is never returned.
     """
@@ -143,6 +174,11 @@ def _classify_value(value: str, before: str = "", after: str = "") -> str | None
                 break
         if pattern is None and before.endswith("=") and _WORD_SHAPE.match(value):
             pattern = _WORD_VALUE_REGEX
+    if pattern is None and line is not None:
+        pattern = _anchored_regex(value, before, after, at_line_start)
+        found = re.search(pattern, line) if pattern else None
+        if found is None or found.group(0) != value:
+            pattern = None
     if pattern is None or pattern in _FORBIDDEN_PATTERNS:
         return None
     return pattern
@@ -264,8 +300,16 @@ def build_examples(
             continue  # skip lines we can't align cleanly
         regexes: list[str] = []
         seen: set[str] = set()
-        for value, before, after in slots:
-            regex = _classify_value(value.strip(), before, after)
+        for idx, (value, before, after) in enumerate(slots):
+            regex = _classify_value(value.strip(), before, after, line=line, at_line_start=idx == 0)
+            if regex is None and idx > 0 and not before.strip():
+                # "<*> <*>" with nothing to anchor the second slot: label both as one span
+                # anchored on the first slot's context (451 bytes sent / 18846 bytes (18.4 KB) ...).
+                prev_value, prev_before, _ = slots[idx - 1]
+                regex = _classify_value(
+                    prev_value + before + value, prev_before, after, line=line,
+                    at_line_start=idx == 1,
+                )
             if regex is not None and regex not in seen:
                 regexes.append(regex)
                 seen.add(regex)
