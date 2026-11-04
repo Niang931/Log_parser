@@ -6,14 +6,12 @@ Bars only draw on a terminal, so tests and CI logs stay clean.  Print through
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import IO, TypeVar
+from typing import IO
 
 from tqdm import tqdm
 
-T = TypeVar("T")
 
-
-def progress(
+def progress[T](
     iterable: Iterable[T], desc: str, *, total: int | None = None, unit: str = "it"
 ) -> tqdm[T]:
     return tqdm(iterable, desc=desc, total=total, unit=unit, leave=False, disable=None,

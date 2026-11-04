@@ -18,6 +18,7 @@ import os
 import time
 from collections import deque
 from collections.abc import Callable, Mapping
+from typing import Any
 
 from ..storage.base import LogRow
 from .base import Message, QueueStats
@@ -56,8 +57,8 @@ class KafkaQueue:
         retry_after: float = 10.0,
         delivery_timeout_ms: int = 30_000,
         on_alert: Callable[[str], None] | None = None,
-        producer_factory: Callable[[dict], object] | None = None,
-        consumer_factory: Callable[[dict], object] | None = None,
+        producer_factory: Callable[[dict], Any] | None = None,
+        consumer_factory: Callable[[dict], Any] | None = None,
     ):
         self.bootstrap = bootstrap
         self.topic = topic
@@ -71,8 +72,9 @@ class KafkaQueue:
         self.on_alert = on_alert
         self._producer_factory = producer_factory
         self._consumer_factory = consumer_factory
-        self._producer = None
-        self._consumer = None
+        # confluent_kafka clients, or test doubles from the factories.
+        self._producer: Any = None
+        self._consumer: Any = None
         self._parked: deque[tuple[str, bytes, bytes, list[tuple[str, bytes]]]] = deque()
         self._broker_down = False
         self._retry_at = 0.0
@@ -82,13 +84,13 @@ class KafkaQueue:
     @classmethod
     def from_env(cls, env: Mapping[str, str] = os.environ, **overrides) -> KafkaQueue:
         """``KAFKA_BOOTSTRAP``, ``KAFKA_TOPIC``, ``KAFKA_GROUP``, ``KAFKA_DLQ_TOPIC``, ``KAFKA_KEY_BY``."""
-        options = dict(
-            bootstrap=env.get("KAFKA_BOOTSTRAP", DEFAULT_BOOTSTRAP),
-            topic=env.get("KAFKA_TOPIC", DEFAULT_TOPIC),
-            group=env.get("KAFKA_GROUP", DEFAULT_GROUP),
-            dlq_topic=env.get("KAFKA_DLQ_TOPIC") or None,
-            key_by=env.get("KAFKA_KEY_BY", "shape"),
-        )
+        options = {
+            "bootstrap": env.get("KAFKA_BOOTSTRAP", DEFAULT_BOOTSTRAP),
+            "topic": env.get("KAFKA_TOPIC", DEFAULT_TOPIC),
+            "group": env.get("KAFKA_GROUP", DEFAULT_GROUP),
+            "dlq_topic": env.get("KAFKA_DLQ_TOPIC") or None,
+            "key_by": env.get("KAFKA_KEY_BY", "shape"),
+        }
         options.update(overrides)
 
         return cls(**options)
@@ -151,7 +153,7 @@ class KafkaQueue:
         
         except BufferError:  # Buffer full: the broker is slow or gone
             self._spill(topic, key, value, headers, "local send buffer full")
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - any failed send is parked, never lost
             self._spill(topic, key, value, headers, str(error))
         return False
 
