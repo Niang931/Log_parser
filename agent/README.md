@@ -16,7 +16,7 @@ docker run -d --name logpipe-agent --restart unless-stopped \
   -v /var/log:/var/log:ro \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -v logpipe-agent:/var/lib/logpipe-agent \
-  ghcr.io/jakekato/logpipe-agent:latest
+  ghcr.io/minhthien2103/logpipe-agent:latest
 ```
 
 The agent appears on the **Agents** page within 15 s. Add sources there (they are pushed to the

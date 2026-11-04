@@ -133,6 +133,18 @@ command (or set `WEB_BROWSER=chromium` in `.env`). Each browser keeps its own pr
 in with the same browser you evaluate with, e.g.
 `make web-login BROWSER=chromium && make eval LLM=llm:web:gemini BROWSER=chromium`.
 
+### Agents, server and operator UI
+
+Ship live logs from your hosts with the Go collector, and watch them in the React UI:
+
+```sh
+docker compose --profile platform up --build   # ClickHouse + server + demo agent, UI on :8080
+```
+
+See [docs/agent-platform.md](docs/agent-platform.md) for the learning lifecycle (setup guide,
+calibration, streams, warnings, retraining) and [agent/README.md](agent/README.md) for the
+agent's Datadog-style config and CLI.
+
 ## Calibration and evaluation
 
 `logpipe calibrate` reports **holdout coverage** for every run: the share of the newest 20%
