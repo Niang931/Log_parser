@@ -1,0 +1,14 @@
+# Example integration: the demo shop's application log, Java stack traces kept as one event.
+logs:
+  - type: file
+    path: /logs/shop.log
+    service: shop
+    source: java
+    start_position: beginning
+    log_processing_rules:
+      - type: multi_line
+        name: new_event
+        pattern: '^\d{4}-\d{2}-\d{2} '
+      - type: mask_sequences
+        pattern: 'token=\S+'
+        replace_placeholder: 'token=[REDACTED]'
