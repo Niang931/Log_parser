@@ -43,7 +43,7 @@ jobs:
 
       # Loghub-2k is ~5 MB
       - name: cache Loghub-2k
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: artifacts/datasets/loghub2k
           key: loghub2k-${{ hashFiles('logpipe/eval/datasets.py') }}
