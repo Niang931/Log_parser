@@ -469,6 +469,14 @@ class Server:
             result = handle.parse(row.raw_message)
             if result.status == Status.FINAL:
                 resolved.append(row.resolved(result))
+        with self.lock:  # back-filled lines count toward their template like live ones
+            for row in resolved:
+                tid = self.registry.current.canonical_id(row.template_id)
+                meta = self.tmeta.setdefault(tid, {"id": str(tid), "first_seen": row.timestamp.isoformat(), "count": 0})
+                meta["count"] += 1
+                meta["first_seen"] = min(meta["first_seen"], row.timestamp.isoformat())
+                meta.setdefault("last_seen", now_iso())
+                self._dirty.add(("template", str(tid)))
         for i in range(0, len(resolved), 10_000):
             self.store.insert_logs(resolved[i:i + 10_000])
         self.store.flush()

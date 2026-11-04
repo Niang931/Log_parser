@@ -46,7 +46,7 @@ build-backend = "setuptools.build_meta"
 include = ["logpipe*"]
 
 [tool.setuptools.package-data]
-logpipe = ["storage/*.sql", "demo/*.html"]
+logpipe = ["storage/*.sql", "demo/*.html", "server/static/*", "server/static/assets/*"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"

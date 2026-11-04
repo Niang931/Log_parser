@@ -131,6 +131,11 @@ class Pipeline:
         self.stats.record_latency(time.perf_counter_ns() - start)
 
         timestamp = event_time(event.line, result.payload, fallback=event.time or datetime.now(UTC))
+        if event.time is not None:
+            if timestamp is not event.time and event.time.utcoffset():
+                # Agents send their local offset: a zone-less time in the line is that host's wall clock.
+                timestamp = timestamp.replace(tzinfo=event.time.tzinfo)
+            timestamp = timestamp.astimezone(UTC)
         self._event_time = timestamp
         row = LogRow.from_result(
             result, device_id=event.device_id, timestamp=timestamp, raw_message=event.line,

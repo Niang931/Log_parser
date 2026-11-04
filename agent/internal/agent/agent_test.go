@@ -129,6 +129,12 @@ func TestAgentEndToEnd(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	os.WriteFile(other, []byte("hello from remote\n"), 0o644)
 	waitFor(t, "remote source line", func() bool { return len(srv.messages()) == 3 })
+	waitFor(t, "counters kept across the reload", func() bool {
+		srv.mu.Lock()
+		defer srv.mu.Unlock()
+		st := srv.beats[len(srv.beats)-1]
+		return st.Shipper.Sent == 3 && st.Sources[0].Lines == 4
+	})
 
 	cancel()
 	if err := <-done; err != nil {

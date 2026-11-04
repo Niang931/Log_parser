@@ -94,6 +94,8 @@ type Stats struct {
 }
 
 type Shipper struct {
+	// Base carries counters over from the shipper this one replaced (config reload).
+	Base     Stats
 	client   *Client
 	dir      string
 	capBytes int64
@@ -113,7 +115,8 @@ func New(client *Client, bufferDir string, capMB int) *Shipper {
 func (s *Shipper) Stats() Stats {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	st := Stats{Sent: s.sent.Load(), Dropped: s.dropped.Load(), LastError: s.lastErr}
+	st := Stats{Sent: s.Base.Sent + s.sent.Load(), Dropped: s.Base.Dropped + s.dropped.Load(),
+		LastError: s.lastErr, LastSend: s.Base.LastSend}
 	for _, f := range s.buffered() {
 		if fi, err := os.Stat(f); err == nil {
 			st.BufferBytes += fi.Size()

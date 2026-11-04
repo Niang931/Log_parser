@@ -123,6 +123,7 @@ def test_full_lifecycle(env):
     assert streams[0]["id"] == "all" and streams[0]["has_model"]
     tpl = client.get("/api/templates").json()["templates"]
     assert all(t["seen_by"] == ["all"] for t in tpl if t["count"])
+    assert sum(t["count"] for t in tpl) == overview["status"]["FINAL"]  # back-filled lines counted
 
     # 3. a new source after calibration -> warning; "same as" resolves it
     send(server, client, headers, events(app_lines(20, seed=3), host="web-3"))
@@ -182,3 +183,15 @@ def test_streams_settings_query_stats(env):
     assert stats["hosts"] == [["web-1", 30]] and stats["per_minute"]
     assert client.get("/demo/").status_code == 404
     assert client.get("/api/nope").status_code == 404
+
+
+def test_zone_less_line_times_use_the_agents_offset(env):
+    server, client, headers = env
+    send(server, client, headers, [
+        {"ts": "2026-01-01T10:00:05+08:00", "host": "h", "service": "s", "source": "x",
+         "message": "2026-01-01 10:00:00 started"},
+        {"ts": "2026-01-01T10:00:06+08:00", "host": "h", "service": "s", "source": "x",
+         "message": "no time here"}])
+    got = {r["message"]: r["timestamp"] for r in client.get("/api/logs").json()["logs"]}
+    assert got["2026-01-01 10:00:00 started"] == "2026-01-01T02:00:00+00:00"
+    assert got["no time here"] == "2026-01-01T02:00:06+00:00"

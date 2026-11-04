@@ -50,13 +50,16 @@ func StatusPath(cfg *config.Config) string { return filepath.Join(cfg.RunPath, "
 // Run keeps the agent going until ctx is done, reloading whenever the config files change.
 func Run(ctx context.Context, dir, version string) error {
 	started := time.Now()
+	// Counters survive reloads, so a pushed config doesn't zero the UI's numbers.
+	trackers := map[string]*source.Tracker{}
+	var shipped ship.Stats
 	for ctx.Err() == nil {
 		cfg, err := config.Load(dir)
 		if err != nil {
 			return err
 		}
 		log.Printf("running %d sources, shipping to %s as %s", len(cfg.Sources), cfg.Endpoint, cfg.Hostname)
-		reload, err := runOnce(ctx, cfg, version, started)
+		reload, err := runOnce(ctx, cfg, version, started, trackers, &shipped)
 		if err != nil {
 			return err
 		}
@@ -67,13 +70,15 @@ func Run(ctx context.Context, dir, version string) error {
 	return nil
 }
 
-func runOnce(parent context.Context, cfg *config.Config, version string, started time.Time) (bool, error) {
+func runOnce(parent context.Context, cfg *config.Config, version string, started time.Time,
+	known map[string]*source.Tracker, shipped *ship.Stats) (bool, error) {
 	if err := os.MkdirAll(cfg.RunPath, 0o755); err != nil {
 		return false, err
 	}
 	pos := source.LoadPositions(filepath.Join(cfg.RunPath, "positions.json"))
 	client := ship.NewClient(cfg.Endpoint, cfg.APIKey, version)
 	shipper := ship.New(client, filepath.Join(cfg.RunPath, "buffer"), cfg.BufferMB)
+	shipper.Base = *shipped
 
 	srcCtx, stopSources := context.WithCancel(parent)
 	defer stopSources()
@@ -87,7 +92,10 @@ func runOnce(parent context.Context, cfg *config.Config, version string, started
 	trackers := make([]*source.Tracker, len(cfg.Sources))
 	var wg sync.WaitGroup
 	for i, src := range cfg.Sources {
-		trackers[i] = &source.Tracker{}
+		if known[src.ID()] == nil {
+			known[src.ID()] = &source.Tracker{}
+		}
+		trackers[i] = known[src.ID()]
 		lines := make(chan source.Line, 1024)
 		wg.Add(2)
 		go func(src config.Source, tr *source.Tracker) {
@@ -161,6 +169,8 @@ loop:
 	}
 	pos.Save()
 	writeStatus(cfg, status(lastBeat, cfgErr))
+	st := shipper.Stats()
+	shipped.Sent, shipped.Dropped, shipped.LastSend = st.Sent, st.Dropped, st.LastSend
 	return reload, nil
 }
 
@@ -216,7 +226,8 @@ func event(cfg *config.Config, src config.Source, l source.Line, msg string) shi
 		name = src.Type
 	}
 	tags := append(append(append([]string{}, cfg.Tags...), src.Tags...), l.Tags...)
-	return ship.Event{Time: l.Time.UTC().Format(time.RFC3339Nano), Host: cfg.Hostname, Service: service,
+	// Local time with its offset: the server reads zone-less timestamps in the line in this zone.
+	return ship.Event{Time: l.Time.Format(time.RFC3339Nano), Host: cfg.Hostname, Service: service,
 		Source: name, Tags: tags, Message: msg}
 }
 
