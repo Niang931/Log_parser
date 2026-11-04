@@ -1,0 +1,6 @@
+# Default config baked into the image: everything comes from the environment.
+# Add sources by mounting files into /etc/logpipe-agent/conf.d/ or by pushing them from the UI.
+api_key: ${LOGPIPE_API_KEY}
+endpoint: ${LOGPIPE_ENDPOINT}
+run_path: /var/lib/logpipe-agent
+auto_multi_line_detection: true
