@@ -7,6 +7,8 @@ SITE     ?= gemini
 BROWSER  ?= $(or $(shell sed -n 's/^WEB_BROWSER=//p' .env 2>/dev/null),camoufox)
 PROMPT   ?= Reply with OK.
 EVAL_OUT ?= artifacts/eval
+HOLDOUT  ?= OpenSSH
+MASKS    ?=
 PYRIGHT  ?= pyright
 
 # .env is optional: load it only when it exists.
@@ -22,6 +24,7 @@ SCRAPER  := $(RUN) python -m deepparse.ai_scraper
 .DEFAULT_GOAL := help
 .PHONY: help setup calibrate train run run-fast worker replay gen-iot demo \
         data data-loghub data-hdfs data-bgl \
+        retrain-data retrain-eval \
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
         web-setup web-login web-check web-ask \
         test test-fast test-slow test-integration lint format typecheck check \
@@ -105,6 +108,16 @@ eval-gate: ## compare EVAL_OUT with eval/baseline.json (the nightly CI check)
 
 eval-baseline: ## record EVAL_OUT as the new eval/baseline.json
 	$(EVAL) gate --baseline eval/baseline.json --write-baseline
+
+## --- mask-model retrain (run on purpose; fine-tune itself runs on a GPU) ----
+
+retrain-data: ## build the mask-model training set, HOLDOUT=OpenSSH kept out
+	cd DeepParse && $(RUN) python -m deepparse.tools.retrain data --holdout $(HOLDOUT) \
+		$(if $(wildcard artifacts/datasets/loghub2_full/zips),--loghub2-zips ../artifacts/datasets/loghub2_full/zips)
+
+retrain-eval: ## score adapter mask bundles, e.g. MASKS="v2=artifacts/retrain/masks_v2"
+	cd DeepParse && $(RUN) python -m deepparse.tools.retrain eval --holdout $(HOLDOUT) \
+		$(foreach m,$(MASKS),--masks $(m)) --out artifacts/retrain
 
 ## --- web LLM (LLM=llm:web:<site>, no API key) -------------------------------
 
