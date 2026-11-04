@@ -8,6 +8,7 @@
 * ``gen-iot``: write the synthetic IoT fleet to disk.
 * ``eval``: ``parsing`` | ``logbert`` | ``iot`` | ``alias`` benchmarks, ``report`` to summarise.
 * ``demo``: browser UI running a live synthetic IoT fleet through every stage.
+* ``start`` (also plain ``logpipe``): ask what to run, start Docker services, run it.
 """
 from __future__ import annotations
 
@@ -198,6 +199,12 @@ def _demo(args: argparse.Namespace) -> None:
     serve(demo, args.host, args.port, args.rate)
 
 
+def _start(args: argparse.Namespace) -> None:
+    from .start import start
+
+    start()
+
+
 def _fetch_data(args: argparse.Namespace) -> None:
     from .eval.datasets import fetch_archive, fetch_loghub2k
 
@@ -262,7 +269,11 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="logpipe")
     parser.add_argument("--browser", choices=BROWSERS, default=settings.web_browser,
                         help="browser for LLM backend llm:web:<site>")
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser.set_defaults(func=_start)
+    sub = parser.add_subparsers(dest="command")
+
+    st = sub.add_parser("start", help="interactive: pick what to run, set up services, run it")
+    st.set_defaults(func=_start)
 
     cal = sub.add_parser("calibrate", help="build registry v1 from historical logs")
     cal.add_argument("--logs", type=Path, default=settings.logs_path)

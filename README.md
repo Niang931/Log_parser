@@ -29,6 +29,20 @@ cp .env.example .env
 uv sync --group dev
 ```
 
+## Quick start
+
+```sh
+uv sync --group dev
+uv run logpipe        # or `logpipe start` / `make start`
+```
+
+It asks what to run (the browser demo or the pipeline on your own logs), which queue (in-memory,
+or Kafka, which it starts in Docker for you), who names keys and confirms re-associations
+(offline rules, a signed-in web chat, or a hosted API), and the few settings that matter, then
+prints the equivalent commands and runs them. If you pick a web chat it can open the sign-in
+window too. The answers are saved in `.logpipe/start.json` and become the defaults next time;
+every question is still asked, so a repeat run is just pressing Enter.
+
 ## Running
 
 Set `LOGS_PATH` in `.env` to point to the directory containing your log files (default: `logs/`).
@@ -62,8 +76,12 @@ queue → shadow Drain → LLM (key names, alias check) → validate → alias c
 hot-swap and backfill, plus LogBERT → alerts. Its timeline lists true positives, false positives
 and missed anomalies, firmware-2 template shifts (with whether each was re-associated to an
 existing template and why), requeues and dead-letters. Clicking an event or a line lights up
-the path that line took. From the header you can pause, step, change speed, trigger the
-firmware rollout now, or inject an anomaly into a device's next episode. The other tabs show
+the path that line took. The header has pause, step and speed; the panel beside the graph
+triggers the firmware rollout now, injects an anomaly into a device's next episode, and
+restarts the session: the same stream or a new one replayed from the first line with an empty
+store and queue, either from calibration or keeping the templates learned so far (so the
+firmware-2 lines that missed the first time now hit). Calibration and LogBERT are kept across
+restarts; your rollout and inject clicks are not replayed. The other tabs show
 the stream with a per-line trace, the registry, a SQL query per template and charts.
 
 | flag | effect |
