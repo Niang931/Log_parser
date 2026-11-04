@@ -11,9 +11,4 @@ from deepparse.masks_types import Mask
 def make_engine(
     masks: Sequence[Mask], *, depth: int = 5, similarity_threshold: float = 0.4
 ) -> DrainEngine:
-    # Drain3-style keying: tokens containing digits (blk_-160, code=E165) do not
-    # split an event type into one bucket per value.
-    return DrainEngine(
-        depth=depth, similarity_threshold=similarity_threshold, masks=list(masks),
-        numeric_wildcard=True,
-    )
+    return DrainEngine(depth=depth, similarity_threshold=similarity_threshold, masks=list(masks))

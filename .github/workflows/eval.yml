@@ -32,7 +32,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: |
@@ -43,7 +43,7 @@ jobs:
 
       # Loghub-2k is ~5 MB
       - name: cache Loghub-2k
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: artifacts/datasets/loghub2k
           key: loghub2k-${{ hashFiles('logpipe/eval/datasets.py') }}
@@ -67,7 +67,7 @@ jobs:
         if: ${{ inputs.write_baseline }}
         run: uv run logpipe eval gate --out $EVAL_OUT --baseline $EVAL_OUT/baseline.json --write-baseline
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: eval-report-${{ github.run_number }}

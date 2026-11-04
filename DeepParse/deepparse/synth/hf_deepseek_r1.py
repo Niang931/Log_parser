@@ -27,6 +27,7 @@ import ast as _ast  # used only for literal_eval; aliased to make intent clear
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 from deepparse.logging_utils import get_logger
@@ -187,33 +188,12 @@ def _ensure_core_classes(masks: list[Mask]) -> list[Mask]:
     return masks
 
 
-def synthesize_hf(
-    logs: Sequence[str],
-    *,
-    model_name: str = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
-    adapter_path: str | None = None,
-    load_in_4bit: bool = False,
-    quantization_config=None,
-    temperature: float = 0.0,
-    num_beams: int = 1,
-    max_length: int = 512,
-    device: str = "auto",
-    self_consistency_attempts: int = 2,
-    **kwargs,
-) -> list[Mask]:
-    """Synthesise a regex mask bundle by prompting an LLM per listing 2."""
-    try:
-        import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-    except ImportError as exc:
-        raise RuntimeError(
-            "Hugging Face mode requires the optional 'hf' extra. Install with:\n"
-            '    pip install -e ".[hf]"'
-        ) from exc
-
-    LOGGER.info(
-        "loading base model %s%s (4bit=%s)", model_name, f" + adapter {adapter_path}" if adapter_path else "", load_in_4bit or (quantization_config is not None)
-    )
+@lru_cache(maxsize=1)
+def _load_model(model_name: str, adapter_path: str | None, use_4bit: bool, quantization_config,
+                device: str):
+    """Load tokenizer + model once; mask synthesis for many systems reuses them."""
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
     # Loading the tokenizer, apparently the tokenizer can also be retrieved from the LLM model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -225,7 +205,6 @@ def synthesize_hf(
         "trust_remote_code": True,
         "low_cpu_mem_usage": True,
     }
-    use_4bit = load_in_4bit or (quantization_config is not None)
     if use_4bit:
         if quantization_config is None:
             from transformers import BitsAndBytesConfig
@@ -262,6 +241,44 @@ def synthesize_hf(
     else:
         target_device = "cuda" if torch.cuda.is_available() else "cpu"
     model.eval()
+
+    return tokenizer, model, target_device
+
+
+def synthesize_hf(
+    logs: Sequence[str],
+    *,
+    model_name: str = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+    adapter_path: str | None = None,
+    load_in_4bit: bool = False,
+    quantization_config=None,
+    temperature: float = 0.0,
+    num_beams: int = 1,
+    max_length: int = 512,
+    device: str = "auto",
+    self_consistency_attempts: int = 2,
+    **kwargs,
+) -> list[Mask]:
+    """Synthesise a regex mask bundle by prompting an LLM per listing 2."""
+    try:
+        import torch
+        # from transformers import AutoModelForCausalLM, AutoTokenizer
+    except ImportError as exc:
+        raise RuntimeError(
+            "Hugging Face mode requires the optional 'hf' extra. Install with:\n"
+            '    pip install -e ".[hf]"'
+        ) from exc
+
+    LOGGER.info(
+        "loading base model %s%s (4bit=%s)", model_name, f" + adapter {adapter_path}" if adapter_path else "", load_in_4bit or (quantization_config is not None)
+    )
+
+    use_4bit = load_in_4bit or (quantization_config is not None)
+    # A caller-built quantization config may be unhashable: load without the cache then.
+    load = _load_model if quantization_config is None else _load_model.__wrapped__
+    tokenizer, model, target_device = load(
+        model_name, adapter_path, use_4bit, quantization_config, device
+    )
 
     # Setting all of the configuration
     aggregated: list[str] = []
