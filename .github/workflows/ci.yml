@@ -109,19 +109,3 @@ jobs:
       - name: integration tests
         run: uv run pytest -m integration -p no:cacheprovider
 
-  docker:
-    name: Docker build (no push)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-      - uses: docker/setup-buildx-action@v4
-
-      - name: build DeepParse image
-        uses: docker/build-push-action@v7
-        with:
-          context: DeepParse
-          push: false
-          load: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
