@@ -23,7 +23,7 @@ from .base import AnomalyAlert, LogRow
 
 LOG_COLUMNS = [
     "log_id", "timestamp", "device_id", "template_id", "log_status",
-    "registry_version", "version", "payload", "raw_message",
+    "registry_version", "version", "payload", "raw_message", "service", "source", "tags",
 ]
 ALERT_COLUMNS = [
     "alert_id", "device_id", "window_start", "window_end", "template_ids", "miss_ratio",
@@ -96,6 +96,7 @@ class ClickHouseStore:
             [
                 r.log_id, r.timestamp, r.device_id, r.template_id, str(r.status),
                 r.registry_version, r.version, json.dumps(r.payload), r.raw_message,
+                r.service, r.source, list(r.tags),
             ]
             for r in self._buffer
         ]
@@ -129,7 +130,7 @@ class ClickHouseStore:
         self.flush()
         result = self.client.query(
             "SELECT log_id, timestamp, device_id, template_id, registry_version, version, "
-            "raw_message FROM iot_logs FINAL WHERE log_status = 'PENDING' "
+            "raw_message, service, source, tags FROM iot_logs FINAL WHERE log_status = 'PENDING' "
             "ORDER BY timestamp LIMIT {limit:UInt32}",
             parameters={"limit": limit},
         )
@@ -144,9 +145,12 @@ class ClickHouseStore:
                 payload={},
                 raw_message=raw,
                 version=version,
+                service=service,
+                source=source,
+                tags=tuple(tags),
             )
-            for log_id, ts, device_id, template_id, registry_version, version, raw
-            in result.result_rows
+            for log_id, ts, device_id, template_id, registry_version, version, raw, service,
+            source, tags in result.result_rows
         ]
 
     def count_by_status(self) -> dict[str, int]:

@@ -23,10 +23,15 @@ class LogRow:
     # ReplacingMergeTree version: the registry version that produced this
     # row, so a backfill made with a newer registry always wins.
     version: int = 0
+    # Where an agent collected the line (device_id is the agent's host).
+    service: str = ""
+    source: str = ""
+    tags: tuple[str, ...] = ()
 
     @classmethod
     def from_result(
-        cls, result: ParseResult, *, device_id: str, timestamp: datetime, raw_message: str
+        cls, result: ParseResult, *, device_id: str, timestamp: datetime, raw_message: str,
+        service: str = "", source: str = "", tags: tuple[str, ...] = (),
     ) -> LogRow:
         return cls(
             log_id=uuid.uuid4(),
@@ -38,6 +43,9 @@ class LogRow:
             payload=result.payload,
             raw_message=raw_message,
             version=result.registry_version,
+            service=service,
+            source=source,
+            tags=tuple(tags),
         )
 
     def resolved(self, result: ParseResult) -> LogRow:

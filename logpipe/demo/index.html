@@ -280,7 +280,7 @@ $("pendonly").onchange = (e) => $("lines").classList.toggle("pendonly", e.target
 $("anononly").onchange = (e) => $("lines").classList.toggle("anononly", e.target.checked);
 const MAX_ROWS = 2000;
 async function pollStream() {
-  const s = await getJSON(`/api/stream?after=${after}`);
+  const s = await getJSON(`api/stream?after=${after}`);
   checkSession(s.session);
   const state = s.finished ? "finished" : s.paused ? "paused" : "streaming";
   $("st-state").textContent = state;
@@ -308,7 +308,7 @@ async function pollStream() {
 async function select(i, tr) {
   document.querySelectorAll("tr.sel").forEach((x) => x.classList.remove("sel"));
   tr?.classList.add("sel");
-  const t = await getJSON(`/api/trace?i=${i}`);
+  const t = await getJSON(`api/trace?i=${i}`);
   renderTrace(t);
   showPath(t);
 }
@@ -516,14 +516,14 @@ let evAfter = 0;
 const LABEL = { tp: "TP", fp: "FP", fn: "missed", new: "new tpl", alias: "re-assoc", requeue: "requeue",
   dead: "dead", rejected: "rejected", backfill: "backfill", rollout: "rollout", control: "you", truth: "truth", end: "end" };
 async function pollEvents() {
-  const r = await getJSON(`/api/events?after=${evAfter}`);
+  const r = await getJSON(`api/events?after=${evAfter}`);
   const list = $("timeline");
   for (const e of r.events) {
     const li = el("li", { className: e.kind },
       el("span", { className: "mono muted" }, e.time ? short(e.time) : ""),
       el("span", { className: "k " + e.kind }, LABEL[e.kind] ?? e.kind),
       el("span", { title: e.tokens ?? "" }, e.text));
-    if (e.i >= 0) li.onclick = async () => showPath(await getJSON(`/api/trace?i=${e.i}`));
+    if (e.i >= 0) li.onclick = async () => showPath(await getJSON(`api/trace?i=${e.i}`));
     list.prepend(li);
   }
   evAfter += r.events.length;
@@ -532,7 +532,7 @@ $("t-truth").onchange = (e) => $("timeline").classList.toggle("hide-truth", !e.t
 $("t-backfill").onchange = (e) => $("timeline").classList.toggle("hide-backfill", !e.target.checked);
 
 /* controls */
-const control = (action, value = "") => fetch(`/api/control?action=${action}&value=${encodeURIComponent(value)}`, { method: "POST" })
+const control = (action, value = "") => fetch(`api/control?action=${action}&value=${encodeURIComponent(value)}`, { method: "POST" })
   .then(async (r) => { const b = await r.json(); if (!r.ok) throw new Error(b.error); return b; })
   .then(tick).catch((e) => { $("st-text").textContent = e.message; });
 $("c-pause").onclick = () => control(lastSystem?.paused ? "resume" : "pause");
@@ -547,7 +547,7 @@ $("c-restart").onclick = async () => {
   b.textContent = "Starting (Docker may take a moment)";
   const value = [stream, $("r-keep").checked ? "keep" : "",
     ...["queue", "store", "llm"].map((k) => `${k}=${$("r-" + k).value}`)].filter(Boolean).join(",");
-  const r = await fetch(`/api/control?action=restart&value=${encodeURIComponent(value)}`, { method: "POST" });
+  const r = await fetch(`api/control?action=restart&value=${encodeURIComponent(value)}`, { method: "POST" });
   $("sess-err").textContent = r.ok ? "" : (await r.json()).error;  // the old session keeps running
   if (r.ok) await tick();
   b.disabled = false;
@@ -561,7 +561,7 @@ function checkSession(n) {
 }
 
 async function tick() {
-  renderSystem(await getJSON("/api/system"));
+  renderSystem(await getJSON("api/system"));
   await pollEvents();
 }
 
@@ -574,7 +574,7 @@ const QNOTE = {
     "table iot_logs read with FINAL so backfilled rows replace their PENDING version. Read-only.",
 };
 async function loadTemplates() {
-  const r = await getJSON("/api/templates");
+  const r = await getJSON("api/templates");
   $("qnote").textContent = "One SELECT per template, generated from its slot keys; it can be edited. " + QNOTE[r.engine];
   templates = r.templates;
   const addedIn = {};
@@ -615,7 +615,7 @@ $("qrun").onclick = () => runQuery();
 async function runQuery() {
   const out = $("qres");
   try {
-    const r = await getJSON("/api/query?sql=" + encodeURIComponent($("qsql").value));
+    const r = await getJSON("api/query?sql=" + encodeURIComponent($("qsql").value));
     $("qinfo").textContent = `${r.rows.length} row(s) shown, ${r.table_rows} rows ingested (${r.engine})`;
     out.replaceChildren(el("thead", {}, el("tr", {}, r.columns.map((c) => el("th", {}, c)))),
       el("tbody", {}, r.rows.map((row) => el("tr", {}, row.map((v) => el("td", { className: "mono" }, v ?? "NULL"))))));
@@ -639,7 +639,7 @@ function chart(id, config) {
   charts[id] = new Chart($(id), config);
 }
 async function loadCharts() {
-  const m = await getJSON("/api/metrics");
+  const m = await getJSON("api/metrics");
   thresholds = m.thresholds;
   if (!window.Chart) {
     document.querySelector(".charts").replaceChildren(el("p", { className: "muted" }, "Chart.js could not be loaded from the CDN (offline?)."));
@@ -678,7 +678,7 @@ async function loadCharts() {
 
 /* eval */
 async function loadEval() {
-  const r = await getJSON("/api/eval");
+  const r = await getJSON("api/eval");
   $("report").textContent = r.report ?? "No artifacts/eval/REPORT.md in the working directory.";
 }
 
@@ -690,7 +690,7 @@ setInterval(() => { if (tab === "templates" || tab === "charts") refreshTab(); }
 buildGraph();
 setInterval(() => tick().catch(console.error), 1000);
 tick().catch(console.error);
-getJSON("/api/metrics").then((m) => { thresholds = m.thresholds; });
+getJSON("api/metrics").then((m) => { thresholds = m.thresholds; });
 loadTemplates().catch(console.error);
 pollStream().catch((e) => { $("st-text").textContent = "connection lost: " + e.message; });
 </script>

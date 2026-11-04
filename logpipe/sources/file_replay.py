@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from collections.abc import Iterator
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 
@@ -13,6 +14,11 @@ class LogEvent:
     source: str
     line_no: int
     line: str
+    # Set by the agent intake; empty for replayed files.
+    service: str = ""
+    tags: tuple[str, ...] = ()
+    # The agent's read time: the fallback when the line carries no timestamp.
+    time: datetime | None = None
 
 
 def replay(root: Path) -> Iterator[LogEvent]:

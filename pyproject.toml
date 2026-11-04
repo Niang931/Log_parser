@@ -11,6 +11,8 @@ dependencies = [
     "numpy>=2.5.4",
     "torch>=2.15.0",
     "tqdm>=4.66",
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
 ]
 
 [project.scripts]

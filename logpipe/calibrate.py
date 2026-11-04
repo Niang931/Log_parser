@@ -125,10 +125,9 @@ def _accuracy(
     return ga, pa, engine.num_clusters
 
 
-def _snapshot(
-    engine: DrainEngine, lines: Sequence[str], masks: Sequence[Mask], adapter: LLMAdapter | None
-) -> RegistrySnapshot:
-
+def _new_templates(
+    engine: DrainEngine, lines: Sequence[str], adapter: LLMAdapter | None
+) -> list[NewTemplate]:
     # given a sequence of logs, add them to a dict with cluster id as key, max (5) per cluster
     samples: dict[int, list[str]] = {}
     for line in lines:
@@ -144,7 +143,13 @@ def _snapshot(
         tokens = tuple(cluster.template)
         proposed = adapter.name_keys(tokens, samples.get(cluster.cluster_id, [])) if adapter else None
         new_templates.append(NewTemplate(tokens=tokens, keys=tuple(clean_keys(proposed, tokens))))
+    return new_templates
 
+
+def _snapshot(
+    engine: DrainEngine, lines: Sequence[str], masks: Sequence[Mask], adapter: LLMAdapter | None
+) -> RegistrySnapshot:
+    new_templates = _new_templates(engine, lines, adapter)
     snapshot, _ids = SchemaRegistry().publish(
         new_templates, masks=masks, key_vocab=[k for t in new_templates for k in t.keys]
     )
@@ -235,3 +240,28 @@ def calibrate(
         report.baseline_ga, report.baseline_pa = round(base_ga, 4), round(base_pa, 4)
 
     return CalibrationResult(snapshot, report)
+
+
+def append_calibrate(
+    registry: SchemaRegistry,
+    lines: Sequence[str],
+    adapter: LLMAdapter | None,
+    *,
+    depth: int = 5,
+    similarity_threshold: float = 0.4,
+) -> list[int]:
+    """Add templates for the lines the current registry can't match, keeping every existing id.
+
+    Masks stay as they are, so ids already stored and models trained on them remain valid.
+    Returns the ids of the new templates.
+    """
+    parser = FrozenParser(registry.current, depth=depth)
+    unmatched = [line for line in lines if line.strip() and parser.parse(line).status != Status.FINAL]
+    if not unmatched:
+        return []
+    engine = _mine(unmatched, registry.current.masks, depth, similarity_threshold)
+    new_templates = _new_templates(engine, unmatched, adapter)
+    _, ids = registry.publish(
+        new_templates, key_vocab=[k for t in new_templates for k in t.keys]
+    )
+    return ids
