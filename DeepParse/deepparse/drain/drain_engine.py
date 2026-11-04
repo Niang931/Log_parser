@@ -22,6 +22,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 from deepparse.drain.masks_application import MaskApplier
 from deepparse.masks_types import Mask
@@ -45,6 +46,60 @@ def _to_wildcard(token: str) -> str:
     return _VAR_PLACEHOLDER_RE.sub(WILDCARD, token)
 
 
+_NOT_ALNUM = re.compile(r"[^A-Za-z0-9]")
+_EDGE_SLOT_END = re.compile(r"(?:<VAR:[A-Z0-9]+>|<\*>)$")
+_EDGE_SLOT_START = re.compile(r"^(?:<VAR:[A-Z0-9]+>|<\*>)")
+
+
+def _merge_token(current: str, token: str) -> str:
+    """Generalise two differing tokens to ``<*>``, keeping static text they share.
+
+    ``uid=0``/``uid=5`` -> ``uid=<*>`` and ``ntp1,``/``10.0.0.1,`` -> ``<*>,``.
+    Kept text stops at word boundaries and before digits, and never cuts a
+    placeholder apart, so ``succeeded``/``failed`` stays a bare ``<*>``.
+    """
+    if current == token:
+        return current
+    limit = min(len(current), len(token))
+    n = 0
+    while n < limit and current[n] == token[n]:
+        n += 1
+    m = 0
+    while m < limit - n and current[-1 - m] == token[-1 - m]:
+        m += 1
+    pre, suf = current[:n], current[len(current) - m:] if m else ""
+    pre = re.split(r"\d", pre, maxsplit=1)[0]
+    suf = re.split(r"\d", suf)[-1]
+    cut = max((i for i, ch in enumerate(pre) if _NOT_ALNUM.match(ch)), default=-1)
+    pre = pre[: cut + 1]
+    cut = next((i for i, ch in enumerate(suf) if _NOT_ALNUM.match(ch)), len(suf))
+    suf = suf[cut:]
+    if pre.rfind("<") > pre.rfind(">"):
+        pre = pre[: pre.rfind("<")]
+    close = suf.find(">")
+    if close != -1 and (suf.find("<") == -1 or close < suf.find("<")):
+        suf = suf[close + 1:]
+    # A placeholder touching the wildcard is part of the same variable (LogHub CV rule);
+    # keeping it would demand extra text, e.g. <VAR:PATH><*> no longer matches a bare path.
+    while (trimmed := _EDGE_SLOT_END.sub("", pre)) != pre:
+        pre = trimmed
+    while (trimmed := _EDGE_SLOT_START.sub("", suf)) != suf:
+        suf = trimmed
+    return pre + WILDCARD + suf
+
+
+@lru_cache(maxsize=4096)
+def _wildcard_regex(template_token: str) -> re.Pattern[str]:
+    # ".*?": a merge can come from an empty variable part, e.g. (uid=0) vs LOGIN(uid=0).
+    return re.compile(".*?".join(re.escape(part) for part in template_token.split(WILDCARD)))
+
+
+def _token_matches(template_token: str, token: str) -> bool:
+    if template_token == token or template_token == WILDCARD:
+        return True
+    return WILDCARD in template_token and _wildcard_regex(template_token).fullmatch(token) is not None
+
+
 @dataclass
 class DrainCluster:
     cluster_id: int
@@ -58,7 +113,7 @@ class DrainCluster:
         # This is eq.1 in the paper
         matches = 0
         for template_token, token in zip(self.template, tokens):
-            if template_token == token or template_token == WILDCARD:
+            if _token_matches(template_token, token):
                 matches += 1
         return matches / len(self.template)
 
@@ -78,8 +133,7 @@ class DrainCluster:
             if current == token:
                 continue
 
-            # If not then update then update the template at index with WILDCARD
-            self.template[index] = WILDCARD
+            self.template[index] = _merge_token(current, token)
 
     def template_str(self) -> str:
         """Render the cluster template as a string.
@@ -110,6 +164,11 @@ class DrainEngine:
     similarity_threshold: float = 0.4
     max_children: int = 100
     masks: Sequence[Mask] = field(default_factory=list)
+    # Routing key = first ``depth`` tokens; any token holding a digit or a placeholder
+    # (``blk_123``, ``host:<VAR:NUMBER>``) routes as ``<*>``, as Drain3's has_numbers.
+    # ``legacy_routing`` restores the original rule: only bare placeholders and
+    # pure digits (plus any digit when ``numeric_wildcard``).
+    legacy_routing: bool = False
     numeric_wildcard: bool = False
 
     def __post_init__(self) -> None:
@@ -122,19 +181,22 @@ class DrainEngine:
         self._next_id: int = 0
 
     def _cluster_key(self, tokens: Sequence[str]) -> tuple[int, str]:
-        """Returns (count of words / tokens, space separated token sequence (with VAR replaced with wildcard <*>)."""
-        prefix_tokens: list[str] = []
-        for tok in tokens[: self.depth]:
-            if (
-                _is_placeholder(tok)
-                or tok.isdigit()
-                # Checking if any character in the token is a digit if mode enabled
+        """Return (token count, space-joined routing prefix with variable tokens as ``<*>``)."""
+        if self.legacy_routing:
+            prefix = [
+                WILDCARD
+                if _is_placeholder(tok) or tok.isdigit()
                 or (self.numeric_wildcard and any(ch.isdigit() for ch in tok))
-            ):
-                prefix_tokens.append(WILDCARD)
-            else:
-                prefix_tokens.append(tok)
-        return len(tokens), " ".join(prefix_tokens)
+                else tok
+                for tok in tokens[: self.depth]
+            ]
+        else:
+            prefix = [
+                WILDCARD if "<VAR:" in tok or WILDCARD in tok or any(ch.isdigit() for ch in tok)
+                else tok
+                for tok in tokens[: self.depth]
+            ]
+        return len(tokens), " ".join(prefix)
 
     def _bucket(self, key: tuple[int, str]) -> list[DrainCluster]:
         """Create and return a bucket if not init yet, update _wild while its at that."""
