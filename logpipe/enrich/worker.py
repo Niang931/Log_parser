@@ -239,7 +239,15 @@ class EnrichmentWorker:
                 samples,
                 threshold=self.alias_threshold,
             )
-            keys = clean_keys(self._call(report, self.adapter.name_keys, tokens, samples), tokens)
+            proposed = self._call(report, self.adapter.name_keys, tokens, samples)
+            if proposed is None:
+                # LLM down: ids and key names are permanent, so learn nothing now and do not
+                # burn an attempt; the rows wait until the LLM is back.
+                seen_tokens.discard(tokens)
+                report.deferred += 1
+                outcome[cluster.cluster_id] = "deferred"
+                continue
+            keys = clean_keys(proposed, tokens)
             # add the new template alias_of determine if its a new template or depends on existing one
             new_templates.append(NewTemplate(tokens, tuple(keys), decision.alias_of))
             if decision.alias_of is not None:

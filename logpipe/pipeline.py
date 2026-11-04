@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import random
 import time
+from collections import deque
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -27,13 +28,26 @@ from .storage.base import AnomalyAlert, LogRow, LogStore
 from .unresolved import QueueStats, UnresolvedQueue
 
 
+ALERT_TAIL = 1_000
+CYCLE_TAIL = 200
+
+
 @dataclass
 class PipelineStats:
     lines: int = 0
     final: int = 0
     pending: int = 0
-    alerts: list[AnomalyAlert] = field(default_factory=list)
-    cycles: list[CycleReport] = field(default_factory=list)
+    # Only the newest alerts/cycles are kept (a 24 h soak would grow them without bound);
+    # the totals live in the counters below and feed summary().
+    alerts: deque[AnomalyAlert] = field(default_factory=lambda: deque(maxlen=ALERT_TAIL))
+    cycles: deque[CycleReport] = field(default_factory=lambda: deque(maxlen=CYCLE_TAIL))
+    alert_count: int = 0
+    cycle_count: int = 0
+    resolved: int = 0
+    dead_lettered: int = 0
+    templates_learned: int = 0
+    aliases: int = 0
+    adapter_calls: int = 0
     # Reservoir sample of per-line parse latency, bounded for long runs.
     parse_ns: list[int] = field(default_factory=list)
     seconds: float = 0.0
@@ -46,6 +60,19 @@ class PipelineStats:
         elif (j := self._rng.randrange(self.lines + 1)) < cap:
             self.parse_ns[j] = ns
 
+    def add_cycle(self, report: CycleReport) -> None:
+        self.cycles.append(report)
+        self.cycle_count += 1
+        self.resolved += report.resolved
+        self.dead_lettered += report.dead_lettered
+        self.templates_learned += len(report.published)
+        self.aliases += len(report.aliased)
+        self.adapter_calls += report.llm_calls
+
+    def add_alerts(self, alerts: list[AnomalyAlert]) -> None:
+        self.alerts.extend(alerts)
+        self.alert_count += len(alerts)
+
     def latency_us(self) -> dict[str, float]:
         if not self.parse_ns:
             return {}
@@ -55,17 +82,16 @@ class PipelineStats:
         }
 
     def summary(self) -> dict:
-        resolved = sum(c.resolved for c in self.cycles)
         return {
             "lines": self.lines,
             "final_at_ingest": self.final,
             "pending_at_ingest": self.pending,
-            "resolved_by_enrichment": resolved,
-            "dead_lettered": sum(c.dead_lettered for c in self.cycles),
-            "templates_learned": sum(len(c.published) for c in self.cycles),
-            "aliases": sum(len(c.aliased) for c in self.cycles),
-            "adapter_calls": sum(c.llm_calls for c in self.cycles),
-            "alerts": len(self.alerts),
+            "resolved_by_enrichment": self.resolved,
+            "dead_lettered": self.dead_lettered,
+            "templates_learned": self.templates_learned,
+            "aliases": self.aliases,
+            "adapter_calls": self.adapter_calls,
+            "alerts": self.alert_count,
             "parse_latency_us": self.latency_us(),
             "lines_per_second": round(self.lines / self.seconds, 1) if self.seconds else None,
             "unresolved_queue": self.queue.to_json() if self.queue else None,
@@ -159,13 +185,13 @@ class Pipeline:
         report = self.worker.run_cycle(now=self._event_time)
         if report.buffered == 0:
             return None
-        self.stats.cycles.append(report)
+        self.stats.add_cycle(report)
         return report
 
     def _alerts(self, alerts: list[AnomalyAlert]) -> None:
         if alerts:
             self.store.insert_alerts(alerts)
-            self.stats.alerts.extend(alerts)
+            self.stats.add_alerts(alerts)
 
     def run(self, events: Iterable[LogEvent], *, total: int | None = None) -> PipelineStats:
         started = time.perf_counter()

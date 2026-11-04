@@ -2,7 +2,10 @@
 LLM      ?=
 EPOCHS   ?= 30
 THREADS  ?=
-SITE     ?= gemini
+DEVICES  ?= 100
+RATE     ?= 1000
+DURATION ?= 60
+SITE    ?= gemini
 # camoufox | chromium; defaults to WEB_BROWSER in .env.
 BROWSER  ?= $(or $(shell sed -n 's/^WEB_BROWSER=//p' .env 2>/dev/null),camoufox)
 PROMPT   ?= Reply with OK.
@@ -20,12 +23,12 @@ TRAIN    := --epochs $(EPOCHS) $(if $(THREADS),--threads $(THREADS))
 SCRAPER  := $(RUN) python -m deepparse.ai_scraper
 
 .DEFAULT_GOAL := help
-.PHONY: help setup calibrate train run run-fast worker replay gen-iot demo \
+.PHONY: help setup calibrate train run run-fast worker replay gen-iot demo load \
         data data-loghub data-hdfs data-bgl \
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
         web-setup web-login web-check web-ask \
         test test-fast test-slow test-integration lint format typecheck check \
-        docker-up docker-down clean
+        docker-up docker-down backup restore clean
 
 help: ## list targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -52,6 +55,10 @@ run-fast: ## fast path only: parse, store, publish unknown lines to Kafka
 
 worker: ## learning worker: consume the Kafka unresolved queue
 	$(LOGPIPE) worker --queue kafka $(LLM_ARG)
+
+load: ## load test: live synthetic fleet (DEVICES, RATE lines/s, DURATION s), metrics in artifacts/load/
+	$(LOGPIPE) load --devices $(DEVICES) --rate $(RATE) --duration $(DURATION) \
+		--metrics-out artifacts/load/metrics.jsonl $(LLM_ARG)
 
 replay: ## parse LOGS_PATH with the frozen registry only
 	$(LOGPIPE) replay --quiet
@@ -151,11 +158,26 @@ check: lint typecheck test ## lint, typecheck and test
 
 ## --- services ---------------------------------------------------------------
 
+# TODO:(Task 5.4) backup gọi mongodump khi STORE=mongo; docker-up chờ cả mongo healthy
+
+chaos: ## inject a fault under load: SCENARIO=worker|llm|clickhouse|kafka (scripts/chaos.sh)
+	ENV_FILE=$(wildcard .env) LLM=$(or $(LLM),offline) scripts/chaos.sh $(SCENARIO)
+
+soak: ## 24 h run without faults (DURATION=86400), then: scripts/soak_report.py <run>/metrics.jsonl
+	ENV_FILE=$(wildcard .env) LLM=$(or $(LLM),offline) DURATION=$(if $(filter 60,$(DURATION)),86400,$(DURATION)) \
+		scripts/chaos.sh none
+
 docker-up: ## start ClickHouse and Kafka, wait until healthy
 	docker compose up -d --wait
 
 docker-down: ## stop the services
 	docker compose down
+
+backup: ## back up one day of ClickHouse, the registry and the model to B2/S3 (DAY=YYYYMMDD)
+	$(RUN) scripts/backup.sh
+
+restore: ## restore backup TAG from B2 (TARGET=S3 for S3) into the existing tables
+	$(RUN) scripts/restore.sh $(TAG) $(TARGET)
 
 clean: ## remove caches (keeps datasets, models and eval results)
 	rm -rf .pytest_cache .ruff_cache

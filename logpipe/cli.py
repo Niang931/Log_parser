@@ -4,6 +4,7 @@
 * ``replay``: parse files with the frozen registry only.
 * ``run``: full pipeline (store, enrichment loop, LogBERT detector).
 * ``worker``: learning worker consuming the unresolved queue (Kafka consumer group).
+* ``load``: live synthetic fleet at a set rate through the pipeline, metrics as JSONL.
 * ``train-logbert``: train the detector on per-device windows of parsed logs.
 * ``gen-iot``: write the synthetic IoT fleet to disk.
 * ``eval``: ``parsing`` | ``logbert`` | ``iot`` | ``alias`` benchmarks, ``report`` to summarise.
@@ -13,8 +14,10 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import sys
 from collections import Counter, defaultdict
 from dataclasses import replace
+from datetime import UTC, datetime
 from pathlib import Path
 
 from deepparse.ai_scraper.session import BROWSERS
@@ -96,7 +99,7 @@ def _run(args: argparse.Namespace) -> None:
     queue.close()
     store.close()
     print(json.dumps(stats.summary(), indent=2, default=str))
-    for alert in stats.alerts[: args.show_alerts]:
+    for alert in list(stats.alerts)[: args.show_alerts]:
         print(f"ALERT {alert.device_id} {alert.window_start:%H:%M:%S}-{alert.window_end:%H:%M:%S} "
               f"reasons={','.join(alert.reasons)} miss={alert.miss_ratio:.2f} "
               f"novelty={alert.novelty_ratio:.2f}")
@@ -124,7 +127,7 @@ def _worker(args: argparse.Namespace) -> None:
     cycles = 0
     try:
         while args.max_cycles is None or cycles < args.max_cycles:
-            report = worker.run_cycle()
+            report = worker.run_cycle(now=datetime.now(UTC))  # fills resolve_lag_sec
             cycles += 1
             if report.buffered:
                 print(json.dumps({
@@ -132,6 +135,7 @@ def _worker(args: argparse.Namespace) -> None:
                     "published": report.published, "aliased": report.aliased,
                     "rejected": len(report.rejected), "resolved": report.resolved,
                     "still_pending": report.still_pending, "dead_lettered": report.dead_lettered,
+                    "resolve_lag_p95_s": _p95(report.resolve_lag_sec),
                     "registry_version": report.registry_version, "queue_lag": report.queue_lag,
                     "llm_calls": report.llm_calls, "seconds": round(report.seconds, 2),
                 }))
@@ -144,6 +148,101 @@ def _worker(args: argparse.Namespace) -> None:
         queue.close()
         store.close()
     print(json.dumps({"cycles": cycles, "queue": worker.queue.stats().to_json()}))
+
+
+def _p95(values: list[float]) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    return round(ordered[int(0.95 * (len(ordered) - 1))], 1)
+
+
+def _rss_mb() -> float | None:
+    """Resident memory of this process in MB (Linux only)."""
+    try:
+        for line in Path("/proc/self/status").read_text().splitlines():
+            if line.startswith("VmRSS:"):
+                return round(int(line.split()[1]) / 1024, 1)
+    except OSError:
+        pass
+    return None
+
+
+def _load(args: argparse.Namespace) -> None:
+    """Drive the pipeline with a live synthetic fleet; one metrics line per interval."""
+    import time
+    from collections.abc import Iterable
+
+    from .eval.synth_iot import Stream
+    from .pipeline import Pipeline
+    from .sources.file_replay import LogEvent
+    from .storage import open_store
+    from .unresolved import open_queue
+
+    # First: bad --devices/--rate fail before a store or queue is opened.
+    stream = Stream(args.devices, args.rate, args.rollout_at, args.rollout_share,
+                    args.seed, args.duration)
+    store = open_store(args.store)
+    queue = open_queue(args.queue)
+    pipeline = Pipeline.assemble(
+        SchemaRegistry.load(args.registry), store,
+        adapter=None if args.no_enrich else get_adapter(args.llm, browser=args.browser),
+        registry_path=args.registry, enrich_every=args.enrich_every, queue=queue,
+    )
+    stats = pipeline.stats
+    last, last_lines, seen_cycles = time.monotonic(), 0, 0
+    start = last
+    if args.metrics_out:
+        args.metrics_out.parent.mkdir(parents=True, exist_ok=True)
+
+    def emit() -> None:
+        nonlocal last, last_lines, seen_cycles
+        now = time.monotonic()
+        new = stats.cycle_count - seen_cycles
+        lags = [lag for c in list(stats.cycles)[-new:] for lag in c.resolve_lag_sec] if new else []
+        seen_cycles = stats.cycle_count
+        # ponytail: oldest of the first 1000 PENDING rows; exact on ClickHouse (sorted by time)
+        try:
+            pending = store.fetch_pending(1000)
+            status = store.count_by_status()
+        except Exception as exc:  # noqa: BLE001 - store outage must not stop the load run
+            print(f"metrics: store unreadable: {exc}", file=sys.stderr, flush=True)
+            pending, status = [], None
+        oldest = max(0.0, (datetime.now(UTC) - min(r.timestamp for r in pending)).total_seconds()) \
+            if pending else 0.0
+        line = json.dumps({
+            "t": round(now - start, 1), "generated": stream.generated, "lines": stats.lines,
+            "lines_per_s": round((stats.lines - last_lines) / max(now - last, 1e-9), 1),
+            "parse_us": stats.latency_us(), "rss_mb": _rss_mb(),
+            "status": status, "queue": queue.stats().to_json(),
+            "oldest_pending_s": round(oldest, 1), "resolve_lag_p95_s": _p95(lags),
+        })
+        stats.parse_ns.clear()  # next p99 covers this interval only, not the whole run
+        last, last_lines = now, stats.lines
+        print(line, flush=True)
+        if args.metrics_out:
+            with args.metrics_out.open("a", encoding="utf-8") as fh:
+                fh.write(line + "\n")
+
+    def metered(events: Iterable[LogEvent]) -> Iterable[LogEvent]:
+        for event in events:
+            yield event
+            if time.monotonic() - last >= args.metrics_every:
+                emit()
+
+    try:
+        pipeline.run(metered(stream))
+        # before emit() clears the latency sample
+        summary = stats.summary() | {
+            "generated": stream.generated,
+            # ponytail: newest CYCLE_TAIL cycles only, exact for runs shorter than that
+            "resolve_lag_p95_s": _p95([lag for c in stats.cycles for lag in c.resolve_lag_sec]),
+        }
+        emit()
+    finally:
+        queue.close()
+        store.close()
+    print(json.dumps(summary, indent=2, default=str))
 
 
 def _train_logbert(args: argparse.Namespace) -> None:
@@ -249,7 +348,6 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--browser", choices=BROWSERS, default=settings.web_browser,
                         help="browser for LLM backend llm:web:<site>")
     sub = parser.add_subparsers(dest="command", required=True)
-
     cal = sub.add_parser("calibrate", help="build registry v1 from historical logs")
     cal.add_argument("--logs", type=Path, default=settings.logs_path)
     cal.add_argument("--dataset", type=Path, help="DeepParse dataset dir (raw.log + templates.json)")
@@ -293,6 +391,23 @@ def main(argv: list[str] | None = None) -> None:
     wk.add_argument("--max-attempts", type=int, default=3, help="failed validations before a row goes to the dead-letter topic")
     wk.add_argument("--max-cycles", type=int, default=None, help="stop after N cycles (default: run forever)")
     wk.set_defaults(func=_worker)
+
+    ld = sub.add_parser("load", help="load test: live synthetic fleet through the pipeline")
+    ld.add_argument("--registry", type=Path, default=settings.registry_path)
+    ld.add_argument("--devices", type=int, default=100)
+    ld.add_argument("--rate", type=float, default=1_000, help="lines per second, whole fleet")
+    ld.add_argument("--duration", type=float, default=60, help="seconds")
+    ld.add_argument("--rollout-at", type=float, default=None, help="seconds until the firmware rollout")
+    ld.add_argument("--rollout-share", type=float, default=0.6)
+    ld.add_argument("--seed", type=int, default=7)
+    ld.add_argument("--store", choices=["memory", "clickhouse"], default=settings.store)
+    ld.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue)
+    ld.add_argument("--llm", default=settings.llm_backend)
+    ld.add_argument("--no-enrich", action="store_true", help="fast path only (use `logpipe worker`)")
+    ld.add_argument("--enrich-every", type=int, default=5_000)
+    ld.add_argument("--metrics-out", type=Path, default=None, help="append one JSON line per interval")
+    ld.add_argument("--metrics-every", type=float, default=10, help="seconds between metrics lines")
+    ld.set_defaults(func=_load)
 
     tl = sub.add_parser("train-logbert", help="train LogBERT on per-device windows")
     tl.add_argument("--logs", type=Path, default=settings.logs_path)
