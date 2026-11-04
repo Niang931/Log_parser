@@ -41,8 +41,8 @@ from ..calibrate import calibrate
 from ..enrich.llm import LLMAdapter
 from ..parsing.frozen_parser import FrozenParser
 from ..pipeline import Pipeline
-from ..registry import SchemaRegistry
 from ..progress import progress, write
+from ..registry import SchemaRegistry
 from ..storage.memory import MemoryStore
 from .synth_iot import SynthEvent, as_log_events, generate
 
@@ -89,9 +89,13 @@ class _Labels:
         self.times: dict[str, list] = defaultdict(list)
         self.kinds: dict[str, list[str]] = defaultdict(list)
         for e in events:
-            if e.anomaly:
-                self.times[e.device_id].append(e.timestamp)
-                self.kinds[e.device_id].append(e.anomaly)
+            self.add(e)
+
+    def add(self, e: SynthEvent) -> None:
+        """Events must arrive in timestamp order per device (bisect below)."""
+        if e.anomaly:
+            self.times[e.device_id].append(e.timestamp)
+            self.kinds[e.device_id].append(e.anomaly)
 
     def kinds_in(self, window: ScoredWindow) -> set[str]:
         """Returns anomolies window in in proviided time range."""

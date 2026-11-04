@@ -2,7 +2,8 @@
 
 ``offline`` wraps DeepParse's deterministic stub plus heuristic key names
 and never confirms a borderline alias, so tests and CI never call a model.
-``hf`` synthesises masks with local DeepSeek.  ``llm:<provider>`` (e.g.
+``hf`` synthesises masks with DeepSeek-R1-8B plus the fine-tuned LoRA adapter
+(``HF_ADAPTER``, default the hub id below), in 4-bit; it needs a GPU (Colab).  ``llm:<provider>`` (e.g.
 ``llm:anthropic``) goes through :mod:`deepparse.providers` with structured
 output for all three jobs.
 
@@ -13,6 +14,7 @@ can carry prompt injection, so callers validate the output (see
 from __future__ import annotations
 
 import atexit
+import os
 from collections.abc import Sequence
 from functools import lru_cache
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
@@ -69,8 +71,28 @@ class OfflineAdapter:
         return False
 
 
+HF_BASE = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+HF_ADAPTER = "MThien213/deepparse-iot-r1-8b"
+
+
 class HFDeepSeekAdapter(OfflineAdapter):
+    """Fine-tuned masks; key names and aliases stay on the offline rules
+    (the adapter is trained only on the DeepParse mask prompt)."""
+
     MODE = "hf"
+
+    def synth_masks(self, lines: Sequence[str], sample_size: int) -> list[Mask]:
+        from deepparse.synth.hf_deepseek_r1 import synthesize_hf
+        from deepparse.utils.regex_library import validate_regexes
+        from deepparse.utils.sampling import deterministic_sample
+
+        sample = deterministic_sample(lines, min(sample_size, len(lines)))
+        # QLoRA adapter: serve it on the 4-bit base it was trained on, or 8B does not fit a T4.
+        masks = synthesize_hf(sample, model_name=os.environ.get("HF_BASE", HF_BASE),
+                              adapter_path=os.environ.get("HF_ADAPTER", HF_ADAPTER),
+                              load_in_4bit=True)
+        validate_regexes([m.pattern for m in masks])
+        return masks
 
 
 # TODO: maybe move this to a separate file instead

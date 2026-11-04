@@ -1,4 +1,6 @@
-from logpipe.eval.synth_iot import ANOMALY_KINDS, generate
+import random
+
+from logpipe.eval.synth_iot import ANOMALY_KINDS, LiveFleet, generate
 
 
 def test_generation_is_deterministic_and_labelled():
@@ -33,3 +35,27 @@ def test_write_produces_files_and_labels(tmp_path):
     fleet.write(tmp_path)
     assert len(list((tmp_path / "history").glob("*.log"))) == 4
     assert (tmp_path / "labels.tsv").read_text().count("\n") > 1
+
+
+def test_live_fleet_is_ordered_and_obeys_rollout_and_injection():
+    fleet = generate(1, 0.2, 0.1, 0, anomaly_rate=0.0)
+    live = LiveFleet(fleet.devices, fleet.validation[-1].timestamp, 0.3, random.Random(1),
+                     anomaly_rate=0.0, rollout_at=None, rollout_share=1.0)
+    plug = next(d for d in live.devices if d.startswith("PL"))
+    live.inject(plug, "stuck")
+    events = []
+    while (e := live.next()) is not None:
+        events.append(e)
+        if len(events) == 50:
+            assert live.rollout() == sorted(live.devices)
+    assert [e.timestamp for e in events] == sorted(e.timestamp for e in events)
+    assert {e.anomaly for e in events if e.device_id == plug} == {None, "stuck"}
+    assert all(e.anomaly is None for e in events if e.device_id != plug)
+    # Firmware 2 only after the rollout; an episode already queued keeps its version.
+    assert events[0].firmware == 1 and events[-1].firmware == 2
+    try:
+        live.inject(plug, "reorder")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("reorder needs a door lock")

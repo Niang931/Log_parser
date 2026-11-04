@@ -22,7 +22,7 @@ TRAIN    := --epochs $(EPOCHS) $(if $(THREADS),--threads $(THREADS))
 SCRAPER  := $(RUN) python -m deepparse.ai_scraper
 
 .DEFAULT_GOAL := help
-.PHONY: help setup calibrate train run run-fast worker replay gen-iot demo \
+.PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo \
         data data-loghub data-hdfs data-bgl \
         retrain-data retrain-eval \
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
@@ -38,6 +38,9 @@ help: ## list targets
 setup: ## install deps and create .env from the example
 	uv sync --group dev
 	@test -f .env || { cp .env.example .env; echo "created .env"; }
+
+start: ## interactive: asks what to run (demo or your logs, Kafka or not), sets it up, runs it
+	$(RUN) logpipe start
 
 ## --- pipeline (paths from .env) ---------------------------------------------
 

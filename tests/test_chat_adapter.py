@@ -1,5 +1,5 @@
-import deepparse.synth.chat_provider as chat_provider
 from deepparse.masks_types import Mask
+from deepparse.synth import chat_provider
 
 from logpipe.enrich.llm import ChatAdapter, get_adapter
 
@@ -56,3 +56,19 @@ def test_web_adapter_shares_one_browser_and_frees_it_for_mask_synthesis(monkeypa
     assert events == ["open", "close", "synth"]
     assert [m.label for m in masks] == ["STATE"]
     assert {(c.provider, c.model_name, c.browser) for c in configs} == {("web", "gemini", "chrome")}
+
+
+def test_hf_adapter_serves_the_finetuned_adapter_in_4bit(monkeypatch):
+    import deepparse.synth.hf_deepseek_r1 as hf
+
+    seen = {}
+
+    def fake(sample, **kwargs):
+        seen.update(kwargs, n=len(sample))
+        return [Mask(label="NUM", pattern=r"\d+", justification="")]
+
+    monkeypatch.setattr(hf, "synthesize_hf", fake)
+    monkeypatch.delenv("HF_ADAPTER", raising=False)
+    masks = get_adapter("hf").synth_masks([f"temp={i}" for i in range(10)], 4)
+    assert [m.label for m in masks] == ["NUM"] and 1 <= seen["n"] <= 4  # sampler dedups by shape
+    assert seen["adapter_path"] == "MThien213/deepparse-iot-r1-8b" and seen["load_in_4bit"]

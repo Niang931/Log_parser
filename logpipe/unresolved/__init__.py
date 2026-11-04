@@ -5,8 +5,8 @@ from .memory import MemoryQueue
 
 __all__ = [
     "DEFAULT_MAX_ATTEMPTS",
-    "Message",
     "MemoryQueue",
+    "Message",
     "QueueStats",
     "UnresolvedQueue",
     "open_queue",

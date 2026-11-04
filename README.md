@@ -29,6 +29,20 @@ cp .env.example .env
 uv sync --group dev
 ```
 
+## Quick start
+
+```sh
+uv sync --group dev
+uv run logpipe        # or `logpipe start` / `make start`
+```
+
+It asks what to run (the browser demo or the pipeline on your own logs), which queue (in-memory,
+or Kafka, which it starts in Docker for you), who names keys and confirms re-associations
+(offline rules, a signed-in web chat, or a hosted API), and the few settings that matter, then
+prints the equivalent commands and runs them. If you pick a web chat it can open the sign-in
+window too. The answers are saved in `.logpipe/start.json` and become the defaults next time;
+every question is still asked, so a repeat run is just pressing Enter.
+
 ## Running
 
 Set `LOGS_PATH` in `.env` to point to the directory containing your log files (default: `logs/`).
@@ -49,10 +63,56 @@ uv run logpipe train-logbert --logs artifacts/fleet/history
 uv run logpipe run --logs artifacts/fleet/test              # STORE=clickhouse after make docker-up
 ```
 
+### Browser demo
+
+```sh
+uv run logpipe demo        # asks: queue, store, LLM, masks, size, port; then open the page
+```
+
+Plain `logpipe demo` in a terminal asks its questions (your last answers are the defaults);
+with any flag it runs straight away.
+
+The calibration is saved in `artifacts/demo/` (one file per mask backend, fleet size and
+seed) and reused on later runs, so only LogBERT is retrained at start-up (a few seconds);
+`--recalibrate` redoes it. This matters with a web LLM, where calibrating asks the site to
+name the keys of every template (about a minute each). Gemini answers signed out, so
+`--llm llm:web:gemini` needs no login; `--browser chrome` uses the chromium on your PATH,
+while camoufox needs `uv run camoufox fetch` once (and again after camoufox upgrades).
+
+Builds a small synthetic fleet, calibrates, trains a tiny LogBERT and tunes its thresholds
+(about 10 seconds), then generates the test stream live and runs it through the whole system.
+The **System** tab draws every stage with live counters: frozen Drain → hit/miss → unresolved
+queue → shadow Drain → LLM (key names, alias check) → validate → alias check → registry vN+1 →
+hot-swap and backfill, plus LogBERT → alerts. Its timeline lists true positives, false positives
+and missed anomalies, firmware-2 template shifts (with whether each was re-associated to an
+existing template and why), requeues and dead-letters. Clicking an event or a line lights up
+the path that line took. The header has pause, step and speed; the panel beside the graph
+triggers the firmware rollout now, injects an anomaly into a device's next episode, and
+restarts the session: the same stream or a new one replayed from the first line with an empty
+store and queue, either from calibration or keeping the templates learned so far (so the
+firmware-2 lines that missed the first time now hit). The restart also picks the queue
+(memory or Kafka), the store (memory or ClickHouse) and the LLM that names keys and confirms
+re-associations (offline rules, a web chat such as `llm:web:gemini`, or a hosted API), so the
+same stream can be compared across setups; Kafka and ClickHouse are started in Docker when
+picked. Calibration and LogBERT are kept across restarts; your rollout and inject clicks are
+not replayed. The other tabs show
+the stream with a per-line trace, the registry, a SQL query per template and charts.
+
+| flag | effect |
+|---|---|
+| `--queue kafka` | the Kafka broker (started in Docker if needed, a fresh topic per session) instead of the in-memory queue |
+| `--store clickhouse` | also write every row to ClickHouse (database `logpipe_demo`, emptied per session); the Query tab then runs on it |
+| `--llm llm:web:gemini` | key names and alias confirmation by your signed-in web chat (default: offline rules, which never confirm a wording change) |
+| `--registry demo_registry.json` | skip calibration and load masks made by the fine-tuned model on Colab (section 4 of `notebooks/colab_finetune_eval.ipynb`, i.e. `logpipe demo --llm hf --save-registry ...`) |
+
+`--rate`, `--port`, `--devices`, `--test-hours` and `--epochs` change the setup; the charts load
+Chart.js from a CDN.
+
 The LLM backend is set by `LLM_BACKEND`:
 
 - `offline` (default): deterministic, no network.
-- `hf`: local DeepSeek.
+- `hf`: DeepSeek-R1-8B with the fine-tuned LoRA adapter (`HF_ADAPTER`, default
+  `MThien213/deepparse-iot-r1-8b`) in 4-bit, for masks only; needs a GPU (Colab).
 - `llm:<provider>[:<model>]`: a hosted provider through `deepparse.providers`, e.g.
   `llm:anthropic`. API keys come from the environment.
 - `llm:web:<site>`: drives your own signed-in Claude, ChatGPT or Gemini web app in a browser,

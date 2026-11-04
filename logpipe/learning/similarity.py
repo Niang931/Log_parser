@@ -11,4 +11,3 @@ def find_alias(
     adapter: LLMAdapter | None = None,
 ) -> int | None:
     """Return old template_id if it is alias, otherwise return None."""
-    ...

@@ -20,6 +20,8 @@ htmlcov/
 
 # Environment
 .env
+# `logpipe start` answers
+.logpipe/
 
 # Logs
 logs/

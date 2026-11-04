@@ -23,6 +23,7 @@ import json
 import statistics
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 DEFAULT_BASELINE = Path("eval/baseline.json")
 DEFAULT_TOLERANCE = {"ga": 0.02, "iot_f1": 0.05}
@@ -45,7 +46,8 @@ class Check:
         return f"[{mark}] {self.name}: baseline {base} -> current {cur}  ({self.detail})"
 
 
-def _load(path: Path) -> dict | list | None:
+def _load(path: Path) -> Any:
+    """Parsed JSON (shape depends on the file), or None when missing."""
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
 

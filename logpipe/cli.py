@@ -7,12 +7,15 @@
 * ``train-logbert``: train the detector on per-device windows of parsed logs.
 * ``gen-iot``: write the synthetic IoT fleet to disk.
 * ``eval``: ``parsing`` | ``logbert`` | ``iot`` | ``alias`` benchmarks, ``report`` to summarise.
+* ``demo``: browser UI running a live synthetic IoT fleet through every stage.
+* ``start`` (also plain ``logpipe``): ask what to run, start Docker services, run it.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import random
+import sys
 from collections import Counter, defaultdict
 from dataclasses import replace
 from pathlib import Path
@@ -184,6 +187,31 @@ def _gen_iot(args: argparse.Namespace) -> None:
     print(f"wrote history/validation/test logs and labels.tsv to {args.out}")
 
 
+def _demo(args: argparse.Namespace) -> None:
+    from .demo.server import Demo, save_registry, serve
+
+    if args.raw == ["demo"] and sys.stdin.isatty():  # no flags: ask instead
+        from .start import start
+
+        return start(mode="demo")
+
+    if args.save_registry:
+        save_registry(args.save_registry, devices=args.devices, history_hours=args.history_hours,
+                      llm=args.llm, browser=args.browser)
+        return
+    demo = Demo(devices=args.devices, history_hours=args.history_hours,
+                test_hours=args.test_hours, epochs=args.epochs, enrich_every=args.enrich_every,
+                llm=args.llm, queue=args.queue, store=args.store, registry_path=args.registry,
+                browser=args.browser, cache_dir=Path("artifacts/demo"), recalibrate=args.recalibrate)
+    serve(demo, args.host, args.port, args.rate)
+
+
+def _start(args: argparse.Namespace) -> None:
+    from .start import start
+
+    start()
+
+
 def _fetch_data(args: argparse.Namespace) -> None:
     from .eval.datasets import fetch_archive, fetch_loghub2k
 
@@ -248,7 +276,11 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="logpipe")
     parser.add_argument("--browser", choices=BROWSERS, default=settings.web_browser,
                         help="browser for LLM backend llm:web:<site>")
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser.set_defaults(func=_start)
+    sub = parser.add_subparsers(dest="command")
+
+    st = sub.add_parser("start", help="interactive: pick what to run, set up services, run it")
+    st.set_defaults(func=_start)
 
     cal = sub.add_parser("calibrate", help="build registry v1 from historical logs")
     cal.add_argument("--logs", type=Path, default=settings.logs_path)
@@ -314,6 +346,29 @@ def main(argv: list[str] | None = None) -> None:
     gen.add_argument("--seed", type=int, default=7)
     gen.set_defaults(func=_gen_iot)
 
+    dm = sub.add_parser("demo", help="browser demo of the full pipeline on the synthetic fleet")
+    dm.add_argument("--host", default="127.0.0.1")
+    dm.add_argument("--port", type=int, default=8000)
+    dm.add_argument("--rate", type=float, default=25, help="lines per second to replay")
+    dm.add_argument("--devices", type=int, default=2, help="devices per kind")
+    dm.add_argument("--history-hours", type=float, default=2)
+    dm.add_argument("--test-hours", type=float, default=1)
+    dm.add_argument("--epochs", type=int, default=8)
+    dm.add_argument("--enrich-every", type=int, default=300)
+    dm.add_argument("--llm", default="offline",
+                    help="key naming + alias check (and masks when calibrating), e.g. llm:web:gemini")
+    dm.add_argument("--queue", choices=["memory", "kafka"], default="memory",
+                    help="unresolved queue; kafka is started in Docker if needed")
+    dm.add_argument("--store", choices=["memory", "clickhouse"], default="memory",
+                    help="clickhouse also writes every row there (started in Docker if needed)")
+    dm.add_argument("--registry", type=Path,
+                    help="load a saved registry (e.g. fine-tuned masks from Colab) instead of calibrating")
+    dm.add_argument("--recalibrate", action="store_true",
+                    help="redo the calibration cached in artifacts/demo/ (kept per mask backend and fleet size)")
+    dm.add_argument("--save-registry", type=Path, metavar="PATH",
+                    help="calibrate the demo history with --llm, save the registry and exit (Colab: --llm hf)")
+    dm.set_defaults(func=_demo)
+
     fd = sub.add_parser("fetch-data", help="download the evaluation datasets up front")
     fd.add_argument("datasets", nargs="*", choices=["loghub2k", "HDFS", "BGL"],
                     default=["loghub2k", "HDFS", "BGL"])
@@ -339,6 +394,7 @@ def main(argv: list[str] | None = None) -> None:
     ev.set_defaults(func=_eval)
 
     args = parser.parse_args(argv)
+    args.raw = sys.argv[1:] if argv is None else argv
     args.func(args)
 
 

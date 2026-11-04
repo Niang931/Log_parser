@@ -22,9 +22,10 @@ Injected anomaly kinds, labelled per event:
 """
 from __future__ import annotations
 
+import heapq
 import random
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -206,13 +207,33 @@ def _inject(device: _Device, kind: str, episode: list[tuple[str, str]]) -> list[
     return _inject(device, "new_event", episode)
 
 
-def _anomaly_kind(device: _Device, rng: random.Random) -> str:
+def _kind_options(device: _Device) -> list[str]:
     options = ["new_event", "burst"]
     if isinstance(device, DoorLock):
         options += ["reorder", "missing", "reorder", "missing"]
     if isinstance(device, (SmartPlug, Thermostat)):
         options += ["stuck"]
-    return rng.choice(options)
+    return options
+
+
+def _anomaly_kind(device: _Device, rng: random.Random) -> str:
+    return rng.choice(_kind_options(device))
+
+
+def _episode_events(device: _Device, now: datetime, phase: str, rng: random.Random,
+                    kind: str | None) -> tuple[list[SynthEvent], datetime]:
+    """One episode (anomalous when ``kind`` is set) starting at ``now``; returns the next start."""
+    episode = device.episode()
+    if kind:
+        tagged = [(lvl, msg, kind if bad else None) for lvl, msg, bad in _inject(device, kind, episode)]
+    else:
+        tagged = [(lvl, msg, None) for lvl, msg in episode]
+    events = []
+    for lvl, msg, tag in tagged:
+        now += timedelta(milliseconds=rng.randint(40, 900))
+        now = now.replace(microsecond=now.microsecond // 1000 * 1000)
+        events.append(SynthEvent(device.id, now, device.line(now, lvl, msg), phase, tag, device.firmware))
+    return events, now + timedelta(seconds=rng.uniform(5, 25))
 
 
 def _run_phase(
@@ -228,17 +249,10 @@ def _run_phase(
         while now < end:
             if rollout_time is not None and now >= rollout_time and device.id in upgrade:
                 device.firmware = 2
-            episode = device.episode()
-            if anomaly_rate and rng.random() < anomaly_rate:
-                kind = _anomaly_kind(device, rng)
-                tagged = [(lvl, msg, kind if bad else None) for lvl, msg, bad in _inject(device, kind, episode)]
-            else:
-                tagged = [(lvl, msg, None) for lvl, msg in episode]
-            for lvl, msg, tag in tagged:
-                now += timedelta(milliseconds=rng.randint(40, 900))
-                now = now.replace(microsecond=now.microsecond // 1000 * 1000)
-                events.append(SynthEvent(device.id, now, device.line(now, lvl, msg), phase, tag, device.firmware))
-            now += timedelta(seconds=rng.uniform(5, 25))
+            # device.episode() draws from device.rng, so drawing the kind first keeps rng order.
+            kind = _anomaly_kind(device, rng) if anomaly_rate and rng.random() < anomaly_rate else None
+            batch, now = _episode_events(device, now, phase, rng, kind)
+            events.extend(batch)
     events.sort(key=lambda e: (e.timestamp, e.device_id))
     return events
 
@@ -248,6 +262,7 @@ class Fleet:
     history: list[SynthEvent]
     validation: list[SynthEvent]
     test: list[SynthEvent]
+    devices: list[_Device] = field(default_factory=list)
 
     def write(self, out: Path) -> None:
         """One file per device and phase, plus a TSV of anomalous lines."""
@@ -288,7 +303,69 @@ def generate(
     validation = _run_phase(devices, "validation", t1, validation_hours, rng, anomaly_rate, None, 0.0)
     t2 = t1 + timedelta(hours=validation_hours)
     test = _run_phase(devices, "test", t2, test_hours, rng, anomaly_rate, rollout_at, rollout_share)
-    return Fleet(history, validation, test)
+    return Fleet(history, validation, test, devices)
+
+
+class LiveFleet:
+    """The test phase generated on demand, so a rollout or an anomaly can be triggered live.
+
+    Devices keep their own clocks; an event is released once no device can still
+    produce an earlier one, so the stream stays in timestamp order.
+    """
+
+    def __init__(self, devices: list[_Device], start: datetime, hours: float, rng: random.Random,
+                 anomaly_rate: float = 0.01, rollout_at: float | None = 0.5,
+                 rollout_share: float = 0.6, phase: str = "test"):
+        self.devices = {d.id: d for d in devices}
+        self.end = start + timedelta(hours=hours)
+        self.rng, self.anomaly_rate, self.phase = rng, anomaly_rate, phase
+        self.rollout_time = start + timedelta(hours=hours * rollout_at) if rollout_at is not None else None
+        self.upgrade = {d.id for d in devices if rng.random() < rollout_share}
+        self.clock = {d.id: start + timedelta(seconds=rng.uniform(0, 30)) for d in devices}
+        self.forced: dict[str, str] = {}
+        self._ready: list[tuple[datetime, int, SynthEvent]] = []
+        self._seq = 0
+
+    def kinds(self, device_id: str) -> list[str]:
+        return sorted(set(_kind_options(self.devices[device_id])))
+
+    def inject(self, device_id: str, kind: str) -> None:
+        """Make the device's next episode anomalous."""
+        if self.clock[device_id] >= self.end:
+            raise ValueError(f"{device_id} has no episode left before the stream ends")
+        if kind not in self.kinds(device_id):
+            raise ValueError(f"{kind!r} does not apply to {device_id}; one of {self.kinds(device_id)}")
+        self.forced[device_id] = kind
+
+    def rollout(self) -> list[str]:
+        """Upgrade the rollout share to firmware 2 now; returns the upgraded ids."""
+        self.rollout_time = None
+        for device_id in self.upgrade:
+            self.devices[device_id].firmware = 2
+        return sorted(self.upgrade)
+
+    def _advance(self, device_id: str) -> None:
+        device, now = self.devices[device_id], self.clock[device_id]
+        if self.rollout_time is not None and now >= self.rollout_time and device_id in self.upgrade:
+            device.firmware = 2
+        kind = self.forced.pop(device_id, None)
+        if kind is None and self.anomaly_rate and self.rng.random() < self.anomaly_rate:
+            kind = _anomaly_kind(device, self.rng)
+        batch, self.clock[device_id] = _episode_events(device, now, self.phase, self.rng, kind)
+        for e in batch:
+            heapq.heappush(self._ready, (e.timestamp, self._seq, e))
+            self._seq += 1
+
+    def next(self) -> SynthEvent | None:
+        """The next event in time order, or None once every device is past ``end``."""
+        while True:
+            active = [(t, d) for d, t in self.clock.items() if t < self.end]
+            earliest = min(active)[0] if active else None
+            if self._ready and (earliest is None or self._ready[0][0] <= earliest):
+                return heapq.heappop(self._ready)[2]
+            if earliest is None:
+                return None
+            self._advance(min(active)[1])
 
 
 def as_log_events(events: list[SynthEvent]) -> Iterator[LogEvent]:

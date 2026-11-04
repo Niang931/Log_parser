@@ -9,7 +9,6 @@ Everything in CI runs with `LLM_BACKEND=offline`: deterministic, no paid LLM cal
 | Lint | `ruff check logpipe tests`; `ruff format --check` is advisory until the codebase is formatted in one dedicated PR | 5 min |
 | Unit tests | `pytest -m "not integration"` with coverage (`coverage.xml` artifact), then `DeepParse/tests -m "not integration"` | 10 min |
 | Integration | ClickHouse 25.8 service container, then `pytest -m integration`. Credentials are the ones from `.env.example` (`logpipe` / `ci-password` / db `logpipe`). | 15 min |
-| Docker build | builds `DeepParse/Dockerfile` with the GitHub Actions layer cache, never pushes | 15 min |
 
 Same commands locally:
 
@@ -17,8 +16,9 @@ Same commands locally:
 make lint
 make test
 make test-integration
-docker build DeepParse
 ```
+
+No image is built on pull requests; `docker build DeepParse` locally when the Dockerfile changes.
 
 The integration marker is `@pytest.mark.integration`. `tests/test_clickhouse_integration.py` is the smoke test that
 proves the service wiring; tests of the ClickHouse storage backend go under the same marker when it lands.
@@ -68,7 +68,7 @@ Keep the IoT parameters identical to `eval_params` in the baseline; the F1 of a 
     --input - <<'JSON'
   {
     "required_status_checks": {"strict": true,
-      "contexts": ["Lint (ruff)", "Unit tests", "Integration (ClickHouse)", "Docker build (no push)"]},
+      "contexts": ["Lint (ruff)", "Unit tests", "Integration (ClickHouse)"]},
     "enforce_admins": false,
     "required_pull_request_reviews": {"required_approving_review_count": 1},
     "restrictions": null,

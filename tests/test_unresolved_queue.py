@@ -138,6 +138,8 @@ def test_worker_learns_from_the_queue_and_commits_after_backfill(snapshot):
     report = worker.run_cycle()
     assert report.buffered == len(NEW) and report.resolved == len(NEW)
     assert report.published and report.still_pending == 0 and report.dead_lettered == 0
+    assert {t for _, t in report.resolved_rows} <= set(report.published)
+    assert len(report.resolved_rows) == len(NEW)
     assert store.count_by_status() == {"FINAL": len(NEW)}
     stats = queue.stats()
     assert (stats.consumed, stats.committed, stats.lag) == (len(NEW), len(NEW), 0)
@@ -167,6 +169,7 @@ def test_rows_that_keep_failing_validation_are_dead_lettered(snapshot):
         worker.submit(_pending(f"{i * 7919} {i * 104729} {i * 1299709}"))
     first = worker.run_cycle()
     assert first.rejected and first.still_pending == 3 and first.dead_lettered == 0
+    assert [(a, w[:8]) for _, a, w in first.requeued_rows] == [(1, "rejected")] * 3
     # Re-queued with the attempt counted, in the same order.
     assert [m.attempts for m in queue.consume(10)] == [1, 1, 1]
     queue.commit()
@@ -174,6 +177,7 @@ def test_rows_that_keep_failing_validation_are_dead_lettered(snapshot):
         queue.publish(_pending(f"{i * 7919} {i * 104729} {i * 1299709}"), attempts=1)
     second = worker.run_cycle()
     assert second.dead_lettered == 3 and second.still_pending == 0
+    assert len(second.dead_letter_rows) == 3 and not second.requeued_rows
     assert len(queue.dead) == 3 and queue.dead[0][1].startswith("rejected")
     assert queue.consume(10) == []
 
