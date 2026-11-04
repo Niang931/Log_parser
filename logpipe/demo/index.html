@@ -15,10 +15,15 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text);
          font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  header { display: flex; align-items: baseline; gap: 24px; padding: 14px 24px;
+  header { display: flex; align-items: center; gap: 16px; padding: 10px 24px;
            background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
   header h1 { font-size: 16px; margin: 0; font-weight: 600; }
-  #status { color: var(--muted); font-variant-numeric: tabular-nums; }
+  #status { color: var(--muted); font-variant-numeric: tabular-nums; display: flex; gap: 14px;
+            align-items: center; flex-wrap: wrap; }
+  .pill { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+          padding: 2px 8px; border-radius: 10px; background: var(--soft); color: var(--muted); }
+  .pill.streaming { background: #e3f1e8; color: var(--good); }
+  .pill.paused { background: #f6ecd9; color: var(--warn); }
   nav { display: flex; gap: 4px; padding: 0 24px; background: var(--panel);
         border-bottom: 1px solid var(--line); overflow-x: auto; }
   nav button { border: 0; background: none; padding: 10px 12px; cursor: pointer; font: inherit;
@@ -70,7 +75,19 @@
              border-radius: 3px; resize: vertical; }
   .error { color: #a12; }
   #lines.pendonly tr:not(.p), #lines.anononly tr:not(.a) { display: none; }
-  .controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-left: auto; }
+  .playback { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+  .sys { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 16px; align-items: start; }
+  @media (max-width: 1000px) { .sys { grid-template-columns: 1fr; } }
+  .side { display: flex; flex-direction: column; gap: 0; padding: 0; }
+  .side .group { padding: 14px; border-top: 1px solid var(--soft); display: flex; flex-direction: column; gap: 8px; }
+  .side .group:first-child { border-top: 0; }
+  .side h2 { margin: 0; }
+  .side p { margin: 0; color: var(--muted); font-size: 12.5px; }
+  .side label { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+  .side label select { flex: 1; min-width: 0; }
+  .side .field { display: grid; grid-template-columns: 52px 1fr; gap: 6px; align-items: center; font-size: 13px; }
+  .side button.act { align-self: flex-start; }
+  .legend { margin: 8px 2px 0; color: var(--muted); font-size: 12.5px; }
   #graph { width: 100%; height: auto; display: block; }
   #graph .node rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.2; rx: 4; }
   #graph .node text { font-size: 12px; fill: var(--text); text-anchor: middle; }
@@ -98,17 +115,14 @@
 <body>
 <header>
   <h1>logpipe demo</h1>
-  <span id="status">preparing</span>
-  <div class="controls">
+  <div id="status"><span class="pill" id="st-state">preparing</span><span id="st-text"></span></div>
+  <div class="playback">
     <button class="act" id="c-pause">Pause</button>
     <button class="act" id="c-step" title="pause and feed one line">Step</button>
     <select id="c-speed" title="lines per second">
-      <option value="5">5 / s</option><option value="25" selected>25 / s</option>
-      <option value="100">100 / s</option><option value="500">500 / s</option>
+      <option value="5">5 lines/s</option><option value="25" selected>25 lines/s</option>
+      <option value="100">100 lines/s</option><option value="500">500 lines/s</option>
     </select>
-    <button class="act" id="c-rollout" title="upgrade the rollout share of devices to firmware 2.x now">Rollout now</button>
-    <select id="c-device"></select><select id="c-kind"></select>
-    <button class="act" id="c-inject" title="make the device's next episode anomalous">Inject</button>
   </div>
 </header>
 <nav id="tabs">
@@ -121,11 +135,37 @@
 </nav>
 <main>
   <section id="system">
-    <p class="note">Every stage of the system with live counters. Solid edges are the hot path, dashed
-      ones the learning loop. Select a line (in the timeline or in Stream and trace) to light up the
-      path it took. Masks were synthesised once at calibration; the LLM node in the loop names slot
-      keys and confirms re-associations.</p>
-    <div class="panel"><svg id="graph" viewBox="0 0 960 420" role="img" aria-label="System flow graph"></svg></div>
+    <div class="sys">
+      <div class="panel">
+        <svg id="graph" viewBox="0 0 960 420" role="img" aria-label="System flow graph"></svg>
+        <p class="legend">Solid edges: hot path. Dashed: learning loop. Click a timeline event or a
+          stream line to light up the path it took. Masks come from calibration; the LLM node names
+          slot keys and confirms re-associations.</p>
+      </div>
+      <aside class="panel side">
+        <div class="group">
+          <h2>Firmware rollout</h2>
+          <p>Moves about 60% of devices to firmware 2.x now. Their reworded lines miss the frozen
+            parser and go round the learning loop.</p>
+          <button class="act" id="c-rollout">Roll out now</button>
+        </div>
+        <div class="group">
+          <h2>Inject an anomaly</h2>
+          <p>The device's next episode turns anomalous; the timeline shows if LogBERT caught it.</p>
+          <div class="field"><span>Device</span><select id="c-device"></select></div>
+          <div class="field"><span>Kind</span><select id="c-kind"></select></div>
+          <button class="act" id="c-inject">Inject</button>
+        </div>
+        <div class="group">
+          <h2>Session</h2>
+          <p id="sess-info"></p>
+          <label><input type="radio" name="r-stream" value="same" checked> Same stream again</label>
+          <label><input type="radio" name="r-stream" value="new"> A new random stream</label>
+          <label><input type="checkbox" id="r-keep"> Keep templates learned so far</label>
+          <button class="act primary" id="c-restart">Restart session</button>
+        </div>
+      </aside>
+    </div>
     <div class="split" style="margin-top:16px">
       <div class="panel scroll">
         <div class="row" style="justify-content:space-between">
@@ -142,10 +182,8 @@
   <section id="stream" hidden>
     <p class="note">The test stream of the synthetic IoT fleet (injected anomalies and a firmware
       rollout half way through) is replayed line by line through the frozen parser, the store,
-      the enrichment worker (offline adapter) and the LogBERT detector. Click a line to follow it
-      through every stage.</p>
+      the enrichment worker and the LogBERT detector. Click a line to follow it through every stage.</p>
     <div class="row">
-      <button class="act" id="pause">Pause view</button>
       <label><input type="checkbox" id="pendonly"> Only lines PENDING at ingest</label>
       <label><input type="checkbox" id="anononly"> Only injected anomalies</label>
     </div>
@@ -234,16 +272,19 @@ $("tabs").onclick = (e) => {
 };
 
 /* stream */
-let after = 0, paused = false;
-$("pause").onclick = (e) => { paused = !paused; e.target.textContent = paused ? "Resume view" : "Pause view"; };
+let after = 0;
 $("pendonly").onchange = (e) => $("lines").classList.toggle("pendonly", e.target.checked);
 $("anononly").onchange = (e) => $("lines").classList.toggle("anononly", e.target.checked);
 const MAX_ROWS = 2000;
 async function pollStream() {
-  if (paused) return setTimeout(pollStream, 500);
   const s = await getJSON(`/api/stream?after=${after}`);
-  $("status").textContent = `${s.done} lines (until ${short(s.end)}) · registry v${s.registry_version} · ` +
-    `${s.alerts} alerts · ${s.finished ? "finished" : s.paused ? "paused" : `streaming ${s.rate}/s`}`;
+  checkSession(s.session);
+  const state = s.finished ? "finished" : s.paused ? "paused" : "streaming";
+  $("st-state").textContent = state;
+  $("st-state").className = "pill " + state;
+  const at = s.lines.at(-1)?.time;
+  $("st-text").textContent = `session ${s.session} · ${s.done} lines` + (at ? ` · ${short(at)} of ${short(s.end)}` : "") +
+    ` · registry v${s.registry_version} · ${s.alerts} alerts`;
   const body = $("lines");
   for (const l of s.lines.slice(-MAX_ROWS)) {
     const tr = el("tr", { className: "click" + (l.status === "PENDING" ? " p" : "") + (l.anomaly ? " a" : "") },
@@ -428,7 +469,11 @@ function renderSystem(s) {
     n.sub.textContent = text;
   }
   for (const e of graph.edges) e.bg.textContent = e.fg.textContent = e.label(s);
+  checkSession(s.session);
   $("c-pause").textContent = s.paused ? "Resume" : "Pause";
+  if (document.activeElement !== $("c-speed")) $("c-speed").value = String(s.rate);
+  $("sess-info").textContent = `Session ${s.session}. Restart replays from the first line with an empty store and queue; ` +
+    `calibration and LogBERT are kept. ${s.learned} template(s) learned so far.`;
   if (!lastSystem) {
     $("c-device").replaceChildren(...Object.keys(s.devices).map((d) => el("option", { value: d }, d)));
     fillKinds(s);
@@ -481,12 +526,22 @@ $("t-backfill").onchange = (e) => $("timeline").classList.toggle("hide-backfill"
 /* controls */
 const control = (action, value = "") => fetch(`/api/control?action=${action}&value=${encodeURIComponent(value)}`, { method: "POST" })
   .then(async (r) => { const b = await r.json(); if (!r.ok) throw new Error(b.error); return b; })
-  .then(tick).catch((e) => { $("status").textContent = e.message; });
+  .then(tick).catch((e) => { $("st-text").textContent = e.message; });
 $("c-pause").onclick = () => control(lastSystem?.paused ? "resume" : "pause");
 $("c-step").onclick = () => control("step");
 $("c-speed").onchange = (e) => control("speed", e.target.value);
 $("c-rollout").onclick = () => control("rollout");
 $("c-inject").onclick = () => control("inject", `${$("c-device").value}:${$("c-kind").value}`);
+$("c-restart").onclick = () => {
+  const stream = document.querySelector('input[name="r-stream"]:checked').value;
+  control("restart", stream + ($("r-keep").checked ? ",keep" : ""));
+};
+// Every view keeps cursors into the session; on a new session start the page over.
+let session = null;
+function checkSession(n) {
+  if (session === null) session = n;
+  else if (n !== session) location.reload();
+}
 
 async function tick() {
   renderSystem(await getJSON("/api/system"));
@@ -612,7 +667,7 @@ setInterval(() => tick().catch(console.error), 1000);
 tick().catch(console.error);
 getJSON("/api/metrics").then((m) => { thresholds = m.thresholds; });
 loadTemplates().catch(console.error);
-pollStream().catch((e) => { $("status").textContent = "connection lost: " + e.message; });
+pollStream().catch((e) => { $("st-text").textContent = "connection lost: " + e.message; });
 </script>
 </body>
 </html>

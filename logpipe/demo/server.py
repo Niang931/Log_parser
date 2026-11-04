@@ -125,21 +125,42 @@ class Demo:
             [w.score for w in val.detector.scored if val_labels.kinds_in(w)])
 
         self.queue_kind = queue
-        # A fresh topic per run, so a broker kept up between demos never replays old rows.
+        self.initial: RegistrySnapshot = snapshot
+        self.adapter, self.detector_config = adapter, detector_config
+        self.enrich_every = enrich_every
+        self._fleet_args = (devices, history_hours, validation_hours, test_hours, seed)
+        self.paused = False
+        self.rate = 25.0
+        self.lock = threading.RLock()
+        self._appliers: dict[int, MaskApplier] = {}
+        self.session = 0
+        self._reset(snapshot, seed + 1, "session 1 started")
+
+    def _reset(self, snapshot: RegistrySnapshot, stream_seed: int, note: str) -> None:
+        """Start a session: empty store and queue, ``snapshot`` as the registry, a fresh stream.
+
+        Calibration, LogBERT and its thresholds are kept; they are the slow part.
+        """
+        devices, history_hours, validation_hours, test_hours, seed = self._fleet_args
+        if self.session:
+            self.queue.close()
+        # A fresh topic per session, so a broker kept up between demos never replays old rows.
         run = uuid.uuid4().hex[:8]
         self.queue = (open_queue("kafka", topic=f"logpipe-demo-{run}", group=f"logpipe-demo-{run}")
-                      if queue == "kafka" else open_queue("memory"))
-        self.initial: RegistrySnapshot = snapshot
+                      if self.queue_kind == "kafka" else open_queue("memory"))
         self.registry = SchemaRegistry(snapshot)
         self.store = MemoryStore()
         # The demo runs cycles itself (see step) so it can map each cycle back to its lines.
         self.pipeline = Pipeline.assemble(
-            self.registry, self.store, adapter=adapter, scorer=self.scorer,
-            detector_config=detector_config, enrich_every=10**12, queue=self.queue,
+            self.registry, self.store, adapter=self.adapter, scorer=self.scorer,
+            detector_config=self.detector_config, enrich_every=10**12, queue=self.queue,
         )
-        self.enrich_every = enrich_every
+        # Regenerated (cheap) so the devices start from their pre-rollout state again.
+        fleet = generate(devices, history_hours, validation_hours, 0, anomaly_rate=ANOMALY_RATE,
+                         seed=seed)
         start = fleet.validation[-1].timestamp if fleet.validation else fleet.history[-1].timestamp
-        self.fleet = LiveFleet(fleet.devices, start, test_hours, random.Random(seed + 1),
+        self.stream_seed = stream_seed
+        self.fleet = LiveFleet(fleet.devices, start, test_hours, random.Random(stream_seed),
                                anomaly_rate=ANOMALY_RATE)
         self.labels = _Labels([])
         self.lines: list[dict] = []
@@ -152,10 +173,20 @@ class Demo:
         self._windows_seen = 0
         self._last_outcome: dict[str, dict] = {}
         self.finished = False
-        self.paused = False
-        self.rate = 25.0
-        self.lock = threading.RLock()
-        self._appliers: dict[int, MaskApplier] = {}
+        self.session += 1
+        self._event("control", note)
+
+    def restart(self, new_stream: bool = False, keep_learned: bool = False) -> None:
+        """Replay from the start: the same stream (or a new one), from calibration or keeping
+        what enrichment learned, which shows learned templates hitting on the first pass."""
+        with self.lock:
+            snapshot = self.registry.current if keep_learned else self.initial
+            seed = random.randrange(1 << 30) if new_stream else self.stream_seed
+            learned = len(snapshot.templates) - len(self.initial.templates)
+            self._reset(snapshot, seed, f"session {self.session + 1} started: "
+                        f"{'new' if new_stream else 'same'} stream, registry v{snapshot.version}"
+                        + (f" keeping {learned} learned templates" if keep_learned else " from calibration"))
+            self.paused = False
 
     # --- ingest -------------------------------------------------------------
     def _event(self, kind: str, text: str, *, i: int | None = None, **extra) -> None:
@@ -268,12 +299,12 @@ class Demo:
         self._windows_seen = len(detector.scored)
 
     def replay(self) -> None:
+        """Background feeder; idles once the stream is done so a restart can start it again."""
         while True:
-            if self.paused:
+            if self.paused or self.finished:
                 time.sleep(0.1)
                 continue
-            if not self.step():
-                return
+            self.step()
             time.sleep(1 / self.rate)
 
     # --- controls -------------------------------------------------------------
@@ -299,9 +330,12 @@ class Demo:
                 self._event("control", f"injected {kind} into the next episode of {device_id}", device=device_id)
             elif action == "enrich":
                 self._cycle(self.pipeline.enrich())
+            elif action == "restart":
+                options = set(value.split(","))
+                self.restart(new_stream="new" in options, keep_learned="keep" in options)
             else:
                 raise ValueError(f"unknown action {action!r}")
-            return {"paused": self.paused, "rate": self.rate}
+            return {"paused": self.paused, "rate": self.rate, "session": self.session}
 
     # --- views ----------------------------------------------------------------
     def stream(self, after: int) -> dict:
@@ -310,7 +344,7 @@ class Demo:
                     "end": self.fleet.end.isoformat(), "finished": self.finished,
                     "paused": self.paused, "rate": self.rate,
                     "registry_version": self.registry.current.version,
-                    "alerts": len(self.pipeline.stats.alerts)}
+                    "alerts": len(self.pipeline.stats.alerts), "session": self.session}
 
     def system(self) -> dict:
         """Counters for every node and edge of the flow graph."""
@@ -338,6 +372,8 @@ class Demo:
                 "tp": outcomes["tp"], "fp": outcomes["fp"], "fn": outcomes["fn"],
                 "devices": {d: self.fleet.kinds(d) for d in sorted(self.fleet.devices)},
                 "paused": self.paused, "rate": self.rate, "finished": self.finished,
+                "session": self.session,
+                "learned": len(self.registry.current.templates) - len(self.initial.templates),
             }
 
     def timeline(self, after: int) -> dict:

@@ -1,6 +1,7 @@
 import json
 import threading
 from http.server import ThreadingHTTPServer
+from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -66,10 +67,24 @@ def test_demo_endpoints_controls_and_timeline():
         assert "report" in get("/api/eval")
         try:
             post("action=inject&value=nope:stuck")
-        except Exception as exc:  # urllib raises on 400
-            assert "400" in str(exc)
+        except HTTPError as exc:
+            assert exc.code == 400
         else:
             raise AssertionError("unknown device must be rejected")
+
+        # Restart: same stream from the first line (manual rollout/inject are not replayed),
+        # keeping what enrichment learned.
+        first = {k: stream["lines"][0][k] for k in ("time", "device_id")}
+        learned = system["templates"]
+        assert post("action=restart&value=same,keep")["session"] == 2
+        demo.step()
+        again = get("/api/stream?after=0")
+        assert again["session"] == 2 and {k: again["lines"][0][k] for k in first} == first
+        after = get("/api/system")
+        assert after["templates"] == learned and after["queue"]["published"] <= after["miss"]
+        assert get("/api/events?after=0")["events"][0]["text"].startswith("session 2 started")
+        post("action=restart&value=new")
+        assert get("/api/system")["templates"] == len(demo.initial.templates)
     finally:
         server.shutdown()
 
