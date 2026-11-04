@@ -12,11 +12,31 @@ import (
 var t0 = time.Unix(0, 0)
 
 func feed(p *Processor, lines ...string) []string {
-	var out []string
-	for _, l := range lines {
-		out = append(out, p.Line(l, t0)...)
+	var evs []Event
+	for i, l := range lines {
+		evs = append(evs, p.Line(l, i, t0)...)
 	}
-	return append(out, p.Flush()...)
+	var out []string
+	for _, e := range append(evs, p.Flush()...) {
+		out = append(out, e.Text)
+	}
+	return out
+}
+
+func TestMetaIsFirstLines(t *testing.T) {
+	p := New(config.Source{}, true)
+	var got []any
+	for i, l := range javaTrace {
+		for _, e := range p.Line(l, i, t0) {
+			got = append(got, e.Meta)
+		}
+	}
+	for _, e := range p.Flush() {
+		got = append(got, e.Meta)
+	}
+	if !reflect.DeepEqual(got, []any{0, 1, 5}) {
+		t.Fatalf("meta %v", got)
+	}
 }
 
 var javaTrace = []string{
@@ -60,7 +80,7 @@ func TestLeadingContinuationIsSentAlone(t *testing.T) {
 
 func TestDueAfterTimeout(t *testing.T) {
 	p := New(config.Source{}, true)
-	p.Line("2024-05-01 10:00:00 a", t0)
+	p.Line("2024-05-01 10:00:00 a", nil, t0)
 	if p.Due(t0.Add(500 * time.Millisecond)) {
 		t.Fatal("flushed too early")
 	}

@@ -40,8 +40,15 @@ type Processor struct {
 	auto    bool
 	filters []filter
 	pending strings.Builder
+	meta    any
 	has     bool
 	last    time.Time
+}
+
+// Event is a finished event with the metadata of its first line.
+type Event struct {
+	Text string
+	Meta any
 }
 
 func New(src config.Source, autoDefault bool) *Processor {
@@ -60,8 +67,8 @@ func New(src config.Source, autoDefault bool) *Processor {
 	return p
 }
 
-// Line feeds one raw line and returns the events it completed.
-func (p *Processor) Line(line string, now time.Time) []string {
+// Line feeds one raw line (with caller metadata such as its time) and returns the events it completed.
+func (p *Processor) Line(line string, meta any, now time.Time) []Event {
 	line = strings.TrimRight(line, "\r\n")
 	if p.start == nil && p.auto {
 		for _, re := range autoPatterns {
@@ -76,9 +83,9 @@ func (p *Processor) Line(line string, now time.Time) []string {
 		if strings.TrimSpace(line) == "" {
 			return nil
 		}
-		return p.apply(line)
+		return p.apply(line, meta)
 	}
-	var out []string
+	var out []Event
 	if p.start.MatchString(line) {
 		out = p.Flush()
 	} else if !p.has {
@@ -86,7 +93,7 @@ func (p *Processor) Line(line string, now time.Time) []string {
 		if strings.TrimSpace(line) == "" {
 			return nil
 		}
-		return p.apply(line)
+		return p.apply(line, meta)
 	}
 	if p.has {
 		if p.pending.Len() < MaxEvent {
@@ -95,7 +102,7 @@ func (p *Processor) Line(line string, now time.Time) []string {
 		}
 	} else {
 		p.pending.WriteString(line)
-		p.has = true
+		p.meta, p.has = meta, true
 	}
 	p.last = now
 	return out
@@ -104,7 +111,7 @@ func (p *Processor) Line(line string, now time.Time) []string {
 // Due reports whether a pending multiline event has waited long enough to be sent.
 func (p *Processor) Due(now time.Time) bool { return p.has && now.Sub(p.last) >= FlushAfter }
 
-func (p *Processor) Flush() []string {
+func (p *Processor) Flush() []Event {
 	if !p.has {
 		return nil
 	}
@@ -114,10 +121,10 @@ func (p *Processor) Flush() []string {
 	}
 	p.pending.Reset()
 	p.has = false
-	return p.apply(ev)
+	return p.apply(ev, p.meta)
 }
 
-func (p *Processor) apply(ev string) []string {
+func (p *Processor) apply(ev string, meta any) []Event {
 	for _, f := range p.filters {
 		switch f.kind {
 		case "exclude_at_match":
@@ -132,5 +139,5 @@ func (p *Processor) apply(ev string) []string {
 			ev = f.re.ReplaceAllString(ev, f.replace)
 		}
 	}
-	return []string{ev}
+	return []Event{{ev, meta}}
 }
