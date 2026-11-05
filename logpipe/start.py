@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -85,11 +86,26 @@ def _free_port(answer: str) -> str | None:
     if not answer.isdigit():
         return "not a port number"
     with socket.socket() as sock:
+        # Same as uvicorn: a just-stopped server leaves TIME_WAIT connections for about a
+        # minute, which block a plain bind but not a real server.
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            sock.bind(("127.0.0.1", int(answer)))
+            sock.bind(("0.0.0.0", int(answer)))
         except OSError:
-            return f"port {answer} is in use (another demo running?); pick another"
+            who = _listener(int(answer))
+            return f"port {answer} is in use{f' by {who}' if who else ''}; stop it or pick another"
     return None
+
+
+def _listener(port: int) -> str | None:
+    """'logpipe (pid 123)' for whatever listens on ``port``, when the OS tells us."""
+    try:
+        out = subprocess.run(["ss", "-ltnpH", f"sport = :{port}"], capture_output=True, text=True,
+                             timeout=2, check=False).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    m = re.search(r'users:\(\("([^"]+)",pid=(\d+)', out)
+    return f"{m.group(1)} (pid {m.group(2)})" if m else None
 
 
 def ask_setup(saved: dict, mode: str | None = None) -> dict:
