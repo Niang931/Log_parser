@@ -49,7 +49,7 @@ from ..storage.memory import MemoryStore
 from ..unresolved import UnresolvedQueue
 from . import review
 from .control import ControlStore
-from .metrics import ClickHouseSeries, CountedAdapter, MemorySeries, Metrics
+from .metrics import ClickHouseSeries, CountedAdapter, MemorySeries, MetricRules, Metrics
 from .reads import reads_for
 
 LOGGER = logging.getLogger("logpipe.server")
@@ -245,6 +245,7 @@ class Server:
         self.store, self.control = store, control
         self.reads = reads_for(store)
         self.metrics = Metrics(MemorySeries() if isinstance(store, MemoryStore) else ClickHouseSeries(store.client))
+        self.metric_rules = MetricRules(control)
         self.data_dir = data_dir
         self.registry_path = data_dir / "registry.json"
         self.adapter_factory, self.queue_factory = adapter_factory, queue_factory
@@ -1454,7 +1455,10 @@ class Server:
         q = getattr(self.pipeline, "queue", None)
         if q is not None and hasattr(q, "stats"):
             gauges["queue_lag"] = q.stats().lag
-        return self.metrics.sample(gauges)
+        values = self.metrics.sample(gauges)
+        for alert in self.metric_rules.evaluate(values):
+            LOGGER.warning("metric alert: %s (%s = %g)", alert["label"], alert["metric"], alert["value"])
+        return values
 
     def _housekeeping_loop(self) -> None:
         last_enrich = last_schedule = last_sample = time.monotonic()

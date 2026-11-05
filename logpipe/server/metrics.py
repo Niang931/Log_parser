@@ -229,3 +229,98 @@ class CountedAdapter:
                 self._metrics.llm(time.monotonic() - start, ok)
 
         return counted
+
+
+# (metric, op, threshold, for_minutes, enabled, label): starting points, editable on the System page
+DEFAULT_RULES = (
+    ("parse_p99_us", ">", 5000, 5, True, "Parse p99 above 5 ms"),
+    ("inbox", ">", 25_000, 2, True, "Intake buffer half full (falling behind)"),
+    ("pending_rows", ">", 100_000, 15, True, "Large backlog of lines waiting to be learned"),
+    ("queue_lag", ">", 10_000, 10, True, "Unresolved queue lagging"),
+    ("llm_errors_per_min", ">", 5, 15, True, "LLM keeps failing"),
+    ("unknown_pct", ">", 20, 10, True, "Many lines match no template"),
+    ("disk_used_pct", ">", 80, 5, True, "Store disk above 80%"),
+    ("cpu_pct", ">", 90, 10, True, "Server CPU saturated"),
+    ("lines_per_s", "<", 0.1, 15, False, "No logs arriving"),
+)
+OPS = {">": lambda v, t: v > t, "<": lambda v, t: v < t}
+
+
+class MetricRules:
+    """Threshold rules on the sampled metrics; a breach that lasts ``for_minutes`` opens a
+    ``metric_alert`` (firing) that resolves once the metric is back."""
+
+    def __init__(self, control):
+        self.control = control
+        self._since: dict[str, float] = {}  # rule id -> when its breach began
+        if control.get("meta", "metric_rules_seeded") is None:  # once, so deleted defaults stay deleted
+            for metric, op, threshold, minutes, enabled, label in DEFAULT_RULES:
+                self.save({"metric": metric, "op": op, "threshold": threshold, "for_minutes": minutes,
+                           "enabled": enabled, "label": label}, rule_id=f"default-{metric}")
+            control.put("meta", "metric_rules_seeded", {"at": time.time()})
+
+    def rules(self) -> list[dict]:
+        return sorted(self.control.all("metric_rule"), key=lambda r: r["id"])
+
+    def save(self, body: dict, rule_id: str | None = None) -> dict:
+        old = self.control.get("metric_rule", rule_id) if rule_id else None
+        rule = {**(old or {}), **body}
+        if rule.get("metric") not in METRICS:
+            raise ValueError(f"unknown metric {rule.get('metric')!r}")
+        if rule.get("op") not in OPS:
+            raise ValueError("op is > or <")
+        rule["threshold"] = float(rule["threshold"])
+        rule["for_minutes"] = min(max(float(rule.get("for_minutes", 5)), 0), 24 * 60)
+        rule["enabled"] = bool(rule.get("enabled", True))
+        rule["label"] = str(rule.get("label") or f"{METRICS[rule['metric']][0]} {rule['op']} {rule['threshold']:g}")[:120]
+        rule["id"] = rule_id or os.urandom(6).hex()
+        self._since.pop(rule["id"], None)
+        return self.control.put("metric_rule", rule["id"], rule)
+
+    def delete(self, rule_id: str) -> None:
+        if self.control.get("metric_rule", rule_id) is None:
+            raise KeyError(rule_id)
+        self.control.delete("metric_rule", rule_id)
+        self._resolve(rule_id, time.time(), "rule deleted")
+
+    def alerts(self, limit: int = 100) -> list[dict]:
+        docs = self.control.all("metric_alert")
+        return sorted(docs, key=lambda a: (a["status"] != "firing", -a["started_at"]))[:limit]
+
+    def _firing(self, rule_id: str) -> dict | None:
+        return self.control.get("metric_alert", f"{rule_id}:firing")
+
+    def _resolve(self, rule_id: str, now: float, why: str) -> None:
+        if (doc := self._firing(rule_id)) is not None:
+            self.control.delete("metric_alert", doc["id"])
+            done_id = f"{rule_id}:{int(doc['started_at'])}"
+            self.control.put("metric_alert", done_id, {**doc, "id": done_id, "status": "resolved",
+                                                       "resolved_at": now, "resolution": why})
+            old = sorted((a for a in self.control.all("metric_alert") if a["status"] == "resolved"),
+                         key=lambda a: a["resolved_at"])
+            for a in old[:-200]:  # keep the last 200 resolved
+                self.control.delete("metric_alert", a["id"])
+
+    def evaluate(self, values: dict[str, float], now: float | None = None) -> list[dict]:
+        """After each sample: returns alerts that started firing."""
+        now = time.time() if now is None else now
+        fired = []
+        for rule in self.rules():
+            rid, v = rule["id"], values.get(rule["metric"])
+            breach = rule["enabled"] and v is not None and OPS[rule["op"]](v, rule["threshold"])
+            if not breach:
+                self._since.pop(rid, None)
+                self._resolve(rid, now, "back to normal" if rule["enabled"] else "rule disabled")
+                continue
+            since = self._since.setdefault(rid, now)
+            doc = self._firing(rid)
+            if doc is not None:
+                self.control.update("metric_alert", doc["id"], value=v, peak=max(doc["peak"], v)
+                                    if rule["op"] == ">" else min(doc["peak"], v), last_at=now)
+            elif now - since >= rule["for_minutes"] * 60:
+                doc = {"id": f"{rid}:firing", "rule": rid, "label": rule["label"], "metric": rule["metric"],
+                       "op": rule["op"], "threshold": rule["threshold"], "value": v, "peak": v,
+                       "started_at": since, "last_at": now, "status": "firing"}
+                self.control.put("metric_alert", doc["id"], doc)
+                fired.append(doc)
+        return fired

@@ -109,7 +109,7 @@ export default function App() {
         <Item to="/maintenance" icon="warnings" count={todo}>Maintenance</Item>
         <Item to="/streams" icon="streams">Streams &amp; models</Item>
         <Item to="/jobs" icon="jobs" count={note.activeJobs}>Jobs</Item>
-        <Item to="/system" icon="system">System</Item>
+        <Item to="/system" icon="system" count={note.firingMetrics}>System</Item>
         <div className="nav-group">Fleet</div>
         <Item to="/agents" icon="agents">Agents</Item>
         <Item to="/keys" icon="keys">API keys</Item>
