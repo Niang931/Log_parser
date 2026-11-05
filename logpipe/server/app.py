@@ -306,6 +306,10 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
                 "every": server.metrics.every, "cpus": os.cpu_count(),
                 **server.metrics.series(clamp(minutes))}
 
+    @app.get("/api/drift")
+    def drift() -> dict:
+        return {"streams": server.drift.report(server.control.all("stream"))}
+
     @app.get("/api/system/alerts")
     def system_alerts() -> dict:
         return {"alerts": server.metric_rules.alerts(), "rules": server.metric_rules.rules()}

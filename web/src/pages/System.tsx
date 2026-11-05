@@ -146,6 +146,45 @@ function Alerts({ metrics }: { metrics: Record<string, Meta> }) {
   );
 }
 
+type DriftRow = { id: string; name: string; live_windows: number; has_baseline: boolean; trained_at: string | null; psi: number | null; alert_pct: number | null };
+
+function psiLabel(psi: number | null, hasBaseline: boolean) {
+  if (!hasBaseline) return <span className="muted small">no baseline: retrain once to start tracking</span>;
+  if (psi === null) return <span className="muted small">collecting (needs 200 scored windows)</span>;
+  const [tone, text] = psi < 0.1 ? ["good", "stable"] : psi < 0.25 ? ["warn", "moderate shift"] : ["bad", "drifted: retrain"];
+  return <><span className="num">{psi.toFixed(3)}</span> <span className={`badge ${tone}`}>{text}</span></>;
+}
+
+function DriftCard() {
+  const { data } = usePoll<{ streams: DriftRow[] }>("/api/drift", 10000);
+  const retrain = useAction((id: string) => api(`/api/streams/${id}/train`, { method: "POST" }));
+  if (!data) return null;
+  return (
+    <Card title="Model drift" hint="How far each stream's anomaly scores have moved from what its model learned (PSI over the last 2,000 windows)">
+      {data.streams.length === 0 ? <Empty title="No streams yet" /> : (
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Stream</th><th>Drift (PSI)</th><th className="right">Live windows</th><th className="right">Alerted</th><th>Model trained</th><th /></tr></thead>
+            <tbody>
+              {data.streams.map((d) => (
+                <tr key={d.id}>
+                  <td>{d.name}</td>
+                  <td>{psiLabel(d.psi, d.has_baseline)}</td>
+                  <td className="right num">{fmt(d.live_windows)}</td>
+                  <td className="right num">{d.alert_pct === null ? "–" : `${d.alert_pct}%`}</td>
+                  <td className="small">{d.trained_at ? <TimeAgo iso={d.trained_at} /> : "never"}</td>
+                  <td className="right"><button className="btn small" onClick={() => retrain.mutate(d.id)} disabled={retrain.isPending}>Retrain</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {retrain.error && <p className="error-text">{retrain.error.message}</p>}
+    </Card>
+  );
+}
+
 const HEADLINE: [string, string][] = [
   ["lines_per_s", "Throughput"], ["parse_p99_us", "Parse p99"], ["cpu_pct", "CPU"],
   ["rss_mb", "Memory"], ["pending_rows", "Waiting to be learned"], ["llm_errors_per_min", "LLM errors"],
@@ -162,7 +201,7 @@ export default function System() {
       <PageHead title="System" sub={`How hard the server is working, sampled every ${data.every} s and kept 30 days. ${data.cpus} CPU cores on this host.`}
         actions={<TimeRange value={range} onChange={setRange} />} />
       {stale && <p className="muted">The first sample is taken about {data.every} s after the server starts.</p>}
-      <div style={{ marginBottom: 16 }}><Alerts metrics={data.metrics} /></div>
+      <div className="stack" style={{ marginBottom: 16 }}><Alerts metrics={data.metrics} /><DriftCard /></div>
       <div className="tiles" style={{ marginBottom: 16 }}>
         {HEADLINE.map(([k, label]) => (
           <div className="tile" key={k}>
