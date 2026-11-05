@@ -180,7 +180,13 @@ def test_streams_settings_query_stats(env):
     assert q["rows"] == [["web-1", 30]]
     assert client.post("/api/query", json={"sql": "DELETE FROM logs"}).status_code == 400
     stats = client.get("/api/stats", params={"minutes": 24 * 60}).json()
-    assert stats["hosts"] == [["web-1", 30]] and stats["per_minute"]
+    assert stats["hosts"] == [["web-1", 30]]
+    hist = client.get("/api/logs/histogram", params={"minutes": 24 * 60, "by": "status"}).json()
+    assert hist["step"] == 1800 and len(hist["points"]) == 48
+    assert sum(p["FINAL"] + p["PENDING"] for p in hist["points"]) == 30
+    facets = client.get("/api/logs/facets", params={"minutes": 24 * 60, "host": "web-1"}).json()
+    assert facets["host"] == [["web-1", 30]] and sum(n for _, n in facets["level"]) == 30
+    assert all(r["level"] for r in client.get("/api/logs", params={"minutes": 24 * 60}).json()["logs"])
     assert client.get("/demo/").status_code == 404
     assert client.get("/api/nope").status_code == 404
 
@@ -242,3 +248,14 @@ def test_tracebacks_go_to_the_log_file_not_the_console(tmp_path, capsys):
     assert "job j1 failed: stream All logs: 1 windows" in err and "Traceback" not in err and "quiet" not in err
     assert "Traceback" in log_file.read_text() and "quiet" in log_file.read_text()
     logging.basicConfig(force=True)  # leave pytest's logging as it was
+
+
+
+def test_level_rules_agree_in_python_and_explicit_levels_win():
+    from logpipe.server.reads import level
+
+    assert level("2026-11-05 10:00:00 WARN  [db] slow query") == "warn"
+    assert level("INFO request failed java.lang.IllegalStateException") == "info"  # declared level
+    assert level('10.0.0.1 - - [x] "GET /a HTTP/1.1" 503 12') == "error"
+    assert level('10.0.0.1 - - [x] "GET /a HTTP/1.1" 404 12') == "warn"
+    assert level("ERR_CONNECTION refused") == "info" and level("no level here") == "info"

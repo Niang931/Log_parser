@@ -20,6 +20,7 @@ from fastapi.responses import (
 
 from ..registry import UNK_TEMPLATE_ID
 from .core import Busy, Server
+from .reads import FACETS
 
 STATIC = Path(__file__).with_name("static")
 DEMO_INDEX = Path(__file__).parent.parent / "demo" / "index.html"
@@ -139,13 +140,33 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
             "recent_alerts": server.reads.alerts(5),
         }
 
+    def log_filters(host: str | None = None, service: str | None = None, source: str | None = None,
+                    status: str | None = None, template_id: int | None = None,
+                    level: str | None = None) -> dict:
+        return {k: v for k, v in (("host", host), ("service", service), ("source", source),
+                                  ("status", status), ("template_id", template_id), ("level", level))
+                if v is not None and v != ""}
+
+    def clamp(minutes: int) -> int:
+        return min(max(minutes, 1), 7 * 24 * 60)
+
     @app.get("/api/logs")
-    def logs(host: str | None = None, service: str | None = None, source: str | None = None,
-             status: str | None = None, template_id: int | None = None, q: str = "",
-             limit: int = 200) -> dict:
-        filters = {k: v for k, v in (("host", host), ("service", service), ("source", source),
-                                      ("status", status), ("template_id", template_id)) if v is not None and v != ""}
-        return {"logs": server.reads.recent(filters, min(max(limit, 1), 1000), q)}
+    def logs(filters: Annotated[dict, Depends(log_filters)], q: str = "", minutes: int | None = None, limit: int = 200) -> dict:
+        return {"logs": server.reads.recent(filters, min(max(limit, 1), 1000), q,
+                                            clamp(minutes) if minutes else None)}
+
+    @app.get("/api/logs/histogram")
+    def histogram(filters: Annotated[dict, Depends(log_filters)], q: str = "", minutes: int = 15, by: str = "level") -> dict:
+        """Line counts per bucket over the whole range (empty buckets included), by level or
+        parse status: the explorer's timeline."""
+        return server.reads.histogram(clamp(minutes), by, filters, q)
+
+    @app.get("/api/logs/facets")
+    def facets(filters: Annotated[dict, Depends(log_filters)], q: str = "", minutes: int = 15) -> dict:
+        """Counts per value of each facet, under every filter except the facet's own, so the
+        other values stay visible to switch to."""
+        return {f: server.reads.top(f, clamp(minutes), 12, {k: v for k, v in filters.items() if k != f}, q)
+                for f in FACETS}
 
     @app.get("/api/templates")
     def templates() -> dict:
@@ -175,11 +196,10 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
 
     @app.get("/api/stats")
     def stats(minutes: int = 60) -> dict:
-        minutes = min(max(minutes, 1), 7 * 24 * 60)
+        minutes = clamp(minutes)
         snap = server.registry.current
         top_t = server.reads.top("template_id", minutes, 10)
         return {
-            "per_minute": server.reads.per_minute(minutes),
             "hosts": server.reads.top("host", minutes, 10),
             "services": server.reads.top("service", minutes, 10),
             "sources": server.reads.top("source", minutes, 10),

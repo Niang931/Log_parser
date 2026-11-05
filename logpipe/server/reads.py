@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from collections import Counter
 from dataclasses import asdict
@@ -10,16 +11,63 @@ from datetime import UTC, datetime, timedelta
 from ..storage.base import LogRow
 from ..storage.memory import MemoryStore
 
-FILTERS = ("host", "service", "source", "status", "template_id")
-TOP_FIELDS = {"host": "device_id", "service": "service", "source": "source",
-              "template_id": "template_id"}
+FILTERS = ("host", "service", "source", "status", "template_id", "level")
+FACETS = ("level", "service", "host", "source", "status")
 MAX_QUERY_ROWS = 500
+LEVELS = ("error", "warn", "info", "debug")
+HEAD = 120  # explicit level words are looked for in the line's first characters only
+
+# (level, regex, head only). Written in the regex subset Python and ClickHouse (RE2) share, so
+# the explorer's facet counts (SQL) and its rows (Python) always agree. First match wins: a
+# declared level beats heuristics, the way Datadog's status remapper works.
+LEVEL_RULES = (
+    ("error", r"\b(FATAL|CRIT|CRITICAL|ERROR|ERR|SEVERE|EMERG|PANIC)\b", True),
+    ("warn", r"\b(WARN|WARNING)\b", True),
+    ("debug", r"\b(DEBUG|TRACE)\b", True),
+    ("info", r"\b(INFO|NOTICE)\b", True),
+    ("error", r"HTTP/[0-9.]+\" 5[0-9][0-9] |(?i:\b(exception|traceback|panic)\b)", False),
+    ("warn", r"HTTP/[0-9.]+\" 4[0-9][0-9] ", False),
+)
+_RULES = [(lvl, re.compile(rx), head) for lvl, rx, head in LEVEL_RULES]
+
+
+def level(message: str) -> str:
+    for lvl, rx, head in _RULES:
+        if rx.search(message[:HEAD] if head else message):
+            return lvl
+    return "info"
+
+
+def _sql_str(text: str) -> str:
+    return "'" + text.replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+
+LEVEL_SQL = "multiIf(" + ", ".join(
+    f"match({f'substring(raw_message, 1, {HEAD})' if head else 'raw_message'}, {_sql_str(rx)}), '{lvl}'"
+    for lvl, rx, head in LEVEL_RULES) + ", 'info')"
+
+
+def step_for(minutes: int) -> int:
+    """Bucket seconds giving 40-90 bars over the range, on round intervals."""
+    for step in (10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800):
+        if minutes * 60 / step <= 90:
+            return step
+    return 21600
+
+
+def zero_fill(minutes: int, step: int, counts: dict[int, Counter], keys: tuple[str, ...]) -> list[dict]:
+    """Every bucket in the range, empty ones included, so bars keep their width and gaps show."""
+    end = int(datetime.now(UTC).timestamp()) // step * step
+    start = end - (minutes * 60 // step) * step
+    return [{"t": t * 1000, **{k: counts.get(t, Counter())[k] for k in keys}}
+            for t in range(start + step, end + step, step)]
 
 
 def row_json(r: LogRow) -> dict:
     return {"log_id": str(r.log_id), "timestamp": r.timestamp.isoformat(), "host": r.device_id,
             "service": r.service, "source": r.source, "tags": list(r.tags), "status": str(r.status),
-            "template_id": r.template_id, "payload": r.payload, "message": r.raw_message}
+            "template_id": r.template_id, "payload": r.payload, "message": r.raw_message,
+            "level": level(r.raw_message)}
 
 
 class MemoryReads:
@@ -30,31 +78,34 @@ class MemoryReads:
         with self.store._lock:
             return list(self.store.rows.values())
 
-    def recent(self, filters: dict, limit: int, text: str = "") -> list[dict]:
+    def _match(self, filters: dict, text: str, minutes: int | None) -> list[dict]:
+        """Rows as JSON, oldest first, within ``minutes`` and matching every filter."""
+        since = datetime.now(UTC) - timedelta(minutes=minutes) if minutes else None
+        text = text.lower()
         out = []
-        for r in reversed(self._rows()):
+        for r in self._rows():
+            if (since and r.timestamp < since) or (text and text not in r.raw_message.lower()):
+                continue
             j = row_json(r)
-            if all(str(j[k]) == str(v) for k, v in filters.items()) and (
-                    not text or text.lower() in r.raw_message.lower()):
+            if all(str(j[k]) == str(v) for k, v in filters.items()):
                 out.append(j)
-                if len(out) >= limit:
-                    break
         return out
 
-    def per_minute(self, minutes: int) -> list[dict]:
-        since = datetime.now(UTC) - timedelta(minutes=minutes)
-        buckets: dict[str, Counter] = {}
-        for r in self._rows():
-            if r.timestamp >= since:
-                buckets.setdefault(r.timestamp.strftime("%Y-%m-%dT%H:%M"), Counter())[str(r.status)] += 1
-        return [{"minute": m, "FINAL": c["FINAL"], "PENDING": c["PENDING"]}
-                for m, c in sorted(buckets.items())]
+    def recent(self, filters: dict, limit: int, text: str = "", minutes: int | None = None) -> list[dict]:
+        return self._match(filters, text, minutes)[::-1][:limit]
 
-    def top(self, field: str, minutes: int, limit: int) -> list[tuple]:
-        since = datetime.now(UTC) - timedelta(minutes=minutes)
-        attr = TOP_FIELDS[field]
-        counts = Counter(getattr(r, attr) for r in self._rows() if r.timestamp >= since)
-        return counts.most_common(limit)
+    def histogram(self, minutes: int, by: str, filters: dict | None = None, text: str = "") -> dict:
+        step, key = step_for(minutes), "level" if by == "level" else "status"
+        counts: dict[int, Counter] = {}
+        for j in self._match(filters or {}, text, minutes):
+            t = int(datetime.fromisoformat(j["timestamp"]).timestamp()) // step * step
+            counts.setdefault(t, Counter())[j[key]] += 1
+        return {"step": step, "points": zero_fill(minutes, step, counts, _keys(by))}
+
+    def top(self, field: str, minutes: int, limit: int, filters: dict | None = None,
+            text: str = "") -> list[tuple]:
+        col = {"host": "host"}.get(field, field)
+        return Counter(j[col] for j in self._match(filters or {}, text, minutes)).most_common(limit)
 
     def source_lines(self, host: str, service: str, source: str, limit: int) -> list[str]:
         rows = [r.raw_message for r in self._rows()
@@ -88,6 +139,10 @@ class MemoryReads:
                 "rows": cur.fetchmany(MAX_QUERY_ROWS), "engine": "sqlite", "table": "logs"}
 
 
+def _keys(by: str) -> tuple[str, ...]:
+    return LEVELS if by == "level" else ("FINAL", "PENDING")
+
+
 def alert_json(a: dict) -> dict:
     return {"alert_id": str(a["alert_id"]), "key": a["device_id"],
             "window_start": _iso(a["window_start"]), "window_end": _iso(a["window_end"]),
@@ -100,6 +155,10 @@ def _iso(t) -> str:
     return t.isoformat() if isinstance(t, datetime) else str(t)
 
 
+CH_COLS = {"host": "device_id", "service": "service", "source": "source",
+           "status": "toString(log_status)", "template_id": "toString(template_id)", "level": LEVEL_SQL}
+
+
 class ClickHouseReads:
     def __init__(self, store):
         self.store = store
@@ -109,42 +168,47 @@ class ClickHouseReads:
         self.store.flush()
         return self.client.query(sql, parameters=params).result_rows
 
-    def recent(self, filters: dict, limit: int, text: str = "") -> list[dict]:
-        where: list[str] = ["1"]
-        params: dict[str, object] = {"limit": limit}
-        cols = {"host": "device_id", "service": "service", "source": "source",
-                "status": "toString(log_status)", "template_id": "toString(template_id)"}
+    def _where(self, filters: dict, text: str, minutes: int | None) -> tuple[str, dict]:
+        where, params = ["1"], {}
         for k, v in filters.items():
-            where.append(f"{cols[k]} = {{{k}:String}}")
-            params[k] = str(v)
+            where.append(f"{CH_COLS[k]} = {{f_{k}:String}}")
+            params[f"f_{k}"] = str(v)
         if text:
             where.append("positionCaseInsensitive(raw_message, {text:String}) > 0")
             params["text"] = text
+        if minutes:
+            where.append("timestamp >= now() - INTERVAL {minutes:UInt32} MINUTE")
+            params["minutes"] = minutes
+        return " AND ".join(where), params
+
+    def recent(self, filters: dict, limit: int, text: str = "", minutes: int | None = None) -> list[dict]:
+        where, params = self._where(filters, text, minutes)
         rows = self._q(
             "SELECT log_id, timestamp, device_id, service, source, tags, toString(log_status), "
-            "template_id, toJSONString(payload), raw_message FROM iot_logs FINAL "
-            f"WHERE {' AND '.join(where)} ORDER BY timestamp DESC LIMIT {{limit:UInt32}}", **params)
+            f"template_id, toJSONString(payload), raw_message FROM iot_logs FINAL "
+            f"WHERE {where} ORDER BY timestamp DESC LIMIT {{limit:UInt32}}", limit=limit, **params)
         return [{"log_id": str(i), "timestamp": _iso(ts), "host": h, "service": s, "source": src,
                  "tags": list(tags), "status": st, "template_id": tid, "payload": json.loads(p or "{}"),
-                 "message": m} for i, ts, h, s, src, tags, st, tid, p, m in rows]
+                 "message": m, "level": level(m)} for i, ts, h, s, src, tags, st, tid, p, m in rows]
 
-    def per_minute(self, minutes: int) -> list[dict]:
-        rows = self._q(
-            "SELECT formatDateTime(toStartOfMinute(timestamp), '%Y-%m-%dT%H:%i') AS m, "
-            "toString(log_status), count() FROM iot_logs FINAL "
-            "WHERE timestamp >= now() - INTERVAL {minutes:UInt32} MINUTE GROUP BY m, log_status ORDER BY m",
-            minutes=minutes)
-        buckets: dict[str, dict] = {}
-        for m, status, n in rows:
-            buckets.setdefault(m, {"minute": m, "FINAL": 0, "PENDING": 0})[status] = n
-        return list(buckets.values())
+    def histogram(self, minutes: int, by: str, filters: dict | None = None, text: str = "") -> dict:
+        step = step_for(minutes)
+        where, params = self._where(filters or {}, text, minutes)
+        key = LEVEL_SQL if by == "level" else "toString(log_status)"
+        counts: dict[int, Counter] = {}
+        for t, k, n in self._q(
+                f"SELECT intDiv(toUnixTimestamp(timestamp), {step}) * {step} AS t, {key} AS k, count() "
+                f"FROM iot_logs FINAL WHERE {where} GROUP BY t, k", **params):
+            counts.setdefault(int(t), Counter())[k] = n
+        return {"step": step, "points": zero_fill(minutes, step, counts, _keys(by))}
 
-    def top(self, field: str, minutes: int, limit: int) -> list[tuple]:
-        col = TOP_FIELDS[field]
+    def top(self, field: str, minutes: int, limit: int, filters: dict | None = None,
+            text: str = "") -> list[tuple]:
+        col = {"template_id": "template_id"}.get(field, CH_COLS[field])
+        where, params = self._where(filters or {}, text, minutes)
         return [tuple(r) for r in self._q(
-            f"SELECT {col}, count() AS n FROM iot_logs FINAL "
-            "WHERE timestamp >= now() - INTERVAL {minutes:UInt32} MINUTE "
-            "GROUP BY 1 ORDER BY n DESC LIMIT {limit:UInt32}", minutes=minutes, limit=limit)]
+            f"SELECT {col} AS v, count() AS n FROM iot_logs FINAL WHERE {where} "
+            "GROUP BY v ORDER BY n DESC LIMIT {limit:UInt32}", limit=limit, **params)]
 
     def source_lines(self, host: str, service: str, source: str, limit: int) -> list[str]:
         return [m for (m,) in self._q(

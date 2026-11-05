@@ -36,7 +36,9 @@ def test_server_on_clickhouse(store, tmp_path):
     server, client = make(store, tmp_path)
     token = client.post("/api/keys", json={"name": "ci"}).json()["token"]
     headers = {"X-API-Key": token}
-    lines = [f"job {i} finished in {i % 50} ms on worker {i % 4}" for i in range(60)]
+    lines = [f"job {i} finished in {i % 50} ms on worker {i % 4}" for i in range(57)] + [
+        "ERROR [db] lost connection", "WARN disk 91% full",
+        '10.0.0.1 - - [x] "GET /a HTTP/1.1" 503 12']
     r = client.post("/intake/v1/logs", headers=headers, json={"events": [
         {"host": "h1", "service": "jobs", "source": "go", "tags": ["env:ci"], "message": m} for m in lines]})
     assert r.status_code == 202
@@ -50,6 +52,13 @@ def test_server_on_clickhouse(store, tmp_path):
     assert q["rows"] == [["jobs", 60]]
     assert client.post("/api/query", json={"sql": "SELECT 1; DROP TABLE iot_logs"}).status_code == 400
     assert client.get("/api/stats").json()["services"] == [["jobs", 60]]
+    # Level is SQL here and Python for the rows: both must agree.
+    facets = client.get("/api/logs/facets", params={"minutes": 60}).json()
+    assert dict(facets["level"]) == {"info": 57, "error": 2, "warn": 1}
+    errors = client.get("/api/logs", params={"level": "error", "minutes": 60}).json()["logs"]
+    assert len(errors) == 2 and {r["level"] for r in errors} == {"error"}
+    hist = client.get("/api/logs/histogram", params={"minutes": 15}).json()
+    assert sum(p["error"] for p in hist["points"]) == 2 and len(hist["points"]) == 90
 
     # A restart reads keys, sources and streams back from control_docs.
     server2, client2 = make(store, tmp_path)
