@@ -11,6 +11,9 @@ dependencies = [
     "numpy>=2.5.4",
     "torch>=2.15.0",
     "tqdm>=4.66",
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+    "opentelemetry-proto>=1.45.2",
 ]
 
 [project.scripts]
@@ -44,7 +47,7 @@ build-backend = "setuptools.build_meta"
 include = ["logpipe*"]
 
 [tool.setuptools.package-data]
-logpipe = ["storage/*.sql", "demo/*.html"]
+logpipe = ["storage/*.sql", "demo/*.html", "server/static/*", "server/static/assets/*"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"

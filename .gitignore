@@ -31,3 +31,8 @@ artifacts/
 
 # Test fixtures are committed
 !tests/fixtures/**/*.log
+
+# web UI
+web/node_modules/
+logpipe/server/static/
+agent/logpipe-agent

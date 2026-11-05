@@ -36,7 +36,8 @@ uv sync --group dev
 uv run logpipe        # or `logpipe start` / `make start`
 ```
 
-It asks what to run (the browser demo or the pipeline on your own logs), which queue (in-memory,
+It asks what to run (the browser demo, the pipeline on your own logs, or the server for
+logpipe-agent hosts with its operator UI), which queue (in-memory,
 or Kafka, which it starts in Docker for you), who names keys and confirms re-associations
 (offline rules, a signed-in web chat, or a hosted API), and the few settings that matter, then
 prints the equivalent commands and runs them. If you pick a web chat it can open the sign-in
@@ -132,6 +133,33 @@ To drive the Chromium on your `PATH` instead of Camoufox, add `BROWSER=chromium`
 command (or set `WEB_BROWSER=chromium` in `.env`). Each browser keeps its own profile, so sign
 in with the same browser you evaluate with, e.g.
 `make web-login BROWSER=chromium && make eval LLM=llm:web:gemini BROWSER=chromium`.
+
+### Showcase: the whole product in one command
+
+```sh
+uv run logpipe showcase          # asks store/LLM like `logpipe start`; --no-ask for memory + offline
+uv run logpipe showcase --auto   # does every act itself (hands-free demo)
+```
+
+It starts the server, a generated web shop's logs (nginx, a Java API with stack traces, Postgres)
+and a real `logpipe-agent` (built from `agent/` with Go, run as you, no sudo), then walks through
+eight acts, each telling you what to do in the UI and waiting until it happened (Enter lets it do
+it instead): connect the agent, draft templates, review them and write a parsing rule, calibrate
+and train, explore (Log Explorer, Templates, Query builder), a payment-gateway outage that LogBERT
+flags, and a new service whose templates are drafted for review by themselves. Files go to
+`artifacts/showcase/`; Ctrl+C stops everything.
+
+### Agents, server and operator UI
+
+Ship live logs from your hosts with the Go collector, and watch them in the React UI:
+
+```sh
+docker compose --profile platform up --build   # ClickHouse + server + demo agent, UI on :8080
+```
+
+See [docs/agent-platform.md](docs/agent-platform.md) for the learning lifecycle (setup guide,
+template review, streams, maintenance, retraining) and [agent/README.md](agent/README.md) for the
+agent's Datadog-style config and CLI.
 
 ## Calibration and evaluation
 

@@ -31,7 +31,7 @@ import torch
 from .logbert.dataset import collate, mask_sequence, predict_rng
 from .logbert.model import LogBERT, LogBERTConfig
 from .logbert.trainer import TrainResult, chunk
-from .vocab import MASK, UNK, TemplateVocab
+from .vocab import FIRST_KEY, MASK, SOS, UNK, TemplateVocab
 
 UnknownMode = Literal["unk", "mask", "drop"]
 
@@ -230,6 +230,30 @@ class LogBERTScorer:
             )
             for i in range(len(windows))
         ]
+
+    @torch.no_grad()
+    def explain(self, window: Sequence[int]) -> list[dict]:
+        """Each event masked in turn, the rest visible: did the model expect it, and which
+        templates it expected there instead. For a person reading an alert, not the hot path
+        (scoring masks half the events at random; this looks at every one)."""
+        encoded = self.vocab.encode(window)[: self.model.config.max_len - 1]
+        known = [i for i, tok in enumerate(encoded) if tok != UNK]
+        top: dict[int, list[int]] = {}
+        if known:
+            rows = torch.tensor([[SOS, *encoded[:i], MASK, *encoded[i + 1:]] for i in known])
+            logprobs, _ = self.model(rows)
+            k = min(self.settings.num_candidates, len(self.vocab))
+            for row, i in enumerate(known):
+                top[i] = logprobs[row, i + 1].topk(k).indices.tolist()
+        out = []
+        for i, tok in enumerate(encoded):
+            if tok == UNK:
+                out.append({"template_id": int(window[i]), "status": "unseen", "expected": []})
+                continue
+            expected = [self.vocab.template_ids[t - FIRST_KEY] for t in top[i] if t >= FIRST_KEY]
+            out.append({"template_id": int(window[i]), "status": "expected" if tok in top[i] else "unexpected",
+                        "expected": [t for t in expected if t != window[i]][:3]})
+        return out
 
     def reasons(self, score: WindowScore, thresholds: Thresholds | None = None) -> tuple[str, ...]:
         t = thresholds or self.settings.thresholds

@@ -125,3 +125,19 @@ def test_save_load_round_trip_gives_identical_scores(trained, tmp_path):
     assert loaded.score(windows) == scorer.score(windows)
     assert loaded.settings.thresholds == Thresholds(0.3, 0.1, True)
     assert loaded.version == "v1"
+
+
+@pytest.mark.slow
+def test_explain_looks_at_every_event_and_says_what_was_expected(trained):
+    result, vocab = trained
+    scorer = LogBERTScorer.from_training(result, vocab, settings=ScorerSettings(num_candidates=3))
+    window = [CYCLE[i % len(CYCLE)] for i in range(12)]
+    window[8] = 99  # one the model never saw
+    events = scorer.explain(window)
+    assert [e["template_id"] for e in events] == window
+    assert events[8] == {"template_id": 99, "status": "unseen", "expected": []}
+    for i, e in enumerate(events):
+        if i != 8:
+            assert e["status"] in ("expected", "unexpected")
+            assert window[i] not in e["expected"] and set(e["expected"]) <= set(CYCLE) and len(e["expected"]) <= 3
+    assert scorer.explain(window) == events  # deterministic: no random masking

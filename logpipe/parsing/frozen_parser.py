@@ -5,6 +5,7 @@ from enum import StrEnum
 
 from ..registry import RegistrySnapshot, UniqueTemplateID
 from .engine import make_engine
+from .grok import compile_rule
 from .kv import compile_extractor, extract
 
 
@@ -26,12 +27,21 @@ class FrozenParser:
         self.snapshot = snapshot
         self._engine = make_engine(snapshot.masks, depth=depth)
         self._extractors = {}
+        self._rules = []
         for entry in snapshot.templates.values():
             self._engine.add_template(entry.template_id, entry.tokens)
             self._extractors[entry.template_id] = (compile_extractor(entry.tokens), entry.keys)
+            if entry.rule:
+                self._rules.append((entry.template_id, compile_rule(entry.rule)))
 
     def parse(self, line: str) -> ParseResult:
         version = self.snapshot.version
+        # shortcut: hand-written rules are tried one by one before the tree; fine for the tens a
+        # person writes, index them by first literal word if there are ever thousands.
+        for template_id, rule in self._rules:
+            payload = rule.extract(line)
+            if payload is not None:
+                return ParseResult(self.snapshot.canonical_id(template_id), Status.FINAL, payload, version)
         cluster = self._engine.match(line)
 
         # If there is no pre-defined cluster

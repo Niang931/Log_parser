@@ -81,3 +81,35 @@ def test_gemini_needs_no_sign_in(tmp_path, monkeypatch):
     cmd = launched[0]
     assert cmd[:2] == ["--browser", "chrome"] and "llm:web:gemini" in cmd and "--recalibrate" in cmd
     assert json.loads(wizard.SAVED.read_text())["masks"] == "calibrate"
+
+
+def test_server_plan(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(wizard, "_free_port", lambda _: None)
+    launched = []
+    # (server skips the mode question) memory, clickhouse, offline, port, data dir, demo?, start
+    _answers(monkeypatch, "", "clickhouse", "", "9090", "", "y", "n")
+    wizard.start(launch=launched.append, mode="server")
+    saved = json.loads(wizard.SAVED.read_text())
+    assert wizard.plan(saved) == (["clickhouse"], [[
+        "--browser", "camoufox", "server", "--llm", "offline", "--queue", "memory",
+        "--store", "clickhouse", "--port", "9090", "--data-dir", "artifacts/server", "--demo"]])
+
+
+def test_free_port_ignores_time_wait_and_names_the_listener():
+    import socket
+
+    from logpipe.start import _free_port
+
+    with socket.socket() as srv:
+        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        srv.bind(("0.0.0.0", 0))
+        port = srv.getsockname()[1]
+        srv.listen()
+        cli = socket.create_connection(("127.0.0.1", port))
+        conn, _ = srv.accept()
+        conn.close()  # the server side closes first -> its end sits in TIME_WAIT
+        cli.close()
+        busy = _free_port(str(port))
+    assert busy and "in use" in busy
+    assert _free_port(str(port)) is None  # listener gone; TIME_WAIT alone doesn't block

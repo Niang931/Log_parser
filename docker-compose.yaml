@@ -54,6 +54,60 @@ services:
       retries: 10
       start_period: 15s
 
+  # --- the agent platform: `docker compose --profile platform up --build` ---------------
+  # logpipe server (UI on http://localhost:8080), storing in the clickhouse service above.
+  server:
+    profiles: [platform]
+    build: .
+    image: ghcr.io/minhthien2103/logpipe-server:latest
+    container_name: logpipe_server
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB}
+      LLM_BACKEND: ${LLM_BACKEND:-offline}
+      # Accepted as an agent API key, so the compose agent can ship before you create keys in the UI.
+      LOGPIPE_BOOTSTRAP_KEY: ${LOGPIPE_BOOTSTRAP_KEY:-lp_compose_demo_key}
+    ports:
+      - "8080:8080"
+    volumes:
+      - server_data:/app/artifacts
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  # Writes a live app log (with Java stack traces) and an nginx access log for the agent to tail.
+  loggen:
+    profiles: [platform]
+    image: python:3.13-alpine
+    container_name: logpipe_loggen
+    command: ["python", "/loggen.py", "/logs"]
+    volumes:
+      - ./examples/loggen.py:/loggen.py:ro
+      - demo_logs:/logs
+
+  # A collector agent tracking shop.log from examples/agent/conf.d. access.log is left for you to
+  # add from the UI (Agents -> compose-agent -> Push sources) to see a new-source warning.
+  agent:
+    profiles: [platform]
+    build: agent
+    image: ghcr.io/minhthien2103/logpipe-agent:latest
+    container_name: logpipe_agent
+    environment:
+      LOGPIPE_ENDPOINT: http://server:8080
+      LOGPIPE_API_KEY: ${LOGPIPE_BOOTSTRAP_KEY:-lp_compose_demo_key}
+      LOGPIPE_HOSTNAME: compose-agent
+    volumes:
+      - ./examples/agent/conf.d/shop.yaml:/etc/logpipe-agent/conf.d/shop.yaml:ro
+      - demo_logs:/logs:ro
+      - agent_data:/var/lib/logpipe-agent
+    depends_on: [server, loggen]
+
 volumes:
   clickhouse_data:
   kafka_data:
+  server_data:
+  demo_logs:
+  agent_data:

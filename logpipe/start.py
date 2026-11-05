@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -85,11 +86,26 @@ def _free_port(answer: str) -> str | None:
     if not answer.isdigit():
         return "not a port number"
     with socket.socket() as sock:
+        # Same as uvicorn: a just-stopped server leaves TIME_WAIT connections for about a
+        # minute, which block a plain bind but not a real server.
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            sock.bind(("127.0.0.1", int(answer)))
+            sock.bind(("0.0.0.0", int(answer)))
         except OSError:
-            return f"port {answer} is in use (another demo running?); pick another"
+            who = _listener(int(answer))
+            return f"port {answer} is in use{f' by {who}' if who else ''}; stop it or pick another"
     return None
+
+
+def _listener(port: int) -> str | None:
+    """'logpipe (pid 123)' for whatever listens on ``port``, when the OS tells us."""
+    try:
+        out = subprocess.run(["ss", "-ltnpH", f"sport = :{port}"], capture_output=True, text=True,
+                             timeout=2, check=False).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    m = re.search(r'users:\(\("([^"]+)",pid=(\d+)', out)
+    return f"{m.group(1)} (pid {m.group(2)})" if m else None
 
 
 def ask_setup(saved: dict, mode: str | None = None) -> dict:
@@ -98,13 +114,15 @@ def ask_setup(saved: dict, mode: str | None = None) -> dict:
     a["mode"] = mode or choose("What do you want to run?", [
         ("demo", "browser demo: a live synthetic IoT fleet through every stage"),
         ("pipeline", "the pipeline on your own log files"),
+        ("server", "the server for logpipe-agent hosts, with the operator UI"),
     ], saved.get("mode"))
     a["queue"] = choose("Unresolved queue (lines no template matched wait here to be learned)?", [
         ("memory", "in-process, nothing to install (straightforward)"),
         ("kafka", "Kafka broker in Docker, started for you"),
     ], saved.get("queue"))
     a["store"] = choose("Where do parsed rows go?", [
-        ("memory", "in memory, gone when the run ends"),
+        ("memory", "in memory, gone when the run ends"
+         + (" (API keys and agents too)" if a["mode"] == "server" else "")),
         ("clickhouse", "ClickHouse in Docker, started for you"
          + (" (the demo's Query tab then runs on it)" if a["mode"] == "demo" else "")),
     ], saved.get("store"))
@@ -138,6 +156,12 @@ def ask_setup(saved: dict, mode: str | None = None) -> dict:
         a["devices"] = number("Devices per kind", saved.get("devices", 2))
         a["test_hours"] = number("Hours of live stream (event time)", saved.get("test_hours", 1), float)
         a["port"] = int(text("Port for the page", str(saved.get("port", 8000)), _free_port))
+    elif a["mode"] == "server":
+        a["server_port"] = int(text("Port for agents and the UI", str(saved.get("server_port", 8080)),
+                                    _free_port))
+        a["data_dir"] = text("Directory for the registry and models",
+                             saved.get("data_dir", "artifacts/server"))
+        a["with_demo"] = confirm("Also serve the developer demo at /demo/?", saved.get("with_demo", False))
     else:
         a["logs"] = text("Log directory", saved.get("logs", "logs"), _exists("directory"))
         a["registry"] = text("Registry file (created by calibrating if missing)",
@@ -163,6 +187,10 @@ def plan(a: dict) -> tuple[list[str], list[list[str]]]:
         elif a["masks"] == "recalibrate":
             cmd.append("--recalibrate")
         return services, [cmd]
+    if a["mode"] == "server":
+        cmd = [*top, "server", "--llm", llm, "--queue", a["queue"], "--store", a["store"],
+               "--port", str(a["server_port"]), "--data-dir", a["data_dir"]]
+        return services, [cmd + ["--demo"] if a["with_demo"] else cmd]
     commands = []
     if not Path(a["registry"]).exists():
         commands.append([*top, "calibrate", "--logs", a["logs"], "--registry", a["registry"], "--llm", llm])

@@ -1,0 +1,193 @@
+package agent
+
+import (
+	"compress/gzip"
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/jakekato/logpipe/agent/internal/source"
+)
+
+type fakeServer struct {
+	mu     sync.Mutex
+	events []string
+	meta   []map[string]string // per event: resource attributes, plus the first logpipe.tags value
+	beats  []Status
+	remote string
+}
+
+func (f *fakeServer) hash() string {
+	if f.remote == "" {
+		return ""
+	}
+	sum := sha256.Sum256([]byte(f.remote))
+	return hex.EncodeToString(sum[:8])
+}
+
+func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/intake/v1/wait" { // long-poll: answer when the hash differs, else after 1s
+		for end := time.Now().Add(time.Second); time.Now().Before(end); time.Sleep(10 * time.Millisecond) {
+			f.mu.Lock()
+			h := f.hash()
+			f.mu.Unlock()
+			if h != r.URL.Query().Get("remote_hash") {
+				break
+			}
+		}
+		f.mu.Lock()
+		json.NewEncoder(w).Encode(map[string]string{"remote_hash": f.hash()})
+		f.mu.Unlock()
+		return
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	switch r.URL.Path {
+	case "/v1/logs": // OTLP/HTTP JSON
+		zr, _ := gzip.NewReader(r.Body)
+		type attr struct {
+			Key   string
+			Value struct {
+				StringValue string
+				ArrayValue  struct {
+					Values []struct{ StringValue string }
+				}
+			}
+		}
+		var p struct {
+			ResourceLogs []struct {
+				Resource  struct{ Attributes []attr }
+				ScopeLogs []struct {
+					LogRecords []struct {
+						Body       struct{ StringValue string }
+						Attributes []attr
+					}
+				}
+			}
+		}
+		json.NewDecoder(zr).Decode(&p)
+		for _, rl := range p.ResourceLogs {
+			for _, sl := range rl.ScopeLogs {
+				for _, lr := range sl.LogRecords {
+					m := map[string]string{}
+					for _, a := range append(rl.Resource.Attributes, lr.Attributes...) {
+						m[a.Key] = a.Value.StringValue
+						if vs := a.Value.ArrayValue.Values; len(vs) > 0 {
+							m[a.Key] = vs[0].StringValue
+						}
+					}
+					f.events = append(f.events, lr.Body.StringValue)
+					f.meta = append(f.meta, m)
+				}
+			}
+		}
+	case "/intake/v1/heartbeat":
+		var st Status
+		json.NewDecoder(r.Body).Decode(&st)
+		f.beats = append(f.beats, st)
+		json.NewEncoder(w).Encode(map[string]string{"remote_hash": f.hash()})
+	case "/intake/v1/config":
+		json.NewEncoder(w).Encode(map[string]string{"yaml": f.remote})
+	}
+}
+
+func (f *fakeServer) messages() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]string(nil), f.events...)
+}
+
+func waitFor(t *testing.T, what string, cond func() bool) {
+	t.Helper()
+	deadline := time.Now().Add(10 * time.Second)
+	for !cond() {
+		if time.Now().After(deadline) {
+			t.Fatalf("timed out waiting for %s", what)
+		}
+		time.Sleep(25 * time.Millisecond)
+	}
+}
+
+func TestAgentEndToEnd(t *testing.T) {
+	// No periodic heartbeat: remote config must arrive through the long-poll alone.
+	HeartbeatEvery, WatchEvery, source.PollEvery = time.Hour, 100*time.Millisecond, 20*time.Millisecond
+	srv := &fakeServer{}
+	ts := httptest.NewServer(srv)
+	defer ts.Close()
+
+	dir, logs := t.TempDir(), t.TempDir()
+	app := filepath.Join(logs, "app.log")
+	os.WriteFile(app, nil, 0o644)
+	os.MkdirAll(filepath.Join(dir, "conf.d"), 0o755)
+	os.WriteFile(filepath.Join(dir, "agent.yaml"), []byte("api_key: k\nendpoint: "+ts.URL+"\nhostname: gw-1\ntags: [env:test]\n"), 0o644)
+	os.WriteFile(filepath.Join(dir, "conf.d", "app.yaml"), []byte(`logs:
+  - type: file
+    path: `+app+`
+    service: app
+    source: java
+    log_processing_rules:
+      - type: multi_line
+        pattern: '^\d{4}-'
+`), 0o644)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error)
+	go func() { done <- Run(ctx, dir, "test") }()
+	waitFor(t, "first heartbeat", func() bool { srv.mu.Lock(); defer srv.mu.Unlock(); return len(srv.beats) > 0 })
+
+	f, _ := os.OpenFile(app, os.O_APPEND|os.O_WRONLY, 0)
+	f.WriteString("2024-01-01 00:00:00 ERROR boom\njava.lang.RuntimeException\n\tat a.b(C.java:1)\n2024-01-01 00:00:01 INFO ok\n")
+	f.Close()
+	waitFor(t, "aggregated trace", func() bool { return len(srv.messages()) == 2 })
+	if m := srv.messages()[0]; strings.Count(m, "\n") != 2 {
+		t.Fatalf("trace not aggregated: %q", m)
+	}
+	srv.mu.Lock()
+	e := srv.meta[0]
+	srv.mu.Unlock()
+	if e["host.name"] != "gw-1" || e["service.name"] != "app" || e["logpipe.source"] != "java" ||
+		e["logpipe.tags"] != "env:test" || e["log.file.path"] != app {
+		t.Fatalf("event metadata %+v", e)
+	}
+
+	// Push a remote config: agent writes remote.yaml and reloads with the new source.
+	other := filepath.Join(logs, "other.log")
+	os.WriteFile(other, nil, 0o644)
+	srv.mu.Lock()
+	srv.remote = "logs:\n  - type: file\n    path: " + other + "\n    service: other\n"
+	srv.mu.Unlock()
+	waitFor(t, "remote.yaml", func() bool {
+		b, _ := os.ReadFile(filepath.Join(dir, "conf.d", "remote.yaml"))
+		return strings.Contains(string(b), "other.log")
+	})
+	waitFor(t, "reload reports 2 sources", func() bool {
+		srv.mu.Lock()
+		defer srv.mu.Unlock()
+		return len(srv.beats[len(srv.beats)-1].Sources) == 2
+	})
+	time.Sleep(100 * time.Millisecond)
+	os.WriteFile(other, []byte("hello from remote\n"), 0o644)
+	waitFor(t, "remote source line", func() bool { return len(srv.messages()) == 3 })
+	waitFor(t, "counters kept across the reload", func() bool {
+		var st Status
+		b, _ := os.ReadFile(filepath.Join(dir, "run", "status.json"))
+		return json.Unmarshal(b, &st) == nil && st.Shipper.Sent == 3 && st.Sources[0].Lines == 4
+	})
+
+	cancel()
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "run", "status.json")); err != nil {
+		t.Fatal("status.json not written")
+	}
+}

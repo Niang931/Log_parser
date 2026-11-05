@@ -29,3 +29,19 @@ CREATE TABLE IF NOT EXISTS anomaly_alerts (
     model_version    String
 ) ENGINE = MergeTree
 ORDER BY (device_id, window_start);
+
+-- Agent metadata (added with the collector agent; device_id holds the agent's host).
+ALTER TABLE iot_logs ADD COLUMN IF NOT EXISTS service LowCardinality(String) DEFAULT '';
+ALTER TABLE iot_logs ADD COLUMN IF NOT EXISTS source LowCardinality(String) DEFAULT '';
+ALTER TABLE iot_logs ADD COLUMN IF NOT EXISTS tags Array(LowCardinality(String));
+
+-- Server control plane: agents, API keys, remote configs, streams, warnings, jobs, settings.
+-- One JSON document per (kind, id); the newest version wins, ``deleted`` hides it.
+CREATE TABLE IF NOT EXISTS control_docs (
+    kind    LowCardinality(String),
+    id      String,
+    doc     String,
+    version UInt64,
+    deleted UInt8 DEFAULT 0
+) ENGINE = ReplacingMergeTree(version)
+ORDER BY (kind, id);

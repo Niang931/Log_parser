@@ -206,6 +206,23 @@ def _demo(args: argparse.Namespace) -> None:
     serve(demo, args.host, args.port, args.rate)
 
 
+def _showcase(args: argparse.Namespace) -> None:
+    from .showcase import run
+
+    run(port=args.port, auto=args.auto, ask=not args.no_ask)
+
+
+def _server(args: argparse.Namespace) -> None:
+    if args.raw == ["server"] and sys.stdin.isatty():  # no flags: ask instead
+        from .start import start
+
+        return start(mode="server")
+    from .server import run
+
+    run(host=args.host, port=args.port, store=args.store, queue=args.queue, llm=args.llm,
+        browser=args.browser, data_dir=args.data_dir, epochs=args.epochs, demo=args.demo)
+
+
 def _start(args: argparse.Namespace) -> None:
     from .start import start
 
@@ -368,6 +385,24 @@ def main(argv: list[str] | None = None) -> None:
     dm.add_argument("--save-registry", type=Path, metavar="PATH",
                     help="calibrate the demo history with --llm, save the registry and exit (Colab: --llm hf)")
     dm.set_defaults(func=_demo)
+
+    sv = sub.add_parser("server", help="agent intake + operator UI (React) + learning lifecycle")
+    sv.add_argument("--host", default="0.0.0.0")
+    sv.add_argument("--port", type=int, default=8080)
+    sv.add_argument("--store", choices=["memory", "clickhouse"], default=settings.store)
+    sv.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue)
+    sv.add_argument("--llm", default=settings.llm_backend, help="masks, key names and alias checks")
+    sv.add_argument("--data-dir", type=Path, default=Path("artifacts/server"),
+                    help="registry and per-stream LogBERT models")
+    sv.add_argument("--epochs", type=int, default=8, help="LogBERT epochs per stream")
+    sv.add_argument("--demo", action="store_true", help="also run the developer demo at /demo/")
+    sv.set_defaults(func=_server)
+
+    sc = sub.add_parser("showcase", help="guided tour: server, a web shop's logs, an agent, every feature")
+    sc.add_argument("--port", type=int, default=8080)
+    sc.add_argument("--no-ask", action="store_true", help="memory store, offline LLM, no questions")
+    sc.add_argument("--auto", action="store_true", help="do every act without waiting for you (implies --no-ask)")
+    sc.set_defaults(func=_showcase)
 
     fd = sub.add_parser("fetch-data", help="download the evaluation datasets up front")
     fd.add_argument("datasets", nargs="*", choices=["loghub2k", "HDFS", "BGL"],
