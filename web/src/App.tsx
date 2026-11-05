@@ -29,10 +29,10 @@ const paths: Record<string, string> = {
   warnings: "M12 8v5m0 3h.01M12 3a9 9 0 100 18 9 9 0 000-18z",
   streams: "M4 7h10m-10 5h16M4 17h7",
   agents: "M5 6h14v8H5zM9 18h6m-3-4v4",
+  bench: "M12 14l4-4M4 18a8 8 0 1116 0",
   keys: "M15 7a3 3 0 11-3 3m3-3l5-5m-2 2l2 2M12 10l-8 8v2h2l1-1v-2h2v-2h2l1-1",
   jobs: "M12 7v5l3 3M12 3a9 9 0 100 18 9 9 0 000-18z",
   demo: "M7 4l12 8-12 8V4z",
-  bench: "M12 14l4-4M4 18a8 8 0 1116 0",
 };
 
 export function Icon({ name }: { name: keyof typeof paths }) {
@@ -109,10 +109,10 @@ export default function App() {
         <Item to="/maintenance" icon="warnings" count={todo}>Maintenance</Item>
         <Item to="/streams" icon="streams">Streams &amp; models</Item>
         <Item to="/jobs" icon="jobs" count={note.activeJobs}>Jobs</Item>
-        <Item to="/bench" icon="bench">Benchmark</Item>
         <div className="nav-group">Fleet</div>
         <Item to="/agents" icon="agents">Agents</Item>
         <Item to="/keys" icon="keys">API keys</Item>
+        <Item to="/bench" icon="bench">Benchmark</Item>
         {calibrated && <Item to="/setup" icon="setup">Setup guide</Item>}
         <div className="nav-foot">
           <a href="/demo/" className="row"><Icon name="demo" />Developer demo</a>
@@ -137,10 +137,10 @@ export default function App() {
           <Route path="/review/:id" element={<ReviewPage />} />
           <Route path="/streams" element={<Streams />} />
           <Route path="/jobs" element={<Jobs />} />
-          <Route path="/bench" element={<Bench />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/agents/:host" element={<AgentDetail />} />
           <Route path="/keys" element={<Keys />} />
+          <Route path="/bench" element={<Bench />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
