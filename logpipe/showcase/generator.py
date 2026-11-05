@@ -38,6 +38,9 @@ class ShopGenerator:
         self.rng = random.Random(seed)
         self.incident_until = 0.0
         self.inventory = False
+        # shop-api v2.1: checkouts carry the customer's currency (a constant becomes a variable) and
+        # "payment … authorized" reads "payment … approved" (same event, new wording)
+        self.firmware = False
         self.orders = 0
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
@@ -75,7 +78,7 @@ class ShopGenerator:
             Event("nginx", self._nginx(now, "GET", "/api/cart", 200)),
             Event("shop-api", self._api(now, "INFO", th, "c.s.cart.CartController", f"cart {cart} viewed by user {user} ({r.randint(1, 6)} items)")),
             Event("nginx", self._nginx(now, "POST", "/api/checkout", 200 if not incident else 502)),
-            Event("shop-api", self._api(now, "INFO", th, "c.s.checkout.CheckoutService", f"checkout started for cart {cart} total={total} EUR")),
+            Event("shop-api", self._api(now, "INFO", th, "c.s.checkout.CheckoutService", f"checkout started for cart {cart} total={total} {r.choice(('EUR', 'USD', 'GBP')) if self.firmware else 'EUR'}")),
         ]
         api = lambda lvl, logger, text: ev.append(Event("shop-api", self._api(now, lvl, th, logger, text)))
         if incident:  # gateway outage: retries, timeouts, failed orders, exhausted DB pool
@@ -89,7 +92,7 @@ class ShopGenerator:
                  "com.shop.order.OrderService.place(OrderService.java:57)"]))
             ev.append(Event("postgres", self._pg(now, "FATAL:  remaining connection slots are reserved for non-replication superuser connections")))
             return ev
-        api("INFO", "c.s.payment.PaymentClient", f"payment {pay} authorized in {r.randint(80, 900)} ms")
+        api("INFO", "c.s.payment.PaymentClient", f"payment {pay} {'approved' if self.firmware else 'authorized'} in {r.randint(80, 900)} ms")
         ev.append(Event("postgres", self._pg(now, f"LOG:  duration: {r.uniform(1, 12):.3f} ms  statement: INSERT INTO orders (id, user_id, total) VALUES ({oid}, {user}, {total})")))
         api("INFO", "c.s.order.OrderService", f"order {oid} confirmed for user {user}")
         if self.inventory:

@@ -369,7 +369,48 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
            live=lambda: f"outage: {max(0, round(gen.incident_until - time.monotonic()))}s left")
     t.pause()
 
-    t.act(7, "A new service appears", [
+    t.act(7, "A firmware update: the same events, slightly different lines", [
+        "shop-api ships v2.1. Checkout lines now carry the customer's currency (EUR, USD or GBP) instead",
+        "of always EUR, and 'payment … authorized' now reads 'payment … approved'.",
+        "The parser can't match the changed lines, so the online learner (every 30 s) mines templates for",
+        "them and checks each against the events it already knows: a changed variable is linked by itself,",
+        "a rewording only when the LLM confirms it is the same event.",
+        f"Watch {B}Templates{R}: the new ones show up under the old, marked 'linked automatically' or 'linked by LLM'."])
+    def templates() -> list[dict]:
+        return api("/api/templates")["templates"]
+    known = {x["template_id"] for x in templates()}
+    t.pause("press Enter to roll out v2.1")
+    gen.firmware = True
+
+    def new(word: str) -> dict | None:
+        return next((x for x in templates() if x["template_id"] not in known and word in x["text"]), None)
+    t.wait("the learner handled the changed lines", lambda: bool(new("approved") and new("checkout")), timeout=300,
+           live=lambda: f"{api('/api/overview')['status'].get('PENDING', 0)} lines waiting for the learner (runs every 30 s)")
+    currency, reworded = new("checkout"), new("approved")
+    assert currency is not None and reworded is not None
+    old = next(x for x in templates() if "authorized" in x["text"] and x["alias_of"] is None)
+    if currency["alias_of"] is not None:
+        t.say(f"✓ the checkout line with a currency is linked to #{currency['alias_of']} by the pipeline: only a variable differs", G)
+    else:
+        t.say(f"the checkout line with a currency became #{currency['template_id']}, not linked", Y)
+    if reworded["alias_of"] is not None:
+        t.say(f"✓ 'payment … approved' is linked to #{reworded['alias_of']}: the LLM confirmed it is the same event", G)
+    else:
+        t.say("'payment … approved' stays a new template: a rewording is only linked when an LLM confirms it, and "
+              "this run has none. Link it yourself: Maintenance → the template new to the shop-api model → "
+              f"Same event as… → #{old['template_id']} (payment … authorized).", Y, 2, wrap=True)
+
+        def link() -> None:
+            try:  # also closes its "new to a model" item
+                api(f"/api/warnings/novel_template:{reworded['template_id']}/same-as", {"target": old["template_id"]})
+            except urllib.error.HTTPError:  # no such item yet
+                api(f"/api/templates/{reworded['template_id']}/link", {"target": old["template_id"]})
+        t.wait("the reworded line linked to the event it replaces",
+               lambda: next(x for x in templates() if x["template_id"] == reworded["template_id"])["alias_of"] is not None, link)
+    t.say("Linked lines count as the old event: the shop-api model needs no retrain and raises no alert for the change.", D, 2, wrap=True)
+    t.pause()
+
+    t.act(8, "A new service appears", [
         "The shop starts an inventory service with its own log file, and I track it on the agent.",
         f"In {B}Maintenance{R} it first shows as 'collecting lines'; at 200 lines its templates are",
         "drafted on their own and wait for your review there. Approve them and click Add."])
@@ -404,7 +445,7 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
     t.wait("inventory templates reviewed and added", inv_done, do_inv, live=inv_reviewed,
            steps=_job_steps(api, "apply", "retrain"))
 
-    t.act(8, "That's the tour", [
+    t.act(9, "That's the tour", [
         "Everything keeps running: new lines, the agent, the models. Try more in the UI:",
         "  write a rule on another template, link two templates, save a query, push a source to the",
         "  agent from its page, or start another incident.",

@@ -183,7 +183,8 @@ export interface IncidentEvent {
   template: string;
   /** expected: the model predicted it; unexpected: it predicted something else; unseen: a kind of line it never learned */
   status: "expected" | "unexpected" | "unseen";
-  expected: { template_id: number; template: string }[];
+  /** what the model expected there instead; ``words`` is the template without its variable slots */
+  expected: { template_id: number; template: string; words: string }[];
 }
 
 export interface IncidentDetail extends Incident {
@@ -249,7 +250,8 @@ export interface Template {
   sql: string;
   rule: string;
   rule_edited: boolean;
-  linked_by: "you" | "llm" | null;
+  linked_by: "you" | "llm" | "pipeline" | null;
+  link_reason?: string | null;
   canonical: number;
   linked: number[];
 }

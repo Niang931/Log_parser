@@ -12,6 +12,7 @@ import fnmatch
 import hashlib
 import json
 import logging
+import math
 import queue
 import random
 import re
@@ -90,6 +91,7 @@ DEFAULT_SETTINGS = {"sample_cap": 5000, "retrain_days": 7, "calibrated": False,
                     "calibrated_at": None, "setup_done": False,
                     "draft_lines": 500, "draft_after_minutes": 60}
 MIN_TRAIN_WINDOWS = 8
+MIN_TRAIN_STEPS = 1500
 MIN_DRAFT_LINES = 50  # below this a sample can't say much about a source's templates
 JOB_KINDS = ("draft", "apply", "retrain", "reextract", "explain")
 INCIDENT_GAP = timedelta(minutes=5)  # alerts on one service closer than this are one incident
@@ -236,7 +238,8 @@ class Server:
                  queue_factory: Callable[[], UnresolvedQueue] | None = None,
                  bootstrap_key: str | None = None, epochs: int = 8, window: int = 20,
                  stride: int = 5, inbox_size: int = 50_000, enrich_every_s: float = 30,
-                 schedule_every_s: float = 600, start_threads: bool = True):
+                 schedule_every_s: float = 600, start_threads: bool = True,
+                 min_train_steps: int = MIN_TRAIN_STEPS):
         self.store, self.control = store, control
         self.reads = reads_for(store)
         self.data_dir = data_dir
@@ -244,6 +247,7 @@ class Server:
         self.adapter_factory, self.queue_factory = adapter_factory, queue_factory
         self._adapter: LLMAdapter | None = None
         self.epochs, self.window, self.stride = epochs, window, stride
+        self.min_train_steps = min_train_steps
         self.enrich_every_s, self.schedule_every_s = enrich_every_s, schedule_every_s
         self.lock = threading.RLock()
         self.inbox: queue.Queue[LogEvent] = queue.Queue(maxsize=inbox_size)
@@ -913,6 +917,19 @@ class Server:
             job = self.enqueue("reextract", template=tid)
         return {"template_id": tid, "reviewed": True, "job": job}
 
+    def enrich(self) -> None:
+        """One online-learner cycle; remembers how each link it made was decided."""
+        report = self.pipeline.enrich()
+        if report is None:
+            return
+        with self.lock:
+            for tid in report.aliased:
+                reason = report.alias_decisions.get(tid, (0.0, ""))[1]
+                meta = self.tmeta.setdefault(tid, {"id": str(tid), "first_seen": now_iso(), "count": 0})
+                # only a reworded line needs the LLM; a changed variable is linked by the pipeline itself
+                meta.update(linked_by="llm" if "LLM" in reason else "pipeline", link_reason=reason, linked_at=now_iso())
+                self._dirty.add(("template", str(tid)))
+
     def _linked(self, tid: int, by: str | None) -> None:
         meta = self.tmeta.setdefault(tid, {"id": str(tid), "first_seen": now_iso(), "count": 0})
         meta.update(linked_by=by, linked_at=now_iso() if by else None)
@@ -1058,14 +1075,21 @@ class Server:
         n_valid = max(1, len(windows) // 10)
         vocab = TemplateVocab.build(windows)
         encoded = [vocab.encode(w) for w in windows]
-        epochs = self.epochs
+        # Enough optimizer steps to learn the order of events whatever the amount of data: a few
+        # minutes of logs are ~2 batches an epoch, and a handful of epochs left LogBERT at chance
+        # (alerting on normal traffic). Patience scales so a tiny validation set can't stop it early.
+        n_train = len(encoded) - n_valid
+        batch = 16 if n_train < 2000 else 64
+        epochs = min(300, max(self.epochs, math.ceil(self.min_train_steps / math.ceil(n_train / batch))))
+        train_cfg = TrainConfig(epochs=epochs, batch_size=batch, lr=3e-3 if batch == 16 else 1e-3,
+                                patience=max(5, epochs // 4))
         config = LogBERTConfig(len(vocab), 32, 1, 2, max_len=self.window + 1)
         name = stream["name"]
         progress(0.05, f"{name}: {len(windows)} windows from {n_sources} sources", {f"{name}: input": {
             "windows (train / valid)": f"{len(windows) - n_valid} / {n_valid}", "sources": n_sources,
             "templates in vocab": len(vocab), "window / stride": f"{self.window} / {self.stride}",
             "LogBERT config": config.to_dict(),
-            "epochs": epochs, "example windows (template ids)": [" ".join(map(str, w)) for w in windows[:5]]}})
+            "epochs / batch / lr": f"{epochs} / {batch} / {train_cfg.lr}", "example windows (template ids)": [" ".join(map(str, w)) for w in windows[:5]]}})
         epoch_log: list[str] = []
 
         def log(message: str) -> None:
@@ -1074,7 +1098,7 @@ class Server:
                 epoch_log.append(message)
                 progress(0.1 + 0.8 * (epoch + 1) / epochs, f"{name}: {message}", {f"{name}: training": epoch_log})
 
-        trained = train_logbert(encoded[n_valid:], encoded[:n_valid], config, TrainConfig(epochs=epochs), log=log)
+        trained = train_logbert(encoded[n_valid:], encoded[:n_valid], config, train_cfg, log=log)
         version = f"{stream_id}-{datetime.now(UTC):%Y%m%d%H%M%S}"
         scorer = LogBERTScorer.from_training(trained, vocab, settings=ScorerSettings(num_candidates=3),
                                              version=version)
@@ -1217,8 +1241,11 @@ class Server:
         def text(tid: int) -> str:
             entry = snap.templates.get(tid)
             return _template_text(entry.tokens, entry.keys) if entry else ("not parsed yet" if tid == UNK_TEMPLATE_ID else f"#{tid}")
+        def words(tid: int) -> str:  # what a person recognises: the template's fixed words, no slots
+            entry = snap.templates.get(tid)
+            return " ".join(t for t in entry.tokens if not SLOT_RE.search(t)) if entry else text(tid)
         events = [line | {"template_id": tid, "template": text(tid), "status": v["status"],
-                          "expected": [{"template_id": t, "template": text(t)} for t in v["expected"]]}
+                          "expected": [{"template_id": t, "template": text(t), "words": words(t)} for t in v["expected"]]}
                   for line, tid, v in zip(lines, ids, verdicts)]
         around = [r for r in self.reads.between(start - timedelta(minutes=1), end + timedelta(minutes=1), 2000)
                   if r["level"] in ("error", "warn") and (r["host"], r["service"]) != (inc["host"], inc["service"])][:50]
@@ -1258,11 +1285,11 @@ class Server:
             (f"{len(unusual)} of {len(events)} events were unusual. * = not what the model expected there, "
              "? = a kind of line the model never saw:"),
             *(f"{mark[e['status']]} {e['timestamp']} {e['message'].splitlines()[0][:300]}"
-              + (f"   (expected: {e['expected'][0]['template']})" if e["expected"] and e["status"] == "unexpected" else "")
+              + (f"   (expected: {e['expected'][0]['words']})" if e["expected"] and e["status"] == "unexpected" else "")
               for e in shown),
             "Warnings and errors from other services at the same time:" if inc["around"] else "No other service logged warnings or errors then.",
             *(f"  {a['timestamp']} {a['host']}/{a['service']}: {a['message'].splitlines()[0][:200]}" for a in inc["around"][:20])])
-        facts = {"text": text, "key": inc["key"], "events": unusual, "around": inc["around"]}
+        facts = {"text": text, "key": inc["key"], "events": unusual, "total": len(events), "around": inc["around"]}
         progress(0.15, f"{len(unusual)} unusual events of {len(events)}; asking the LLM", {
             "Input": {"incident": inc["key"], "unusual events": len(unusual), "prompt context": text}})
         adapter = _Traced(self.adapter, progress, 0.2, 0.9)
@@ -1410,7 +1437,7 @@ class Server:
                     last_enrich = now
                     # Not under self.lock: the worker takes it only to publish, so lines that
                     # parse keep flowing while the LLM looks at the ones that don't.
-                    self.pipeline.enrich()
+                    self.enrich()
                 if now - last_schedule >= self.schedule_every_s:
                     last_schedule = now
                     for sid in self.due_retrains():

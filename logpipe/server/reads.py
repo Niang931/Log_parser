@@ -128,7 +128,7 @@ class MemoryReads:
     def source_rows(self, host: str, service: str, source: str, limit: int) -> list[tuple]:
         rows = [(r.timestamp, r.template_id) for r in self._rows()
                 if (r.device_id, r.service, r.source) == (host, service, source)]
-        return sorted(rows)[-limit:]
+        return sorted(rows, key=lambda r: r[0])[-limit:]  # stable: same-millisecond lines keep arrival order
 
     def alerts(self, limit: int) -> list[dict]:
         with self.store._lock:

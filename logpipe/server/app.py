@@ -215,8 +215,9 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
             out.append(asdict(t) | {
                 "text": " ".join(t.tokens), "count": meta.get("count", 0),
                 "rule": t.rule or rule_from_template(t.tokens, t.keys), "rule_edited": bool(t.rule),
-                # links not made by a person came from the enrichment worker's LLM alias check
+                # "you", or the online learner: "pipeline" (only variables differ) or "llm" (it confirmed a rewording)
                 "linked_by": (meta.get("linked_by") or "llm") if t.alias_of is not None else None,
+                "link_reason": meta.get("link_reason") if t.alias_of is not None else None,
                 "canonical": snap.canonical_id(t.template_id), "linked": sorted(links.get(t.template_id, [])),
                 "first_seen": meta.get("first_seen"), "last_seen": meta.get("last_seen"),
                 "seen_by": seen_by,

@@ -41,7 +41,7 @@ def events(lines, host="web-1", service="api", source="python", start=0):
 def env(tmp_path):
     server = Server(MemoryStore(), ControlStore(), data_dir=tmp_path,
                     adapter_factory=lambda: get_adapter("offline"), epochs=1,
-                    start_threads=False)
+                    start_threads=False, min_train_steps=0)  # one epoch: fast, the model's quality isn't tested here
     client = TestClient(create_app(server))
     key = client.post("/api/keys", json={"name": "test"}).json()["token"]
     return server, client, {"X-API-Key": key}
@@ -634,3 +634,22 @@ def test_incidents_group_alerts_explain_lines_and_learn_false_positives(env):
     assert [i["note"] for i in fp] == ["nightly batch"]
     assert client.put(f"/api/incidents/{iid}", json={"status": "nope"}).status_code == 400
     assert client.get("/api/incidents/missing").status_code == 404
+
+
+def test_firmware_changes_a_variable_is_linked_by_itself_a_rewording_needs_the_llm(env):
+    server, client, headers = env
+    checkout = [f"checkout started for cart {1000 + i} by user {i} total={i}.50 EUR" for i in range(60)]
+    calibrated(server, client, headers, [x for pair in zip(app_lines(60), checkout) for x in pair])
+    before = {t["template_id"]: t for t in client.get("/api/templates").json()["templates"]}
+    old = next(tid for tid, t in before.items() if t["text"].startswith("checkout"))
+    v2 = [f"checkout started for cart {2000 + i} by user {i} total={i}.75 {('USD', 'GBP')[i % 2]}"
+          for i in range(20)]  # the currency now varies
+    v2 += [f"worker {i} completed job {i * 7}" for i in range(20)]  # "finished" reworded
+    send(server, client, headers, events(v2, start=5000))
+    server.enrich()
+    new = [t for t in client.get("/api/templates").json()["templates"] if t["template_id"] not in before]
+    currency = next(t for t in new if t["text"].startswith("checkout"))
+    reworded = next(t for t in new if "completed" in t["text"])
+    assert currency["alias_of"] == old and currency["linked_by"] == "pipeline"
+    assert currency["link_reason"] == "differs only in variable slots"
+    assert reworded["alias_of"] is None  # offline: rewording is never linked without an LLM

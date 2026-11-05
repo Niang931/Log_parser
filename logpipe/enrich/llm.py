@@ -87,10 +87,10 @@ class OfflineAdapter:
     def explain_incident(self, facts: dict) -> dict:
         """Without a model: say what is measurable (how many events were out of place, which
         never seen) and point at the first unusual line; no guessing at causes."""
-        unusual = [e for e in facts["events"] if e["status"] != "expected"]
+        unusual = facts["events"]  # the unusual ones; facts["total"] counts them all
         first = unusual[0] if unusual else None
         unseen = sorted({e["template"] for e in unusual if e["status"] == "unseen"})
-        summary = (f"{len(unusual)} of {len(facts['events'])} events on {facts['key']} were not what its model "
+        summary = (f"{len(unusual)} of {facts['total']} events on {facts['key']} were not what its model "
                    f"expected" + (f"; {len(unseen)} kinds of line it had never seen" if unseen else "") + ".")
         cause = (f"The first unusual event, at {first['timestamp']}: {first['message'].splitlines()[0]}"
                  if first else "No single event stands out.")

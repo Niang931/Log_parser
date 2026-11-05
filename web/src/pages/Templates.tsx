@@ -8,8 +8,9 @@ interface Resp { version: number; templates: Template[]; pending: number; engine
 
 export function LinkBadge({ t }: { t: Template }) {
   if (t.alias_of === null) return null;
-  return <span className={`badge ${t.linked_by === "you" ? "info" : ""}`} title={t.linked_by === "you" ? "Linked by a person" : "Linked by the LLM's same-event check"}>
-    linked by {t.linked_by === "you" ? "you" : "LLM"}
+  return <span className={`badge ${t.linked_by === "you" ? "info" : ""}`}
+    title={t.linked_by === "you" ? "Linked by a person" : t.linked_by === "pipeline" ? `Linked automatically: ${t.link_reason ?? "only variable parts differ"}` : `Linked by the LLM's same-event check${t.link_reason ? `: ${t.link_reason}` : ""}`}>
+    {t.linked_by === "you" ? "linked by you" : t.linked_by === "pipeline" ? "linked automatically" : "linked by LLM"}
   </span>;
 }
 

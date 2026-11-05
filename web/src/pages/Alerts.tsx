@@ -139,7 +139,8 @@ export function IncidentPage() {
                     {e.status !== "expected" && (
                       <div className="small">
                         <span className={`badge ${e.status === "unseen" ? "warn" : "bad"}`}>{MARK[e.status]}</span>
-                        {e.status === "unexpected" && e.expected.length > 0 && <span className="muted"> expected here: <span className="mono">{e.expected.map((x) => x.template).join("  or  ")}</span></span>}
+                        {e.status === "unexpected" && e.expected.length > 0 && <span className="muted"> expected here: {e.expected.map((x, j) => (
+                          <span key={x.template_id}>{j > 0 && " or "}<span className="mono" style={{ color: "var(--ink)" }} title={x.template}>{x.words}</span></span>))}</span>}
                         {e.status === "unseen" && <span className="muted"> a kind of line this model never learned</span>}
                       </div>
                     )}

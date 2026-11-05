@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { api, useAction, usePoll, type AutoTemplate, type Maintenance as M, type Source, type Warning } from "../api";
 import { Card, Empty, Loading, Meter, PageHead, TimeAgo, fmt, sourceLabel } from "../ui";
+import { TemplatePicker } from "../rules";
 import { AutoTemplates } from "./Review";
 
 function Item({ tag, tone = "", title, children, actions }: {
@@ -48,6 +49,8 @@ function SameAsSource({ sid, sources }: { sid: string; sources: Source[] }) {
 function NewTemplate({ w }: { w: M["warnings"][number] }) {
   const retrain = useAction(() => api(`/api/warnings/${encodeURIComponent(w.id)}/recalibrate`, { method: "POST" }));
   const dismiss = useAction(() => api(`/api/warnings/${encodeURIComponent(w.id)}/resolve`, { method: "POST", json: { note: "dismissed" } }));
+  const same = useAction((target: number) => api(`/api/warnings/${encodeURIComponent(w.id)}/same-as`, { method: "POST", json: { target } }));
+  const [linking, setLinking] = useState(false);
   const ready = (w.readiness ?? []).every((r) => (r.have ?? 0) >= (r.need ?? 1));
   return (
     <Item tag="Retrain" tone="info"
@@ -57,10 +60,14 @@ function NewTemplate({ w }: { w: M["warnings"][number] }) {
           title={ready ? "" : "Not enough parsed lines yet: it trains by itself once there are"}>
           {retrain.isSuccess ? "Queued" : "Retrain now"}
         </button>
+        <button className="btn small" aria-pressed={linking} onClick={() => setLinking(!linking)}
+          title="A reworded line (a firmware update, say) of an event the model already knows: no retrain needed">Same event as…</button>
         <button className="btn small ghost" disabled={dismiss.isPending} onClick={() => dismiss.mutate()}>Dismiss</button>
       </>}>
       <div className="mono small ellipsis">{w.detail}</div>
-      <div className="muted small">{fmt(w.count)} lines since <TimeAgo iso={w.first_seen} />. Not an anomaly: the model scores around it and learns it at the next retrain.</div>
+      <div className="muted small">{fmt(w.count)} lines since <TimeAgo iso={w.first_seen} />. Not an anomaly: the model scores around it and learns it at the next retrain, or link it to the event it is a new wording of.</div>
+      {linking && <TemplatePicker exclude={Number(w.subject)} pending={same.isPending} error={same.error}
+        onPick={(target) => same.mutate(target, { onSuccess: () => setLinking(false) })} onCancel={() => setLinking(false)} />}
       {(retrain.error || dismiss.error) && <div className="error-text">{(retrain.error ?? dismiss.error)!.message}</div>}
     </Item>
   );
