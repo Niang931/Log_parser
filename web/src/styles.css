@@ -519,3 +519,17 @@ tr.linked-row td { background: color-mix(in srgb, var(--surface-2) 55%, transpar
 .detail-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .detail-list > li { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
 .detail-list .detail-list > li { border: 0; padding: 0; }
+.incident-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.incident-lines li { display: flex; gap: 10px; align-items: baseline; padding: 6px 8px; border-left: 3px solid transparent; }
+.incident-lines li + li { border-top: 1px solid var(--line); }
+.incident-lines li.ev-unexpected { border-left-color: var(--bad); background: var(--bad-soft); }
+.incident-lines li.ev-unseen { border-left-color: var(--warn); background: var(--warn-soft); }
+.incident-lines .grow { flex: 1; min-width: 0; }
+.ev-msg { white-space: pre-wrap; overflow-wrap: anywhere; }
+.toasts { position: fixed; right: 16px; bottom: 16px; z-index: 50; display: flex; flex-direction: column; gap: 8px; width: min(360px, calc(100vw - 32px)); }
+.toast { display: flex; align-items: flex-start; background: var(--surface); border: 1px solid var(--line-strong); border-left: 4px solid var(--accent); border-radius: var(--radius); box-shadow: 0 6px 24px rgb(0 0 0 / .25); }
+.toast.bad { border-left-color: var(--bad); }
+.toast.good { border-left-color: var(--good); }
+.toast-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; background: none; border: 0; color: var(--ink); cursor: pointer; font: inherit; }
+.toast-body span { color: var(--ink-2); overflow-wrap: anywhere; }
+.toast-x { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 6px 10px; cursor: pointer; }

@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { usePoll, useServerEvents, type Overview } from "./api";
+import { DesktopToggle, Toasts, useNotifications } from "./notify";
 import AgentDetail from "./pages/AgentDetail";
 import Agents from "./pages/Agents";
-import Alerts from "./pages/Alerts";
+import Alerts, { IncidentPage } from "./pages/Alerts";
 import Jobs from "./pages/Jobs";
 import Keys from "./pages/Keys";
 import Logs from "./pages/Logs";
@@ -75,6 +76,7 @@ function ThemeToggle() {
 export default function App() {
   const { data } = usePoll<Overview>("/api/overview", 3000);
   useServerEvents();
+  const note = useNotifications();
   const [open, setOpen] = useState(false);
   const location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);
@@ -101,10 +103,10 @@ export default function App() {
         <Item to="/query" icon="query">Query</Item>
         <Item to="/stats" icon="stats">Analytics</Item>
         <div className="nav-group">Detection</div>
-        <Item to="/alerts" icon="alerts">Anomaly alerts</Item>
+        <Item to="/alerts" icon="alerts" count={note.openIncidents}>Anomaly alerts</Item>
         <Item to="/maintenance" icon="warnings" count={todo}>Maintenance</Item>
         <Item to="/streams" icon="streams">Streams &amp; models</Item>
-        <Item to="/jobs" icon="jobs">Jobs</Item>
+        <Item to="/jobs" icon="jobs" count={note.activeJobs}>Jobs</Item>
         <div className="nav-group">Fleet</div>
         <Item to="/agents" icon="agents">Agents</Item>
         <Item to="/keys" icon="keys">API keys</Item>
@@ -112,9 +114,11 @@ export default function App() {
         <div className="nav-foot">
           <a href="/demo/" className="row"><Icon name="demo" />Developer demo</a>
           <a href="/api/docs">API docs</a>
+          <DesktopToggle />
           <ThemeToggle />
         </div>
       </nav>
+      <Toasts toasts={note.toasts} dismiss={note.dismiss} />
       <main className="main">
         <Routes>
           <Route path="/" element={calibrated === false && !data?.received ? <Navigate to="/setup" replace /> : <OverviewPage />} />
@@ -124,6 +128,7 @@ export default function App() {
           <Route path="/query" element={<Query />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/alerts" element={<Alerts />} />
+          <Route path="/alerts/:id" element={<IncidentPage />} />
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/warnings" element={<Navigate to="/maintenance" replace />} />
           <Route path="/review/:id" element={<ReviewPage />} />

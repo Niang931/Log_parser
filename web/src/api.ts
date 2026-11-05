@@ -62,8 +62,8 @@ export interface Settings {
 
 export interface Job {
   id: string;
-  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate";
-  params: { sources?: string[]; streams?: string[]; batch?: string };
+  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate" | "explain";
+  params: { sources?: string[]; streams?: string[]; batch?: string; incident?: string };
   status: "queued" | "running" | "done" | "failed" | "cancelled";
   progress: number;
   message: string;
@@ -151,6 +151,46 @@ export interface Alert {
   novelty_ratio: number;
   reasons: string[];
   model_version: string;
+}
+
+export type IncidentStatus = "open" | "acknowledged" | "resolved" | "false_positive";
+
+/** One service's anomaly alerts close together in time. */
+export interface Incident {
+  id: string;
+  key: string;
+  host: string;
+  service: string;
+  start: string;
+  end: string;
+  alerts: number;
+  peak_miss: number;
+  model_version: string;
+  stream: string;
+  status: IncidentStatus;
+  note: string;
+  updated_at?: string | null;
+  explanation?: { summary: string; likely_cause: string; next_steps: string[]; at: string; note?: string } | null;
+}
+
+export interface IncidentEvent {
+  timestamp: string;
+  host: string;
+  service: string;
+  message: string;
+  level: string;
+  template_id: number;
+  template: string;
+  /** expected: the model predicted it; unexpected: it predicted something else; unseen: a kind of line it never learned */
+  status: "expected" | "unexpected" | "unseen";
+  expected: { template_id: number; template: string }[];
+}
+
+export interface IncidentDetail extends Incident {
+  events: IncidentEvent[];
+  around: { timestamp: string; host: string; service: string; message: string; level: string }[];
+  model_current: boolean;
+  explain_job: Job | null;
 }
 
 export interface Overview {
