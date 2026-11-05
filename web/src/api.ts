@@ -101,6 +101,15 @@ export interface Overview {
   recent_alerts: Alert[];
 }
 
+export type Level = "error" | "warn" | "info" | "debug";
+
+export interface Histogram {
+  step: number;
+  points: ({ t: number } & Record<string, number>)[];
+}
+
+export type Facets = Record<"level" | "service" | "host" | "source" | "status", [string, number][]>;
+
 export interface LogLine {
   log_id: string;
   timestamp: string;
@@ -112,6 +121,7 @@ export interface LogLine {
   template_id: number;
   payload: Record<string, string>;
   message: string;
+  level: Level;
 }
 
 export interface Template {
@@ -238,7 +248,6 @@ export interface ApiKey {
 }
 
 export interface Stats {
-  per_minute: { minute: string; FINAL: number; PENDING: number }[];
   hosts: [string, number][];
   services: [string, number][];
   sources: [string, number][];

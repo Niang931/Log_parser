@@ -94,10 +94,10 @@ export default function App() {
         {calibrated === false && <Item to="/setup" icon="setup">Setup guide</Item>}
         <Item to="/" icon="overview">Overview</Item>
         <div className="nav-group">Explore</div>
-        <Item to="/logs" icon="logs">Live logs</Item>
+        <Item to="/logs" icon="logs">Log Explorer</Item>
         <Item to="/templates" icon="templates">Templates</Item>
         <Item to="/query" icon="query">Query</Item>
-        <Item to="/stats" icon="stats">Statistics</Item>
+        <Item to="/stats" icon="stats">Analytics</Item>
         <div className="nav-group">Detection</div>
         <Item to="/alerts" icon="alerts">Anomaly alerts</Item>
         <Item to="/warnings" icon="warnings" count={warnings}>Warnings</Item>

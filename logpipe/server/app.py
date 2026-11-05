@@ -400,10 +400,12 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
             raise HTTPException(404)
         file = (STATIC / path).resolve()
         if path and file.is_file() and STATIC.resolve() in file.parents:
-            return FileResponse(file)
+            # hashed asset names change with every build, so they can be cached for good
+            return FileResponse(file, headers={"Cache-Control": "public, max-age=31536000, immutable"}
+                                if path.startswith("assets/") else None)
         index = STATIC / "index.html"
-        if index.exists():
-            return FileResponse(index)
+        if index.exists():  # revalidated every load, so an upgraded server serves its new UI
+            return FileResponse(index, headers={"Cache-Control": "no-cache"})
         return HTMLResponse("<!doctype html><meta charset=utf-8><title>logpipe</title><body style="
                             "'font:16px system-ui;margin:4rem'><h1>UI not built</h1><p>Run "
                             "<code>cd web &amp;&amp; npm ci &amp;&amp; npm run build</code>; the API is "

@@ -184,20 +184,3 @@ export function Drawer({ onClose, children }: { onClose: () => void; children: R
     </>
   );
 }
-
-/** Horizontal bars for a ranked list (one series: no legend, values as text). */
-export function RankBars({ rows }: { rows: [ReactNode, number][] }) {
-  const max = Math.max(1, ...rows.map((r) => r[1]));
-  if (!rows.length) return <div className="muted small">No data in this range.</div>;
-  return (
-    <div className="bars">
-      {rows.map(([label, n], i) => (
-        <div className="bar-row" key={i} title={`${n.toLocaleString()} lines`}>
-          <span className="label">{label}</span>
-          <span className="num ink-2">{fmt(n)}</span>
-          <div className="bar-track"><div className="bar-fill" style={{ width: `${(n / max) * 100}%` }} /></div>
-        </div>
-      ))}
-    </div>
-  );
-}

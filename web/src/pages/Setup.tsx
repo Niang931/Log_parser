@@ -108,7 +108,7 @@ export default function Setup() {
           <CopyBlock text={cmds[how]} />
           <div style={{ marginTop: 12 }}>
             <h3>Connected agents</h3>
-            {data.agents.length === 0 ? <p className="muted">Waiting for the first heartbeat… (agents report every 15 s)</p> : (
+            {data.agents.length === 0 ? <p className="muted">Waiting for the first agent to connect… (it shows up here the moment it starts)</p> : (
               <div className="row">
                 {data.agents.map((a) => (
                   <Link key={a.hostname} to={`/agents/${encodeURIComponent(a.hostname)}`} className="badge">

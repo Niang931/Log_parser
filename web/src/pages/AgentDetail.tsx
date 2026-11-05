@@ -25,7 +25,7 @@ function RemoteConfig({ agent }: { agent: Agent }) {
   };
   return (
     <Card title="Push sources to this agent"
-      hint={<>Written on the host as <code>conf.d/remote.yaml</code> on its next heartbeat; files written by hand on the host are never touched.</>}
+      hint={<>Written on the host as <code>conf.d/remote.yaml</code> within a second while the agent is connected; files written by hand on the host are never touched.</>}
       actions={agent.remote.hash ? (agent.remote_applied ? <span className="badge good">applied by the agent</span> : <span className="badge warn">waiting for the agent</span>) : null}>
       <div className="row" style={{ marginBottom: 8 }}>
         <span className="muted small">Insert:</span>

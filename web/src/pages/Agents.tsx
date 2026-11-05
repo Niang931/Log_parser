@@ -12,7 +12,7 @@ export default function Agents() {
   const nav = useNavigate();
   return (
     <>
-      <PageHead title="Agents" sub="Every host running logpipe-agent, what it collects and whether it is healthy. Agents report every 15 seconds."
+      <PageHead title="Agents" sub="Every host running logpipe-agent, what it collects and whether it is healthy. Status updates live as agents connect, disconnect or change config."
         actions={<Link to="/setup" className="btn">Add an agent</Link>} />
       <Card>
         {!data ? <Loading error={error} /> : data.agents.length === 0 ? (

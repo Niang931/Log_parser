@@ -92,7 +92,7 @@ class MemoryReads:
         return out
 
     def recent(self, filters: dict, limit: int, text: str = "", minutes: int | None = None) -> list[dict]:
-        return self._match(filters, text, minutes)[::-1][:limit]
+        return sorted(self._match(filters, text, minutes), key=lambda j: j["timestamp"], reverse=True)[:limit]
 
     def histogram(self, minutes: int, by: str, filters: dict | None = None, text: str = "") -> dict:
         step, key = step_for(minutes), "level" if by == "level" else "status"
