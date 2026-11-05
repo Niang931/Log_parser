@@ -110,6 +110,47 @@ jobs:
         run: uv run pytest -m integration -p no:cacheprovider
 
 
+  security:
+    name: Security (pip-audit, gitleaks, Trivy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read  # gitleaks lists a PR's commits
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # gitleaks reads the commits of the push / PR
+      - uses: astral-sh/setup-uv@v7
+      - name: pip-audit (uv.lock)
+        # torch's +cpu wheels aren't on PyPI, so pip-audit skips it (and says so).
+        run: |
+          uv export --frozen --no-hashes --no-emit-project --no-emit-workspace --format requirements-txt \
+            | grep -v '^-e ' > "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit -r "$RUNNER_TEMP/requirements.txt" --disable-pip --no-deps --progress-spinner off
+      - name: npm audit (web, production deps)
+        working-directory: web
+        run: npm audit --omit=dev --audit-level=high
+      - name: gitleaks (secrets in commits)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trivy (vulnerable dependencies, committed secrets)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Trivy (Dockerfile misconfigurations, advisory)
+        uses: aquasecurity/trivy-action@0.28.0
+        continue-on-error: true  # the server image still runs as root
+        with:
+          scan-type: config
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
   agent:
     name: Agent (Go)
     runs-on: ubuntu-latest

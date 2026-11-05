@@ -266,7 +266,9 @@ class ClickHouseReads:
     def query(self, sql: str) -> dict:
         self.store.flush()
         try:
-            result = self.client.query(sql, settings={"readonly": 2, "max_result_rows": MAX_QUERY_ROWS,
+            # readonly=1, not 2: 2 still runs table functions (url(), remote()), which reach
+            # other hosts from the ClickHouse server.
+            result = self.client.query(sql, settings={"readonly": 1, "max_result_rows": MAX_QUERY_ROWS,
                                                       "result_overflow_mode": "break"})
         except Exception as error:  # the server's message, shown under the editor
             raise ValueError(str(error).strip().splitlines()[0]) from error

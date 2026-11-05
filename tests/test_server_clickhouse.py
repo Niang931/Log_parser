@@ -88,3 +88,14 @@ def test_one_client_serves_concurrent_threads(store):
     with ThreadPoolExecutor(8) as pool:
         list(pool.map(work, range(32)))  # used to raise "concurrent queries within the same session"
     assert len(docs.load()) == 32
+
+
+@pytest.mark.parametrize("sql", ["SELECT 1; DROP TABLE iot_logs", "WITH x AS (SELECT 1) SELECT * FROM x; TRUNCATE iot_logs",
+                                 "ALTER USER default IDENTIFIED BY 'pwned'", "INSERT INTO iot_logs (raw_message) VALUES ('x')",
+                                 "SELECT * FROM url('http://169.254.169.254/latest/meta-data', 'RawBLOB')",
+                                 "SELECT * FROM remote('127.0.0.1', system.one)", "SELECT * FROM file('/etc/passwd', 'RawBLOB')"])
+def test_query_runs_read_only(store, tmp_path, sql):
+    server, _ = make(store, tmp_path)
+    with pytest.raises(ValueError):
+        server.reads.query(sql)
+    assert store.client.query("EXISTS TABLE iot_logs").result_rows == [(1,)]
