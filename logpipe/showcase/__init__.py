@@ -384,9 +384,9 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
 
     def new(word: str) -> dict | None:
         return next((x for x in templates() if x["template_id"] not in known and word in x["text"]), None)
-    t.wait("the learner handled the changed lines", lambda: bool(new("approved") and new("checkout")), timeout=300,
+    t.wait("the learner handled the changed lines", lambda: bool(new("approved") and new("checkout started")), timeout=300,
            live=lambda: f"{api('/api/overview')['status'].get('PENDING', 0)} lines waiting for the learner (runs every 30 s)")
-    currency, reworded = new("checkout"), new("approved")
+    currency, reworded = new("checkout started"), new("approved")
     assert currency is not None and reworded is not None
     old = next(x for x in templates() if "authorized" in x["text"] and x["alias_of"] is None)
     if currency["alias_of"] is not None:
