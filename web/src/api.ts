@@ -37,7 +37,7 @@ export function useServerEvents() {
   useEffect(() => {
     const es = new EventSource("/api/events");
     es.addEventListener("change", () =>
-      qc.invalidateQueries({ predicate: (q) => /^\/api\/(agents|overview|setup)/.test(String(q.queryKey[0])) }));
+      qc.invalidateQueries({ predicate: (q) => /^\/api\/(agents|overview|setup|review|maintenance|jobs)/.test(String(q.queryKey[0])) }));
     return () => es.close();
   }, [qc]);
 }
@@ -56,19 +56,83 @@ export interface Settings {
   calibrated: boolean;
   calibrated_at: string | null;
   setup_done: boolean;
+  draft_lines: number;
+  draft_after_minutes: number;
 }
 
 export interface Job {
   id: string;
-  kind: "calibrate" | "recalibrate" | "retrain";
-  params: Record<string, unknown>;
-  status: "queued" | "running" | "done" | "failed";
+  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate";
+  params: { sources?: string[]; streams?: string[]; batch?: string };
+  status: "queued" | "running" | "done" | "failed" | "cancelled";
   progress: number;
   message: string;
   error?: string;
+  log?: [string, string][];
   created_at: string;
   started_at?: string;
   finished_at?: string;
+}
+
+/** have/need for something that only starts once there is enough data. */
+export interface Readiness {
+  have: number;
+  need: number;
+  at?: string;
+}
+
+export interface Batch {
+  id: string;
+  initial: boolean;
+  sources: string[];
+  status: "review" | "applied" | "discarded" | "replaced";
+  lines: number;
+  sampled?: number;
+  report: { holdout_coverage?: number };
+  created_at: string;
+  drafts: number | Draft[];
+  pending?: number;
+  approved?: number;
+  note?: string;
+}
+
+export interface Draft {
+  id: string;
+  batch: string;
+  tokens: string[];
+  keys: string[];
+  count: number;
+  samples: string[];
+  status: "pending" | "approved" | "rejected" | "merged";
+  edited?: boolean;
+  merged_into?: string;
+}
+
+export interface AutoTemplate {
+  template_id: number;
+  tokens: string[];
+  keys: string[];
+  count: number;
+  first_seen: string | null;
+}
+
+export interface Collecting {
+  id: string;
+  host: string;
+  service: string;
+  source: string;
+  have: number;
+  need: number;
+  first_seen: string;
+  draft_by: string;
+}
+
+export interface Maintenance {
+  review: Batch[];
+  auto_templates: number;
+  collecting: Collecting[];
+  waiting: Stream[];
+  warnings: (Warning & { readiness?: ({ stream: string; name: string } & Partial<Readiness>)[] })[];
 }
 
 export interface Alert {
@@ -94,6 +158,7 @@ export interface Overview {
   templates: number;
   registry_version: number;
   warnings: Record<string, number>;
+  review: number;
   streams: number;
   models: number;
   settings: Settings;
@@ -168,6 +233,8 @@ export interface Stream {
   windows?: number;
   miss_threshold?: number;
   model_error?: string | null;
+  waiting?: boolean;
+  data?: Readiness;
   sources: string[];
   has_model: boolean;
   vocab: number;

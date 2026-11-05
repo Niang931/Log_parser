@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api, useAction, usePoll, type Selector, type Settings, type Stream } from "../api";
-import { Card, Empty, Loading, PageHead, TimeAgo, sourceLabel } from "../ui";
+import { Card, Empty, Loading, PageHead, TimeAgo, sourceLabel, Meter } from "../ui";
 
 interface Draft { name: string; selectors: Selector[]; retrain_days: number | null }
 
@@ -52,7 +52,7 @@ function SettingsCard({ s }: { s: Settings }) {
   const [days, setDays] = useState(s.retrain_days);
   const save = useAction(() => api("/api/settings", { method: "PUT", json: { sample_cap: cap, retrain_days: days } }));
   return (
-    <Card title="Learning settings" hint="Apply to calibration, recalibration and every retrain">
+    <Card title="Learning settings" hint="Apply to template drafting and every retrain">
       <form className="row" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
         <label className="field">Sample cap (lines per source)<input type="number" min={100} max={200000} step={100} value={cap} onChange={(e) => setCap(Number(e.target.value))} /></label>
         <label className="field">Default retrain period (days)<input type="number" min={1} value={days} onChange={(e) => setDays(Number(e.target.value))} /></label>
@@ -68,7 +68,8 @@ function SettingsCard({ s }: { s: Settings }) {
 
 function StreamCard({ s, defaultDays }: { s: Stream; defaultDays: number }) {
   const [editing, setEditing] = useState(false);
-  const train = useAction(() => api(`/api/streams/${s.id}/train`, { method: "POST" }));
+  const train = useAction(() => api<{ waiting?: string[] }>(`/api/streams/${s.id}/train`, { method: "POST" }));
+  const short = s.waiting && s.data && s.data.have < s.data.need;
   const del = useAction(() => api(`/api/streams/${s.id}`, { method: "DELETE" }));
   if (editing) return <Card title={`Edit ${s.name}`}><StreamForm initial={s} onDone={() => setEditing(false)} /></Card>;
   return (
@@ -76,7 +77,10 @@ function StreamCard({ s, defaultDays }: { s: Stream; defaultDays: number }) {
       hint={s.selectors.map((sel) => Object.entries(sel).map(([k, v]) => `${k}=${v}`).join(" ") || "everything").join("  ·  ")}
       actions={
         <>
-          <button className="btn small primary" onClick={() => train.mutate()} disabled={train.isPending || !s.sources.length}>{train.isSuccess ? "Queued" : s.has_model ? "Retrain now" : "Train"}</button>
+          <button className="btn small primary" onClick={() => train.mutate()} disabled={train.isPending || !s.sources.length || !!short}
+            title={short ? "Not enough parsed lines yet: it trains by itself once there are" : ""}>
+            {train.isSuccess && !train.data?.waiting ? "Queued" : s.has_model ? "Retrain now" : "Train"}
+          </button>
           <button className="btn small" onClick={() => setEditing(true)}>Edit</button>
           {s.id !== "all" && <button className="btn small ghost danger" onClick={() => confirm(`Delete stream ${s.name}?`) && del.mutate()}>Delete</button>}
         </>
@@ -84,7 +88,10 @@ function StreamCard({ s, defaultDays }: { s: Stream; defaultDays: number }) {
       <div className="grid cols-2">
         <dl className="kv">
           <dt>Model</dt>
-          <dd>{s.has_model ? <><span className="badge good">trained</span> <span className="mono small">{s.model_version}</span></> : <span className="badge">none yet</span>}</dd>
+          <dd>{s.has_model ? <><span className="badge good">trained</span> <span className="mono small">{s.model_version}</span></>
+            : s.waiting ? <span className="badge warn">waiting for data</span> : <span className="badge">none yet</span>}</dd>
+          {s.waiting && s.data && <><dt>Training data</dt><dd><Meter have={s.data.have} need={s.data.need} unit="windows" />
+            <span className="muted small">Trains by itself once it has enough; checked every minute.</span></dd></>}
           {s.trained_at && <><dt>Trained</dt><dd><TimeAgo iso={s.trained_at} /> on {s.windows} windows, {s.vocab} templates</dd></>}
           {s.miss_threshold !== undefined && <><dt>Alert when</dt><dd>over {Math.round(s.miss_threshold * 100)}% of masked events are mispredicted</dd></>}
           <dt>Retrains</dt><dd>every {s.retrain_days ?? defaultDays} days if it has unseen templates</dd>
@@ -97,7 +104,7 @@ function StreamCard({ s, defaultDays }: { s: Stream; defaultDays: number }) {
         </div>
       </div>
       {(train.error || del.error) && <div className="error-text">{(train.error ?? del.error)!.message}</div>}
-      {train.isSuccess && <div className="small" style={{ marginTop: 8 }}><Link to="/jobs">Follow the training job</Link></div>}
+      {train.isSuccess && !train.data?.waiting && <div className="small" style={{ marginTop: 8 }}><Link to="/jobs">Follow the training job</Link></div>}
     </Card>
   );
 }

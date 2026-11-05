@@ -143,7 +143,7 @@ docker compose --profile platform up --build   # ClickHouse + server + demo agen
 ```
 
 See [docs/agent-platform.md](docs/agent-platform.md) for the learning lifecycle (setup guide,
-calibration, streams, warnings, retraining) and [agent/README.md](agent/README.md) for the
+template review, streams, maintenance, retraining) and [agent/README.md](agent/README.md) for the
 agent's Datadog-style config and CLI.
 
 ## Calibration and evaluation

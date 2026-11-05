@@ -13,7 +13,8 @@ import Setup from "./pages/Setup";
 import StatsPage from "./pages/Stats";
 import Streams from "./pages/Streams";
 import Templates from "./pages/Templates";
-import Warnings from "./pages/Warnings";
+import Maintenance from "./pages/Maintenance";
+import ReviewPage from "./pages/Review";
 
 const paths: Record<string, string> = {
   setup: "M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z",
@@ -78,7 +79,8 @@ export default function App() {
   const location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);
   const calibrated = data?.settings.calibrated;
-  const warnings = Object.values(data?.warnings ?? {}).reduce((a, b) => a + b, 0);
+  // What needs a person: templates to review and models with templates they haven't seen.
+  const todo = (data?.review ?? 0) + (data?.warnings.novel_template ?? 0);
 
   return (
     <div className="shell">
@@ -100,7 +102,7 @@ export default function App() {
         <Item to="/stats" icon="stats">Analytics</Item>
         <div className="nav-group">Detection</div>
         <Item to="/alerts" icon="alerts">Anomaly alerts</Item>
-        <Item to="/warnings" icon="warnings" count={warnings}>Warnings</Item>
+        <Item to="/maintenance" icon="warnings" count={todo}>Maintenance</Item>
         <Item to="/streams" icon="streams">Streams &amp; models</Item>
         <Item to="/jobs" icon="jobs">Jobs</Item>
         <div className="nav-group">Fleet</div>
@@ -122,7 +124,9 @@ export default function App() {
           <Route path="/query" element={<Query />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/alerts" element={<Alerts />} />
-          <Route path="/warnings" element={<Warnings />} />
+          <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/warnings" element={<Navigate to="/maintenance" replace />} />
+          <Route path="/review/:id" element={<ReviewPage />} />
           <Route path="/streams" element={<Streams />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/agents" element={<Agents />} />

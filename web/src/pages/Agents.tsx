@@ -1,6 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { usePoll, type Agent } from "../api";
 import { Card, Empty, Loading, PageHead, TimeAgo, bytes, fmt } from "../ui";
+import { AddAgentDrawer } from "./AddAgent";
 
 export function agentProblem(a: Agent): string | null {
   const st = a.status;
@@ -10,13 +12,15 @@ export function agentProblem(a: Agent): string | null {
 export default function Agents() {
   const { data, error } = usePoll<{ agents: Agent[] }>("/api/agents", 3000);
   const nav = useNavigate();
+  const [adding, setAdding] = useState(false);
   return (
     <>
       <PageHead title="Agents" sub="Every host running logpipe-agent, what it collects and whether it is healthy. Status updates live as agents connect, disconnect or change config."
-        actions={<Link to="/setup" className="btn">Add an agent</Link>} />
+        actions={<button className="btn primary" onClick={() => setAdding(true)}>Add an agent</button>} />
+      {adding && <AddAgentDrawer onClose={() => setAdding(false)} />}
       <Card>
         {!data ? <Loading error={error} /> : data.agents.length === 0 ? (
-          <Empty title="No agents yet">Install one with the command in the <Link to="/setup">setup guide</Link>.</Empty>
+          <Empty title="No agents yet"><button className="btn primary" onClick={() => setAdding(true)}>Add your first agent</button></Empty>
         ) : (
           <div className="table-wrap">
             <table>

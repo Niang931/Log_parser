@@ -63,27 +63,53 @@ export function Progress({ value, state }: { value: number; state?: string }) {
   );
 }
 
-const JOB_NAMES: Record<Job["kind"], string> = {
+export const JOB_NAMES: Record<Job["kind"], string> = {
+  draft: "Draft templates",
+  apply: "Apply templates",
+  retrain: "Train LogBERT",
   calibrate: "Calibration",
   recalibrate: "Recalibration",
-  retrain: "LogBERT retraining",
 };
+
+export function jobTarget(job: Job) {
+  const p = job.params;
+  if (p.streams?.length) return p.streams.join(", ");
+  if (p.sources?.length) return p.sources.map(sourceLabel).join(", ");
+  return job.kind === "draft" ? "all sources" : job.kind === "apply" ? "reviewed templates" : "";
+}
 
 export function JobRow({ job }: { job: Job }) {
   const state = job.status === "done" ? "done" : job.status === "failed" ? "failed" : "";
-  const what = job.kind === "recalibrate"
-    ? ` · ${(job.params.sources as string[] | undefined)?.map(sourceLabel).join(", ")}`
-    : job.kind === "retrain" ? ` · ${(job.params.streams as string[] | undefined)?.join(", ")}` : "";
+  const target = jobTarget(job);
   return (
     <div className="stack" style={{ gap: 6 }}>
       <div className="spread">
-        <strong>{JOB_NAMES[job.kind]}<span className="muted" style={{ fontWeight: 400 }}>{what}</span></strong>
-        <span className={`badge ${job.status === "done" ? "good" : job.status === "failed" ? "bad" : "info"}`}>
-          {job.status === "running" ? `${Math.round(job.progress * 100)}%` : job.status}
-        </span>
+        <strong>{JOB_NAMES[job.kind]}{target && <span className="muted" style={{ fontWeight: 400 }}> · {target}</span>}</strong>
+        <JobStatus job={job} />
       </div>
       <Progress value={job.status === "queued" ? 0 : job.progress} state={state} />
       <div className={job.error ? "error-text" : "muted small"}>{job.error ?? job.message}</div>
+    </div>
+  );
+}
+
+export function JobStatus({ job }: { job: Job }) {
+  const kind = { done: "good", failed: "bad", cancelled: "", queued: "", running: "info" }[job.status];
+  return (
+    <span className={`badge ${kind}`}>
+      {job.status === "running" && <span className="spin" aria-hidden="true" />}
+      {job.status === "running" ? `running ${Math.round(job.progress * 100)}%` : job.status}
+    </span>
+  );
+}
+
+/** How far something that starts on its own is from having enough data. */
+export function Meter({ have, need, unit }: { have: number; need: number; unit: string }) {
+  const ok = have >= need;
+  return (
+    <div className="meter" title={`${have.toLocaleString()} of ${need.toLocaleString()} ${unit}`}>
+      <Progress value={Math.min(1, have / Math.max(need, 1))} state={ok ? "done" : ""} />
+      <span className="small num">{fmt(have)} / {fmt(need)} {unit}</span>
     </div>
   );
 }
@@ -146,21 +172,20 @@ export function CopyBlock({ text }: { text: string }) {
   );
 }
 
-/** Template text with its <*> slots highlighted and named by their keys. */
+/** Template text with its variable slots (<*>, <VAR:X>, also inside words like a=<*>)
+ * highlighted and named by their keys, in order. */
 export function TemplateText({ tokens, keys }: { tokens: string[]; keys: string[] }) {
   let k = 0;
   return (
     <span className="mono">
-      {tokens.map((t, i) => {
-        const isSlot = t.startsWith("<") && t.endsWith(">");
-        const name = isSlot ? keys[k++] : undefined;
-        return (
-          <span key={i}>
-            {i > 0 && " "}
-            {isSlot ? <span className="slot" title={t}>{name ?? t}</span> : t}
-          </span>
-        );
-      })}
+      {tokens.map((t, i) => (
+        <span key={i}>
+          {i > 0 && " "}
+          {t.split(/(<\*>|<VAR:[A-Z0-9]+>)/).map((part, j) => j % 2
+            ? <span key={j} className="slot" title={part}>{keys[k++] ?? part}</span>
+            : part)}
+        </span>
+      ))}
     </span>
   );
 }
@@ -182,5 +207,27 @@ export function Drawer({ onClose, children }: { onClose: () => void; children: R
         {children}
       </aside>
     </>
+  );
+}
+
+/** Numbered steps across the top: finished ones show a tick and can be revisited. */
+export function Stepper({ steps, current, onPick }: {
+  steps: { label: string; done: boolean }[]; current: number; onPick: (i: number) => void;
+}) {
+  return (
+    <ol className="stepper">
+      {steps.map((s, i) => {
+        const state = i === current ? "current" : s.done ? "done" : "todo";
+        const reachable = s.done || i <= current || steps.slice(0, i).every((p) => p.done);
+        return (
+          <li key={s.label} className={state}>
+            <button type="button" disabled={!reachable} onClick={() => onPick(i)} aria-current={i === current ? "step" : undefined}>
+              <span className="step-dot" aria-hidden="true">{s.done && i !== current ? "✓" : i + 1}</span>
+              <span className="step-label">{s.label}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

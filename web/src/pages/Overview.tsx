@@ -28,7 +28,7 @@ export default function Overview() {
   const final = data.status.FINAL ?? 0;
   const pending = data.status.PENDING ?? 0;
   const parsed = final + pending ? Math.round((final / (final + pending)) * 1000) / 10 : 0;
-  const openWarnings = Object.values(data.warnings).reduce((a, b) => a + b, 0);
+  const todo = data.review + (data.warnings.novel_template ?? 0);
   const levels = Object.fromEntries(facets?.level ?? []) as Record<string, number>;
   const inRange = Object.values(levels).reduce((a, b) => a + b, 0);
   const errorPct = inRange ? ((levels.error ?? 0) / inRange) * 100 : 0;
@@ -51,8 +51,8 @@ export default function Overview() {
           <Value label="Parsed into templates" value={`${parsed}%`} foot={`${fmt(pending)} pending`} to="/templates" tone={data.settings.calibrated && parsed < 90 ? "warn" : undefined} />
           <Value label="Agents online" value={`${data.agents_online}/${data.agents}`} foot={`${data.sources} sources`} to="/agents"
             tone={data.agents_online < data.agents ? "bad" : data.agents ? "good" : undefined} />
-          <Value label="Open warnings" value={fmt(openWarnings)} to="/warnings" tone={openWarnings ? "warn" : undefined}
-            foot={openWarnings ? `${data.warnings.new_source ?? 0} sources · ${data.warnings.novel_template ?? 0} templates` : "nothing to review"} />
+          <Value label="Maintenance" value={fmt(todo)} to="/maintenance" tone={todo ? "warn" : undefined}
+            foot={todo ? `${data.review} to review · ${data.warnings.novel_template ?? 0} to retrain` : "nothing to do"} />
           <Value label="Anomaly alerts" value={fmt(data.recent_alerts.length)} foot={`${data.models}/${data.streams} streams modelled`} to="/alerts"
             tone={data.recent_alerts.length ? "bad" : undefined} />
         </div>
@@ -89,7 +89,7 @@ export default function Overview() {
         </Card>
 
         <Card title="Hosts" className="w-12" actions={<Link to="/agents" className="small">Fleet</Link>}>
-          {!agents ? <Loading /> : agents.length === 0 ? <Empty title="No agents yet"><Link to="/setup">Install one</Link></Empty> : (
+          {!agents ? <Loading /> : agents.length === 0 ? <Empty title="No agents yet"><Link to="/agents">Add one</Link></Empty> : (
             <div className="hostmap">
               {agents.map((a) => {
                 const problem = agentProblem(a);

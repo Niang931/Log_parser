@@ -34,7 +34,7 @@ export default function Templates() {
         </div>
         {rows.length === 0 ? (
           <Empty title={data.templates.length ? "No template matches" : "No templates yet"}>
-            {!data.templates.length && <>Templates appear after <Link to="/setup">calibration</Link>.</>}
+            {!data.templates.length && <>Templates appear once you approve them in the <Link to="/setup">setup guide</Link>.</>}
           </Empty>
         ) : (
           <div className="table-wrap">

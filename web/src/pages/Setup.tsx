@@ -1,7 +1,11 @@
+// The setup guide, one step per screen: key -> agents -> sources -> sample -> streams ->
+// review templates -> train. The stepper shows where you are; finished steps can be revisited.
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { api, useAction, usePoll, type Job, type Settings, type Source, type Stream } from "../api";
-import { CopyBlock, JobRow, Loading, PageHead, TimeAgo, fmt, sourceLabel } from "../ui";
+import { api, useAction, usePoll, type Batch, type Job, type Settings, type Source, type Stream } from "../api";
+import { Card, JobRow, Loading, Meter, PageHead, Stepper, TimeAgo, fmt, sourceLabel } from "../ui";
+import { InstallStep, KeyStep } from "./AddAgent";
+import { ReviewBatch } from "./Review";
 
 interface SetupState {
   keys: number;
@@ -10,105 +14,86 @@ interface SetupState {
   settings: Settings;
   streams: Stream[];
   jobs: Job[];
+  min_lines: number;
+  review: Batch | null;
 }
 
-function Step({ n, title, done, current, children }: {
-  n: number; title: string; done: boolean; current: boolean; children: ReactNode;
-}) {
+const STEPS = ["API key", "Agents", "Sources", "Sample", "Streams", "Review", "Train"];
+
+function Screen({ n, title, intro, children }: { n: number; title: string; intro: ReactNode; children: ReactNode }) {
   return (
-    <li className={`step ${done ? "done" : current ? "current" : ""}`}>
-      <span className="step-num" aria-hidden="true">{done ? "✓" : n}</span>
-      <div className="step-body card">
-        <div className="spread">
-          <h2>{title}</h2>
-          {done && <span className="badge good">Done</span>}
-        </div>
-        <div style={{ marginTop: 8 }}>{children}</div>
+    <>
+      <div className="wizard-head">
+        <span className="muted small">Step {n + 1} of {STEPS.length}</span>
+        <h2>{title}</h2>
+        <p className="ink-2">{intro}</p>
       </div>
-    </li>
+      <div className="wizard-body">{children}</div>
+    </>
   );
 }
 
-export function installCommands(token: string) {
-  const endpoint = window.location.origin;
-  return {
-    docker: [
-      "docker run -d --name logpipe-agent --restart unless-stopped \\",
-      `  -e LOGPIPE_ENDPOINT=${endpoint} \\`,
-      `  -e LOGPIPE_API_KEY=${token} \\`,
-      "  -e LOGPIPE_HOSTNAME=$(hostname) \\",
-      "  -v /var/log:/var/log:ro \\",
-      "  -v /var/run/docker.sock:/var/run/docker.sock:ro \\",
-      "  -v logpipe-agent:/var/lib/logpipe-agent \\",
-      "  ghcr.io/minhthien2103/logpipe-agent:latest",
-    ].join("\n"),
-    binary: [
-      `logpipe-agent init --endpoint ${endpoint} --api-key ${token}`,
-      "logpipe-agent track '/var/log/myapp/*.log' --service myapp --auto-multiline",
-      "logpipe-agent check && logpipe-agent run",
-    ].join("\n"),
-  };
-}
+const active = (j?: Job) => !!j && (j.status === "queued" || j.status === "running");
 
 export default function Setup() {
-  const { data, error } = usePoll<SetupState>("/api/setup");
-  const [token, setToken] = useState<string | null>(null);
-  const [keyName, setKeyName] = useState("first agents");
-  const [how, setHow] = useState<"docker" | "binary">("docker");
+  const { data, error } = usePoll<SetupState>("/api/setup", 3000);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [token, setToken] = useState("");
   const [cap, setCap] = useState<number | null>(null);
-  const createKey = useAction((name: string) => api<{ token: string }>("/api/keys", { method: "POST", json: { name } }));
-  const calibrate = useAction((sample_cap: number) => api("/api/setup/calibrate", { method: "POST", json: { sample_cap } }));
+  const [streamsSeen, setStreamsSeen] = useState(false);
+  const generate = useAction((sample_cap: number) => api("/api/review/generate", { method: "POST", json: { sample_cap } }));
 
   if (!data) return <><PageHead title="Setup guide" /><Loading error={error} /></>;
   const calibrated = data.settings.calibrated;
-  const job = [...data.jobs].reverse().find((j) => j.kind === "calibrate");
-  const running = job && (job.status === "queued" || job.status === "running");
-  const done = [data.keys > 0, data.agents.length > 0, data.sources.length > 0, true, calibrated];
-  const current = done.findIndex((d) => !d);
+  const total = data.sources.reduce((a, s) => a + s.count, 0);
+  const last = (kind: Job["kind"]) => [...data.jobs].reverse().find((j) => j.kind === kind);
+  const draftJob = last("draft");
+  const applyJob = last("apply");
+  const done = [
+    data.keys > 0,
+    data.agents.length > 0,
+    total >= data.min_lines,
+    !!data.review || calibrated,
+    streamsSeen || calibrated,
+    calibrated,
+    calibrated && !active(applyJob) && data.streams.every((s) => s.model_version || s.waiting),
+  ];
+  const first = done.findIndex((d) => !d);
+  // Opens at the first unfinished step, then only moves when you do: a step finishing in the
+  // background (a key created, an agent connecting) never yanks the screen away.
+  const step = picked ?? (first === -1 ? STEPS.length - 1 : first);
+  if (picked === null) setPicked(step);
+  const go = (i: number) => setPicked(Math.max(0, Math.min(STEPS.length - 1, i)));
   const sampleCap = cap ?? data.settings.sample_cap;
-  const cmds = installCommands(token ?? "<your API key>");
+  const canNext = done[step] || step === 4;
 
   return (
     <>
       <PageHead title="Setup guide"
-        sub="Connect every collector and track every log file first. Calibration then learns the log templates from a capped sample of each source and trains an anomaly model per stream." />
-      {calibrated && (
-        <div className="callout info" style={{ marginBottom: 16 }}>
-          <div className="grow">Calibrated <TimeAgo iso={data.settings.calibrated_at} />. Sources added from now on show up under
-            {" "}<Link to="/warnings">Warnings</Link>, where you can recalibrate to include them.</div>
-          <Link className="btn small" to="/">Go to overview</Link>
+        sub="Connect your hosts, let them collect logs, review the templates drafted from them, then train the anomaly models." />
+      {first === -1 && (
+        <div className="callout good" style={{ marginBottom: 16 }}>
+          <div className="grow"><strong>Setup complete</strong> <TimeAgo iso={data.settings.calibrated_at} />. New sources are drafted for review by themselves under <Link to="/maintenance">Maintenance</Link>.</div>
+          <Link className="btn small primary" to="/">Go to overview</Link>
         </div>
       )}
-      <ol className="steps" style={{ listStyle: "none", padding: 0, margin: 0 }}>
-        <Step n={1} title="Create an API key for your agents" done={done[0]} current={current === 0}>
-          <p className="ink-2">Agents send it with every request. You can create one per environment and revoke it later under <Link to="/keys">API keys</Link>.</p>
-          {token ? (
-            <>
-              <p><strong>Copy it now</strong>: the key is only shown once.</p>
-              <CopyBlock text={token} />
-            </>
-          ) : (
-            <form className="row" onSubmit={(e) => {
-              e.preventDefault();
-              createKey.mutate(keyName, { onSuccess: (r) => setToken(r.token) });
-            }}>
-              <input aria-label="Key name" value={keyName} onChange={(e) => setKeyName(e.target.value)} />
-              <button className="btn primary" disabled={createKey.isPending}>Create key</button>
-              {data.keys > 0 && <span className="muted small">{data.keys} active key{data.keys > 1 ? "s" : ""} already</span>}
-            </form>
-          )}
-          {createKey.error && <div className="error-text">{createKey.error.message}</div>}
-        </Step>
+      <Card className="wizard">
+        <Stepper steps={STEPS.map((label, i) => ({ label, done: done[i] }))} current={step} onPick={go} />
 
-        <Step n={2} title="Install the agent on each host" done={done[1]} current={current === 1}>
-          <div className="tabs" role="tablist">
-            <button role="tab" aria-selected={how === "docker"} className={how === "docker" ? "active" : ""} onClick={() => setHow("docker")}>Docker</button>
-            <button role="tab" aria-selected={how === "binary"} className={how === "binary" ? "active" : ""} onClick={() => setHow("binary")}>Binary</button>
-          </div>
-          <CopyBlock text={cmds[how]} />
-          <div style={{ marginTop: 12 }}>
-            <h3>Connected agents</h3>
-            {data.agents.length === 0 ? <p className="muted">Waiting for the first agent to connect… (it shows up here the moment it starts)</p> : (
+        {step === 0 && (
+          <Screen n={0} title="Create an API key for your agents"
+            intro={data.keys > 0 ? `You already have ${data.keys} active key${data.keys > 1 ? "s" : ""}. Create another, or continue if you have one at hand.` : "Agents send this key with every request so only your hosts can ship logs."}>
+            <KeyStep token={token} onToken={setToken} />
+          </Screen>
+        )}
+
+        {step === 1 && (
+          <Screen n={1} title="Install the agent on each host" intro="Run the command on every host whose logs you want. Each one shows up below as soon as it connects.">
+            <InstallStep token={token} />
+            <h3 style={{ marginTop: 16 }}>Connected agents</h3>
+            {data.agents.length === 0 ? (
+              <div className="waiting" role="status"><span className="spin" aria-hidden="true" /><div><strong>Waiting for the first agent…</strong></div></div>
+            ) : (
               <div className="row">
                 {data.agents.map((a) => (
                   <Link key={a.hostname} to={`/agents/${encodeURIComponent(a.hostname)}`} className="badge">
@@ -117,68 +102,105 @@ export default function Setup() {
                 ))}
               </div>
             )}
-          </div>
-        </Step>
+          </Screen>
+        )}
 
-        <Step n={3} title="Track the log files on every host" done={done[2]} current={current === 2}>
-          <p className="ink-2">
-            On a host: <code>logpipe-agent track '/var/log/app/*.log' --service app --multiline '^\d{"{4}"}-'</code>.
-            Or open an agent under <Link to="/agents">Agents</Link> and push sources to it from here.
-            Let each source collect a few hundred lines before calibrating.
-          </p>
-          {data.sources.length > 0 && (
-            <div className="table-wrap">
-              <table>
-                <thead><tr><th>Source</th><th className="right">Lines so far</th><th>First seen</th></tr></thead>
-                <tbody>
-                  {data.sources.map((s) => (
-                    <tr key={s.id}>
-                      <td>{sourceLabel(s.id)} <span className="muted small">{s.source}</span></td>
-                      <td className="right num">{fmt(s.count)}</td>
-                      <td><TimeAgo iso={s.first_seen} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {step === 2 && (
+          <Screen n={2} title="Track the log files" intro={<>Pick the files on each host: open an agent under <Link to="/agents">Agents</Link> and push sources to it, or run <code>logpipe-agent track '/var/log/app/*.log' --service app</code> on the host. Let them collect lines for a while; more lines give better templates.</>}>
+            <Meter have={total} need={data.min_lines} unit="lines (minimum to continue)" />
+            {data.sources.length > 0 && (
+              <div className="table-wrap" style={{ marginTop: 12 }}>
+                <table>
+                  <thead><tr><th>Source</th><th>Type</th><th className="right">Lines so far</th><th>First seen</th></tr></thead>
+                  <tbody>
+                    {data.sources.map((s) => (
+                      <tr key={s.id}>
+                        <td>{sourceLabel(s.id)}</td>
+                        <td className="muted">{s.source || "–"}</td>
+                        <td className="right num">{fmt(s.count)}</td>
+                        <td><TimeAgo iso={s.first_seen} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Screen>
+        )}
+
+        {step === 3 && (
+          <Screen n={3} title="Draft templates from a sample"
+            intro="Each source contributes up to this many recent lines; priority sampling picks the most varied ones, so one chatty source can't drown out the rest. Nothing reaches the parser yet: you review the drafts next.">
+            {calibrated ? <div className="callout good"><div>Templates are already applied.</div></div> : (
+              <form className="row" onSubmit={(e) => { e.preventDefault(); generate.mutate(sampleCap); }}>
+                <label className="field">
+                  Lines per source
+                  <input type="number" min={100} max={200000} step={100} value={sampleCap}
+                    onChange={(e) => setCap(Number(e.target.value))} style={{ width: 140 }} />
+                </label>
+                <button className="btn primary" style={{ alignSelf: "flex-end" }}
+                  disabled={total < data.min_lines || active(draftJob) || generate.isPending}>
+                  {data.review ? "Draft again" : "Draft templates"}
+                </button>
+                {total < data.min_lines && <span className="muted small" style={{ alignSelf: "flex-end" }}>Needs {data.min_lines} lines; {total} so far.</span>}
+              </form>
+            )}
+            {generate.error && <div className="error-text">{generate.error.message}</div>}
+            {draftJob && <div style={{ marginTop: 12 }}><JobRow job={draftJob} /></div>}
+            {data.review && !active(draftJob) && <div className="callout good" style={{ marginTop: 12 }}><div className="grow">{data.review.drafts as number} templates drafted.</div><button className="btn small primary" onClick={() => go(4)}>Continue</button></div>}
+          </Screen>
+        )}
+
+        {step === 4 && (
+          <Screen n={4} title="Group sources into streams (optional)"
+            intro={<>Each stream gets its own anomaly model, trained on the sources it selects. <strong>All logs</strong> covers everything; add streams for sources that behave alike, such as <code>host: gw-*</code> for IoT gateways.</>}>
+            <div className="row">
+              {data.streams.map((s) => <span key={s.id} className="badge">{s.name}</span>)}
+              <Link to="/streams" className="btn small">Manage streams</Link>
             </div>
-          )}
-        </Step>
+          </Screen>
+        )}
 
-        <Step n={4} title="Group sources into streams (optional)" done={done[3] && data.streams.length > 1} current={false}>
-          <p className="ink-2">
-            Each stream gets its own LogBERT model, trained on the sequences of the sources it selects. The
-            default <strong>All logs</strong> stream covers everything; add streams for sources that behave
-            alike (e.g. <code>host: gw-*</code> for IoT gateways).
-          </p>
-          <div className="row">
-            {data.streams.map((s) => <span key={s.id} className="badge">{s.name}</span>)}
-            <Link to="/streams" className="btn small">Manage streams</Link>
-          </div>
-        </Step>
+        {step === 5 && (
+          <Screen n={5} title="Review the drafted templates"
+            intro="Approve the ones that describe your logs, fix wrong variables or field names, merge duplicates and reject noise. Only approved templates go into the parser.">
+            {calibrated ? <div className="callout good"><div>Templates applied <TimeAgo iso={data.settings.calibrated_at} />. Review later additions under <Link to="/maintenance">Maintenance</Link>.</div></div>
+              : data.review ? <ReviewBatch batchId={data.review.id} onApplied={() => go(6)} />
+              : active(draftJob) ? <JobRow job={draftJob!} />
+              : <div className="muted">Draft templates first (step 4).</div>}
+          </Screen>
+        )}
 
-        <Step n={5} title="Calibrate" done={done[4]} current={current === 4 || current === -1}>
-          <p className="ink-2">
-            Takes up to <strong>{fmt(sampleCap)}</strong> lines per source, picked by entropy priority sampling,
-            builds the template registry, back-fills every stored line, then trains one model per stream.
-          </p>
-          {!calibrated && !running && (
-            <form className="row" onSubmit={(e) => { e.preventDefault(); calibrate.mutate(sampleCap); }}>
-              <label className="field">
-                Lines per source
-                <input type="number" min={100} max={200000} step={100} value={sampleCap}
-                  onChange={(e) => setCap(Number(e.target.value))} style={{ width: 140 }} />
-              </label>
-              <button className="btn primary" style={{ alignSelf: "flex-end" }}
-                disabled={!data.sources.length || calibrate.isPending}>
-                Start calibration
-              </button>
-              {!data.sources.length && <span className="muted small" style={{ alignSelf: "flex-end" }}>Needs at least one source.</span>}
-            </form>
+        {step === 6 && (
+          <Screen n={6} title="Train the anomaly models"
+            intro="Stored lines are back-filled with the new templates, then each stream's model trains. A stream without enough parsed lines waits and trains by itself once it has them.">
+            {applyJob ? <JobRow job={applyJob} /> : <div className="muted">Apply the reviewed templates first (step 6).</div>}
+            {calibrated && (
+              <ul className="todos" style={{ marginTop: 12 }}>
+                {data.streams.map((s) => (
+                  <li key={s.id} className="todo">
+                    <span className={`badge ${s.model_version ? "good" : s.waiting ? "warn" : ""}`}>{s.model_version ? "Trained" : s.waiting ? "Waiting for data" : "Queued"}</span>
+                    <div className="todo-body">
+                      <div className="todo-title">{s.name}</div>
+                      {s.waiting && s.data && <Meter have={s.data.have} need={s.data.need} unit="windows" />}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Screen>
+        )}
+
+        <div className="wizard-foot">
+          {step > 0 ? <button className="btn" onClick={() => go(step - 1)}>Back</button> : <span />}
+          {step < STEPS.length - 1 && (
+            <button className="btn primary" disabled={!canNext} onClick={() => { if (step === 4) setStreamsSeen(true); go(step + 1); }}
+              title={canNext ? "" : "Finish this step first"}>
+              {step === 4 ? (done[4] ? "Next" : "Skip, use All logs") : "Next"}
+            </button>
           )}
-          {calibrate.error && <div className="error-text">{calibrate.error.message}</div>}
-          {job && <div style={{ marginTop: 12 }}><JobRow job={job} /></div>}
-        </Step>
-      </ol>
+        </div>
+      </Card>
     </>
   );
 }

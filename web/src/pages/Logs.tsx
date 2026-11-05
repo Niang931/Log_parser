@@ -122,7 +122,7 @@ export default function Logs() {
           </div>
           {!logs.data ? <div style={{ padding: 16 }}><Loading error={logs.error} /></div> : logs.data.logs.length === 0 ? (
             <Empty title={active.length ? "Nothing matches" : "No logs in this range"}>
-              {active.length ? "Remove a filter or widen the time range." : <>Connect an agent from the <Link to="/setup">setup guide</Link>.</>}
+              {active.length ? "Remove a filter or widen the time range." : <>Add an agent under <Link to="/agents">Agents</Link>.</>}
             </Empty>
           ) : (
             <table className="logs">

@@ -328,7 +328,7 @@ def test_too_little_data_waits_instead_of_failing(env):
 
 
 def test_jobs_cancel_retry_and_log(env):
-    server, client, headers = env
+    server, client, _ = env
     job = server.enqueue("retrain", streams=["missing"])
     assert client.post(f"/api/jobs/{job['id']}/retry").status_code == 400  # still queued
     assert client.post(f"/api/jobs/{job['id']}/cancel").json()["status"] == "cancelled"
