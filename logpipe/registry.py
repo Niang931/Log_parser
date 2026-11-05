@@ -40,6 +40,7 @@ class TemplateEntry:
     tokens: tuple[str, ...]
     keys: tuple[str, ...]
     alias_of: int | None = None
+    rule: str | None = None  # a hand-written parsing rule (logpipe.parsing.grok); wins over tokens
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,7 @@ class NewTemplate:
     tokens: tuple[str, ...]
     keys: tuple[str, ...]
     alias_of: int | None = None
+    rule: str | None = None
 
 
 @dataclass(frozen=True)
@@ -78,6 +80,7 @@ class RegistrySnapshot:
                     "tokens": list(e.tokens),
                     "keys": list(e.keys),
                     "alias_of": e.alias_of,
+                    **({"rule": e.rule} if e.rule else {}),
                 }
                 for e in sorted(self.templates.values(), key=lambda e: e.template_id)
             ],
@@ -91,6 +94,7 @@ class RegistrySnapshot:
                 tokens=tuple(t["tokens"]),
                 keys=tuple(t["keys"]),
                 alias_of=t.get("alias_of"),
+                rule=t.get("rule"),
             )
             for t in payload["templates"]
         }
@@ -126,14 +130,14 @@ class SchemaRegistry:
             next_id = base.next_id
             assigned: list[int] = []
             for new in new_templates:
-                if len(new.keys) != len(slot_labels(new.tokens)):
+                if new.rule is None and len(new.keys) != len(slot_labels(new.tokens)):
                     raise ValueError(
                         f"template {' '.join(new.tokens)!r} has "
                         f"{len(slot_labels(new.tokens))} slots but {len(new.keys)} keys"
                     )
                 if new.alias_of is not None and new.alias_of not in templates:
                     raise ValueError(f"alias target {new.alias_of} is not registered")
-                templates[next_id] = TemplateEntry(next_id, new.tokens, new.keys, new.alias_of)
+                templates[next_id] = TemplateEntry(next_id, new.tokens, new.keys, new.alias_of, new.rule)
                 assigned.append(next_id)
                 next_id += 1
             snapshot = RegistrySnapshot(
@@ -156,24 +160,40 @@ class SchemaRegistry:
             if base.canonical_id(target) == template_id:
                 raise ValueError(f"template {target} already resolves to {template_id}")
             templates = dict(base.templates)
-            templates[template_id] = TemplateEntry(entry.template_id, entry.tokens, entry.keys, target)
+            templates[template_id] = TemplateEntry(entry.template_id, entry.tokens, entry.keys, target, entry.rule)
             self._snapshot = RegistrySnapshot(
                 version=base.version + 1, next_id=base.next_id, masks=base.masks,
                 templates=MappingProxyType(templates), key_vocab=base.key_vocab,
             )
             return self._snapshot
 
-    def replace(self, template_id: int, tokens: Sequence[str], keys: Sequence[str]) -> RegistrySnapshot:
-        """Correct a template's text and field names in place; its id (and stored rows) stay."""
+    def unalias(self, template_id: int) -> RegistrySnapshot:
+        """Undo :meth:`alias`: the template counts as its own event again."""
+        with self._lock:
+            base = self._snapshot
+            entry = base.templates.get(template_id)
+            if entry is None or entry.alias_of is None:
+                raise ValueError(f"template {template_id} isn't linked to another template")
+            templates = dict(base.templates)
+            templates[template_id] = TemplateEntry(entry.template_id, entry.tokens, entry.keys, None, entry.rule)
+            self._snapshot = RegistrySnapshot(
+                version=base.version + 1, next_id=base.next_id, masks=base.masks,
+                templates=MappingProxyType(templates), key_vocab=base.key_vocab,
+            )
+            return self._snapshot
+
+    def replace(self, template_id: int, tokens: Sequence[str], keys: Sequence[str],
+                rule: str | None = None) -> RegistrySnapshot:
+        """Correct a template's text, field names or rule in place; its id (and stored rows) stay."""
         with self._lock:
             base = self._snapshot
             entry = base.templates.get(template_id)
             if entry is None:
                 raise ValueError(f"template {template_id} is not registered")
-            if len(keys) != len(slot_labels(tokens)):
+            if rule is None and len(keys) != len(slot_labels(tokens)):
                 raise ValueError(f"{len(slot_labels(tokens))} slots but {len(keys)} keys")
             templates = dict(base.templates)
-            templates[template_id] = TemplateEntry(template_id, tuple(tokens), tuple(keys), entry.alias_of)
+            templates[template_id] = TemplateEntry(template_id, tuple(tokens), tuple(keys), entry.alias_of, rule)
             self._snapshot = RegistrySnapshot(
                 version=base.version + 1, next_id=base.next_id, masks=base.masks,
                 templates=MappingProxyType(templates), key_vocab=base.key_vocab | frozenset(keys),

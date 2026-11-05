@@ -106,12 +106,16 @@ export interface Draft {
   status: "pending" | "approved" | "rejected" | "merged";
   edited?: boolean;
   merged_into?: string;
+  rule: string;
+  rule_edited: boolean;
 }
 
 export interface AutoTemplate {
   template_id: number;
   tokens: string[];
   keys: string[];
+  rule: string;
+  rule_edited: boolean;
   count: number;
   first_seen: string | null;
 }
@@ -201,6 +205,11 @@ export interface Template {
   seen_by: string[];
   candidate: boolean;
   sql: string;
+  rule: string;
+  rule_edited: boolean;
+  linked_by: "you" | "llm" | null;
+  canonical: number;
+  linked: number[];
 }
 
 export interface Source {

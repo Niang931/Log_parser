@@ -18,6 +18,7 @@ from fastapi.responses import (
     StreamingResponse,
 )
 
+from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from .core import MIN_DRAFT_LINES, Busy, Server
 from .reads import FACETS
@@ -175,11 +176,19 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
         calibrated_at = server.settings.get("calibrated_at") or ""
         vocabs = {sid: s.vocab for sid, s in server.scorers.items()}
         out = []
+        links: dict[int, list[int]] = {}
+        for t in snap.templates.values():
+            if t.alias_of is not None:
+                links.setdefault(t.alias_of, []).append(t.template_id)
         for t in sorted(snap.templates.values(), key=lambda t: t.template_id):
             meta = server.tmeta.get(t.template_id, {})
             seen_by = [sid for sid, v in vocabs.items() if t.template_id in v]
             out.append(asdict(t) | {
                 "text": " ".join(t.tokens), "count": meta.get("count", 0),
+                "rule": t.rule or rule_from_template(t.tokens, t.keys), "rule_edited": bool(t.rule),
+                # links not made by a person came from the enrichment worker's LLM alias check
+                "linked_by": (meta.get("linked_by") or "llm") if t.alias_of is not None else None,
+                "canonical": snap.canonical_id(t.template_id), "linked": sorted(links.get(t.template_id, [])),
                 "first_seen": meta.get("first_seen"), "last_seen": meta.get("last_seen"),
                 "seen_by": seen_by,
                 "candidate": not seen_by and (meta.get("first_seen") or "") > calibrated_at,
@@ -321,6 +330,22 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     @app.post("/api/drafts/{draft_id}/merge")
     def merge_drafts(draft_id: str, body: Annotated[dict, Body()]) -> dict:
         return server.merge_drafts(draft_id, [str(o) for o in body["others"]])
+
+    @app.post("/api/drafts/{draft_id}/check")
+    def check_draft_rule(draft_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.check_draft_rule(draft_id, str(body["rule"]))
+
+    @app.post("/api/templates/{tid}/check")
+    def check_template_rule(tid: int, body: Annotated[dict, Body()]) -> dict:
+        return server.check_template_rule(tid, str(body["rule"]))
+
+    @app.post("/api/templates/{tid}/link")
+    def link_template(tid: int, body: Annotated[dict, Body()]) -> dict:
+        return server.link_template(tid, int(body["target"]))
+
+    @app.post("/api/templates/{tid}/unlink")
+    def unlink_template(tid: int) -> dict:
+        return server.unlink_template(tid)
 
     @app.post("/api/templates/{tid}/review")
     def review_template(tid: int, body: Annotated[dict, Body()]) -> dict:

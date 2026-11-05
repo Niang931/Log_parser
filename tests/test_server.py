@@ -356,3 +356,63 @@ def test_online_templates_are_listed_for_review(env):
     assert client.post(f"/api/templates/{tid}/review", json={"keys": keys}).json()["reviewed"]
     entry = server.registry.current.templates[tid]
     assert list(entry.keys) == keys and tid not in [t["template_id"] for t in client.get("/api/review").json()["auto_templates"]]
+
+
+def test_parsing_rules_on_drafts_and_live_templates(env):
+    server, client, headers = env
+    send(server, client, headers, events(app_lines(200)))
+    client.post("/api/review/generate", json={"sample_cap": 150})
+    run_jobs(server)
+    bid = client.get("/api/setup").json()["review"]["id"]
+    drafts = client.get(f"/api/review/{bid}").json()["drafts"]
+    login = next(d for d in drafts if d["tokens"][0] == "user")
+    assert login["rule"].startswith("user %{number:") and not login["rule_edited"]  # a starting rule
+
+    rule = "user %{integer:user_id} logged in from %{ip:client_ip}"
+    checked = client.post(f"/api/drafts/{login['id']}/check", json={"rule": rule}).json()
+    assert checked["count"] == login["count"] > 30 and checked["keys"] == ["user_id", "client_ip"]
+    assert checked["rows"][0]["fields"]["client_ip"].startswith("10.0.0.")
+    narrow = client.post(f"/api/drafts/{login['id']}/check", json={"rule": "user %{integer:u} logged in from 10.0.0.1"}).json()
+    assert narrow["missed"] > 0 and narrow["rows"][-1]["fields"] is None  # the draft's lines it misses
+    assert client.post(f"/api/drafts/{login['id']}/check", json={"rule": "%{data:x}"}).status_code == 400
+    saved = client.put(f"/api/drafts/{login['id']}", json={"rule": rule}).json()
+    assert saved["rule_edited"] and saved["keys"] == ["user_id", "client_ip"]
+    client.post(f"/api/review/{bid}/decide-all", json={"status": "approved"})
+    client.post(f"/api/review/{bid}/apply")
+    run_jobs(server)
+    row = client.get("/api/logs", params={"q": "logged in", "limit": 1}).json()["logs"][0]
+    assert set(row["payload"]) == {"user_id", "client_ip"}  # back-filled with the rule
+
+    # a live template: new rule -> stored lines re-extracted by a job
+    worker = next(t for t in client.get("/api/templates").json()["templates"] if t["text"].startswith("worker"))
+    assert not worker["rule_edited"]
+    rule = "worker %{integer:worker_id} finished job %{integer:job_id}"
+    assert client.post(f"/api/templates/{worker['template_id']}/check", json={"rule": rule}).json()["count"] == 50
+    job = client.post(f"/api/templates/{worker['template_id']}/review", json={"rule": rule}).json()["job"]
+    assert job["kind"] == "reextract"
+    run_jobs(server)
+    row = client.get("/api/logs", params={"q": "finished job", "limit": 1}).json()["logs"][0]
+    assert set(row["payload"]) == {"worker_id", "job_id"}
+    send(server, client, headers, events(["worker 3 finished job 77"], start=900))
+    row = client.get("/api/logs", params={"q": "job 77", "limit": 1}).json()["logs"][0]
+    assert row["payload"] == {"worker_id": "3", "job_id": "77"}
+    assert server.registry.current.templates[worker["template_id"]].rule == rule
+
+
+def test_template_links_show_who_made_them_and_can_be_undone(env):
+    server, client, headers = env
+    calibrated(server, client, headers, app_lines(120))
+    tpl = {t["text"].split()[0]: t for t in client.get("/api/templates").json()["templates"]}
+    a, b = tpl["worker"]["template_id"], tpl["cache"]["template_id"]
+    assert client.post(f"/api/templates/{a}/link", json={"target": b}).json()["alias_of"] == b
+    tpl = {t["template_id"]: t for t in client.get("/api/templates").json()["templates"]}
+    assert tpl[a]["linked_by"] == "you" and tpl[a]["canonical"] == b and tpl[b]["linked"] == [a]
+    send(server, client, headers, events(["worker 1 finished job 5"], start=900))
+    assert client.get("/api/logs", params={"q": "job 5", "limit": 1}).json()["logs"][0]["template_id"] == b
+    assert client.post(f"/api/templates/{a}/unlink").json()["alias_of"] is None
+    tpl = {t["template_id"]: t for t in client.get("/api/templates").json()["templates"]}
+    assert tpl[a]["linked_by"] is None and tpl[b]["linked"] == []
+    assert client.post(f"/api/templates/{a}/unlink").status_code == 400
+    snap = server.registry.alias(a, b)  # as the enrichment worker's LLM alias check does it
+    server.pipeline.handle.swap(snap)
+    assert {t["template_id"]: t for t in client.get("/api/templates").json()["templates"]}[a]["linked_by"] == "llm"

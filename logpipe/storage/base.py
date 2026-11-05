@@ -81,8 +81,9 @@ class LogStore(Protocol):
 
     def insert_alerts(self, alerts: Sequence[AnomalyAlert]) -> None: ...
 
-    def fetch_pending(self, limit: int = 10_000) -> list[LogRow]:
-        """Latest-version rows still PENDING, used to rebuild the retry buffer on restart."""
+    def fetch_pending(self, limit: int = 10_000, template_id: int | None = None) -> list[LogRow]:
+        """Latest-version rows still PENDING, used to rebuild the retry buffer on restart; with
+        ``template_id``, that template's rows instead."""
         ...
 
     def count_by_status(self) -> dict[str, int]: ...

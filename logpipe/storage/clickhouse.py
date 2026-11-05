@@ -129,13 +129,15 @@ class ClickHouseStore:
         ]
         self._insert("anomaly_alerts", data, ALERT_COLUMNS)
 
-    def fetch_pending(self, limit: int = 10_000) -> list[LogRow]:
+    def fetch_pending(self, limit: int = 10_000, template_id: int | None = None) -> list[LogRow]:
+        """PENDING rows, or with ``template_id`` that template's rows (to re-extract them)."""
         self.flush()
+        where = "log_status = 'PENDING'" if template_id is None else "template_id = {tid:UInt32}"
         result = self.client.query(
             "SELECT log_id, timestamp, device_id, template_id, registry_version, version, "
-            "raw_message, service, source, tags FROM iot_logs FINAL WHERE log_status = 'PENDING' "
+            f"raw_message, service, source, tags FROM iot_logs FINAL WHERE {where} "
             "ORDER BY timestamp LIMIT {limit:UInt32}",
-            parameters={"limit": limit},
+            parameters={"limit": limit, "tid": template_id or 0},
         )
         return [
             LogRow(
@@ -143,7 +145,7 @@ class ClickHouseStore:
                 timestamp=ts if ts.tzinfo else ts.replace(tzinfo=UTC),
                 device_id=device_id,
                 template_id=template_id,
-                status=Status.PENDING,
+                status=Status.PENDING if template_id is None else Status.FINAL,
                 registry_version=registry_version,
                 payload={},
                 raw_message=raw,

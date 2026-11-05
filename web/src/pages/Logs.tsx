@@ -1,8 +1,8 @@
 import { Fragment, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { usePoll, type Facets, type Histogram, type LogLine } from "../api";
+import { usePoll, type Facets, type Histogram, type LogLine, type Template } from "../api";
 import { LEVELS, LevelBadge, PARSE, Timeline, TimeRange, useRange } from "../charts";
-import { Drawer, Empty, Loading, StatusBadge, fmt } from "../ui";
+import { Drawer, Empty, Loading, StatusBadge, TemplateText, fmt } from "../ui";
 
 const FILTERS = ["level", "service", "host", "source", "status", "template_id"] as const;
 const FACET_GROUPS: { key: keyof Facets; title: string }[] = [
@@ -59,6 +59,26 @@ function FacetPanel({ facets, params, toggle }: { facets?: Facets; params: URLSe
         );
       })}
     </aside>
+  );
+}
+
+/** The template a log line belongs to, with the templates linked to it as the same event. */
+function TemplateInfo({ id, onGo }: { id: number; onGo: () => void }) {
+  const all = usePoll<{ templates: Template[] }>("/api/templates", 30000).data?.templates;
+  const t = all?.find((x) => x.template_id === id);
+  if (!all) return <span className="muted">…</span>;
+  if (!t) return <>#{id}</>;
+  const linked = t.linked.map((l) => all.find((x) => x.template_id === l)).filter((x): x is Template => !!x);
+  return (
+    <div className="stack" style={{ gap: 4 }}>
+      <Link to={`/templates?id=${id}`} onClick={onGo}>#{id} <TemplateText tokens={t.tokens} keys={t.keys} /></Link>
+      {linked.map((l) => (
+        <div key={l.template_id} className="small">
+          <span className="muted">↳ same event:</span> <Link to={`/templates?id=${l.template_id}`} onClick={onGo}>#{l.template_id} <TemplateText tokens={l.tokens} keys={l.keys} /></Link>
+          {" "}<span className="muted">(linked by {l.linked_by === "you" ? "you" : "LLM"})</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -167,7 +187,7 @@ export default function Logs() {
               <dt>tags</dt><dd>{open.tags.length ? open.tags.map((t) => <span key={t} className="badge" style={{ marginRight: 4 }}>{t}</span>) : "–"}</dd>
               <dt>parsing</dt><dd><StatusBadge status={open.status} /></dd>
               <dt>template</dt><dd>{open.status === "FINAL"
-                ? <Link to={`/templates?id=${open.template_id}`} onClick={() => setOpen(null)}>#{open.template_id}</Link>
+                ? <TemplateInfo id={open.template_id} onGo={() => setOpen(null)} />
                 : "not matched yet (learned online, then back-filled)"}</dd>
             </dl>
             {Object.keys(open.payload).length > 0 && (

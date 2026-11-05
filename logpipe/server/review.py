@@ -8,6 +8,7 @@ from deepparse.masks_types import Mask
 
 from ..enrich.validate import KEY_RE, template_problem
 from ..parsing.frozen_parser import FrozenParser, Status
+from ..parsing.grok import compile_rule, rule_from_template
 from ..parsing.kv import SLOT_RE, slot_labels
 from ..registry import FIRST_TEMPLATE_ID, NewTemplate, RegistrySnapshot, SchemaRegistry
 
@@ -35,7 +36,9 @@ def draft_docs(batch_id: str, templates: Sequence[NewTemplate], masks: Sequence[
             if len(samples[i]) < SAMPLES:
                 samples[i].append(line)
     return [{"id": f"{batch_id}-{i}", "batch": batch_id, "tokens": list(t.tokens),
-             "keys": list(t.keys), "count": counts[i], "samples": samples[i], "status": "pending"}
+             "keys": list(t.keys), "count": counts[i], "samples": samples[i], "status": "pending",
+             "rule": rule_from_template(t.tokens, t.keys), "rule_edited": False,
+             "mined": {"tokens": list(t.tokens), "keys": list(t.keys)}}
             for i, t in enumerate(templates)]
 
 
@@ -77,3 +80,32 @@ def merge_tokens(a: Sequence[str], b: Sequence[str]) -> list[str]:
                          f"({len(a)} vs {len(b)}); edit one first")
     return [x if x == y else x if SLOT_RE.fullmatch(x) else y if SLOT_RE.fullmatch(y) else "<*>"
             for x, y in zip(a, b)]
+
+
+def check_rule(text: str, lines: Sequence[str], own=None) -> dict:
+    """Run a parsing rule over sample lines: how many it matches, what it extracts from the first
+    of them, and lines it misses that ``own`` (a predicate: this template's lines) says it should
+    have matched."""
+    rule = compile_rule(text)
+    matched, rows, misses = 0, [], []
+    for line in lines[:CHECK_LINES]:
+        fields = rule.extract(line)
+        if fields is not None:
+            matched += 1
+            if len(rows) < 20:
+                rows.append({"line": line, "fields": fields})
+        elif own is not None and len(misses) < 10 and own(line):
+            misses.append({"line": line, "fields": None})
+    return {"count": matched, "checked": min(len(lines), CHECK_LINES), "keys": list(rule.keys),
+            "tokens": list(rule.tokens), "rows": rows + misses, "missed": len(misses),
+            "samples": [r["line"] for r in rows[:SAMPLES]]}
+
+
+def mined_matcher(draft: dict, masks: Sequence[Mask]):
+    """Whether a line belongs to the template as it was mined (before any edit)."""
+    mined = draft.get("mined") or {"tokens": draft["tokens"], "keys": draft["keys"]}
+    try:
+        parser = _parser([NewTemplate(tuple(mined["tokens"]), tuple(mined["keys"]))], masks)
+    except ValueError:
+        return None
+    return lambda line: parser.parse(line).status == Status.FINAL

@@ -20,6 +20,7 @@ import threading
 import time
 import uuid
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -36,6 +37,7 @@ from ..calibrate import append_drafts, calibrate
 from ..enrich.llm import LLMAdapter
 from ..enrich.validate import clean_keys
 from ..parsing.frozen_parser import ParserHandle, Status
+from ..parsing.grok import compile_rule, rule_from_template
 from ..pipeline import Pipeline
 from ..registry import UNK_TEMPLATE_ID, NewTemplate, SchemaRegistry
 from ..sources.file_replay import LogEvent
@@ -86,7 +88,7 @@ DEFAULT_SETTINGS = {"sample_cap": 5000, "retrain_days": 7, "calibrated": False,
                     "draft_lines": 500, "draft_after_minutes": 60}
 MIN_TRAIN_WINDOWS = 8
 MIN_DRAFT_LINES = 50  # below this a sample can't say much about a source's templates
-JOB_KINDS = ("draft", "apply", "retrain")
+JOB_KINDS = ("draft", "apply", "retrain", "reextract")
 
 
 class NotEnoughData(ValueError):
@@ -386,6 +388,7 @@ class Server:
                 self._dirty.add(("source", w["subject"]))
             else:
                 snapshot = self.registry.alias(int(w["subject"]), int(target))
+                self._linked(int(w["subject"]), "you")
                 self.registry.save(self.registry_path)
                 self.pipeline.handle.swap(snapshot)
         return self.resolve_warning(wid, f"same as {target}")
@@ -571,19 +574,34 @@ class Server:
             raise KeyError(batch_id)
         return review.check(tokens, keys, self._masks(batch), self.batch_lines(batch_id))
 
+    def check_draft_rule(self, draft_id: str, rule: str) -> dict:
+        """A rule against the batch's recent lines, plus this draft's lines it would miss."""
+        draft = self.control.get("draft", draft_id)
+        if draft is None:
+            raise KeyError(draft_id)
+        batch = self.control.get("batch", draft["batch"]) or {}
+        return review.check_rule(rule, self.batch_lines(draft["batch"]),
+                                 review.mined_matcher(draft, self._masks(batch)))
+
     def update_draft(self, draft_id: str, body: dict) -> dict:
         draft = self.control.get("draft", draft_id)
         if draft is None:
             raise KeyError(draft_id)
         batch = self._open_batch(draft["batch"])
         changes: dict = {}
-        if "tokens" in body or "keys" in body:
+        if "rule" in body:
+            checked = self.check_draft_rule(draft_id, str(body["rule"]))
+            changes = {"rule": compile_rule(str(body["rule"])).text, "rule_edited": True, "edited": True,
+                       "tokens": checked["tokens"], "keys": checked["keys"],
+                       "count": checked["count"], "samples": checked["samples"]}
+        elif "tokens" in body or "keys" in body:
             tokens = [str(t) for t in body.get("tokens", draft["tokens"])]
             keys = [str(k) for k in body.get("keys", draft["keys"])]
             if "tokens" in body and "keys" not in body:  # slots changed: keep names that still fit
                 keys = clean_keys(draft["keys"], tokens)
             changes = review.check(tokens, keys, self._masks(batch), self.batch_lines(batch["id"]))
-            changes |= {"tokens": tokens, "keys": keys, "edited": True}
+            changes |= {"tokens": tokens, "keys": keys, "edited": True,
+                        "rule": rule_from_template(tokens, keys), "rule_edited": False}
             changes.pop("checked")
         if "status" in body:
             if body["status"] not in ("pending", "approved", "rejected"):
@@ -617,6 +635,7 @@ class Server:
         for d in docs:
             self.control.update("draft", d["id"], status="merged", merged_into=target_id)
         return self.control.update("draft", target_id, tokens=tokens, keys=keys, edited=True,
+                                   rule=rule_from_template(tokens, keys), rule_edited=False,
                                    count=checked["count"], samples=checked["samples"],
                                    status="approved" if target["status"] == "pending" else target["status"])
 
@@ -655,7 +674,8 @@ class Server:
     def _job_apply(self, progress, batch: str) -> str:
         doc = self._open_batch(batch)
         approved = [d for d in self.drafts(batch) if d["status"] == "approved"]
-        templates = [NewTemplate(tuple(d["tokens"]), tuple(d["keys"])) for d in approved]
+        templates = [NewTemplate(tuple(d["tokens"]), tuple(d["keys"]),
+                                 rule=d["rule"] if d.get("rule_edited") else None) for d in approved]
         vocab = [k for t in templates for k in t.keys]
         progress(0.05, f"publishing {len(templates)} approved templates")
         with self.lock:
@@ -694,19 +714,27 @@ class Server:
             return []
         snap = self.registry.current
         return [{"template_id": t.template_id, "tokens": list(t.tokens), "keys": list(t.keys),
+                 "rule": t.rule or rule_from_template(t.tokens, t.keys), "rule_edited": bool(t.rule),
                  "count": self.tmeta.get(t.template_id, {}).get("count", 0),
                  "first_seen": self.tmeta.get(t.template_id, {}).get("first_seen")}
                 for t in sorted(snap.templates.values(), key=lambda t: t.template_id)
                 if t.alias_of is None and not self.tmeta.get(t.template_id, {}).get("reviewed")]
 
     def review_template(self, tid: int, body: dict) -> dict:
-        """``{"keep": true}``, ``{"tokens": [...], "keys": [...]}`` or ``{"same_as": id}``."""
+        """``{"keep": true}``, ``{"rule": "..."}``, ``{"tokens": [...], "keys": [...]}`` or
+        ``{"same_as": id}``. A new rule also re-extracts the template's stored lines (a job)."""
         snap = self.registry.current
         if tid not in snap.templates:
             raise KeyError(tid)
+        job = None
         with self.lock:
-            if "same_as" in body:
+            if "rule" in body:
+                rule = compile_rule(str(body["rule"]))
+                snapshot = self.registry.replace(tid, rule.tokens, rule.keys, rule.text)
+                job = True
+            elif "same_as" in body:
                 snapshot = self.registry.alias(tid, int(body["same_as"]))
+                self._linked(tid, "you")
             elif "tokens" in body or "keys" in body:
                 entry = snap.templates[tid]
                 tokens = [str(t) for t in body.get("tokens", entry.tokens)]
@@ -722,7 +750,57 @@ class Server:
             meta = self.tmeta.setdefault(tid, {"id": str(tid), "first_seen": now_iso(), "count": 0})
             meta["reviewed"] = True
             self._dirty.add(("template", str(tid)))
-        return {"template_id": tid, "reviewed": True}
+        if job:
+            job = self.enqueue("reextract", template=tid)
+        return {"template_id": tid, "reviewed": True, "job": job}
+
+    def _linked(self, tid: int, by: str | None) -> None:
+        meta = self.tmeta.setdefault(tid, {"id": str(tid), "first_seen": now_iso(), "count": 0})
+        meta.update(linked_by=by, linked_at=now_iso() if by else None)
+        self._dirty.add(("template", str(tid)))
+
+    def link_template(self, tid: int, target: int) -> dict:
+        """``tid`` is the same event as ``target``: models count its lines as ``target``."""
+        with self.lock:
+            snapshot = self.registry.alias(tid, target)
+            self.registry.save(self.registry_path)
+            self.pipeline.handle.swap(snapshot)
+            self._linked(tid, "you")
+        return {"template_id": tid, "alias_of": target}
+
+    def unlink_template(self, tid: int) -> dict:
+        with self.lock:
+            snapshot = self.registry.unalias(tid)
+            self.registry.save(self.registry_path)
+            self.pipeline.handle.swap(snapshot)
+            self._linked(tid, None)
+        return {"template_id": tid, "alias_of": None}
+
+    def check_template_rule(self, tid: int, rule: str) -> dict:
+        """A rule against this template's stored lines (what it extracts, what it misses)."""
+        if tid not in self.registry.current.templates:
+            raise KeyError(tid)
+        lines = [r["message"] for r in self.reads.recent({"template_id": tid}, 500)]
+        return review.check_rule(rule, lines, own=lambda _line: True)
+
+    def _job_reextract(self, progress, template: int) -> str:
+        entry = self.registry.current.templates.get(template)
+        if entry is None or not entry.rule:
+            raise ValueError(f"template {template} has no parsing rule")
+        rule = compile_rule(entry.rule)
+        progress(0.05, f"reading stored lines of template #{template}")
+        rows = self.store.fetch_pending(1_000_000, template_id=template)
+        out = []
+        for i, row in enumerate(rows):
+            fields = rule.extract(row.raw_message)
+            if fields is not None:
+                out.append(replace(row, payload=fields, version=row.version + 1))
+            if i % 5000 == 0:
+                progress(0.1 + 0.6 * i / max(len(rows), 1), f"re-extracted {i} of {len(rows)} lines")
+        for i in range(0, len(out), 10_000):
+            self.store.insert_logs(out[i:i + 10_000])
+        self.store.flush()
+        return f"{len(out)} of {len(rows)} stored lines re-extracted with the new rule"
 
     # --- training -----------------------------------------------------------------------
     def train(self, streams: list[str]) -> dict:
