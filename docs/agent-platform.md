@@ -82,6 +82,40 @@ before there is enough of it.
 Without labelled incidents, a stream's alert threshold is the 99th percentile of the miss ratio on
 its held-out normal windows (at least 0.3).
 
+## Parsing rules and linked templates
+
+A template can carry a hand-written rule, written like Datadog's parsing rules:
+
+```
+%{timestamp:ts} UTC [%{integer:pid}] LOG: duration: %{number:duration_ms} ms statement: %{data:statement}
+```
+
+Matchers: `word`, `notspace`, `integer`, `number`, `ip`, `hostname`, `path`, `uuid`, `quoted`,
+`timestamp`, `data` (anything, lazy) and `%{regex("…"):name}`. `%{matcher}` without a name matches
+without extracting; whitespace matches any run of whitespace; the rule must match the whole line.
+Every draft and template starts with a rule generated from its mined text. The editor re-runs the
+rule on the recent lines as you type and shows a table: each sample line with what every field
+extracted, plus the template's lines the rule would miss. Templates with a rule are tried before
+the Drain tree. Saving a rule on a live template re-extracts its stored lines (a `reextract` job).
+
+Templates can be **linked** as the same event (registry aliases): the anomaly models count a linked
+template as the one it points to; each keeps its own rule and fields. Links come from a person
+(Templates → Related templates, Maintenance → Same event as…) or from the enrichment worker's LLM
+same-event check; the UI shows which, lists linked templates under the one they count as, shows them
+in the Log Explorer's side panel, and can unlink them.
+
+A source that appears after setup is held: its lines stay `PENDING` (visible in the explorer) and
+are not handed to the online learner until its drafted templates are reviewed, so the review isn't
+pre-empted. Lines no approved template matches are learned online after that.
+
+## Query
+
+The Query page has a **builder** (time range, filters on log attributes or extracted `@fields`, a
+measure: count, distinct, avg/min/max/sum, p95 on ClickHouse; up to two group-bys; over time), which
+the server turns into read-only SQL for ClickHouse or the memory store's SQLite and charts. It also
+has a schema sidebar, **saved queries** (stored on the server, shared), **Ask in English** (the
+configured LLM writes SQL you review before it runs; needs a non-offline `--llm`), and plain SQL.
+
 ## Storage
 
 - Logs: `iot_logs` gains `service`, `source`, `tags` (added with `ALTER … IF NOT EXISTS`);

@@ -206,6 +206,12 @@ def _demo(args: argparse.Namespace) -> None:
     serve(demo, args.host, args.port, args.rate)
 
 
+def _showcase(args: argparse.Namespace) -> None:
+    from .showcase import run
+
+    run(port=args.port, auto=args.auto, ask=not args.no_ask)
+
+
 def _server(args: argparse.Namespace) -> None:
     if args.raw == ["server"] and sys.stdin.isatty():  # no flags: ask instead
         from .start import start
@@ -391,6 +397,12 @@ def main(argv: list[str] | None = None) -> None:
     sv.add_argument("--epochs", type=int, default=8, help="LogBERT epochs per stream")
     sv.add_argument("--demo", action="store_true", help="also run the developer demo at /demo/")
     sv.set_defaults(func=_server)
+
+    sc = sub.add_parser("showcase", help="guided tour: server, a web shop's logs, an agent, every feature")
+    sc.add_argument("--port", type=int, default=8080)
+    sc.add_argument("--no-ask", action="store_true", help="memory store, offline LLM, no questions")
+    sc.add_argument("--auto", action="store_true", help="do every act without waiting for you (implies --no-ask)")
+    sc.set_defaults(func=_showcase)
 
     fd = sub.add_parser("fetch-data", help="download the evaluation datasets up front")
     fd.add_argument("datasets", nargs="*", choices=["loghub2k", "HDFS", "BGL"],

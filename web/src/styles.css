@@ -497,3 +497,4 @@ tr.linked-row td { background: color-mix(in srgb, var(--surface-2) 55%, transpar
 .gen-sql summary { cursor: pointer; color: var(--ink-2); }
 .gen-sql pre { margin: 8px 0; white-space: pre-wrap; }
 @media (max-width: 900px) { .query-layout { grid-template-columns: 1fr; } .query-side { position: static; } }
+.b-row > .btn { justify-self: start; }
