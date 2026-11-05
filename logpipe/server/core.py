@@ -91,7 +91,9 @@ DEFAULT_SETTINGS = {"sample_cap": 5000, "retrain_days": 7, "calibrated": False,
                     "draft_lines": 500, "draft_after_minutes": 60}
 MIN_TRAIN_WINDOWS = 8
 MIN_DRAFT_LINES = 50  # below this a sample can't say much about a source's templates
-JOB_KINDS = ("draft", "apply", "retrain", "reextract")
+JOB_KINDS = ("draft", "apply", "retrain", "reextract", "explain")
+INCIDENT_GAP = timedelta(minutes=5)  # alerts on one service closer than this are one incident
+INCIDENT_STATES = ("open", "acknowledged", "resolved", "false_positive")
 
 
 class NotEnoughData(ValueError):
@@ -142,6 +144,10 @@ def validate_remote_yaml(text: str) -> None:
 def _matches(selector: dict, host: str, service: str, source: str) -> bool:
     return all(fnmatch.fnmatchcase(value, selector.get(field) or "*")
                for field, value in (("host", host), ("service", service), ("source", source)))
+
+
+def _when(iso: str) -> datetime:
+    return datetime.fromisoformat(iso)
 
 
 def _template_text(tokens, keys) -> str:
@@ -197,6 +203,11 @@ class _Traced:
                             {"lines": len(lines), "sample size": sample_size, "first lines": list(lines[:10])},
                             f"synthesizing masks from {min(len(lines), sample_size)} sample lines",
                             lambda out: f"{len(out)} masks; Drain is mining templates")
+
+    def explain_incident(self, facts):
+        return self._traced("explain_incident", self._inner.explain_incident, (facts,),
+                            {"context": facts["text"]}, "asking for a summary, a likely cause and next steps",
+                            lambda out: f"answer: {out['summary']}")
 
     def name_keys(self, tokens, samples):
         return self._traced("name_keys", self._inner.name_keys, (tokens, samples),
@@ -1025,7 +1036,12 @@ class Server:
             ids = [t for t in ids if t != UNK_TEMPLATE_ID]
             if ids:
                 sequences.append(ids)
-        return [w for seq in sequences for w in sliding_windows(seq, self.window, self.stride)], len(sequences)
+        windows = [w for seq in sequences for w in sliding_windows(seq, self.window, self.stride)]
+        # Incidents marked false positive: normal after all, so the next model learns them.
+        windows += [[snapshot.canonical_id(int(t)) for t in w] for d in self.control.all("incident")
+                    if d.get("status") == "false_positive" and d.get("stream") == stream_id
+                    for w in d.get("windows") or []]
+        return windows, len(sequences)
 
     def _window_count(self, stream_id: str) -> int:
         return len(self._windows(stream_id)[0]) if self.settings["calibrated"] else 0
@@ -1157,6 +1173,105 @@ class Server:
             "waiting": [s for s in streams.values() if s.get("waiting")],
             "warnings": warnings,
         }
+
+    # --- incidents ----------------------------------------------------------------------
+    def incidents(self, limit: int = 2000) -> list[dict]:
+        """Alerts grouped: one service's alerts less than INCIDENT_GAP apart are one incident,
+        named by its first alert, newest first, with what a person decided about it."""
+        groups: dict[str, dict] = {}
+        out: list[dict] = []
+        for a in sorted(self.reads.alerts(limit), key=lambda a: a["window_start"]):
+            cur = groups.get(a["key"])
+            if cur is None or _when(a["window_start"]) - _when(cur["end"]) > INCIDENT_GAP:
+                host, _, service = a["key"].partition("/")
+                cur = groups[a["key"]] = {
+                    "id": a["alert_id"], "key": a["key"], "host": host, "service": service,
+                    "start": a["window_start"], "end": a["window_end"], "alerts": 0, "peak_miss": 0.0,
+                    "model_version": a["model_version"], "stream": a["model_version"].rsplit("-", 1)[0],
+                    "windows": []}
+                out.append(cur)
+            cur["alerts"] += 1
+            cur["end"] = max(cur["end"], a["window_end"], key=_when)
+            cur["peak_miss"] = max(cur["peak_miss"], a["miss_ratio"])
+            cur["windows"].append(a["template_ids"])
+        for inc in out:
+            state = self.control.get("incident", inc["id"]) or {}
+            inc.update(status=state.get("status", "open"), note=state.get("note", ""),
+                       updated_at=state.get("updated_at"), explanation=state.get("explanation"))
+        return sorted(out, key=lambda i: _when(i["end"]), reverse=True)
+
+    def incident(self, incident_id: str) -> dict:
+        """One incident with its lines in order, each marked as the model expected it or not
+        (and what it expected instead), plus warnings and errors elsewhere at the same time."""
+        inc = next((i for i in self.incidents() if i["id"] == incident_id), None)
+        if inc is None:
+            raise KeyError(incident_id)
+        start, end = _when(inc["start"]), _when(inc["end"])
+        lines = self.reads.between(start, end, 400, inc["host"], inc["service"])
+        snap = self.registry.current
+        ids = [snap.canonical_id(int(line["template_id"])) for line in lines]
+        scorer = self.scorers.get(inc["stream"])
+        verdicts = ([v for i in range(0, len(ids), self.window) for v in scorer.explain(ids[i:i + self.window])]
+                    if scorer else [{"status": "expected", "expected": []} for _ in ids])
+
+        def text(tid: int) -> str:
+            entry = snap.templates.get(tid)
+            return _template_text(entry.tokens, entry.keys) if entry else ("not parsed yet" if tid == UNK_TEMPLATE_ID else f"#{tid}")
+        events = [line | {"template_id": tid, "template": text(tid), "status": v["status"],
+                          "expected": [{"template_id": t, "template": text(t)} for t in v["expected"]]}
+                  for line, tid, v in zip(lines, ids, verdicts)]
+        around = [r for r in self.reads.between(start - timedelta(minutes=1), end + timedelta(minutes=1), 2000)
+                  if r["level"] in ("error", "warn") and (r["host"], r["service"]) != (inc["host"], inc["service"])][:50]
+        jobs = [j for j in self.control.all("job") if j["kind"] == "explain" and j["params"].get("incident") == incident_id]
+        return inc | {"events": events, "around": around,
+                      "model_current": bool(scorer) and scorer.version == inc["model_version"],
+                      "explain_job": max(jobs, key=lambda j: j["created_at"]) if jobs else None}
+
+    def set_incident(self, incident_id: str, status: str, note: str = "") -> dict:
+        if status not in INCIDENT_STATES:
+            raise ValueError(f"status must be one of {', '.join(INCIDENT_STATES)}")
+        inc = next((i for i in self.incidents() if i["id"] == incident_id), None)
+        if inc is None:
+            raise KeyError(incident_id)
+        doc = (self.control.get("incident", incident_id) or {"id": incident_id}) | {
+            "status": status, "note": note[:2000], "updated_at": now_iso(), "stream": inc["stream"],
+            # what the next retrain learns as normal if this was a false positive
+            "windows": inc["windows"][:200] if status == "false_positive" else []}
+        self.control.put("incident", incident_id, doc)
+        self.events.notify()
+        return doc
+
+    def explain_incident(self, incident_id: str) -> dict:
+        self.incident(incident_id)  # 404 before queueing
+        return self.enqueue("explain", incident=incident_id)
+
+    def _job_explain(self, progress, incident: str) -> str:
+        progress(0.05, "collecting the incident's lines and what the model expected")
+        inc = self.incident(incident)
+        events = inc["events"]
+        unusual = [e for e in events if e["status"] != "expected"]
+        mark = {"expected": " ", "unexpected": "*", "unseen": "?"}
+        shown = events if len(events) <= 60 else (unusual or events)[:60]
+        text = "\n".join([
+            (f"Service: {inc['key']}  from {inc['start']} to {inc['end']}  ({inc['alerts']} alerts, "
+             f"up to {round(inc['peak_miss'] * 100)}% of events mispredicted)"),
+            (f"{len(unusual)} of {len(events)} events were unusual. * = not what the model expected there, "
+             "? = a kind of line the model never saw:"),
+            *(f"{mark[e['status']]} {e['timestamp']} {e['message'].splitlines()[0][:300]}"
+              + (f"   (expected: {e['expected'][0]['template']})" if e["expected"] and e["status"] == "unexpected" else "")
+              for e in shown),
+            "Warnings and errors from other services at the same time:" if inc["around"] else "No other service logged warnings or errors then.",
+            *(f"  {a['timestamp']} {a['host']}/{a['service']}: {a['message'].splitlines()[0][:200]}" for a in inc["around"][:20])])
+        facts = {"text": text, "key": inc["key"], "events": unusual, "around": inc["around"]}
+        progress(0.15, f"{len(unusual)} unusual events of {len(events)}; asking the LLM", {
+            "Input": {"incident": inc["key"], "unusual events": len(unusual), "prompt context": text}})
+        adapter = _Traced(self.adapter, progress, 0.2, 0.9)
+        result = adapter.explain_incident(facts)
+        self.control.put("incident", incident, (self.control.get("incident", incident) or {"id": incident, "status": "open"})
+                         | {"explanation": result | {"at": now_iso()}, "stream": inc["stream"]})
+        progress(0.95, "explanation saved", {"LLM calls": adapter.calls, "Output": result})
+        self.events.notify()
+        return result["summary"]
 
     # --- streams ------------------------------------------------------------------------
     def save_stream(self, doc: dict, stream_id: str | None = None) -> dict:

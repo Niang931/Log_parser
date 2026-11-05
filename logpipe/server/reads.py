@@ -99,6 +99,14 @@ class MemoryReads:
     def recent(self, filters: dict, limit: int, text: str = "", minutes: int | None = None) -> list[dict]:
         return sorted(self._match(filters, text, minutes), key=lambda j: j["timestamp"], reverse=True)[:limit]
 
+    def between(self, start: datetime, end: datetime, limit: int, host: str | None = None,
+                service: str | None = None) -> list[dict]:
+        """Rows logged from ``start`` to ``end`` (inclusive), oldest first."""
+        rows = sorted((r for r in self._rows() if start <= r.timestamp <= end
+                       and host in (None, r.device_id) and service in (None, r.service)),
+                      key=lambda r: r.timestamp)
+        return [row_json(r) for r in rows[:limit]]
+
     def histogram(self, minutes: int, by: str, filters: dict | None = None, text: str = "") -> dict:
         step, key = step_for(minutes), "level" if by == "level" else "status"
         counts: dict[int, Counter] = {}
@@ -197,6 +205,25 @@ class ClickHouseReads:
         return [{"log_id": str(i), "timestamp": _iso(ts), "host": h, "service": s, "source": src,
                  "tags": list(tags), "status": st, "template_id": tid, "payload": json.loads(p or "{}"),
                  "message": m, "level": level(m, tags)} for i, ts, h, s, src, tags, st, tid, p, m in rows]
+
+    def between(self, start: datetime, end: datetime, limit: int, host: str | None = None,
+                service: str | None = None) -> list[dict]:
+        where = ["timestamp >= parseDateTime64BestEffort({s:String}, 3)",
+                 "timestamp <= parseDateTime64BestEffort({e:String}, 3)"]
+        params: dict = {"s": start.astimezone(UTC).isoformat(), "e": end.astimezone(UTC).isoformat(), "limit": limit}
+        if host is not None:
+            where.append("device_id = {h:String}")
+            params["h"] = host
+        if service is not None:
+            where.append("service = {sv:String}")
+            params["sv"] = service
+        rows = self._q(
+            "SELECT log_id, timestamp, device_id, service, source, tags, toString(log_status), "
+            f"template_id, toJSONString(payload), raw_message FROM iot_logs FINAL "
+            f"WHERE {' AND '.join(where)} ORDER BY timestamp LIMIT {{limit:UInt32}}", **params)
+        return [{"log_id": str(i), "timestamp": _iso(ts), "host": h, "service": sv, "source": src,
+                 "tags": list(tags), "status": st, "template_id": tid, "payload": json.loads(p or "{}"),
+                 "message": m, "level": level(m, tags)} for i, ts, h, sv, src, tags, st, tid, p, m in rows]
 
     def histogram(self, minutes: int, by: str, filters: dict | None = None, text: str = "") -> dict:
         step = step_for(minutes)

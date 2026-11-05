@@ -599,3 +599,38 @@ def test_otlp_logs_json_and_protobuf(env):
     # agents from before OTLP keep working
     send(server, client, headers, events(["legacy line"]))
     assert client.get("/api/logs", params={"q": "legacy"}).json()["logs"]
+
+
+def test_incidents_group_alerts_explain_lines_and_learn_false_positives(env):
+    from logpipe.storage.base import AnomalyAlert
+
+    server, client, headers = env
+    calibrated(server, client, headers, app_lines(300))
+    version = server.scorers["api"].version
+    send(server, client, headers, events([f"worker {i} finished job {i}" for i in range(30)], start=4000))
+    t = T0 + timedelta(seconds=4000)
+
+    def alert(s, e):
+        return AnomalyAlert("web-1/api", t + timedelta(seconds=s), t + timedelta(seconds=e), (5,) * 20,
+                            0.9, 0.0, None, ("sequence",), False, 1, version)
+    server.store.insert_alerts([alert(0, 19), alert(5, 24), alert(1000, 1010)])  # the last: >5 min later
+    incs = client.get("/api/incidents").json()["incidents"]
+    assert [i["alerts"] for i in incs] == [1, 2] and incs[1]["status"] == "open"
+    iid = incs[1]["id"]
+    inc = client.get(f"/api/incidents/{iid}").json()
+    assert len(inc["events"]) == 25 and inc["model_current"] and inc["events"][0]["template"].startswith("worker")
+    assert {e["status"] for e in inc["events"]} <= {"expected", "unexpected", "unseen"}
+
+    assert client.post(f"/api/incidents/{iid}/explain").json()["kind"] == "explain"
+    run_jobs(server)
+    inc = client.get(f"/api/incidents/{iid}").json()
+    assert "of 25 events on web-1/api" in inc["explanation"]["summary"] and inc["explanation"]["next_steps"]
+    assert inc["explain_job"]["detail"]["Output"]["summary"] == inc["explanation"]["summary"]
+
+    before = len(server._windows("api")[0])
+    client.put(f"/api/incidents/{iid}", json={"status": "false_positive", "note": "nightly batch"})
+    assert len(server._windows("api")[0]) == before + 2  # the next retrain learns them as normal
+    fp = client.get("/api/incidents", params={"status": "false_positive"}).json()["incidents"]
+    assert [i["note"] for i in fp] == ["nightly batch"]
+    assert client.put(f"/api/incidents/{iid}", json={"status": "nope"}).status_code == 400
+    assert client.get("/api/incidents/missing").status_code == 404

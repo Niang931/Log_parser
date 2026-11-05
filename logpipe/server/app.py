@@ -300,6 +300,23 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
                 "streams": {sid: {"miss_threshold": s.settings.thresholds.miss_ratio,
                                   "version": s.version} for sid, s in server.scorers.items()}}
 
+    @app.get("/api/incidents")
+    def incidents(status: str = "") -> dict:
+        out = [i | {"windows": len(i["windows"])} for i in server.incidents()]
+        return {"incidents": [i for i in out if not status or i["status"] == status]}
+
+    @app.get("/api/incidents/{incident_id}")
+    def incident(incident_id: str) -> dict:
+        return server.incident(incident_id) | {"windows": None}
+
+    @app.put("/api/incidents/{incident_id}")
+    def set_incident(incident_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.set_incident(incident_id, str(body.get("status", "")), str(body.get("note") or ""))
+
+    @app.post("/api/incidents/{incident_id}/explain", status_code=202)
+    def explain_incident(incident_id: str) -> dict:
+        return server.explain_incident(incident_id)
+
     # --- agents, keys -------------------------------------------------------------------
     @app.get("/api/agents")
     def agents() -> dict:
