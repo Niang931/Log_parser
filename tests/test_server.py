@@ -465,3 +465,57 @@ def test_a_zone_written_in_the_line_wins_over_the_agents_offset():
     # a rule's extracted `ts` without the zone that follows it in the line
     line = "2026-11-05 09:20:32.599 UTC [24] LOG: x"
     assert event_time(line, {"ts": "2026-11-05 09:20:32.599"}, local=host).astimezone(UTC).strftime("%H:%M") == "09:20"
+
+
+def test_otlp_logs_json_and_protobuf(env):
+    from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import ExportLogsServiceRequest
+    from opentelemetry.proto.common.v1.common_pb2 import AnyValue, KeyValue
+    from opentelemetry.proto.logs.v1.logs_pb2 import (
+        LogRecord,
+        ResourceLogs,
+        ScopeLogs,
+        SeverityNumber,
+    )
+    from opentelemetry.proto.resource.v1.resource_pb2 import Resource
+
+    server, client, headers = env
+    t = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+    s = lambda k, v: {"key": k, "value": {"stringValue": v}}
+    # As logpipe-agent sends it: OTLP/HTTP JSON, gzip, observed time, the host's offset.
+    agent = {"resourceLogs": [{
+        "resource": {"attributes": [s("host.name", "gw-1"), s("service.name", "api"), s("logpipe.source", "java"),
+                                    s("logpipe.host.utc_offset", "+08:00")]},
+        "scopeLogs": [{"scope": {"name": "logpipe-agent"}, "logRecords": [
+            {"observedTimeUnixNano": str(int(t.timestamp() * 1e9)), "body": {"stringValue": "user 7 logged in"},
+             "attributes": [s("log.file.path", "/var/log/app.log"),
+                            {"key": "logpipe.tags", "value": {"arrayValue": {"values": [{"stringValue": "env:prod"}]}}}]},
+            {"observedTimeUnixNano": str(int(t.timestamp() * 1e9)), "body": {"stringValue": "2026-01-02 11:04:06 job done"}},
+        ]}]}]}
+    r = client.post("/v1/logs", content=gzip.compress(json.dumps(agent).encode()),
+                    headers=headers | {"Content-Type": "application/json", "Content-Encoding": "gzip"})
+    assert r.status_code == 200 and r.json() == {}
+    # As the OpenTelemetry Collector / an SDK sends it: protobuf, a severity, bearer auth.
+    req = ExportLogsServiceRequest(resource_logs=[ResourceLogs(
+        resource=Resource(attributes=[KeyValue(key="service.name", value=AnyValue(string_value="checkout")),
+                                      KeyValue(key="host.name", value=AnyValue(string_value="pod-3"))]),
+        scope_logs=[ScopeLogs(log_records=[LogRecord(
+            time_unix_nano=int(t.timestamp() * 1e9), severity_number=SeverityNumber.SEVERITY_NUMBER_ERROR,
+            severity_text="ERROR", body=AnyValue(string_value="payment refused"))])])])
+    r = client.post("/v1/logs", content=req.SerializeToString(), headers={
+        "Content-Type": "application/x-protobuf", "Authorization": "Bearer " + headers["X-API-Key"]})
+    assert r.status_code == 200 and r.headers["content-type"] == "application/x-protobuf"
+    pump(server)
+
+    logs = {l["message"]: l for l in client.get("/api/logs", params={"limit": 10}).json()["logs"]}
+    assert logs["user 7 logged in"]["host"] == "gw-1" and logs["user 7 logged in"]["service"] == "api"
+    assert logs["user 7 logged in"]["source"] == "java" and logs["user 7 logged in"]["tags"] == ["env:prod"]
+    # zone-less time in the line = the agent host's clock (+08:00)
+    assert logs["2026-01-02 11:04:06 job done"]["timestamp"].startswith("2026-01-02T03:04:06")
+    refused = logs["payment refused"]
+    assert (refused["host"], refused["service"], refused["source"]) == ("pod-3", "checkout", "otlp")
+    assert refused["level"] == "error"  # from the OTel severity, not the text
+    assert client.post("/v1/logs", content=b"nope", headers=headers).status_code == 400
+    assert client.post("/v1/logs", json={"resourceLogs": []}).status_code == 401
+    # agents from before OTLP keep working
+    send(server, client, headers, events(["legacy line"]))
+    assert client.get("/api/logs", params={"q": "legacy"}).json()["logs"]

@@ -245,9 +245,13 @@ func event(cfg *config.Config, src config.Source, l source.Line, msg string) shi
 		name = src.Type
 	}
 	tags := append(append(append([]string{}, cfg.Tags...), src.Tags...), l.Tags...)
-	// Local time with its offset: the server reads zone-less timestamps in the line in this zone.
-	return ship.Event{Time: l.Time.Format(time.RFC3339Nano), Host: cfg.Hostname, Service: service,
-		Source: name, Tags: tags, Message: msg}
+	path := ""
+	if src.Type == "file" {
+		path = l.Key
+	}
+	// Local time: its offset goes along, and the server reads zone-less times in the line in it.
+	return ship.Event{Time: l.Time.Local(), Host: cfg.Hostname, Service: service,
+		Source: name, Path: path, Tags: tags, Message: msg}
 }
 
 func writeStatus(cfg *config.Config, st Status) {

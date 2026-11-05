@@ -11,6 +11,7 @@ import json
 import os
 import select
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -100,10 +101,16 @@ def _enter_pressed(seconds: float) -> bool:
     return False
 
 
+def _interrupt(*_) -> None:
+    raise KeyboardInterrupt
+
+
 def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
     from ..start import SAVED, ask_setup, docker_up, load_env, plan
 
     load_env()
+    # `kill` (SIGTERM) stops the server and agent too, like Ctrl+C.
+    signal.signal(signal.SIGTERM, _interrupt)
     sys.stdout.reconfigure(line_buffering=True)  # type: ignore[union-attr]  # progress shows up live, even in a file
     auto = auto or not sys.stdin.isatty()  # nobody to press Enter
     if ask and not auto:

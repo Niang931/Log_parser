@@ -15,13 +15,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jakekato/logpipe/agent/internal/ship"
 	"github.com/jakekato/logpipe/agent/internal/source"
 )
 
 type fakeServer struct {
 	mu     sync.Mutex
-	events []ship.Event
+	events []string
+	meta   []map[string]string // per event: resource attributes, plus the first logpipe.tags value
 	beats  []Status
 	remote string
 }
@@ -52,11 +52,44 @@ func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	switch r.URL.Path {
-	case "/intake/v1/logs":
+	case "/v1/logs": // OTLP/HTTP JSON
 		zr, _ := gzip.NewReader(r.Body)
-		var p struct{ Events []ship.Event }
+		type attr struct {
+			Key   string
+			Value struct {
+				StringValue string
+				ArrayValue  struct {
+					Values []struct{ StringValue string }
+				}
+			}
+		}
+		var p struct {
+			ResourceLogs []struct {
+				Resource  struct{ Attributes []attr }
+				ScopeLogs []struct {
+					LogRecords []struct {
+						Body       struct{ StringValue string }
+						Attributes []attr
+					}
+				}
+			}
+		}
 		json.NewDecoder(zr).Decode(&p)
-		f.events = append(f.events, p.Events...)
+		for _, rl := range p.ResourceLogs {
+			for _, sl := range rl.ScopeLogs {
+				for _, lr := range sl.LogRecords {
+					m := map[string]string{}
+					for _, a := range append(rl.Resource.Attributes, lr.Attributes...) {
+						m[a.Key] = a.Value.StringValue
+						if vs := a.Value.ArrayValue.Values; len(vs) > 0 {
+							m[a.Key] = vs[0].StringValue
+						}
+					}
+					f.events = append(f.events, lr.Body.StringValue)
+					f.meta = append(f.meta, m)
+				}
+			}
+		}
 	case "/intake/v1/heartbeat":
 		var st Status
 		json.NewDecoder(r.Body).Decode(&st)
@@ -70,11 +103,7 @@ func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (f *fakeServer) messages() []string {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	var out []string
-	for _, e := range f.events {
-		out = append(out, e.Message)
-	}
-	return out
+	return append([]string(nil), f.events...)
 }
 
 func waitFor(t *testing.T, what string, cond func() bool) {
@@ -123,9 +152,10 @@ func TestAgentEndToEnd(t *testing.T) {
 		t.Fatalf("trace not aggregated: %q", m)
 	}
 	srv.mu.Lock()
-	e := srv.events[0]
+	e := srv.meta[0]
 	srv.mu.Unlock()
-	if e.Host != "gw-1" || e.Service != "app" || e.Source != "java" || e.Tags[0] != "env:test" {
+	if e["host.name"] != "gw-1" || e["service.name"] != "app" || e["logpipe.source"] != "java" ||
+		e["logpipe.tags"] != "env:test" || e["log.file.path"] != app {
 		t.Fatalf("event metadata %+v", e)
 	}
 

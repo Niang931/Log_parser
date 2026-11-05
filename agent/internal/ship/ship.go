@@ -1,5 +1,6 @@
-// Package ship batches events, posts them gzip-compressed to the server, and keeps batches in a
-// size-capped disk buffer while the server is unreachable.
+// Package ship batches events, posts them gzip-compressed to the server as OTLP/HTTP JSON
+// (OpenTelemetry logs), and keeps batches in a size-capped disk buffer while the server is
+// unreachable.
 package ship
 
 import (
@@ -19,13 +20,15 @@ import (
 	"time"
 )
 
+// Event is one log event; Time carries the host's UTC offset (see otlp.go).
 type Event struct {
-	Time    string   `json:"ts"`
-	Host    string   `json:"host"`
-	Service string   `json:"service"`
-	Source  string   `json:"source"`
-	Tags    []string `json:"tags"`
-	Message string   `json:"message"`
+	Time    time.Time
+	Host    string
+	Service string
+	Source  string
+	Path    string // the file it came from, for file sources
+	Tags    []string
+	Message string
 }
 
 const (
@@ -157,29 +160,29 @@ func (s *Shipper) Run(ctx context.Context, in <-chan Event) {
 	}
 }
 
-func encode(batch []Event) []byte {
+func encode(batch []Event, version string) []byte {
 	var buf bytes.Buffer
 	zw := gzip.NewWriter(&buf)
-	json.NewEncoder(zw).Encode(map[string]any{"events": batch})
+	json.NewEncoder(zw).Encode(otlpRequest(batch, version))
 	zw.Close()
 	return buf.Bytes()
 }
 
 func (s *Shipper) ship(ctx context.Context, batch []Event) {
-	body := encode(batch)
+	body := encode(batch, s.client.Version)
 	// Older buffered batches go first; a fresh batch joins the queue rather than jumping it.
 	if len(s.buffered()) == 0 {
-		if err := s.post(ctx, body, len(batch)); err == nil || permanent(err) {
+		if err := s.post(ctx, OTLPPath, body, len(batch)); err == nil || permanent(err) {
 			return
 		}
 	}
 	s.store(body)
 }
 
-func (s *Shipper) post(ctx context.Context, body []byte, n int) error {
+func (s *Shipper) post(ctx context.Context, path string, body []byte, n int) error {
 	sendCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	defer cancel()
-	_, err := s.client.Do(sendCtx, "POST", "/intake/v1/logs", body, true)
+	_, err := s.client.Do(sendCtx, "POST", path, body, true)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	switch {
@@ -195,14 +198,18 @@ func (s *Shipper) post(ctx context.Context, body []byte, n int) error {
 	return err
 }
 
+// buffered lists batches waiting to be sent, oldest first: *.otlp.gz, and *.json.gz left by
+// agents from before OTLP (sent to the legacy endpoint so an upgrade loses nothing).
 func (s *Shipper) buffered() []string {
-	files, _ := filepath.Glob(filepath.Join(s.dir, "*.json.gz"))
-	sort.Strings(files)
+	otlp, _ := filepath.Glob(filepath.Join(s.dir, "*.otlp.gz"))
+	legacy, _ := filepath.Glob(filepath.Join(s.dir, "*.json.gz"))
+	files := append(otlp, legacy...)
+	sort.Slice(files, func(i, j int) bool { return filepath.Base(files[i]) < filepath.Base(files[j]) })
 	return files
 }
 
 func (s *Shipper) store(body []byte) {
-	name := filepath.Join(s.dir, fmt.Sprintf("%020d.json.gz", time.Now().UnixNano()))
+	name := filepath.Join(s.dir, fmt.Sprintf("%020d.otlp.gz", time.Now().UnixNano()))
 	if err := os.WriteFile(name, body, 0o644); err != nil {
 		s.mu.Lock()
 		s.lastErr = "buffer: " + err.Error()
@@ -244,7 +251,11 @@ func (s *Shipper) retryLoop(ctx context.Context) {
 			if err != nil {
 				continue
 			}
-			err = s.post(ctx, body, countEvents(body))
+			path, n := OTLPPath, countEvents(body)
+			if strings.HasSuffix(f, ".json.gz") {
+				path = LegacyPath
+			}
+			err = s.post(ctx, path, body, n)
 			if err != nil && !permanent(err) {
 				backoff = min(backoff*2, maxBackoff)
 				break
@@ -260,7 +271,10 @@ func countEvents(gz []byte) int {
 	if err != nil {
 		return 0
 	}
-	var p struct{ Events []json.RawMessage }
+	var p map[string]any
 	json.NewDecoder(zr).Decode(&p)
-	return len(p.Events)
+	if events, ok := p["events"].([]any); ok { // legacy format
+		return len(events)
+	}
+	return countRecords(p)
 }

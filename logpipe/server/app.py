@@ -16,12 +16,13 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     RedirectResponse,
+    Response,
     StreamingResponse,
 )
 
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
-from . import querybuild
+from . import otlp, querybuild
 from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
 from .reads import FACETS
 
@@ -45,8 +46,11 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
     engine = "sqlite" if server.reads.__class__.__name__ == "MemoryReads" else "clickhouse"
 
-    def agent_key(x_api_key: Annotated[str | None, Header()] = None) -> dict:
-        key = server.check_key(x_api_key)
+    def agent_key(x_api_key: Annotated[str | None, Header()] = None,
+                  authorization: Annotated[str | None, Header()] = None) -> dict:
+        # X-API-Key, or `Authorization: Bearer <key>` as OTel exporters are usually configured
+        token = x_api_key or (authorization or "").removeprefix("Bearer ").strip() or None
+        key = server.check_key(token)
         if key is None:
             raise HTTPException(401, "missing or unknown API key")
         return key
@@ -64,8 +68,7 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     def ping(key: Annotated[dict, Depends(agent_key)]) -> dict:
         return {"ok": True, "key": key["name"]}
 
-    @app.post("/intake/v1/logs", status_code=202)
-    async def intake_logs(request: Request, key: Annotated[dict, Depends(agent_key)]) -> dict:
+    async def body(request: Request) -> bytes:
         raw = await request.body()
         if request.headers.get("content-encoding") == "gzip":
             try:
@@ -75,6 +78,30 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
                     raise HTTPException(413, "batch too large")
             except zlib.error as error:
                 raise HTTPException(400, f"bad gzip body: {error}") from error
+        return raw
+
+    @app.post("/v1/logs")
+    async def otlp_logs(request: Request, key: Annotated[dict, Depends(agent_key)]) -> Response:
+        """OTLP/HTTP logs (OpenTelemetry), JSON or protobuf: what logpipe-agent sends, and what
+        the OpenTelemetry Collector's otlphttp exporter or an OTel SDK can send."""
+        raw = await body(request)
+        ctype = request.headers.get("content-type", "application/json")
+        try:
+            evs = otlp.events(otlp.decode(raw, ctype))
+        except ValueError as error:
+            raise HTTPException(400, str(error)) from error
+        try:
+            server.ingest(evs)
+        except Busy as error:  # OTLP clients retry 429 with backoff
+            raise HTTPException(429, str(error)) from error
+        # An empty ExportLogsServiceResponse in the request's encoding.
+        proto = ctype.split(";")[0].strip() == otlp.PROTOBUF
+        return Response(b"" if proto else b"{}", media_type=otlp.PROTOBUF if proto else "application/json")
+
+    @app.post("/intake/v1/logs", status_code=202)
+    async def intake_logs(request: Request, key: Annotated[dict, Depends(agent_key)]) -> dict:
+        """logpipe's own format, kept for agents from before OTLP (deprecated)."""
+        raw = await body(request)
         try:
             events = json.loads(raw)["events"]
             assert isinstance(events, list)

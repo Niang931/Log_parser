@@ -118,8 +118,12 @@ logs:
 - **Files**: globs are re-checked every 250 ms; rotation (rename + new file) and copytruncate are
   both followed. Offsets are saved to `run/positions.json`, so a restart neither resends nor
   skips lines (a half-written last line is re-read, never split).
-- **Shipping**: batches of up to 500 events or 1 s, gzip JSON to `POST /intake/v1/logs` with
-  `X-API-Key`. Failed batches go to `run/buffer/` and are retried with backoff up to 1 min.
+- **Shipping**: batches of up to 500 events or 1 s as **OpenTelemetry OTLP/HTTP** (JSON, gzip) to
+  `POST /v1/logs` with `X-API-Key`: resource `host.name`, `service.name`, `os.type`,
+  `host.arch`; per record the body, `observedTimeUnixNano`, `log.file.path`/`log.file.name`.
+  logpipe's own extras use the `logpipe.*` namespace (source, tags, the host's UTC offset).
+  Failed batches go to `run/buffer/` and are retried with backoff up to 1 min; batches an older
+  agent buffered in logpipe's previous format are still sent, to the deprecated endpoint.
 - **Heartbeat** every 15 s with version, sources, per-source counters and the hash of
   `remote.yaml`. When the server holds a different remote config, the agent fetches it, validates
   it, writes `conf.d/remote.yaml` and reloads. Hand-written files are never touched.

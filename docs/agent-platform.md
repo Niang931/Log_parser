@@ -131,18 +131,48 @@ With `--store memory` everything except the data dir is lost on restart.
 
 ## Intake API (agents)
 
-All requests carry `X-API-Key`.
+All requests carry the API key as `X-API-Key: <key>` or `Authorization: Bearer <key>`.
+
+Logs use **OpenTelemetry**: `POST /v1/logs` is a standard OTLP/HTTP logs endpoint, so besides
+logpipe-agent, the OpenTelemetry Collector (`otlphttp` exporter) and OTel SDKs can send to it.
 
 | Endpoint | Body / answer |
 |---|---|
+| `POST /v1/logs` | OTLP `ExportLogsServiceRequest`, `application/json` or `application/x-protobuf`, optionally gzip → 200 with an empty `ExportLogsServiceResponse`; 429 when the ingest buffer is full (OTLP clients retry) |
 | `GET /intake/v1/ping` | `{ok, key}`: used by `logpipe-agent check` |
-| `POST /intake/v1/logs` | gzip JSON `{"events": [{ts, host, service, source, tags, message}]}` → 202; 429 when the ingest buffer is full (the agent buffers and retries) |
+| `POST /intake/v1/logs` | **deprecated**, for agents from before OTLP: gzip JSON `{"events": [{ts, host, service, source, tags, message}]}` → 202 |
 | `POST /intake/v1/heartbeat` | agent status (version, sources with counters, effective config, shipper stats, `remote_hash`) → `{remote_hash}` |
 | `GET /intake/v1/wait?hostname=&remote_hash=&timeout=25` | long-poll every agent keeps open: answers `{remote_hash}` the moment the server's remote config differs (the agent then heartbeats and applies it), else after `timeout`. While it's open the agent is online; once it closes and isn't reopened within 1s, offline |
 | `GET /intake/v1/config?hostname=` | `{yaml}`: written to `conf.d/remote.yaml` when the hashes differ |
 
-`ts` is the agent's read time with its local UTC offset: a timestamp without a zone inside the
-line is read as that host's wall-clock time.
+How an OTLP log record maps to a logpipe line (OpenTelemetry semantic conventions where they exist):
+
+| logpipe | OTLP |
+|---|---|
+| host | resource `host.name` (or record attribute) |
+| service | resource `service.name` |
+| source | resource `logpipe.source`, else record `log.file.name`, else the instrumentation scope name, else `otlp` |
+| tags | `logpipe.tags` (string array) |
+| message | `body` (a non-string body is stored as JSON) |
+| time | read from the line itself; else `timeUnixNano`, else `observedTimeUnixNano` |
+| level | `severityNumber` / `severityText` when set (stored as a `severity:<level>` tag), else read from the text |
+
+logpipe-agent also sends `os.type`, `host.arch`, `log.file.path` and `logpipe.host.utc_offset`
+(the host's offset, so a zone-less time inside a line is read as that host's wall clock; a zone
+written in the line always wins). Heartbeat, long-poll and remote config stay logpipe's own
+(OpenTelemetry's counterpart for those is OpAMP).
+
+Sending from an OpenTelemetry Collector:
+
+```yaml
+exporters:
+  otlphttp/logpipe:
+    logs_endpoint: http://logpipe.example:8080/v1/logs
+    headers: { X-API-Key: lp_xxx }
+service:
+  pipelines:
+    logs: { receivers: [filelog], exporters: [otlphttp/logpipe] }
+```
 
 Heartbeats (every 15s) carry the counters; presence and config pushes ride the long-poll, so the
 UI sees an agent come up, go down or apply a pushed config within about a second. The UI listens

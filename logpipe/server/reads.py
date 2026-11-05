@@ -31,7 +31,12 @@ LEVEL_RULES = (
 _RULES = [(lvl, re.compile(rx), head) for lvl, rx, head in LEVEL_RULES]
 
 
-def level(message: str) -> str:
+def level(message: str, tags=()) -> str:
+    """A severity the sender stated (OTLP severity -> ``severity:<level>`` tag) wins; else read
+    from the text."""
+    for tag in tags:
+        if tag.startswith("severity:") and tag[9:] in LEVELS:
+            return tag[9:]
     for lvl, rx, head in _RULES:
         if rx.search(message[:HEAD] if head else message):
             return lvl
@@ -42,7 +47,7 @@ def _sql_str(text: str) -> str:
     return "'" + text.replace("\\", "\\\\").replace("'", "\\'") + "'"
 
 
-LEVEL_SQL = "multiIf(" + ", ".join(
+LEVEL_SQL = "multiIf(" + "".join(f"has(tags, 'severity:{lvl}'), '{lvl}', " for lvl in LEVELS) + ", ".join(
     f"match({f'substring(raw_message, 1, {HEAD})' if head else 'raw_message'}, {_sql_str(rx)}), '{lvl}'"
     for lvl, rx, head in LEVEL_RULES) + ", 'info')"
 
@@ -67,7 +72,7 @@ def row_json(r: LogRow) -> dict:
     return {"log_id": str(r.log_id), "timestamp": r.timestamp.isoformat(), "host": r.device_id,
             "service": r.service, "source": r.source, "tags": list(r.tags), "status": str(r.status),
             "template_id": r.template_id, "payload": r.payload, "message": r.raw_message,
-            "level": level(r.raw_message)}
+            "level": level(r.raw_message, r.tags)}
 
 
 class MemoryReads:
@@ -130,7 +135,7 @@ class MemoryReads:
                    "level TEXT)")
         db.executemany("INSERT INTO logs VALUES (?,?,?,?,?,?,?,?,?,?)", [
             (str(r.log_id), r.timestamp.astimezone(UTC).isoformat(), r.device_id, r.service, r.source,
-             r.template_id, str(r.status), json.dumps(r.payload), r.raw_message, level(r.raw_message))
+             r.template_id, str(r.status), json.dumps(r.payload), r.raw_message, level(r.raw_message, r.tags))
             for r in rows])
         db.execute("PRAGMA query_only = ON")
         try:
@@ -191,7 +196,7 @@ class ClickHouseReads:
             f"WHERE {where} ORDER BY timestamp DESC LIMIT {{limit:UInt32}}", limit=limit, **params)
         return [{"log_id": str(i), "timestamp": _iso(ts), "host": h, "service": s, "source": src,
                  "tags": list(tags), "status": st, "template_id": tid, "payload": json.loads(p or "{}"),
-                 "message": m, "level": level(m)} for i, ts, h, s, src, tags, st, tid, p, m in rows]
+                 "message": m, "level": level(m, tags)} for i, ts, h, s, src, tags, st, tid, p, m in rows]
 
     def histogram(self, minutes: int, by: str, filters: dict | None = None, text: str = "") -> dict:
         step = step_for(minutes)
