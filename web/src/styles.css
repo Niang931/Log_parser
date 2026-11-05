@@ -498,3 +498,24 @@ tr.linked-row td { background: color-mix(in srgb, var(--surface-2) 55%, transpar
 .gen-sql pre { margin: 8px 0; white-space: pre-wrap; }
 @media (max-width: 900px) { .query-layout { grid-template-columns: 1fr; } .query-side { position: static; } }
 .b-row > .btn { justify-self: start; }
+.job-detail-panel { margin-top: 6px; font-size: 13px; }
+.job-detail-panel summary { cursor: pointer; color: var(--ink-2); }
+.job-detail-panel section { margin-top: 10px; }
+.job-detail-panel h4 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--ink-2); }
+.job-detail-panel pre.samples { margin: 2px 0; max-height: 240px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bulk-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 12px; border: 1px solid var(--line); border-radius: var(--radius); min-height: 40px; }
+.pick-list { list-style: none; margin: 6px 0 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); max-height: 320px; overflow: auto; }
+.pick-list li + li { border-top: 1px solid var(--line); }
+.pick-list label { display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; flex-wrap: wrap; }
+.pick-list label:hover { background: var(--hover); }
+.advanced summary { cursor: pointer; color: var(--ink-2); }
+.stream-row { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
+.stream-row .grow, .pick-list .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.detail-kv { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.detail-kv .kv-inline { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.detail-kv .kv-block { display: flex; flex-direction: column; gap: 4px; }
+.detail-kv dt { color: var(--muted); font-size: 12px; }
+.detail-kv dd { margin: 0; min-width: 0; }
+.detail-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.detail-list > li { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+.detail-list .detail-list > li { border: 0; padding: 0; }

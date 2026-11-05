@@ -57,7 +57,13 @@ export function ReviewBatch({ batchId, onApplied }: { batchId: string; onApplied
   const { data, error } = usePoll<Batch & { drafts: Draft[] }>(`/api/review/${batchId}`, 5000);
   const [filter, setFilter] = useState<"all" | Draft["status"]>("all");
   const [picked, setPicked] = useState<string[]>([]);
+  const [q, setQ] = useState("");
   const all = useAction((status: string) => api(`/api/review/${batchId}/decide-all`, { method: "POST", json: { status } }));
+  const some = useAction((status: Draft["status"]) => api(`/api/review/${batchId}/decide-all`, { method: "POST", json: { status, ids: picked } }));
+  const finish = useAction(async () => {
+    await api(`/api/review/${batchId}/decide-all`, { method: "POST", json: { status: "approved" } });
+    return api(`/api/review/${batchId}/apply`, { method: "POST" });
+  });
   const merge = useAction(() => api(`/api/drafts/${picked[0]}/merge`, { method: "POST", json: { others: picked.slice(1) } }));
   const apply = useAction(() => api(`/api/review/${batchId}/apply`, { method: "POST" }));
   const discard = useAction(() => api(`/api/review/${batchId}/discard`, { method: "POST" }));
@@ -65,9 +71,15 @@ export function ReviewBatch({ batchId, onApplied }: { batchId: string; onApplied
 
   const drafts = data.drafts.filter((d) => d.status !== "merged");
   const n = (s: Draft["status"]) => drafts.filter((d) => d.status === s).length;
-  const shown = filter === "all" ? drafts : drafts.filter((d) => d.status === filter);
+  const needle = q.trim().toLowerCase();
+  const shown = (filter === "all" ? drafts : drafts.filter((d) => d.status === filter)).filter((d) => !needle
+    || d.tokens.join(" ").toLowerCase().includes(needle) || d.samples.some((x) => x.toLowerCase().includes(needle)));
+  const allShown = shown.length > 0 && shown.every((d) => picked.includes(d.id));
+  const toggleShown = () => setPicked(allShown ? picked.filter((p) => !shown.some((d) => d.id === p))
+    : [...new Set([...picked, ...shown.map((d) => d.id)])]);
+  const bulk = (status: Draft["status"]) => some.mutate(status, { onSuccess: () => setPicked([]) });
   const covered = drafts.filter((d) => d.status === "approved").reduce((a, d) => a + d.count, 0);
-  const err = all.error ?? merge.error ?? apply.error ?? discard.error;
+  const err = all.error ?? some.error ?? finish.error ?? merge.error ?? apply.error ?? discard.error;
   if (data.status !== "review") {
     return <div className="callout good"><div className="grow">This review is {data.status}{data.note ? `: ${data.note}` : ""}.</div></div>;
   }
@@ -96,14 +108,30 @@ export function ReviewBatch({ batchId, onApplied }: { batchId: string; onApplied
           ))}
         </div>
         <div className="row">
-          {picked.length > 1 && (
-            <button className="btn small" onClick={() => merge.mutate(undefined, { onSuccess: () => setPicked([]) })} disabled={merge.isPending}>
-              Merge {picked.length} selected
-            </button>
-          )}
+          <input type="search" placeholder="Search templates and lines" aria-label="Search templates and example lines"
+            value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 220 }} />
           <button className="btn small" disabled={!n("pending") || all.isPending} onClick={() => all.mutate("approved")}>Approve undecided</button>
           <button className="btn small ghost" disabled={!n("pending") || all.isPending} onClick={() => all.mutate("rejected")}>Reject undecided</button>
         </div>
+      </div>
+
+      <div className="bulk-bar">
+        <label className="row" style={{ gap: 6 }}>
+          <input type="checkbox" checked={allShown} onChange={toggleShown} disabled={!shown.length} />
+          {picked.length ? `${picked.length} selected` : `Select all ${shown.length} shown`}
+        </label>
+        {picked.length > 0 && (
+          <div className="row">
+            <button className="btn small" onClick={() => bulk("approved")} disabled={some.isPending}>Approve</button>
+            <button className="btn small" onClick={() => bulk("rejected")} disabled={some.isPending}>Reject</button>
+            <button className="btn small ghost" onClick={() => bulk("pending")} disabled={some.isPending}>Undecide</button>
+            {picked.length > 1 && (
+              <button className="btn small" onClick={() => merge.mutate(undefined, { onSuccess: () => setPicked([]) })} disabled={merge.isPending}
+                title="One template for all of them: words that differ become variables">Merge</button>
+            )}
+            <button className="btn small ghost" onClick={() => setPicked([])}>Clear</button>
+          </div>
+        )}
       </div>
 
       {shown.length === 0 ? <Empty title="Nothing here" /> : (
@@ -114,19 +142,25 @@ export function ReviewBatch({ batchId, onApplied }: { batchId: string; onApplied
           ))}
         </ul>
       )}
-      {picked.length === 1 && <div className="muted small">Select another template to merge it into the first one. Words that differ become variables.</div>}
 
       <div className="review-foot">
         <span className={n("pending") ? "warn-text small" : "muted small"}>
-          {n("pending") ? `Decide on ${n("pending")} more template${n("pending") > 1 ? "s" : ""} to continue.`
+          {n("pending") ? `${n("pending")} template${n("pending") > 1 ? "s" : ""} undecided: decide them, or approve the rest in one go.`
             : `${n("approved")} template${n("approved") === 1 ? "" : "s"} will be added to the parser; stored lines are back-filled and the affected models retrained.`}
         </span>
         <div className="row">
           {!data.initial && <button className="btn ghost" onClick={() => discard.mutate()} disabled={discard.isPending}>Skip, let the online learner handle it</button>}
-          <button className="btn primary" disabled={!!n("pending") || (data.initial && !n("approved")) || apply.isPending}
-            onClick={() => apply.mutate(undefined, { onSuccess: onApplied })}>
-            {data.initial ? `Apply ${n("approved")} templates and train` : `Add ${n("approved")} templates`}
-          </button>
+          {n("pending") > 0 ? (
+            <button className="btn primary" disabled={finish.isPending} onClick={() => finish.mutate(undefined, { onSuccess: onApplied })}
+              title="Approves every undecided template, then applies">
+              {data.initial ? `Approve the rest and train (${n("approved") + n("pending")})` : `Approve the rest and add (${n("approved") + n("pending")})`}
+            </button>
+          ) : (
+            <button className="btn primary" disabled={(data.initial && !n("approved")) || apply.isPending}
+              onClick={() => apply.mutate(undefined, { onSuccess: onApplied })}>
+              {data.initial ? `Apply ${n("approved")} templates and train` : `Add ${n("approved")} templates`}
+            </button>
+          )}
         </div>
       </div>
       {err && <div className="error-text">{err.message}</div>}

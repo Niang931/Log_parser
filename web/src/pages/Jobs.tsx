@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, useAction, usePoll, type Job, type Maintenance } from "../api";
-import { Card, Empty, JOB_NAMES, JobStatus, Loading, Meter, PageHead, Progress, TimeAgo, jobTarget, sourceLabel } from "../ui";
+import { Card, Empty, JOB_NAMES, JobDetail, JobStatus, Loading, Meter, PageHead, Progress, TimeAgo, jobTarget, sourceLabel } from "../ui";
 
 function duration(job: Job, now: number) {
   if (!job.started_at) return "–";
@@ -121,6 +121,7 @@ export default function Jobs() {
                                   {j.log.map(([t, m], i) => <li key={i}><span className="muted">{new Date(t).toLocaleTimeString()}</span>{m}</li>)}
                                 </ol>
                               ) : <div className="muted small">No steps recorded.</div>}
+                              <JobDetail job={j} steps={false} />
                             </td>
                           </tr>
                         )}

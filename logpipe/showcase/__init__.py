@@ -14,6 +14,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import textwrap
 import time
 import urllib.error
 import urllib.request
@@ -53,41 +54,121 @@ def find_agent(out: Path) -> str:
     raise SystemExit("logpipe-agent not found: install Go (to build ./agent) or put logpipe-agent on PATH")
 
 
+def _fit(text: str, indent: int) -> str:
+    """One terminal line: a long status that wrapped would break redrawing it in place."""
+    width = shutil.get_terminal_size((100, 24)).columns - indent - 1
+    return text if len(text) <= width else text[:max(width - 1, 10)] + "…"
+
+
 class Tour:
     def __init__(self, api: Api, url: str, auto: bool):
         self.api, self.url, self.auto = api, url, auto
+        self._live = ""  # the counter line currently drawn under the cursor (terminal only)
+        self._live_at = 0.0
 
     def act(self, n: int, title: str, lines: list[str]) -> None:
         print(f"\n{B}── Act {n}: {title} {'─' * max(0, 60 - len(title))}{R}")
         for line in lines:
             print(f"  {line}")
 
+    def say(self, text: str, style: str = D, indent: int = 4, wrap: bool = False) -> None:
+        """A line of output under the current act (cut to the terminal, or ``wrap``ped);
+        clears a counter line first."""
+        if self._live:
+            print("\r\033[K", end="")
+            self._live = ""
+        width = shutil.get_terminal_size((100, 24)).columns - indent - 1
+        for line in textwrap.wrap(text, width) if wrap else [_fit(text, indent)]:
+            print(f"{' ' * indent}{style}{line}{R}", flush=True)
+
+    def live(self, text: str) -> None:
+        """A counter redrawn in place in a terminal; in a file, a line now and then."""
+        if not text or text == self._live:
+            return
+        if sys.stdout.isatty():
+            print(f"\r\033[K    {D}{_fit(text, 4)}{R}", end="", flush=True)
+            self._live = text
+        elif time.monotonic() - self._live_at >= 10:
+            print(f"    {D}{text}{R}", flush=True)
+            self._live_at = time.monotonic()
+
     def wait(self, what: str, done: Callable[[], bool], do: Callable[[], None] | None = None,
-             timeout: float = 900) -> None:
-        """Until ``done()``; Enter (or --auto) runs ``do`` instead of waiting for the UI."""
+             timeout: float = 900, live: Callable[[], str] | None = None,
+             steps: Callable[[], list[str]] | None = None, give_up: str = "") -> None:
+        """Until ``done()``; Enter (or --auto) runs ``do`` instead of waiting for the UI.
+        ``live`` is a counter (lines collected, your review); ``steps`` gives the background
+        job's new steps (LLM prompts, answers, epochs), each printed as it happens. With
+        ``give_up``, a timeout prints it and the tour goes on instead of stopping."""
         hint = " (or press Enter and I'll do it)" if do else ""
-        print(f"  {Y}… waiting: {what}{hint}{R}", flush=True)
+        self.say(f"… waiting: {what}{hint}", Y, 2)
+        _drop_typed_ahead()  # an Enter pressed earlier must not do this act for you
         did, start = False, time.monotonic()
         if self.auto and do:
             do()
             did = True
-        while not done():
+        while True:
+            for line in _ask(steps, []) if steps else []:
+                self.say(line)
+            if _ask(done, False):
+                break
             if time.monotonic() - start > timeout:
-                raise SystemExit(f"gave up waiting: {what}")
+                if not give_up:
+                    raise SystemExit(f"gave up waiting: {what}")
+                self.say(give_up, Y, 2, wrap=True)
+                return
+            if live:
+                self.live(_ask(live, "server busy, still waiting"))
             if not did and do and _enter_pressed(1.0):
+                self.say("(doing it for you)")
                 do()
                 did = True
             elif did or not do:
                 time.sleep(1.0)
-        print(f"  {G}✓ {what}{R}")
+        self.say(f"✓ {what}", G, 2)
 
     def pause(self, text: str = "press Enter for the next act") -> None:
         if self.auto:
             time.sleep(1)
             return
-        print(f"  {D}{text}{R}", flush=True)
+        self.say(text, D, 2)
         while not _enter_pressed(3600):
             pass
+
+
+def _ask(fn: Callable, fallback):
+    """``fn()``, or ``fallback`` while the server is too busy to answer (it catches up)."""
+    try:
+        return fn()
+    except (TimeoutError, urllib.error.URLError, ConnectionError):
+        return fallback
+
+
+def _drop_typed_ahead() -> None:
+    if sys.stdin.isatty():
+        import termios
+        termios.tcflush(sys.stdin, termios.TCIFLUSH)
+
+
+def _job_steps(api: Api, *kinds: str) -> Callable[[], list[str]]:
+    """New steps of the ``kinds`` jobs started from now on, as the Jobs page logs them."""
+    old = {j["id"] for j in api("/api/jobs")["jobs"]}
+    printed: dict[str, int] = {}
+
+    def new() -> list[str]:
+        out = []
+        for j in sorted(api("/api/jobs")["jobs"], key=lambda j: j["created_at"]):
+            if j["kind"] not in kinds or j["id"] in old:
+                continue
+            log = [m for _, m in j.get("log") or []]
+            if j["id"] not in printed:
+                out.append(f"{j['kind']} job started")
+            out += log[printed.get(j["id"], 0):]
+            if j["status"] == "failed":
+                out.append(f"{j['kind']} job failed: {j.get('error')}")
+                old.add(j["id"])
+            printed[j["id"]] = len(log)
+        return out
+    return new
 
 
 def _enter_pressed(seconds: float) -> bool:
@@ -214,16 +295,25 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
         "Each source gives its most varied recent lines (priority sampling); Drain mines templates from them.",
         "Nothing reaches the parser yet: they become drafts for you to review."])
 
-    def has_lines() -> bool:
-        return sum(s["count"] for s in api("/api/setup")["sources"]) >= 300
-    t.wait("a few hundred lines collected", has_lines)
-    t.wait("templates drafted", lambda: api("/api/setup")["review"] is not None,
-           lambda: api("/api/review/generate", {"sample_cap": 2000}))
+    def lines() -> int:
+        return sum(s["count"] for s in api("/api/setup")["sources"])
+    t.wait("a few hundred lines collected", lambda: lines() >= 300, live=lambda: f"{lines()} / 300 lines")
+
+    def batch() -> dict | None:
+        """The open first review; you may draft again in the UI, so always the current one."""
+        return api("/api/setup")["review"]
+
+    def drafted() -> bool:  # and no newer draft still running
+        return batch() is not None and not any(j["kind"] == "draft" and j["status"] in ("queued", "running")
+                                               for j in api("/api/jobs")["jobs"])
+    t.wait("templates drafted", drafted, lambda: api("/api/review/generate", {"sample_cap": 2000}),
+           steps=_job_steps(api, "draft"))
     t.pause()
 
-    batch = api("/api/setup")["review"]
-    drafts = api(f"/api/review/{batch['id']}")["drafts"]
-    pg = next((d for d in drafts if "statement:" in " ".join(d["tokens"])), None)
+    def postgres(b: dict | None) -> dict | None:
+        drafts = api(f"/api/review/{b['id']}")["drafts"] if b else []
+        return next((d for d in drafts if "statement:" in " ".join(d["tokens"])), None)
+    pg = postgres(batch())
     t.act(4, "Review the templates, then calibrate", [
         f"In the UI: {B}Setup guide → Review{R}. Click a template to see the lines it matches.",
         *([f"The Postgres one came out as {D}… statement: <*> <*> <*> …{R}, one slot per word. Click {B}Edit{R}",
@@ -236,13 +326,24 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
         streams = api("/api/streams")["streams"]
         return api("/api/settings")["calibrated"] and all(s["has_model"] or s.get("waiting") for s in streams)
 
+    def reviewed() -> str:
+        b = batch()
+        if b is None:
+            return "applied; training (steps below)"
+        return f"your review: {b['approved']} approved, {b['drafts'] - b['approved'] - b['pending']} rejected, {b['pending']} undecided"
+
     def do_review() -> None:
-        if pg:
-            api(f"/api/drafts/{pg['id']}", {"rule": PG_RULE}, "PUT")
-            print(f"  set the Postgres rule: {PG_RULE}")
-        api(f"/api/review/{batch['id']}/decide-all", {"status": "approved"})
-        api(f"/api/review/{batch['id']}/apply", {})
-    t.wait("templates applied and the model trained", review_done, do_review)
+        b = batch()
+        if b is None:  # you already applied it in the UI
+            return
+        mine = postgres(b)
+        if mine and not mine.get("rule_edited"):  # a rule you wrote yourself stays
+            api(f"/api/drafts/{mine['id']}", {"rule": PG_RULE}, "PUT")
+            t.say(f"set the Postgres rule: {PG_RULE}")
+        api(f"/api/review/{b['id']}/decide-all", {"status": "approved"})
+        api(f"/api/review/{b['id']}/apply", {})
+    t.wait("templates applied and the model trained", review_done, do_review, live=reviewed,
+           steps=_job_steps(api, "apply", "retrain"))
     t.pause()
 
     t.act(5, "Look around", [
@@ -261,7 +362,11 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
     before = len(api("/api/alerts")["alerts"])
     t.pause("press Enter to start the incident")
     gen.incident(60)
-    t.wait("an anomaly alert", lambda: len(api("/api/alerts")["alerts"]) > before, timeout=240)
+    t.wait("an anomaly alert", lambda: len(api("/api/alerts")["alerts"]) > before, timeout=180,
+           give_up=("no alert this time: the model trained on only a few minutes of logs, so its threshold "
+                    "may sit at 100% missed. Let it collect more, Retrain now on Streams, and try another "
+                    "incident."),
+           live=lambda: f"outage: {max(0, round(gen.incident_until - time.monotonic()))}s left")
     t.pause()
 
     t.act(7, "A new service appears", [
@@ -279,7 +384,11 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
 
     def inv_batch() -> dict | None:
         return next((b for b in api("/api/maintenance")["review"] if sid in b["sources"]), None)
-    t.wait("the inventory service's templates drafted for review", lambda: inv_batch() is not None, timeout=300)
+    def inv_collected() -> str:
+        c = next((c for c in api("/api/maintenance")["collecting"] if c["id"] == sid), None)
+        return f"inventory: {c['have']} / {c['need']} lines" if c else ""
+    t.wait("the inventory service's templates drafted for review", lambda: inv_batch() is not None, timeout=300,
+           live=inv_collected, steps=_job_steps(api, "draft"))
 
     def inv_done() -> bool:
         return any(s["id"] == sid and s["calibrated"] for s in api("/api/sources")["sources"])
@@ -289,7 +398,11 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
         if b:
             api(f"/api/review/{b['id']}/decide-all", {"status": "approved"})
             api(f"/api/review/{b['id']}/apply", {})
-    t.wait("inventory templates reviewed and added", inv_done, do_inv)
+    def inv_reviewed() -> str:
+        b = inv_batch()
+        return f"your review: {b['approved']} approved, {b['pending']} undecided" if b else "added; retraining"
+    t.wait("inventory templates reviewed and added", inv_done, do_inv, live=inv_reviewed,
+           steps=_job_steps(api, "apply", "retrain"))
 
     t.act(8, "That's the tour", [
         "Everything keeps running: new lines, the agent, the models. Try more in the UI:",

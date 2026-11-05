@@ -89,7 +89,43 @@ export function JobRow({ job }: { job: Job }) {
       </div>
       <Progress value={job.status === "queued" ? 0 : job.progress} state={state} />
       <div className={job.error ? "error-text" : "muted small"}>{job.error ?? job.message}</div>
+      <JobDetail job={job} />
     </div>
+  );
+}
+
+const short = (x: unknown) => x == null || typeof x === "number" || typeof x === "boolean"
+  || (typeof x === "string" && x.length <= 100 && !x.includes("\n"));
+
+function DetailValue({ v }: { v: unknown }) {
+  if (typeof v === "string") return v.length > 100 || v.includes("\n") ? <pre className="samples">{v}</pre> : <span className="mono">{v}</span>;
+  if (Array.isArray(v) && v.every((x) => typeof x === "string")) return v.length ? <pre className="samples">{v.join("\n")}</pre> : <span className="muted">none</span>;
+  if (Array.isArray(v)) return v.length ? <ol className="detail-list">{v.map((x, i) => <li key={i}><DetailValue v={x} /></li>)}</ol> : <span className="muted">none</span>;
+  if (v && typeof v === "object") return (
+    // Labels sit above their value (short ones beside it), so every box in a block starts at the same edge.
+    <dl className="detail-kv">
+      {Object.entries(v).map(([k, x]) => (
+        <div key={k} className={short(x) ? "kv-inline" : "kv-block"}><dt>{k}</dt><dd><DetailValue v={x} /></dd></div>
+      ))}
+    </dl>
+  );
+  return <span className="mono">{v == null ? "–" : String(v)}</span>;
+}
+
+/** What a draft or training job took in, the LLM prompts it sent and what came back; collapsed by default. */
+export function JobDetail({ job, steps = true }: { job: Job; steps?: boolean }) {
+  const detail = Object.entries(job.detail ?? {});
+  if (!detail.length && !(steps && job.log?.length)) return null;
+  return (
+    <details className="job-detail-panel">
+      <summary>Details: steps, input, prompts, output</summary>
+      {steps && !!job.log?.length && (
+        <section><h4>Steps</h4>
+          <pre className="samples">{job.log.map(([t, m]) => `${new Date(t).toLocaleTimeString()}  ${m}`).join("\n")}</pre>
+        </section>
+      )}
+      {detail.map(([k, v]) => <section key={k}><h4>{k}</h4><DetailValue v={v} /></section>)}
+    </details>
   );
 }
 

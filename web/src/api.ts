@@ -69,6 +69,8 @@ export interface Job {
   message: string;
   error?: string;
   log?: [string, string][];
+  /** section -> what the job took in, the LLM prompts it sent, and what it returned */
+  detail?: Record<string, unknown>;
   created_at: string;
   started_at?: string;
   finished_at?: string;
@@ -234,6 +236,9 @@ export interface Selector {
 export interface Stream {
   id: string;
   name: string;
+  /** sources ticked by hand; a source is in exactly one stream */
+  picked?: string[];
+  /** patterns that also catch future sources (advanced) */
   selectors: Selector[];
   retrain_days: number | null;
   created_at: string;

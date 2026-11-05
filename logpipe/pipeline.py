@@ -8,6 +8,7 @@ from __future__ import annotations
 import random
 import time
 from collections.abc import Callable, Iterable
+from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -108,6 +109,7 @@ class Pipeline:
         registry_path: Path | None = None,
         enrich_every: int = 5_000,
         queue: UnresolvedQueue | None = None,
+        publish_lock: AbstractContextManager | None = None,
     ) -> Pipeline:
         """Wire parser, enrichment and detector around one live registry.
 
@@ -115,7 +117,8 @@ class Pipeline:
         With adapter and scorer, the detector re-resolves PENDING lines against the latest registry when their window is scored.
         """
         handle = ParserHandle(registry.current)
-        worker = (EnrichmentWorker(registry, handle, store, adapter, registry_path=registry_path, queue=queue)
+        worker = (EnrichmentWorker(registry, handle, store, adapter, registry_path=registry_path, queue=queue,
+                                   publish_lock=publish_lock)
             if adapter is not None
             else None
         )

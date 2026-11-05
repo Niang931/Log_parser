@@ -6,6 +6,7 @@ import { api, useAction, usePoll, type Batch, type Job, type Settings, type Sour
 import { Card, JobRow, Loading, Meter, PageHead, Stepper, TimeAgo, fmt, sourceLabel } from "../ui";
 import { InstallStep, KeyStep } from "./AddAgent";
 import { ReviewBatch } from "./Review";
+import { StreamsEditor } from "./Streams";
 
 interface SetupState {
   keys: number;
@@ -153,11 +154,8 @@ export default function Setup() {
 
         {step === 4 && (
           <Screen n={4} title="Group sources into streams (optional)"
-            intro={<>Each stream gets its own anomaly model, trained on the sources it selects. <strong>All logs</strong> covers everything; add streams for sources that behave alike, such as <code>host: gw-*</code> for IoT gateways.</>}>
-            <div className="row">
-              {data.streams.map((s) => <span key={s.id} className="badge">{s.name}</span>)}
-              <Link to="/streams" className="btn small">Manage streams</Link>
-            </div>
+            intro={<>Each stream trains its own anomaly model on the sources in it. Every source starts with a stream of its own, and a new one joins the stream of a source like it (same service). Group sources that behave alike, such as IoT gateways, by ticking them into one stream. You can change this any time under Streams.</>}>
+            <StreamsEditor compact />
           </Screen>
         )}
 
@@ -196,7 +194,7 @@ export default function Setup() {
           {step < STEPS.length - 1 && (
             <button className="btn primary" disabled={!canNext} onClick={() => { if (step === 4) setStreamsSeen(true); go(step + 1); }}
               title={canNext ? "" : "Finish this step first"}>
-              {step === 4 ? (done[4] ? "Next" : "Skip, use All logs") : "Next"}
+              Next
             </button>
           )}
         </div>

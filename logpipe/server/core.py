@@ -16,6 +16,7 @@ import queue
 import random
 import re
 import secrets
+import shutil
 import threading
 import time
 import uuid
@@ -34,10 +35,12 @@ from ..anomaly.logbert import LogBERTConfig, TrainConfig, train_logbert
 from ..anomaly.scorer import LogBERTScorer, ScorerSettings, Thresholds
 from ..anomaly.vocab import TemplateVocab
 from ..calibrate import append_drafts, calibrate
+from ..enrich import llm
 from ..enrich.llm import LLMAdapter
 from ..enrich.validate import clean_keys
 from ..parsing.frozen_parser import ParserHandle, Status
 from ..parsing.grok import compile_rule, rule_from_template
+from ..parsing.kv import SLOT_RE
 from ..pipeline import Pipeline
 from ..registry import UNK_TEMPLATE_ID, NewTemplate, SchemaRegistry
 from ..sources.file_replay import LogEvent
@@ -141,6 +144,77 @@ def _matches(selector: dict, host: str, service: str, source: str) -> bool:
                for field, value in (("host", host), ("service", service), ("source", source)))
 
 
+def _template_text(tokens, keys) -> str:
+    """``<*>`` slots shown with their field name: ``user <*:user_id> logged in``."""
+    names = iter(keys)
+    return SLOT_RE.sub(lambda m: f"{m.group(0)[:-1]}:{next(names, '?')}>", " ".join(tokens))
+
+
+def _brief(value, cap: int = 20):
+    """A call's argument or result in a JSON-safe, size-capped form."""
+    if isinstance(value, Mask):
+        return value.to_dict()
+    if isinstance(value, list | tuple):
+        return [_brief(v, cap) for v in value[:cap]] + ([f"… {len(value) - cap} more"] if len(value) > cap else [])
+    return value if isinstance(value, str | int | float | bool | None) else str(value)
+
+
+class _Traced:
+    """The LLM adapter, reporting each call as a job step (what it asks, the chat steps, the
+    answer) and recording its input, prompts and returned value for the detail panel."""
+
+    def __init__(self, inner: LLMAdapter, progress, start: float, end: float):
+        self._inner, self._progress = inner, progress
+        self.fraction, self._end = start, end
+        self.calls: list[dict] = []
+
+    def _report(self, message: str) -> None:
+        self.fraction += (self._end - self.fraction) * 0.05  # creeps on: the number of calls isn't known
+        self._progress(self.fraction, message, {"LLM calls": self.calls[-50:]})
+
+    def _traced(self, name: str, fn, args: tuple, shown: dict, asking: str, answered):
+        prompts: list[dict] = []
+        entry = {"call": name, "input": {k: _brief(v) for k, v in shown.items()}, "prompts": prompts,
+                 "output": "(waiting)"}
+        self.calls.append(entry)
+        self._report(asking)
+
+        def listen(message: str, record: dict | None) -> None:
+            if record is not None:
+                prompts.append(record)
+            self._report(f"  {message}")
+        token = llm.LISTEN.set(listen)
+        try:
+            out = fn(*args)
+        finally:
+            llm.LISTEN.reset(token)
+        entry["output"] = _brief(out)
+        self._report(answered(out))
+        return out
+
+    def synth_masks(self, lines, sample_size):
+        return self._traced("synth_masks", self._inner.synth_masks, (lines, sample_size),
+                            {"lines": len(lines), "sample size": sample_size, "first lines": list(lines[:10])},
+                            f"synthesizing masks from {min(len(lines), sample_size)} sample lines",
+                            lambda out: f"{len(out)} masks; Drain is mining templates")
+
+    def name_keys(self, tokens, samples):
+        return self._traced("name_keys", self._inner.name_keys, (tokens, samples),
+                            {"template": " ".join(tokens), "example lines": list(samples[:5])},
+                            f"naming the fields of: {' '.join(tokens)}",
+                            lambda out: f"fields: {', '.join(out) or '(none)'}")
+
+    def confirm_alias(self, new_tokens, old_tokens, new_samples):
+        return self._traced("confirm_alias", self._inner.confirm_alias, (new_tokens, old_tokens, new_samples),
+                            {"new": " ".join(new_tokens), "existing": " ".join(old_tokens),
+                             "example lines": list(new_samples[:5])},
+                            f"same event as an existing template? {' '.join(new_tokens)}",
+                            lambda out: "yes, same event" if out else "no, a new event")
+
+    def __getattr__(self, name: str):
+        return getattr(self._inner, name)
+
+
 class Busy(RuntimeError):
     """The ingest buffer is full; the agent keeps the batch and retries."""
 
@@ -167,14 +241,19 @@ class Server:
         self._rate: list[tuple[float, int]] = []
         self._dirty: set[tuple[str, str]] = set()
         self.events = Notifier()
+        # Its own lock: connected() runs on the event loop, which must never wait on self.lock
+        # (held across LLM calls and training).
+        self._presence = threading.Lock()
         self._waiting: dict[str, int] = {}  # host -> open /intake/v1/wait requests
         self._gone: dict[str, float] = {}  # host -> monotonic time its last wait closed
 
         self.settings = {**DEFAULT_SETTINGS, **(control.get("settings", "server") or {})}
-        if not control.all("stream"):
-            control.put("stream", "all", {"id": "all", "name": "All logs", "selectors": [{}],
-                                          "retrain_days": None, "created_at": now_iso()})
         self.sources = {d["id"]: d for d in control.all("source")}
+        if (legacy := control.get("stream", "all")) is not None and "picked" not in legacy:
+            # The old catch-all stream: it keeps the sources it was catching, now as ticked ones.
+            control.update("stream", "all", selectors=[], picked=sorted(
+                sid for sid, src in self.sources.items() if not src.get("alias_of") and not self.streams_for(sid)))
+        self._drop_empty_streams()
         self.tmeta = {int(d["id"]): d for d in control.all("template")}
         self.registry = (SchemaRegistry.load(self.registry_path) if self.registry_path.exists()
                          else SchemaRegistry())
@@ -213,7 +292,7 @@ class Server:
                 self.pipeline = Pipeline.assemble(
                     self.registry, self.store, adapter=self.adapter,
                     queue=self.queue_factory() if self.queue_factory else None,
-                    registry_path=self.registry_path, enrich_every=10**12)
+                    registry_path=self.registry_path, enrich_every=10**12, publish_lock=self.lock)
             else:
                 self.pipeline = Pipeline(ParserHandle(self.registry.current), self.store)
             self.pipeline.hold = self._held
@@ -307,6 +386,7 @@ class Server:
                     "id": sid, "host": event.device_id, "service": event.service,
                     "source": event.source, "first_seen": now_iso(), "count": 0,
                     "calibrated": False, "alias_of": None}
+                self._assign(sid)
                 if self.settings["calibrated"]:
                     self._warn("new_source", sid, f"New log source {event.service or event.source} on {event.device_id}",
                                "Templates are drafted from a sample once it has collected enough lines; "
@@ -339,9 +419,47 @@ class Server:
         target = self.sources.get(src["alias_of"]) if src and src.get("alias_of") else src
         if target is None:
             return []
-        return [s for s in self.control.all("stream")
-                if any(_matches(sel, target["host"], target["service"], target["source"])
-                       for sel in s["selectors"])]
+        # One stream per source, so it's always clear which model watches it: the stream it's
+        # ticked in, else the oldest one whose pattern (for future sources) matches.
+        streams = sorted(self.control.all("stream"), key=lambda s: s["created_at"])
+        found = (next((s for s in streams if target["id"] in (s.get("picked") or [])), None)
+                 or next((s for s in streams if any(
+                     sel and _matches(sel, target["host"], target["service"], target["source"])
+                     for sel in s.get("selectors") or [])), None))
+        return [found] if found else []
+
+    def _assign(self, sid: str, avoid: str | None = None) -> None:
+        """A source without a stream joins the stream of a source like it (same service and type,
+        any host; never ``avoid``, the one it was just taken out of), else gets one of its own."""
+        if self.streams_for(sid):  # a pattern already takes it
+            return
+        src = self.sources[sid]
+        for other_id, other in self.sources.items():
+            if other_id != sid and (other["service"], other["source"]) == (src["service"], src["source"]) \
+                    and (home := self.streams_for(other_id)) and home[0]["id"] != avoid:
+                self.control.update("stream", home[0]["id"], picked=sorted({*(home[0].get("picked") or []), sid}))
+                return
+        name = src["service"] or src["source"] or src["host"]
+        if any(s["name"] == name for s in self.control.all("stream")):
+            name = f"{name} ({src['source'] or src['host']})"
+        stream_id = self._stream_id(name)
+        self.control.put("stream", stream_id, {"id": stream_id, "name": name, "picked": [sid], "selectors": [],
+                                               "retrain_days": None, "created_at": now_iso()})
+        self.events.notify()
+
+    def _stream_id(self, name: str) -> str:
+        base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "stream"
+        stream_id, n = base, 2
+        while self.control.get("stream", stream_id) is not None:
+            stream_id, n = f"{base}-{n}", n + 1
+        return stream_id
+
+    def _drop_empty_streams(self) -> None:
+        """A stream no source is in (and no pattern waits for) has nothing to train: remove it."""
+        homes = {s[0]["id"] for sid in self.sources if (s := self.streams_for(sid))}
+        for stream in self.control.all("stream"):
+            if stream["id"] not in homes and not stream.get("selectors"):
+                self.delete_stream(stream["id"])
 
     # --- warnings -----------------------------------------------------------------------
     def _warn(self, kind: str, subject: str, title: str, detail: str, streams: list[str]) -> dict:
@@ -395,6 +513,10 @@ class Server:
                     raise ValueError(f"unknown source {target!r}")
                 self.sources[w["subject"]].update(alias_of=target, calibrated=True)
                 self._dirty.add(("source", w["subject"]))
+                for s in self.control.all("stream"):  # it now follows the target's stream
+                    if w["subject"] in (s.get("picked") or []):
+                        self.control.update("stream", s["id"], picked=[p for p in s["picked"] if p != w["subject"]])
+                self._drop_empty_streams()
             else:
                 snapshot = self.registry.alias(int(w["subject"]), int(target))
                 self._linked(int(w["subject"]), "you")
@@ -458,13 +580,15 @@ class Server:
             return job
         self.control.update("job", job_id, status="running", started_at=now_iso())
         log: list[list[str]] = []
+        detail: dict = {}  # section -> what went in / came out, for the UI's detail panel
 
-        def progress(fraction: float, message: str) -> None:
+        def progress(fraction: float, message: str, more: dict | None = None) -> None:
             if not log or log[-1][1] != message:
                 log.append([now_iso(), message])
-                del log[:-100]
+                del log[:-300]
+            detail.update(more or {})
             self.control.update("job", job_id, progress=round(min(max(fraction, 0.0), 1.0), 3),
-                                message=message, log=log)
+                                message=message, log=log, detail=detail)
 
         try:
             note = getattr(self, f"_job_{job['kind']}")(progress, **job["params"])
@@ -522,22 +646,25 @@ class Server:
             raise ValueError("no log sources yet: connect an agent and track some files first")
         lines, pool = self._sample(sids, progress, 0.0, 0.3)
         report: dict = {}
+        adapter = _Traced(self.adapter, progress, 0.35, 0.88)
+        progress(0.32, f"{len(lines)} lines sampled", {"Input": {
+            "sources": sids, "sampled lines": len(lines), "sample (first 50)": lines[:50]}})
         if initial:
             progress(0.35, f"mining templates from {len(lines)} lines (masks, Drain, field names)")
-            result = calibrate(lines, self.adapter)
+            result = calibrate(lines, adapter)
             entries = sorted(result.snapshot.templates.values(), key=lambda e: e.template_id)
             templates = [NewTemplate(e.tokens, e.keys) for e in entries]
             masks = list(result.snapshot.masks)
             report = {"holdout_coverage": result.report.holdout_coverage}
         else:
             progress(0.35, f"mining templates for lines the parser can't match ({len(lines)} sampled)")
-            templates = append_drafts(self.registry, lines, self.adapter)
+            templates = append_drafts(self.registry, lines, adapter)
             masks = list(self.registry.current.masks)
-        progress(0.9, f"{len(templates)} templates drafted; counting matches")
+        progress(0.9, f"{len(templates)} templates drafted; counting matches", {
+            "LLM calls": adapter.calls[-50:],
+            "Output": {"templates": [_template_text(t.tokens, t.keys) for t in templates],
+                       "masks": [m.to_dict() for m in masks], **report}})
         batch_id = uuid.uuid4().hex[:10]
-        for old in self.control.all("batch"):  # a newer sample replaces an unreviewed one
-            if old["status"] == "review" and (old["initial"] if initial else set(old["sources"]) & set(sids)):
-                self.control.update("batch", old["id"], status="replaced")
         path = self._lines_path(batch_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(pool), encoding="utf-8")
@@ -549,6 +676,12 @@ class Server:
             "masks": [m.to_dict() for m in masks] if initial else [], "lines": len(pool),
             "sampled": len(lines),
             "report": report, "created_at": now_iso()})
+        # A newer sample replaces an unreviewed one; only after the new one exists, so there is
+        # never a moment without an open review.
+        for old in self.control.all("batch"):
+            if old["id"] != batch_id and old["status"] == "review" and (
+                    old["initial"] if initial else set(old["sources"]) & set(sids)):
+                self.control.update("batch", old["id"], status="replaced")
         if not drafts and not initial:  # the parser already matches every sampled line
             self._finish_batch(self.control.get("batch", batch_id) or {}, [],
                                "every sampled line already matches a template")
@@ -618,11 +751,13 @@ class Server:
             changes["status"] = body["status"]
         return self.control.update("draft", draft_id, **changes)
 
-    def decide_all(self, batch_id: str, status: str) -> int:
+    def decide_all(self, batch_id: str, status: str, ids: list[str] | None = None) -> int:
+        """Every undecided draft, or with ``ids`` exactly those (back to "pending" too)."""
         self._open_batch(batch_id)
-        if status not in ("approved", "rejected"):
+        if status not in ("approved", "rejected") and not (ids is not None and status == "pending"):
             raise ValueError("status must be approved or rejected")
-        pending = [d for d in self.drafts(batch_id) if d["status"] == "pending"]
+        pending = [d for d in self.drafts(batch_id) if d["status"] != "merged"
+                   and (d["id"] in ids if ids is not None else d["status"] == "pending")]
         for d in pending:
             self.control.update("draft", d["id"], status=status)
         return len(pending)
@@ -846,7 +981,7 @@ class Server:
             lo = start + (1 - start) * i / max(len(streams), 1)
             hi = start + (1 - start) * (i + 1) / max(len(streams), 1)
             try:
-                self._train(sid, lambda f, m, lo=lo, hi=hi: progress(lo + (hi - lo) * f, m))
+                self._train(sid, lambda f, m, d=None, lo=lo, hi=hi: progress(lo + (hi - lo) * f, m, d))
             except NotEnoughData as short:
                 self._wait(sid, short.have)
                 progress(hi, f"{sid}: waiting for data ({short.have}/{short.need} windows); trains by itself")
@@ -903,21 +1038,27 @@ class Server:
         windows, n_sources = self._windows(stream_id)
         if len(windows) < MIN_TRAIN_WINDOWS:
             raise NotEnoughData(stream["name"], len(windows), MIN_TRAIN_WINDOWS)
-        progress(0.05, f"{stream['name']}: {len(windows)} windows from {n_sources} sources")
         random.Random(7).shuffle(windows)
         n_valid = max(1, len(windows) // 10)
         vocab = TemplateVocab.build(windows)
         encoded = [vocab.encode(w) for w in windows]
         epochs = self.epochs
+        config = LogBERTConfig(len(vocab), 32, 1, 2, max_len=self.window + 1)
+        name = stream["name"]
+        progress(0.05, f"{name}: {len(windows)} windows from {n_sources} sources", {f"{name}: input": {
+            "windows (train / valid)": f"{len(windows) - n_valid} / {n_valid}", "sources": n_sources,
+            "templates in vocab": len(vocab), "window / stride": f"{self.window} / {self.stride}",
+            "LogBERT config": config.to_dict(),
+            "epochs": epochs, "example windows (template ids)": [" ".join(map(str, w)) for w in windows[:5]]}})
+        epoch_log: list[str] = []
 
         def log(message: str) -> None:
             if message.startswith("epoch "):
                 epoch = int(message.split()[1].rstrip(":"))
-                progress(0.1 + 0.8 * (epoch + 1) / epochs, f"{stream['name']}: {message}")
+                epoch_log.append(message)
+                progress(0.1 + 0.8 * (epoch + 1) / epochs, f"{name}: {message}", {f"{name}: training": epoch_log})
 
-        trained = train_logbert(encoded[n_valid:], encoded[:n_valid],
-                                LogBERTConfig(len(vocab), 32, 1, 2, max_len=self.window + 1),
-                                TrainConfig(epochs=epochs), log=log)
+        trained = train_logbert(encoded[n_valid:], encoded[:n_valid], config, TrainConfig(epochs=epochs), log=log)
         version = f"{stream_id}-{datetime.now(UTC):%Y%m%d%H%M%S}"
         scorer = LogBERTScorer.from_training(trained, vocab, settings=ScorerSettings(num_candidates=3),
                                              version=version)
@@ -928,6 +1069,10 @@ class Server:
         miss = max(0.3, float(np.quantile(misses, 0.99))) if misses else 0.5
         scorer.settings.thresholds = Thresholds(miss_ratio=miss, novelty_ratio=float("inf"))
         scorer.save(self._model_dir(stream_id))
+        progress(0.95, f"{name}: threshold set", {f"{name}: output": {
+            "model version": version, "miss-ratio threshold": round(miss, 3),
+            "held-out miss ratio p50 / p99": (f"{np.quantile(misses, 0.5):.3f} / {np.quantile(misses, 0.99):.3f}"
+                                              if misses else "–")}})
         with self.lock:
             self.scorers[stream_id] = scorer
             self.detectors[stream_id] = self._detector(scorer)
@@ -1018,23 +1163,37 @@ class Server:
         name = str(doc.get("name", "")).strip()
         if not name:
             raise ValueError("a stream needs a name")
-        selectors = [{k: str(v) for k, v in sel.items() if k in ("host", "service", "source") and v}
-                     for sel in doc.get("selectors") or [{}]]
+        selectors = [cleaned for sel in doc.get("selectors") or []
+                     if (cleaned := {k: str(v) for k, v in sel.items() if k in ("host", "service", "source") and v})]
+        picked = sorted({str(p) for p in doc.get("picked") or []})
+        if unknown := [p for p in picked if p not in self.sources]:
+            raise ValueError(f"unknown source {unknown[0]!r}")
         days = doc.get("retrain_days")
         if days is not None and (not isinstance(days, int | float) or days <= 0):
             raise ValueError("retrain_days must be a positive number of days")
-        stream_id = stream_id or re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or uuid.uuid4().hex[:8]
+        stream_id = stream_id or self._stream_id(name)
         existing = self.control.get("stream", stream_id) or {"id": stream_id, "created_at": now_iso()}
-        return self.control.put("stream", stream_id, existing | {
-            "name": name, "selectors": selectors or [{}], "retrain_days": days})
+        for other in self.control.all("stream"):  # a ticked source moves here from wherever it was
+            if other["id"] != stream_id and set(other.get("picked") or []) & set(picked):
+                self.control.update("stream", other["id"], picked=sorted(set(other["picked"]) - set(picked)))
+        saved = self.control.put("stream", stream_id, existing | {
+            "name": name, "picked": picked, "selectors": selectors, "retrain_days": days})
+        for sid in sorted(self.sources):  # unticked, or a pattern removed: never left without a model
+            if not self.sources[sid].get("alias_of") and not self.streams_for(sid):
+                self._assign(sid, avoid=stream_id)
+        self._drop_empty_streams()  # the ones whose last source just moved here
+        self.events.notify()
+        return self.control.get("stream", stream_id) or saved
 
     def delete_stream(self, stream_id: str) -> None:
-        if stream_id == "all":
-            raise ValueError("the default stream can't be deleted")
+        if any((s := self.streams_for(sid)) and s[0]["id"] == stream_id for sid in self.sources):
+            raise ValueError("move this stream's sources to another stream first")
         self.control.delete("stream", stream_id)
         with self.lock:
             self.scorers.pop(stream_id, None)
             self.detectors.pop(stream_id, None)
+        shutil.rmtree(self._model_dir(stream_id), ignore_errors=True)  # a later stream may reuse the id
+        self.events.notify()
 
     # --- agents -------------------------------------------------------------------------
     def heartbeat(self, status: dict, key: dict) -> dict:
@@ -1057,7 +1216,7 @@ class Server:
 
     def connected(self, host: str, delta: int) -> None:
         """An agent opened (+1) or closed (-1) its long-poll; presence follows it instantly."""
-        with self.lock:
+        with self._presence:
             self._waiting[host] = self._waiting.get(host, 0) + delta
             if self._waiting[host] <= 0:
                 del self._waiting[host]
@@ -1134,8 +1293,9 @@ class Server:
                 now = time.monotonic()
                 if now - last_enrich >= self.enrich_every_s and self.pipeline.worker is not None:
                     last_enrich = now
-                    with self.lock:
-                        self.pipeline.enrich()
+                    # Not under self.lock: the worker takes it only to publish, so lines that
+                    # parse keep flowing while the LLM looks at the ones that don't.
+                    self.pipeline.enrich()
                 if now - last_schedule >= self.schedule_every_s:
                     last_schedule = now
                     for sid in self.due_retrains():

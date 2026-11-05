@@ -389,7 +389,9 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
 
     @app.post("/api/review/{batch_id}/decide-all")
     def decide_all(batch_id: str, body: Annotated[dict, Body()]) -> dict:
-        return {"changed": server.decide_all(batch_id, str(body["status"]))}
+        ids = body.get("ids")
+        return {"changed": server.decide_all(batch_id, str(body["status"]),
+                                             [str(i) for i in ids] if isinstance(ids, list) else None)}
 
     @app.post("/api/review/{batch_id}/apply", status_code=202)
     def apply_batch(batch_id: str) -> dict:
@@ -438,7 +440,7 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
             members = [sid for sid in server.sources if any(x["id"] == s["id"] for x in server.streams_for(sid))]
             out.append(s | {"sources": members, "has_model": s["id"] in server.scorers,
                             "vocab": len(s.get("vocab") or [])})
-        return {"streams": sorted(out, key=lambda s: (s["id"] != "all", s["name"]))}
+        return {"streams": sorted(out, key=lambda s: s["name"])}
 
     @app.post("/api/streams")
     def create_stream(body: Annotated[dict, Body()]) -> dict:

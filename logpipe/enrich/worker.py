@@ -30,6 +30,7 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Callable
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -115,6 +116,7 @@ class EnrichmentWorker:
         queue: UnresolvedQueue | None = None,
         max_attempts: int = DEFAULT_MAX_ATTEMPTS,
         consume_timeout: float = 1.0,
+        publish_lock: AbstractContextManager | None = None,
     ):
         self.registry = registry
         self.handle = handle
@@ -132,6 +134,9 @@ class EnrichmentWorker:
         self.max_attempts = max_attempts
         self.consume_timeout = consume_timeout
         self.queue: UnresolvedQueue = queue if queue is not None else MemoryQueue(max_buffer)
+        # Held only while publishing: the LLM calls before it run without it, so a caller that
+        # parses under the same lock keeps parsing while the model thinks.
+        self.publish_lock = publish_lock or nullcontext()
 
     @property
     def dropped(self) -> int:
@@ -203,6 +208,7 @@ class EnrichmentWorker:
         # the cluster simply was not looked at ("deferred").
         outcome: dict[int, str] = {}
         new_templates: list[NewTemplate] = []
+        new_samples: list[str] = []
         seen_tokens: set[tuple[str, ...]] = set()
         for cluster in clusters:
             lines = members[cluster.cluster_id]
@@ -248,28 +254,37 @@ class EnrichmentWorker:
             keys = clean_keys(self._call(report, self.adapter.name_keys, tokens, samples), tokens)
             # add the new template alias_of determine if its a new template or depends on existing one
             new_templates.append(NewTemplate(tokens, tuple(keys), decision.alias_of))
+            new_samples.append(lines[0])
             if decision.alias_of is not None:
                 report.aliased[len(new_templates) - 1] = decision.alias_of
             report.alias_decisions[len(new_templates) - 1] = (decision.score, decision.reason)
 
-        if new_templates:
-            snapshot, ids = self.registry.publish(
-                new_templates, key_vocab=[k for t in new_templates for k in t.keys]
-            )
-            report.published = ids
-            report.aliased = {ids[i]: target for i, target in report.aliased.items()}
-            report.alias_decisions = {ids[i]: d for i, d in report.alias_decisions.items()}
-            
-            # swapping the mainstream drain engine with new snapshoy 
-            self.handle.swap(snapshot)
+        with self.publish_lock:
+            # A review may have added these while the LLM was answering: skip what now parses.
+            keep = [i for i, line in enumerate(new_samples)
+                    if self.handle.parse(line).status != Status.FINAL]
+            if keep:
+                snapshot, ids = self.registry.publish(
+                    [new_templates[i] for i in keep],
+                    key_vocab=[k for i in keep for k in new_templates[i].keys],
+                )
+                id_of = dict(zip(keep, ids))
+                report.published = ids
+                report.aliased = {id_of[i]: t for i, t in report.aliased.items() if i in id_of}
+                report.alias_decisions = {id_of[i]: d for i, d in report.alias_decisions.items() if i in id_of}
 
-            # save the state if specified
-            if self.registry_path is not None:
-                self.registry.save(self.registry_path)
+                # the live parser picks up the new snapshot
+                self.handle.swap(snapshot)
 
-            # custom ending callback if specified
-            if self.on_publish is not None:
-                self.on_publish(snapshot.version)
+                # save the state if specified
+                if self.registry_path is not None:
+                    self.registry.save(self.registry_path)
+
+                # custom ending callback if specified
+                if self.on_publish is not None:
+                    self.on_publish(snapshot.version)
+            else:
+                report.aliased, report.alias_decisions = {}, {}
 
         resolved: list[LogRow] = []
         remaining: list[tuple[Message, str]] = []

@@ -15,7 +15,8 @@ from __future__ import annotations
 
 import atexit
 import os
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from contextvars import ContextVar
 from functools import lru_cache
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -29,6 +30,16 @@ if TYPE_CHECKING:
     from deepparse.providers.base import ChatProvider
     from deepparse.synth.chat_provider import LLMSynthConfig
     from langchain_core.runnables import Runnable
+
+# Set by a caller that follows chat calls step by step (a job's progress and detail panel):
+# called with a step message, plus {"prompt", "reply"} once an answer is in. Per thread, so the
+# online learner's calls on another thread never land in a job's record.
+LISTEN: ContextVar[Callable[[str, dict | None], None] | None] = ContextVar("llm_listen", default=None)
+
+
+def _step(message: str, record: dict | None = None) -> None:
+    if (listen := LISTEN.get()) is not None:
+        listen(message, record)
 
 
 class LLMAdapter(Protocol):
@@ -184,16 +195,24 @@ class ChatAdapter(OfflineAdapter):
         # One provider for every schema: a web provider's browser profile takes a lock,
         # so a second one on the same profile cannot start.
         if self._provider is None:
+            _step(f"starting {self.provider_name}" + (" (opening the browser; this can take a while)"
+                                                      if self.provider_name == "web" else ""))
             self._provider, self._api_key = _load_provider(self._config())
             atexit.register(self.close)
+            _step(f"{self.provider_name} ready")
         if schema not in self._runnables:
             chat = self._provider.build(
                 api_key=self._api_key, model=self.model_name or self._provider.default_model,
                 max_tokens=1024, effort="low", timeout=60.0, max_retries=2,
             )
             self._runnables[schema] = self._provider.structured(chat, schema)
+        _step(f"prompt sent to {self.provider_name}, waiting for the answer")
         result = self._runnables[schema].invoke([HumanMessage(prompt)])
-        return result.get("parsed")
+        parsed = result.get("parsed")
+        reply = parsed.model_dump() if parsed is not None else None
+        _step(f"answer: {reply}" if reply is not None else "no usable answer (falling back)",
+              {"prompt": prompt, "reply": reply})
+        return parsed
 
     def close(self) -> None:
         """Release the provider (and with ``web``, its browser)."""
@@ -209,6 +228,8 @@ class ChatAdapter(OfflineAdapter):
         # synthesize_llm opens and closes its own provider; free the browser profile first.
         self.close()
         sample = deterministic_sample(lines, min(sample_size, len(lines)))
+        _step(f"asking {self.provider_name} for masks over {len(sample)} sample lines"
+              + (" (opens the browser)" if self.provider_name == "web" else ""))
         masks = synthesize_llm(sample, self._config())
         validate_regexes([m.pattern for m in masks])
         return masks

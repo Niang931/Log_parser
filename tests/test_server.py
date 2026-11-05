@@ -5,6 +5,7 @@ from __future__ import annotations
 import gzip
 import json
 import random
+import threading
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -115,6 +116,9 @@ def test_full_lifecycle(env):
     assert client.post("/api/review/generate", json={"sample_cap": 150}).json()["kind"] == "draft"
     run_jobs(server)
     assert client.get("/api/overview").json()["templates"] == 0  # nothing live before review
+    detail = client.get("/api/jobs").json()["jobs"][0]["detail"]  # the UI's detail panel
+    assert detail["Input"]["sampled lines"] > 0 and detail["Output"]["templates"]
+    assert {c["call"] for c in detail["LLM calls"]} >= {"synth_masks", "name_keys"}
     batch = client.get("/api/setup").json()["review"]
     assert batch["initial"] and batch["pending"] == batch["drafts"] >= 4
     drafts = client.get(f"/api/review/{batch['id']}").json()["drafts"]
@@ -129,6 +133,11 @@ def test_full_lifecycle(env):
                        json={"tokens": ["user", "<*>", "logged", "out"], "keys": ["u"]}).json()["count"] == 0
     assert client.post(f"/api/review/{batch['id']}/check", json={  # widened by hand: still matches
         "tokens": ["user", "<*>", "logged", "in", "from", "<*>"], "keys": ["u", "ip"]}).json()["count"] == 74
+    picked = [d["id"] for d in drafts[:2]]  # ticked in the UI: just those, and back again
+    url = f"/api/review/{batch['id']}/decide-all"
+    assert client.post(url, json={"status": "rejected", "ids": picked}).json()["changed"] == 2
+    assert client.post(url, json={"status": "pending", "ids": picked}).json()["changed"] == 2
+    assert client.post(url, json={"status": "pending"}).status_code == 400  # "undecided" -> undecided: no
     assert client.post(f"/api/review/{batch['id']}/decide-all", json={"status": "approved"}).json()["changed"] > 0
     assert client.post(f"/api/review/{batch['id']}/apply").json()["kind"] == "apply"
     run_jobs(server)
@@ -137,10 +146,12 @@ def test_full_lifecycle(env):
     assert overview["settings"]["calibrated"] and overview["templates"] >= 4
     assert overview["status"].get("FINAL", 0) >= 450 and overview["models"] == 1
     streams = client.get("/api/streams").json()["streams"]
-    assert streams[0]["id"] == "all" and streams[0]["has_model"]
+    assert [s["id"] for s in streams] == ["api"] and streams[0]["has_model"]  # web-2 joined web-1's stream
+    trained = next(j for j in client.get("/api/jobs").json()["jobs"] if j["kind"] == "apply")["detail"]
+    assert trained["api: input"]["sources"] == 2 and trained["api: output"]["model version"]
     tpl = client.get("/api/templates").json()["templates"]
     assert any(t["keys"] == ["user_id", "ip"] for t in tpl)  # the reviewer's field names
-    assert all(t["seen_by"] == ["all"] for t in tpl if t["count"])
+    assert all(t["seen_by"] == ["api"] for t in tpl if t["count"])
     assert sum(t["count"] for t in tpl) == overview["status"]["FINAL"]  # back-filled lines counted
 
     # 3. a new source after calibration -> warning; "same as" resolves it
@@ -190,16 +201,50 @@ def test_full_lifecycle(env):
     send(server, client, headers, events(novel, start=2000))
     novel_warns = [w for w in client.get("/api/warnings").json()["warnings"]
                    if w["kind"] == "novel_template" and w["status"] == "open"]
-    assert novel_warns and novel_warns[0]["streams"] == ["all"]
+    assert novel_warns and novel_warns[0]["streams"] == ["api"]
     assert all("novelty" not in a["reasons"] for a in client.get("/api/alerts").json()["alerts"])
     # due only once the stream's retrain period has passed
     assert server.due_retrains() == []
-    server.control.update("stream", "all", trained_at=(datetime.now(UTC) - timedelta(days=8)).isoformat())
-    assert server.due_retrains() == ["all"]
-    client.post("/api/streams/all/train")
+    server.control.update("stream", "api", trained_at=(datetime.now(UTC) - timedelta(days=8)).isoformat())
+    assert server.due_retrains() == ["api"]
+    client.post("/api/streams/api/train")
     run_jobs(server)
     assert not [w for w in client.get("/api/warnings").json()["warnings"]
                 if w["kind"] == "novel_template" and w["status"] == "open"]
+
+
+def test_each_source_is_in_one_stream_ticked_sources_win(env):
+    server, client, headers = env
+    send(server, client, headers, events(app_lines(30)))
+    send(server, client, headers, events(app_lines(5), host="web-2"))  # same service and type: joins
+    send(server, client, headers, events(app_lines(5), host="web-3", source="go"))  # same name, other type
+    streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
+    assert streams["api"]["sources"] == ["web-1|api|python", "web-2|api|python"]
+    assert streams["api-go"]["name"] == "api (go)" and streams["api-go"]["sources"] == ["web-3|api|go"]
+    client.post("/api/streams", json={"name": "api", "picked": ["web-3|api|go", "web-2|api|python"]})
+    streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
+    assert "api-go" not in streams and streams["api-2"]["sources"] == ["web-2|api|python", "web-3|api|go"]
+    client.put("/api/streams/api-2", json={"name": "api", "picked": ["web-3|api|go"]})
+    streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
+    # unticked: back with a source like it (web-1), never left without a stream
+    assert streams["api"]["sources"] == ["web-1|api|python", "web-2|api|python"]
+    client.post("/api/streams", json={"name": "Web tier", "selectors": [{"host": "web-*"}]})
+    send(server, client, headers, events(app_lines(5), host="web-9", service="cron", source="go"))
+    streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
+    assert streams["web-tier"]["sources"] == ["web-9|cron|go"]  # a pattern catches sources that come later
+    send(server, client, headers, events(["db up"] * 5, host="db-1", service="pg", source="postgresql"))
+    db = "db-1|pg|postgresql"
+    client.post("/api/streams", json={"name": "Data", "picked": [db, "web-1|api|python"]})  # ticked: wins
+    streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
+    assert sorted(streams["data"]["sources"]) == [db, "web-1|api|python"] and "pg" not in streams
+    client.put("/api/streams/web-tier", json={"name": "Web tier", "picked": ["web-1|api|python"],
+                                              "selectors": [{"host": "web-*"}]})  # moves back
+    streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
+    assert streams["data"]["picked"] == [db] and streams["web-tier"]["sources"] == ["web-1|api|python", "web-9|cron|go"]
+    assert client.post("/api/streams", json={"name": "X", "picked": ["nope"]}).status_code == 400
+    client.put("/api/streams/web-tier", json={"name": "Web tier", "picked": ["web-1|api|python"]})  # pattern gone
+    streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
+    assert streams["cron"]["sources"] == ["web-9|cron|go"]  # web-9 got a stream of its own
 
 
 def test_streams_settings_query_stats(env):
@@ -209,8 +254,9 @@ def test_streams_settings_query_stats(env):
                                           "retrain_days": 3}).json()
     assert s["id"] == "web-tier"
     streams = {x["id"]: x for x in client.get("/api/streams").json()["streams"]}
-    assert streams["web-tier"]["sources"] == ["web-1|api|python"]
-    assert client.delete("/api/streams/all").status_code == 400
+    assert streams["web-tier"]["sources"] == [] and streams["api"]["sources"] == ["web-1|api|python"]
+    assert client.delete("/api/streams/api").status_code == 400  # still has a source
+    assert client.delete("/api/streams/web-tier").json() == {"ok": True}
     assert client.put("/api/settings", json={"sample_cap": 5}).status_code == 400
     assert client.put("/api/settings", json={"retrain_days": 14}).json()["retrain_days"] == 14
     q = client.post("/api/query", json={"sql": "SELECT device_id, count(*) FROM logs GROUP BY 1"}).json()
@@ -257,6 +303,13 @@ def test_wait_long_poll_and_instant_presence(env, monkeypatch):
     held = client.get("/intake/v1/wait", params={"hostname": "gw-9", "remote_hash": want, "timeout": 1.2},
                       headers=headers)
     assert held.json() == {"remote_hash": want} and time.monotonic() - start >= 1.2
+    # A job or the online learner holding the server lock (an LLM call, training) must not stall
+    # the event loop that serves every request.
+    answered = threading.Event()
+    with server.lock:
+        threading.Thread(target=lambda: (client.get("/intake/v1/wait", headers=headers, params={
+            "hostname": "gw-9", "timeout": 0}), answered.set()), daemon=True).start()
+        assert answered.wait(2)
 
     # Held open -> online; closed and not reopened -> offline without waiting for ONLINE_SECONDS.
     server.connected("gw-9", +1)
@@ -318,7 +371,7 @@ def test_too_little_data_waits_instead_of_failing(env):
     assert all(j["status"] == "done" for j in jobs)  # nothing failed
     assert stream["waiting"] and stream["data"]["have"] < stream["data"]["need"] == 8
     assert not stream["has_model"]
-    assert client.post("/api/streams/all/train").json() == {"waiting": ["all"]}
+    assert client.post("/api/streams/api/train").json() == {"waiting": ["api"]}
     assert server.jobs.empty()
     # more logs arrive -> housekeeping notices and trains by itself
     send(server, client, headers, events(app_lines(200, seed=6), start=500))
@@ -358,6 +411,33 @@ def test_online_templates_are_listed_for_review(env):
     assert client.post(f"/api/templates/{tid}/review", json={"keys": keys}).json()["reviewed"]
     entry = server.registry.current.templates[tid]
     assert list(entry.keys) == keys and tid not in [t["template_id"] for t in client.get("/api/review").json()["auto_templates"]]
+
+
+def test_lines_that_parse_keep_flowing_while_the_llm_thinks(env):
+    server, client, headers = env
+    calibrated(server, client, headers, app_lines(120))
+    worker = server.pipeline.worker
+    thinking, answer = threading.Event(), threading.Event()
+    name_keys = worker.adapter.name_keys
+
+    def slow_name_keys(tokens, samples):  # a chat model taking its time
+        thinking.set()
+        answer.wait(10)
+        return name_keys(tokens, samples)
+    worker.adapter.name_keys = slow_name_keys
+    send(server, client, headers, events([f"payment {i} refused by bank code {i % 7}" for i in range(40)],
+                                         start=1000))
+    cycle = threading.Thread(target=server.pipeline.enrich)  # as housekeeping runs it
+    cycle.start()
+    assert thinking.wait(5)
+    parsed = threading.Thread(target=send, args=(server, client, headers, events(app_lines(20), start=2000)))
+    parsed.start()
+    parsed.join(2)
+    alive = parsed.is_alive()
+    answer.set()
+    cycle.join(10)
+    assert not alive, "a line that parses waited for the LLM"
+    assert client.get("/api/review").json()["auto_templates"]  # and the LLM's template still landed
 
 
 def test_parsing_rules_on_drafts_and_live_templates(env):
