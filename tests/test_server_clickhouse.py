@@ -56,3 +56,17 @@ def test_server_on_clickhouse(store, tmp_path):
     assert client2.get("/intake/v1/ping", headers=headers).status_code == 200
     assert [s["id"] for s in client2.get("/api/sources").json()["sources"]] == ["h1|jobs|go"]
     assert server2.sources["h1|jobs|go"]["count"] == 60
+
+
+def test_one_client_serves_concurrent_threads(store):
+    from concurrent.futures import ThreadPoolExecutor
+
+    docs = ClickHouseDocs(store.client)
+
+    def work(i):
+        docs.write("agent", f"h{i}", {"hostname": f"h{i}"})
+        return store.client.query("SELECT sleep(0.05), count() FROM control_docs").result_rows
+
+    with ThreadPoolExecutor(8) as pool:
+        list(pool.map(work, range(32)))  # used to raise "concurrent queries within the same session"
+    assert len(docs.load()) == 32

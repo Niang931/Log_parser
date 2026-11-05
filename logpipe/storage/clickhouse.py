@@ -69,6 +69,9 @@ class ClickHouseStore:
             port=int(os.environ.get("CLICKHOUSE_PORT", "8123")),
             username=os.environ.get("CLICKHOUSE_USER", "default"),
             password=os.environ.get("CLICKHOUSE_PASSWORD", ""),
+            # One client serves the ingest, job, housekeeping and request threads; ClickHouse
+            # refuses concurrent queries inside one session, and nothing here needs a session.
+            autogenerate_session_id=False,
         )
         db = database or os.environ.get("CLICKHOUSE_DB", "default")
         client.command(f"CREATE DATABASE IF NOT EXISTS `{db}`")

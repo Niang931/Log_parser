@@ -26,7 +26,9 @@ var (
 	HeartbeatEvery = 15 * time.Second
 	// WaitFor is how long the server holds the /intake/v1/wait long-poll; under the client's 30s timeout.
 	WaitFor    = 25 * time.Second
-	WatchEvery = 2 * time.Second
+	WatchEvery = 2 * time.Second // offsets and status.json
+	// ConfigEvery is how often conf.d is checked for edits (`track`, `config set`, remote.yaml).
+	ConfigEvery = 250 * time.Millisecond
 )
 
 // Status is written to run/status.json for `logpipe-agent status` and sent as the heartbeat.
@@ -127,6 +129,8 @@ func runOnce(parent context.Context, cfg *config.Config, version string, started
 	fingerprint := configFingerprint(cfg.Dir)
 	watch := time.NewTicker(WatchEvery)
 	defer watch.Stop()
+	cfgTick := time.NewTicker(ConfigEvery)
+	defer cfgTick.Stop()
 	beat := time.NewTicker(HeartbeatEvery)
 	defer beat.Stop()
 	var lastBeat, cfgErr string
@@ -168,6 +172,7 @@ loop:
 		case <-watch.C:
 			pos.Save()
 			writeStatus(cfg, status(lastBeat, cfgErr))
+		case <-cfgTick.C:
 			if reload = changed(); reload {
 				break loop
 			}

@@ -223,3 +223,22 @@ def test_wait_long_poll_and_instant_presence(env, monkeypatch):
     monkeypatch.setattr(core, "GONE_SECONDS", 0)
     time.sleep(0.01)
     assert not server.agents()[0]["online"]
+
+
+def test_tracebacks_go_to_the_log_file_not_the_console(tmp_path, capsys):
+    import logging
+
+    from logpipe.server import setup_logging
+
+    log_file = setup_logging(tmp_path)
+    try:
+        raise ValueError("stream All logs: 1 windows")
+    except ValueError:
+        logging.getLogger("logpipe.server").exception("job j1 failed")
+    logging.getLogger("logpipe.server").info("quiet")
+    for h in logging.getLogger().handlers:
+        h.flush()
+    err = capsys.readouterr().err
+    assert "job j1 failed: stream All logs: 1 windows" in err and "Traceback" not in err and "quiet" not in err
+    assert "Traceback" in log_file.read_text() and "quiet" in log_file.read_text()
+    logging.basicConfig(force=True)  # leave pytest's logging as it was
