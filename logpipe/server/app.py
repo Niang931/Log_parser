@@ -23,6 +23,7 @@ from fastapi.responses import (
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild
+from .auth import COOKIE, SESSION_SECONDS, Auth
 from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
 from .reads import FACETS
 
@@ -45,6 +46,59 @@ def template_sql(entry, engine: str) -> str:
 def create_app(server: Server, demo: Any = None) -> FastAPI:
     app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
     engine = "sqlite" if server.reads.__class__.__name__ == "MemoryReads" else "clickhouse"
+    auth = Auth(server.control)
+
+    @app.middleware("http")
+    async def require_login(request: Request, call_next):
+        # `logpipe server` always sets a password before serving; with none set (tests, an
+        # embedded app) the API stays open. Agents' intake routes use API keys instead.
+        path = request.url.path
+        guarded = (path.startswith(("/api/", "/demo/api/")) and not path.startswith("/api/auth/"))
+        if guarded and auth.configured and not auth.valid(request.cookies.get(COOKIE)):
+            return JSONResponse({"detail": "log in first"}, 401)
+        return await call_next(request)
+
+    def client_of(request: Request) -> str:
+        return request.client.host if request.client else "?"
+
+    @app.get("/api/auth/status")
+    def auth_status(request: Request) -> dict:
+        return {"required": auth.configured,
+                "authenticated": not auth.configured or auth.valid(request.cookies.get(COOKIE))}
+
+    @app.post("/api/auth/login")
+    def login(request: Request, body: Annotated[dict, Body()]) -> Response:
+        client = client_of(request)
+        if wait := auth.blocked_for(client):
+            raise HTTPException(429, f"too many wrong passwords; try again in {int(wait) // 60 + 1} min")
+        token = auth.login(client, str(body.get("password") or ""))
+        if token is None:
+            raise HTTPException(401, "wrong password")
+        res = JSONResponse({"ok": True})
+        res.set_cookie(COOKIE, token, max_age=SESSION_SECONDS, httponly=True, samesite="strict",
+                       secure=request.url.scheme == "https")
+        return res
+
+    @app.post("/api/auth/logout")
+    def logout() -> Response:
+        res = JSONResponse({"ok": True})
+        res.delete_cookie(COOKIE)
+        return res
+
+    @app.post("/api/auth/password")
+    def change_password(request: Request, body: Annotated[dict, Body()]) -> Response:
+        if not auth.valid(request.cookies.get(COOKIE)):
+            raise HTTPException(401, "log in first")
+        client = client_of(request)
+        if wait := auth.blocked_for(client):
+            raise HTTPException(429, f"too many wrong passwords; try again in {int(wait) // 60 + 1} min")
+        if auth.login(client, str(body.get("current") or "")) is None:
+            raise HTTPException(403, "the current password is wrong")
+        auth.set_password(str(body.get("new") or ""))  # ValueError -> 400 when too short
+        res = JSONResponse({"ok": True})  # the old sessions are void now; this one is renewed
+        res.set_cookie(COOKIE, auth.login(client, str(body["new"])) or "", max_age=SESSION_SECONDS,
+                       httponly=True, samesite="strict", secure=request.url.scheme == "https")
+        return res
 
     def agent_key(x_api_key: Annotated[str | None, Header()] = None,
                   authorization: Annotated[str | None, Header()] = None) -> dict:

@@ -57,6 +57,9 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
                     adapter_factory=lambda: get_adapter(llm, browser=browser),  # type: ignore[arg-type]
                     queue_factory=lambda: open_queue(queue),
                     bootstrap_key=os.environ.get("LOGPIPE_BOOTSTRAP_KEY") or None)
+    from .auth import Auth
+
+    generated = Auth(control).ensure(os.environ.get("LOGPIPE_ADMIN_PASSWORD") or None)
     demo_instance = None
     if demo:
         from ..demo.server import Demo
@@ -65,6 +68,9 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
         threading.Thread(target=demo_instance.replay, daemon=True).start()
     print(f"[server] logpipe on http://{host}:{port}/ ({store} store, {queue} queue, {llm}); "
           f"log: {log_file}", flush=True)
+    if generated:
+        print(f"[server] admin password for the UI: {generated}  (change it in the UI; set "
+              "LOGPIPE_ADMIN_PASSWORD to reset it)", flush=True)
     try:
         uvicorn.run(create_app(server, demo_instance), host=host, port=port, log_config=None,
                     timeout_graceful_shutdown=2)  # SSE streams and agent long-polls never end on their own

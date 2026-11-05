@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api, useAction, usePoll, type ApiKey } from "../api";
+import { ChangePassword } from "../login";
 import { Card, CopyBlock, Empty, Loading, PageHead, TimeAgo } from "../ui";
 
 export default function Keys() {
@@ -10,7 +11,7 @@ export default function Keys() {
   const revoke = useAction((id: string) => api(`/api/keys/${id}`, { method: "DELETE" }));
   return (
     <>
-      <PageHead title="API keys" sub="Agents authenticate with these. Keys are stored hashed: copy a new one when it is shown." />
+      <PageHead title="API keys & password" sub="Agents authenticate with API keys; people with the admin password. Keys are stored hashed: copy a new one when it is shown." />
       <div className="stack">
         <Card title="Create a key">
           <form className="row" onSubmit={(e) => { e.preventDefault(); create.mutate(name, { onSuccess: (r) => { setToken(r.token); setName(""); } }); }}>
@@ -41,6 +42,7 @@ export default function Keys() {
             </div>
           )}
         </Card>
+        <ChangePassword />
       </div>
     </>
   );

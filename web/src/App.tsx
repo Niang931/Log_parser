@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { usePoll, useServerEvents, type Overview } from "./api";
+import { LogoutButton } from "./login";
 import { DesktopToggle, Toasts, useNotifications } from "./notify";
 import AgentDetail from "./pages/AgentDetail";
 import Agents from "./pages/Agents";
@@ -116,6 +117,7 @@ export default function App() {
           <a href="/api/docs">API docs</a>
           <DesktopToggle />
           <ThemeToggle />
+          <LogoutButton />
         </div>
       </nav>
       <Toasts toasts={note.toasts} dismiss={note.dismiss} />

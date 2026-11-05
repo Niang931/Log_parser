@@ -108,6 +108,26 @@ def _listener(port: int) -> str | None:
     return f"{m.group(1)} (pid {m.group(2)})" if m else None
 
 
+def ask_password() -> str:
+    """The UI's admin password ('' keeps the stored one, or generates one on a first start)."""
+    import getpass
+
+    while True:
+        try:
+            pw = getpass.getpass("Admin password for the UI (Enter keeps the current one; a new "
+                                 "server generates and prints one): ")
+        except EOFError:
+            raise SystemExit("\nstopped") from None
+        if not pw:
+            return ""
+        if len(pw) < 8:
+            print("  at least 8 characters")
+        elif getpass.getpass("Again: ") == pw:
+            return pw
+        else:
+            print("  they don't match")
+
+
 def ask_setup(saved: dict, mode: str | None = None) -> dict:
     """The questions; returns the answers (saved as next time's defaults)."""
     a: dict = {}
@@ -268,6 +288,8 @@ def start(run: Callable = subprocess.run, launch: Callable[[list[str]], None] | 
                  "chrome" if a["browser"] == "chromium" else "camoufox"], check=True)
             signed_in = sorted({*signed_in, a["site"]})
         _save(a, signed_in)
+    if a["mode"] == "server" and not os.environ.get("LOGPIPE_ADMIN_PASSWORD"):
+        os.environ["LOGPIPE_ADMIN_PASSWORD"] = ask_password()  # this run only; never saved
     if launch is None:
         from .cli import main as launch
     for cmd in commands:

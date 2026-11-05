@@ -113,3 +113,15 @@ def test_free_port_ignores_time_wait_and_names_the_listener():
         busy = _free_port(str(port))
     assert busy and "in use" in busy
     assert _free_port(str(port)) is None  # listener gone; TIME_WAIT alone doesn't block
+
+
+def test_server_start_asks_the_admin_password_without_saving_it(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(wizard, "_free_port", lambda _: None)
+    monkeypatch.delenv("LOGPIPE_ADMIN_PASSWORD", raising=False)
+    typed = iter(["short", "long enough", "long enough"])
+    monkeypatch.setattr("getpass.getpass", lambda _prompt="": next(typed))
+    _answers(monkeypatch, "", "", "", "", "", "", "y")
+    wizard.start(launch=lambda cmd: None, mode="server")
+    assert wizard.os.environ.pop("LOGPIPE_ADMIN_PASSWORD") == "long enough"
+    assert "long enough" not in wizard.SAVED.read_text()
