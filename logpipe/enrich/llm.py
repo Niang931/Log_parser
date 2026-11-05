@@ -304,13 +304,21 @@ class ChatAdapter(OfflineAdapter):
         parsed = self._invoke(_explain_schema(), _EXPLAIN_PROMPT.format(text=facts["text"]))
         if parsed is None:
             return super().explain_incident(facts) | {"note": "the LLM gave no usable answer; rule-based summary"}
-        return {"summary": parsed.summary, "likely_cause": parsed.likely_cause, "next_steps": parsed.next_steps[:4]}
+        return cap_explanation({"summary": parsed.summary, "likely_cause": parsed.likely_cause,
+                                "next_steps": parsed.next_steps})
 
     def write_sql(self, question: str, schema: str, engine: str) -> str:
         parsed = self._invoke(_sql_schema(), _SQL_PROMPT.format(engine=engine, schema=schema, question=question))
         if parsed is None or not parsed.sql.strip():
             raise ValueError("the LLM didn't return a query; try rephrasing")
         return parsed.sql.strip().rstrip(";")
+
+
+def cap_explanation(out: dict) -> dict:
+    """An LLM's incident explanation, bounded: the lines it read may have asked it to ramble or
+    to echo them back (the UI shows it as plain text either way)."""
+    return out | {"summary": str(out["summary"])[:1000], "likely_cause": str(out["likely_cause"])[:1000],
+                  "next_steps": [str(s)[:500] for s in list(out["next_steps"])[:4]]}
 
 
 def get_adapter(backend: str, *, browser: Browser = "camoufox") -> LLMAdapter:
