@@ -90,9 +90,15 @@ All requests carry `X-API-Key`.
 | `GET /intake/v1/ping` | `{ok, key}`: used by `logpipe-agent check` |
 | `POST /intake/v1/logs` | gzip JSON `{"events": [{ts, host, service, source, tags, message}]}` → 202; 429 when the ingest buffer is full (the agent buffers and retries) |
 | `POST /intake/v1/heartbeat` | agent status (version, sources with counters, effective config, shipper stats, `remote_hash`) → `{remote_hash}` |
+| `GET /intake/v1/wait?hostname=&remote_hash=&timeout=25` | long-poll every agent keeps open: answers `{remote_hash}` the moment the server's remote config differs (the agent then heartbeats and applies it), else after `timeout`. While it's open the agent is online; once it closes and isn't reopened within 1s, offline |
 | `GET /intake/v1/config?hostname=` | `{yaml}`: written to `conf.d/remote.yaml` when the hashes differ |
 
 `ts` is the agent's read time with its local UTC offset: a timestamp without a zone inside the
 line is read as that host's wall-clock time.
+
+Heartbeats (every 15s) carry the counters; presence and config pushes ride the long-poll, so the
+UI sees an agent come up, go down or apply a pushed config within about a second. The UI listens
+on `GET /api/events` (server-sent events) and refetches on each change; polling stays as the
+fallback. Agents older than the long-poll fall back to heartbeats (online for 45s after the last).
 
 The UI's API is browsable at `/api/docs`.

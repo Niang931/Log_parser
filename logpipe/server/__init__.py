@@ -34,6 +34,7 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
         threading.Thread(target=demo_instance.replay, daemon=True).start()
     print(f"[server] logpipe on http://{host}:{port}/ ({store} store, {queue} queue, {llm})", flush=True)
     try:
-        uvicorn.run(create_app(server, demo_instance), host=host, port=port, log_level="warning")
+        uvicorn.run(create_app(server, demo_instance), host=host, port=port, log_level="warning",
+                    timeout_graceful_shutdown=2)  # SSE streams and agent long-polls never end on their own
     finally:
         server.close()

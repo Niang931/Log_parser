@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { usePoll, type Overview } from "./api";
+import { usePoll, useServerEvents, type Overview } from "./api";
 import AgentDetail from "./pages/AgentDetail";
 import Agents from "./pages/Agents";
 import Alerts from "./pages/Alerts";
@@ -73,6 +73,7 @@ function ThemeToggle() {
 
 export default function App() {
   const { data } = usePoll<Overview>("/api/overview", 3000);
+  useServerEvents();
   const [open, setOpen] = useState(false);
   const location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);

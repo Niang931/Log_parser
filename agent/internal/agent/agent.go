@@ -24,7 +24,9 @@ import (
 
 var (
 	HeartbeatEvery = 15 * time.Second
-	WatchEvery     = 2 * time.Second
+	// WaitFor is how long the server holds the /intake/v1/wait long-poll; under the client's 30s timeout.
+	WaitFor    = 25 * time.Second
+	WatchEvery = 2 * time.Second
 )
 
 // Status is written to run/status.json for `logpipe-agent status` and sent as the heartbeat.
@@ -135,7 +137,21 @@ func runOnce(parent context.Context, cfg *config.Config, version string, started
 			lastBeat = time.Now().UTC().Format(time.RFC3339)
 		}
 	}
+	changed := func() bool {
+		if fp := configFingerprint(cfg.Dir); fp != fingerprint {
+			if _, err := config.Load(cfg.Dir); err == nil {
+				return true
+			} else {
+				cfgErr = err.Error() // keep running the last good config
+				log.Printf("ignoring invalid config change: %v", err)
+			}
+			fingerprint = fp
+		}
+		return false
+	}
 	heartbeat()
+	kick := make(chan struct{}, 1)
+	go waitRemote(srcCtx, client, cfg, kick)
 	reload := false
 loop:
 	for {
@@ -144,18 +160,16 @@ loop:
 			break loop
 		case <-beat.C:
 			heartbeat()
+		case <-kick: // a remote config is waiting, or the server is back: report and apply now
+			heartbeat()
+			if reload = changed(); reload {
+				break loop
+			}
 		case <-watch.C:
 			pos.Save()
 			writeStatus(cfg, status(lastBeat, cfgErr))
-			if fp := configFingerprint(cfg.Dir); fp != fingerprint {
-				if _, err := config.Load(cfg.Dir); err != nil {
-					cfgErr = err.Error() // keep running the last good config
-					log.Printf("ignoring invalid config change: %v", err)
-				} else {
-					reload = true
-					break loop
-				}
-				fingerprint = fp
+			if reload = changed(); reload {
+				break loop
 			}
 		}
 	}
@@ -257,6 +271,40 @@ func remoteHash(dir string) string {
 		return ""
 	}
 	return config.HashBytes(b)
+}
+
+// waitRemote holds the server's /intake/v1/wait long-poll open, which is how the server sees the
+// agent online at once and pushes remote config without waiting for the next heartbeat. It kicks
+// a heartbeat when the server's remote config hash changes or the server comes back after an error.
+func waitRemote(ctx context.Context, client *ship.Client, cfg *config.Config, kick chan<- struct{}) {
+	known := remoteHash(cfg.Dir)
+	backoff, failed := time.Second, false
+	for ctx.Err() == nil {
+		path := fmt.Sprintf("/intake/v1/wait?hostname=%s&remote_hash=%s&timeout=%d",
+			url.QueryEscape(cfg.Hostname), url.QueryEscape(known), int(WaitFor/time.Second))
+		resp, err := client.Do(ctx, "GET", path, nil, false)
+		if err != nil {
+			failed = true
+			select {
+			case <-ctx.Done():
+			case <-time.After(backoff):
+			}
+			backoff = min(backoff*2, 30*time.Second)
+			continue
+		}
+		var ans struct {
+			RemoteHash string `json:"remote_hash"`
+		}
+		json.Unmarshal(resp, &ans)
+		if failed || ans.RemoteHash != known {
+			select {
+			case kick <- struct{}{}:
+			default:
+			}
+		}
+		// Wait on what the server holds now: a rejected or disabled remote config must not spin.
+		known, backoff, failed = ans.RemoteHash, time.Second, false
+	}
 }
 
 // sendHeartbeat reports status; if the server holds a different remote config, it is fetched,

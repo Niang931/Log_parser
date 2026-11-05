@@ -26,7 +26,29 @@ type fakeServer struct {
 	remote string
 }
 
+func (f *fakeServer) hash() string {
+	if f.remote == "" {
+		return ""
+	}
+	sum := sha256.Sum256([]byte(f.remote))
+	return hex.EncodeToString(sum[:8])
+}
+
 func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/intake/v1/wait" { // long-poll: answer when the hash differs, else after 1s
+		for end := time.Now().Add(time.Second); time.Now().Before(end); time.Sleep(10 * time.Millisecond) {
+			f.mu.Lock()
+			h := f.hash()
+			f.mu.Unlock()
+			if h != r.URL.Query().Get("remote_hash") {
+				break
+			}
+		}
+		f.mu.Lock()
+		json.NewEncoder(w).Encode(map[string]string{"remote_hash": f.hash()})
+		f.mu.Unlock()
+		return
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	switch r.URL.Path {
@@ -39,12 +61,7 @@ func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		var st Status
 		json.NewDecoder(r.Body).Decode(&st)
 		f.beats = append(f.beats, st)
-		hash := ""
-		if f.remote != "" {
-			sum := sha256.Sum256([]byte(f.remote))
-			hash = hex.EncodeToString(sum[:8])
-		}
-		json.NewEncoder(w).Encode(map[string]string{"remote_hash": hash})
+		json.NewEncoder(w).Encode(map[string]string{"remote_hash": f.hash()})
 	case "/intake/v1/config":
 		json.NewEncoder(w).Encode(map[string]string{"yaml": f.remote})
 	}
@@ -72,7 +89,8 @@ func waitFor(t *testing.T, what string, cond func() bool) {
 }
 
 func TestAgentEndToEnd(t *testing.T) {
-	HeartbeatEvery, WatchEvery, source.PollEvery = 100*time.Millisecond, 100*time.Millisecond, 20*time.Millisecond
+	// No periodic heartbeat: remote config must arrive through the long-poll alone.
+	HeartbeatEvery, WatchEvery, source.PollEvery = time.Hour, 100*time.Millisecond, 20*time.Millisecond
 	srv := &fakeServer{}
 	ts := httptest.NewServer(srv)
 	defer ts.Close()
@@ -130,10 +148,9 @@ func TestAgentEndToEnd(t *testing.T) {
 	os.WriteFile(other, []byte("hello from remote\n"), 0o644)
 	waitFor(t, "remote source line", func() bool { return len(srv.messages()) == 3 })
 	waitFor(t, "counters kept across the reload", func() bool {
-		srv.mu.Lock()
-		defer srv.mu.Unlock()
-		st := srv.beats[len(srv.beats)-1]
-		return st.Shipper.Sent == 3 && st.Sources[0].Lines == 4
+		var st Status
+		b, _ := os.ReadFile(filepath.Join(dir, "run", "status.json"))
+		return json.Unmarshal(b, &st) == nil && st.Shipper.Sent == 3 && st.Sources[0].Lines == 4
 	})
 
 	cancel()

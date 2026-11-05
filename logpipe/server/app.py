@@ -1,6 +1,7 @@
 """HTTP surface of ``logpipe server``: ``/intake/v1/*`` for agents (API key), ``/api/*`` for the
 React UI, the built UI at ``/`` and the developer demo at ``/demo/``."""
 
+import asyncio
 import json
 import zlib
 from collections import Counter
@@ -9,7 +10,13 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 
 from ..registry import UNK_TEMPLATE_ID
 from .core import Busy, Server
@@ -78,9 +85,40 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     def intake_heartbeat(status: Annotated[dict, Body()], key: Annotated[dict, Depends(agent_key)]) -> dict:
         return server.heartbeat(status, key)
 
+    @app.get("/intake/v1/wait")
+    async def intake_wait(request: Request, hostname: str, key: Annotated[dict, Depends(agent_key)],
+                          remote_hash: str = "", timeout: float = 25) -> dict:
+        """Long-poll held by every agent: answers as soon as its remote config differs from
+        ``remote_hash`` (else after ``timeout``); while it's open the agent counts as online."""
+        server.events.bind()
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + min(max(timeout, 0), 55)
+        server.connected(hostname, +1)
+        try:
+            while (current := server.remote_hash_of(hostname)) == remote_hash and loop.time() < deadline:
+                if await request.is_disconnected():
+                    break
+                await server.events.wait(min(1.0, max(deadline - loop.time(), 0)))
+            return {"remote_hash": current}
+        finally:
+            server.connected(hostname, -1)
+
     @app.get("/intake/v1/config")
     def intake_config(hostname: str, key: Annotated[dict, Depends(agent_key)]) -> dict:
         return {"yaml": (server.control.get("remote", hostname) or {}).get("yaml", "")}
+
+    @app.get("/api/events")
+    async def events(request: Request) -> StreamingResponse:
+        """Server-sent events: one ``change`` per agent/fleet change, so the UI refetches at once."""
+        server.events.bind()
+
+        async def stream():
+            yield "retry: 1000\n\n"
+            while not await request.is_disconnected():
+                yield "event: change\ndata: {}\n\n" if await server.events.wait(15) else ": ping\n\n"
+
+        return StreamingResponse(stream(), media_type="text/event-stream",
+                                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     # --- overview, logs, templates, stats --------------------------------------------
     @app.get("/api/overview")
@@ -175,6 +213,7 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     @app.delete("/api/agents/{host}")
     def forget_agent(host: str) -> dict:
         server.control.delete("agent", host)
+        server.events.notify()
         return {"ok": True}
 
     @app.get("/api/keys")

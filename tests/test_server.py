@@ -195,3 +195,31 @@ def test_zone_less_line_times_use_the_agents_offset(env):
     got = {r["message"]: r["timestamp"] for r in client.get("/api/logs").json()["logs"]}
     assert got["2026-01-01 10:00:00 started"] == "2026-01-01T02:00:00+00:00"
     assert got["no time here"] == "2026-01-01T02:00:06+00:00"
+
+
+def test_wait_long_poll_and_instant_presence(env, monkeypatch):
+    import time
+
+    from logpipe.server import core
+
+    server, client, headers = env
+    client.post("/intake/v1/heartbeat", json={"hostname": "gw-9"}, headers=headers)
+    server.set_remote("gw-9", "logs:\n  - type: udp\n    port: 5514\n")
+    want = server.remote_hash_of("gw-9")
+    # A config the agent doesn't have answers at once; the current one is held until the timeout.
+    start = time.monotonic()
+    assert client.get("/intake/v1/wait", params={"hostname": "gw-9"}, headers=headers).json() == {
+        "remote_hash": want}
+    assert time.monotonic() - start < 1
+    held = client.get("/intake/v1/wait", params={"hostname": "gw-9", "remote_hash": want, "timeout": 1.2},
+                      headers=headers)
+    assert held.json() == {"remote_hash": want} and time.monotonic() - start >= 1.2
+
+    # Held open -> online; closed and not reopened -> offline without waiting for ONLINE_SECONDS.
+    server.connected("gw-9", +1)
+    assert server.agents()[0]["online"]
+    server.connected("gw-9", -1)
+    assert server.agents()[0]["online"]  # within the reconnect grace
+    monkeypatch.setattr(core, "GONE_SECONDS", 0)
+    time.sleep(0.01)
+    assert not server.agents()[0]["online"]

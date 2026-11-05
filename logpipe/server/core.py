@@ -7,6 +7,7 @@ housekeeping thread persists counters, runs enrichment and the retraining schedu
 """
 from __future__ import annotations
 
+import asyncio
 import fnmatch
 import hashlib
 import logging
@@ -41,7 +42,39 @@ from .reads import reads_for
 
 LOGGER = logging.getLogger("logpipe.server")
 
-ONLINE_SECONDS = 45
+ONLINE_SECONDS = 45  # agents that don't hold /intake/v1/wait open (older builds)
+GONE_SECONDS = 1  # an agent whose wait connection closed and didn't come back is offline
+
+
+class Notifier:
+    """Wakes async waiters (agent long-polls, UI event streams) from any thread."""
+
+    def __init__(self) -> None:
+        self.loop: asyncio.AbstractEventLoop | None = None
+        self._event = asyncio.Event()
+
+    def bind(self) -> None:
+        """Called from the event loop before waiting (uvicorn has one; test clients make several)."""
+        loop = asyncio.get_running_loop()
+        if self.loop is not loop:
+            self.loop, self._event = loop, asyncio.Event()
+
+    def notify(self, delay: float = 0) -> None:
+        loop = self.loop
+        if loop is not None and not loop.is_closed():
+            loop.call_soon_threadsafe(loop.call_later, delay, self._wake)
+
+    def _wake(self) -> None:
+        event, self._event = self._event, asyncio.Event()
+        event.set()
+
+    async def wait(self, timeout: float) -> bool:
+        """True when notified within ``timeout`` seconds."""
+        try:
+            await asyncio.wait_for(self._event.wait(), timeout)
+            return True
+        except TimeoutError:
+            return False
 SOURCE_TYPES = {"file", "journald", "docker", "tcp", "udp"}
 RULE_TYPES = {"multi_line", "exclude_at_match", "include_at_match", "mask_sequences"}
 DEFAULT_SETTINGS = {"sample_cap": 5000, "retrain_days": 7, "calibrated": False,
@@ -118,6 +151,9 @@ class Server:
         self.received = 0
         self._rate: list[tuple[float, int]] = []
         self._dirty: set[tuple[str, str]] = set()
+        self.events = Notifier()
+        self._waiting: dict[str, int] = {}  # host -> open /intake/v1/wait requests
+        self._gone: dict[str, float] = {}  # host -> monotonic time its last wait closed
 
         self.settings = {**DEFAULT_SETTINGS, **(control.get("settings", "server") or {})}
         if not control.all("stream"):
@@ -573,13 +609,39 @@ class Server:
         prev = self.control.get("agent", host) or {"first_seen": now_iso()}
         self.control.put("agent", host, prev | {
             "hostname": host, "status": status, "last_seen": now_iso(), "key_name": key["name"]})
-        remote = self.control.get("remote", host) or {}
-        return {"remote_hash": remote.get("hash", "")}
+        self.events.notify()
+        return {"remote_hash": self.remote_hash_of(host)}
+
+    def remote_hash_of(self, host: str) -> str:
+        return (self.control.get("remote", host) or {}).get("hash", "")
 
     def set_remote(self, host: str, text: str) -> dict:
         validate_remote_yaml(text)
-        return self.control.put("remote", host, {"id": host, "yaml": text, "hash": remote_hash(text),
-                                                 "updated_at": now_iso()})
+        doc = self.control.put("remote", host, {"id": host, "yaml": text, "hash": remote_hash(text),
+                                                "updated_at": now_iso()})
+        self.events.notify()  # the agent's open wait returns at once
+        return doc
+
+    def connected(self, host: str, delta: int) -> None:
+        """An agent opened (+1) or closed (-1) its long-poll; presence follows it instantly."""
+        with self.lock:
+            self._waiting[host] = self._waiting.get(host, 0) + delta
+            if self._waiting[host] <= 0:
+                del self._waiting[host]
+                self._gone[host] = time.monotonic()
+            else:
+                self._gone.pop(host, None)
+        # agents reconnect within milliseconds; only a lasting disconnect turns them offline
+        self.events.notify(GONE_SECONDS + 0.2 if delta < 0 else 0)
+
+    def _online(self, a: dict, cutoff: str) -> bool:
+        host = a["hostname"]
+        if host in self._waiting:
+            return True
+        gone = self._gone.get(host)
+        if gone is not None and time.monotonic() - gone > GONE_SECONDS:
+            return False
+        return a["last_seen"] >= cutoff
 
     def agents(self) -> list[dict]:
         out = []
@@ -587,7 +649,7 @@ class Server:
         for a in self.control.all("agent"):
             remote = self.control.get("remote", a["hostname"]) or {}
             st = a.get("status", {})
-            out.append(a | {"online": a["last_seen"] >= cutoff, "remote": remote,
+            out.append(a | {"online": self._online(a, cutoff), "remote": remote,
                             "remote_applied": st.get("remote_hash", "") == remote.get("hash", "")})
         return sorted(out, key=lambda a: a["hostname"])
 

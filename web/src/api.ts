@@ -1,5 +1,6 @@
 // Thin typed client for `logpipe server`'s /api.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 export class ApiError extends Error {}
 
@@ -27,6 +28,18 @@ export function usePoll<T>(path: string | null, every = 2000) {
     enabled: path !== null,
     refetchInterval: every,
   });
+}
+
+/** Refetches fleet views the moment the server reports a change (agent up/down, heartbeat,
+ * pushed config) over server-sent events; polling stays as the fallback. */
+export function useServerEvents() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const es = new EventSource("/api/events");
+    es.addEventListener("change", () =>
+      qc.invalidateQueries({ predicate: (q) => /^\/api\/(agents|overview|setup)/.test(String(q.queryKey[0])) }));
+    return () => es.close();
+  }, [qc]);
 }
 
 /** A POST/PUT/DELETE that refreshes every query afterwards (the UI is small; that's cheap). */
