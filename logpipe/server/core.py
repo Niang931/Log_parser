@@ -45,9 +45,11 @@ from ..parsing.kv import SLOT_RE
 from ..pipeline import Pipeline
 from ..registry import UNK_TEMPLATE_ID, NewTemplate, SchemaRegistry
 from ..sources.file_replay import LogEvent
+from ..storage.memory import MemoryStore
 from ..unresolved import UnresolvedQueue
 from . import review
 from .control import ControlStore
+from .metrics import ClickHouseSeries, CountedAdapter, MemorySeries, Metrics
 from .reads import reads_for
 
 LOGGER = logging.getLogger("logpipe.server")
@@ -242,6 +244,7 @@ class Server:
                  min_train_steps: int = MIN_TRAIN_STEPS):
         self.store, self.control = store, control
         self.reads = reads_for(store)
+        self.metrics = Metrics(MemorySeries() if isinstance(store, MemoryStore) else ClickHouseSeries(store.client))
         self.data_dir = data_dir
         self.registry_path = data_dir / "registry.json"
         self.adapter_factory, self.queue_factory = adapter_factory, queue_factory
@@ -296,7 +299,7 @@ class Server:
     @property
     def adapter(self) -> LLMAdapter:
         if self._adapter is None:
-            self._adapter = self.adapter_factory()
+            self._adapter = CountedAdapter(self.adapter_factory(), self.metrics)
         return self._adapter
 
     def _build_pipeline(self) -> None:
@@ -387,11 +390,14 @@ class Server:
             try:
                 self.process(event)
             except Exception:
+                self.metrics.count("errors")
                 LOGGER.exception("failed to process a line from %s", event.device_id)
 
     def process(self, event: LogEvent) -> None:
         with self.lock:
+            started = time.perf_counter_ns()
             result = self.pipeline.process(event)
+            parse_ns, n_alerts = time.perf_counter_ns() - started, 0
             ts = self.pipeline._event_time or datetime.now(UTC)
             self.received += 1
             sid = source_id(event.device_id, event.service, event.source)
@@ -425,9 +431,11 @@ class Server:
                     continue
                 alerts = detector.observe(device, tid, ts, event.line)
                 if alerts:
+                    n_alerts += len(alerts)
                     self.store.insert_alerts(alerts)
                 if tid != UNK_TEMPLATE_ID and tid not in detector.scorer.vocab:
                     self._novel(tid, stream["id"])
+            self.metrics.parsed(parse_ns, tid == UNK_TEMPLATE_ID, n_alerts)
 
     def streams_for(self, sid: str) -> list[dict]:
         src = self.sources.get(sid)
@@ -1426,13 +1434,38 @@ class Server:
                 due.append(stream["id"])
         return due
 
+    def store_usage(self) -> dict[str, float | None]:
+        """The log store's size on disk and how full its disk is (ClickHouse only)."""
+        client = getattr(self.store, "client", None)
+        if client is None:
+            return {}
+        size = client.query("SELECT sum(bytes_on_disk) FROM system.parts WHERE active AND "
+                            "database = currentDatabase()").result_rows[0][0] or 0
+        free, total = client.query("SELECT sum(free_space), sum(total_space) FROM system.disks").result_rows[0]
+        return {"store_mb": size / 2**20, "disk_used_pct": 100 * (1 - free / total) if total else None}
+
+    def sample_metrics(self) -> dict[str, float]:
+        gauges: dict[str, float | None] = {"inbox": self.inbox.qsize()}
+        try:
+            gauges["pending_rows"] = self.store.count_by_status().get("PENDING", 0)
+            gauges |= self.store_usage()
+        except Exception:  # a store hiccup must not stop the process metrics
+            LOGGER.warning("store metrics unavailable", exc_info=True)
+        q = getattr(self.pipeline, "queue", None)
+        if q is not None and hasattr(q, "stats"):
+            gauges["queue_lag"] = q.stats().lag
+        return self.metrics.sample(gauges)
+
     def _housekeeping_loop(self) -> None:
-        last_enrich = last_schedule = time.monotonic()
+        last_enrich = last_schedule = last_sample = time.monotonic()
         last_ready = 0.0
         while not self._stop.wait(5):
             try:
                 self.persist()
                 now = time.monotonic()
+                if now - last_sample >= self.metrics.every - 0.5:
+                    last_sample = now
+                    self.sample_metrics()
                 if now - last_enrich >= self.enrich_every_s and self.pipeline.worker is not None:
                     last_enrich = now
                     # Not under self.lock: the worker takes it only to publish, so lines that

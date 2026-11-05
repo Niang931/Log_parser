@@ -3,6 +3,7 @@ React UI, the built UI at ``/`` and the developer demo at ``/demo/``."""
 
 import asyncio
 import json
+import os
 import uuid
 import zlib
 from collections import Counter
@@ -24,6 +25,7 @@ from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild
 from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
+from .metrics import METRICS
 from .reads import FACETS
 
 STATIC = Path(__file__).with_name("static")
@@ -294,6 +296,15 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
                            else ("unparsed (pending)" if tid == UNK_TEMPLATE_ID else f"#{tid}")]
                           for tid, n in top_t],
         }
+
+    @app.get("/api/system")
+    def system(minutes: int = 60) -> dict:
+        """The server's own metrics (see ``metrics.py``) over the last ``minutes``."""
+        return {"metrics": {k: {"label": label, "unit": unit, "group": group}
+                            for k, (label, unit, group) in METRICS.items()},
+                "current": server.metrics.current, "sampled_at": server.metrics.sampled_at,
+                "every": server.metrics.every, "cpus": os.cpu_count(),
+                **server.metrics.series(clamp(minutes))}
 
     @app.get("/api/alerts")
     def alerts(limit: int = 200) -> dict:

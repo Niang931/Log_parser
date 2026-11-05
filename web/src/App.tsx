@@ -13,6 +13,7 @@ import Query from "./pages/Query";
 import Setup from "./pages/Setup";
 import StatsPage from "./pages/Stats";
 import Streams from "./pages/Streams";
+import SystemPage from "./pages/System";
 import Templates from "./pages/Templates";
 import Maintenance from "./pages/Maintenance";
 import ReviewPage from "./pages/Review";
@@ -31,6 +32,7 @@ const paths: Record<string, string> = {
   keys: "M15 7a3 3 0 11-3 3m3-3l5-5m-2 2l2 2M12 10l-8 8v2h2l1-1v-2h2v-2h2l1-1",
   jobs: "M12 7v5l3 3M12 3a9 9 0 100 18 9 9 0 000-18z",
   demo: "M7 4l12 8-12 8V4z",
+  system: "M3 12h4l3-8 4 16 3-8h4",
 };
 
 export function Icon({ name }: { name: keyof typeof paths }) {
@@ -107,6 +109,7 @@ export default function App() {
         <Item to="/maintenance" icon="warnings" count={todo}>Maintenance</Item>
         <Item to="/streams" icon="streams">Streams &amp; models</Item>
         <Item to="/jobs" icon="jobs" count={note.activeJobs}>Jobs</Item>
+        <Item to="/system" icon="system">System</Item>
         <div className="nav-group">Fleet</div>
         <Item to="/agents" icon="agents">Agents</Item>
         <Item to="/keys" icon="keys">API keys</Item>
@@ -134,6 +137,7 @@ export default function App() {
           <Route path="/review/:id" element={<ReviewPage />} />
           <Route path="/streams" element={<Streams />} />
           <Route path="/jobs" element={<Jobs />} />
+          <Route path="/system" element={<SystemPage />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/agents/:host" element={<AgentDetail />} />
           <Route path="/keys" element={<Keys />} />

@@ -22,13 +22,28 @@ class _Console(logging.Formatter):
         return line
 
 
+class _Json(logging.Formatter):
+    """One JSON object per line (``LOGPIPE_LOG_FORMAT=json``), for log shippers, logpipe's own
+    agent included."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        import json
+
+        out = {"ts": self.formatTime(record), "level": record.levelname.lower(), "logger": record.name,
+               "message": record.getMessage(), "thread": record.threadName}
+        if record.exc_info:
+            out["error"] = self.formatException(record.exc_info)
+        return json.dumps(out, default=str)
+
+
 def setup_logging(data_dir: Path) -> Path:
     """Everything, with tracebacks, to ``data_dir/server.log``; warnings and errors as one
     line each to the console."""
     data_dir.mkdir(parents=True, exist_ok=True)
     log_file = data_dir / "server.log"
     to_file = logging.handlers.RotatingFileHandler(log_file, maxBytes=10 << 20, backupCount=3)
-    to_file.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
+    to_file.setFormatter(_Json() if os.environ.get("LOGPIPE_LOG_FORMAT") == "json"
+                         else logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
     console = logging.StreamHandler()
     console.setLevel(logging.WARNING)
     console.setFormatter(_Console(log_file))
