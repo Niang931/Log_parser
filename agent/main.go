@@ -42,7 +42,8 @@ commands:
   check                                       validate config and test the server connection
   version
 
--c defaults to $LOGPIPE_AGENT_CONFIG or /etc/logpipe-agent.
+-c defaults to $LOGPIPE_AGENT_CONFIG, else /etc/logpipe-agent as root and
+~/.config/logpipe-agent for any other user (no sudo needed).
 `
 
 func main() {
@@ -445,6 +446,13 @@ func cmdCheck(dir string, out io.Writer) error {
 		case "file":
 			m, _ := filepath.Glob(s.Path)
 			fmt.Fprintf(out, "  %s: %d files match\n", s.Path, len(m))
+			for _, f := range m {
+				if fh, err := os.Open(f); err != nil {
+					fmt.Fprintf(out, "    can't read %s (%v): add this user to the file's group, e.g. `sudo usermod -aG adm $USER`\n", f, err)
+				} else {
+					fh.Close()
+				}
+			}
 		case "journald":
 			if _, err := exec.LookPath("journalctl"); err != nil {
 				fmt.Fprintln(out, "  journald: journalctl not found")

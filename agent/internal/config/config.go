@@ -79,10 +79,22 @@ func expand(b []byte) []byte {
 	})
 }
 
-// DefaultDir is where the agent looks for agent.yaml unless --config or LOGPIPE_AGENT_CONFIG says otherwise.
+// DefaultDir is where the agent looks for agent.yaml unless -c or LOGPIPE_AGENT_CONFIG says
+// otherwise: /etc/logpipe-agent for root, the user's config directory for everyone else, so
+// the agent never needs sudo just to find its config.
 func DefaultDir() string {
 	if d := os.Getenv("LOGPIPE_AGENT_CONFIG"); d != "" {
 		return d
+	}
+	return defaultDir(os.Geteuid(), os.UserConfigDir)
+}
+
+func defaultDir(euid int, userConfig func() (string, error)) string {
+	if euid == 0 {
+		return "/etc/logpipe-agent"
+	}
+	if d, err := userConfig(); err == nil {
+		return filepath.Join(d, "logpipe-agent")
 	}
 	return "/etc/logpipe-agent"
 }

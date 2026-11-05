@@ -19,7 +19,7 @@ docker run -d --name logpipe-agent --restart unless-stopped \
   ghcr.io/minhthien2103/logpipe-agent:latest
 ```
 
-The agent appears on the **Agents** page within 15 s. Add sources there (they are pushed to the
+The agent appears on the **Agents** page as soon as it connects. Add sources there (they are pushed to the
 agent as `conf.d/remote.yaml`), or mount your own `conf.d`:
 `-v $PWD/conf.d:/etc/logpipe-agent/conf.d`.
 
@@ -27,14 +27,19 @@ agent as `conf.d/remote.yaml`), or mount your own `conf.d`:
 
 ```bash
 cd agent && go build -o logpipe-agent .
-sudo ./logpipe-agent init --endpoint http://logpipe.example:8080 --api-key lp_xxx
-sudo ./logpipe-agent track '/var/log/myapp/*.log' --service myapp --source java --auto-multiline
-sudo ./logpipe-agent check
-sudo ./logpipe-agent run
+./logpipe-agent init --endpoint http://logpipe.example:8080 --api-key lp_xxx
+./logpipe-agent track '/var/log/myapp/*.log' --service myapp --source java --auto-multiline
+./logpipe-agent check
+./logpipe-agent run
 ```
 
-`-c DIR` (or `$LOGPIPE_AGENT_CONFIG`) points at another config directory; the default is
-`/etc/logpipe-agent`.
+No sudo needed. As a normal user the config lives in `~/.config/logpipe-agent` (offsets and the
+send buffer in its `run/`); as root it is `/etc/logpipe-agent`. `-c DIR` (or
+`$LOGPIPE_AGENT_CONFIG`) points at another directory.
+
+The agent only needs to *read* the files it tails. Most of `/var/log` is readable by the `adm`
+group, so add yourself once instead of running the agent as root:
+`sudo usermod -aG adm $USER` (log out and back in). `check` names any file it can't read.
 
 ## CLI
 

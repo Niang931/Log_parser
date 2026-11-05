@@ -11,6 +11,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} go 
 FROM gcr.io/distroless/static-debian12
 COPY --from=build /logpipe-agent /usr/local/bin/logpipe-agent
 COPY docker/agent.yaml /etc/logpipe-agent/agent.yaml
+ENV LOGPIPE_AGENT_CONFIG=/etc/logpipe-agent
 VOLUME /var/lib/logpipe-agent
 ENTRYPOINT ["/usr/local/bin/logpipe-agent"]
 CMD ["run"]

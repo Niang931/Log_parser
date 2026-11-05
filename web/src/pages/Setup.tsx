@@ -43,9 +43,9 @@ export function installCommands(token: string) {
       "  ghcr.io/minhthien2103/logpipe-agent:latest",
     ].join("\n"),
     binary: [
-      `sudo logpipe-agent init --endpoint ${endpoint} --api-key ${token}`,
-      "sudo logpipe-agent track '/var/log/myapp/*.log' --service myapp --auto-multiline",
-      "sudo logpipe-agent check && sudo logpipe-agent run",
+      `logpipe-agent init --endpoint ${endpoint} --api-key ${token}`,
+      "logpipe-agent track '/var/log/myapp/*.log' --service myapp --auto-multiline",
+      "logpipe-agent check && logpipe-agent run",
     ].join("\n"),
   };
 }

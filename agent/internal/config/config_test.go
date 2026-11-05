@@ -77,3 +77,13 @@ func TestSetKeepsCommentsAndValidates(t *testing.T) {
 		t.Fatal("expected a type error for buffer_mb")
 	}
 }
+
+func TestDefaultDirNeedsNoRoot(t *testing.T) {
+	home := func() (string, error) { return "/home/u/.config", nil }
+	if d := defaultDir(1000, home); d != "/home/u/.config/logpipe-agent" {
+		t.Fatalf("user: %s", d)
+	}
+	if d := defaultDir(0, home); d != "/etc/logpipe-agent" {
+		t.Fatalf("root: %s", d)
+	}
+}
