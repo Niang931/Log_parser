@@ -19,7 +19,7 @@ from fastapi.responses import (
 )
 
 from ..registry import UNK_TEMPLATE_ID
-from .core import Busy, Server
+from .core import MIN_DRAFT_LINES, Busy, Server
 from .reads import FACETS
 
 STATIC = Path(__file__).with_name("static")
@@ -135,6 +135,7 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
             "sources": len(server.sources), "templates": len(snap.templates),
             "registry_version": snap.version,
             "warnings": dict(Counter(w["kind"] for w in warnings)),
+            "review": len(server.batches()),
             "streams": len(server.control.all("stream")), "models": len(server.scorers),
             "settings": server.settings, "jobs": jobs,
             "recent_alerts": server.reads.alerts(5),
@@ -269,13 +270,9 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
             "settings": server.settings,
             "streams": server.control.all("stream"),
             "jobs": sorted(server.control.all("job"), key=lambda j: j["created_at"])[-5:],
+            "min_lines": MIN_DRAFT_LINES,
+            "review": next((b for b in server.batches() if b["initial"]), None),
         }
-
-    @app.post("/api/setup/calibrate", status_code=202)
-    def start_calibration(body: Annotated[dict | None, Body()] = None) -> dict:
-        if body and "sample_cap" in body:
-            update_settings({"sample_cap": body["sample_cap"]})
-        return server.enqueue("calibrate")
 
     @app.get("/api/settings")
     def get_settings() -> dict:
@@ -283,20 +280,55 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
 
     @app.put("/api/settings")
     def update_settings(body: Annotated[dict, Body()]) -> dict:
-        changes = {}
-        if "sample_cap" in body:
-            cap = int(body["sample_cap"])
-            if not 100 <= cap <= 200_000:
-                raise ValueError("sample_cap must be between 100 and 200000 lines per source")
-            changes["sample_cap"] = cap
-        if "retrain_days" in body:
-            days = float(body["retrain_days"])
-            if days <= 0:
-                raise ValueError("retrain_days must be positive")
-            changes["retrain_days"] = days
-        server.settings.update(changes)
-        server.control.put("settings", "server", server.settings)
-        return server.settings
+        return server.update_settings(body)
+
+    # --- template review -----------------------------------------------------------------
+    @app.post("/api/review/generate", status_code=202)
+    def generate_drafts(body: Annotated[dict | None, Body()] = None) -> dict:
+        return server.generate_drafts((body or {}).get("sample_cap"))
+
+    @app.get("/api/review")
+    def review_batches() -> dict:
+        return {"batches": server.batches(), "auto_templates": server.auto_templates()}
+
+    @app.get("/api/review/{batch_id}")
+    def review_batch(batch_id: str) -> dict:
+        batch = server.control.get("batch", batch_id)
+        if batch is None:
+            raise KeyError(batch_id)
+        return batch | {"drafts": server.drafts(batch_id)}
+
+    @app.post("/api/review/{batch_id}/check")
+    def check_draft(batch_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.check_draft(batch_id, [str(t) for t in body["tokens"]], [str(k) for k in body["keys"]])
+
+    @app.post("/api/review/{batch_id}/decide-all")
+    def decide_all(batch_id: str, body: Annotated[dict, Body()]) -> dict:
+        return {"changed": server.decide_all(batch_id, str(body["status"]))}
+
+    @app.post("/api/review/{batch_id}/apply", status_code=202)
+    def apply_batch(batch_id: str) -> dict:
+        return server.apply_batch(batch_id)
+
+    @app.post("/api/review/{batch_id}/discard")
+    def discard_batch(batch_id: str) -> dict:
+        return server.discard_batch(batch_id)
+
+    @app.put("/api/drafts/{draft_id}")
+    def update_draft(draft_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.update_draft(draft_id, body)
+
+    @app.post("/api/drafts/{draft_id}/merge")
+    def merge_drafts(draft_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.merge_drafts(draft_id, [str(o) for o in body["others"]])
+
+    @app.post("/api/templates/{tid}/review")
+    def review_template(tid: int, body: Annotated[dict, Body()]) -> dict:
+        return server.review_template(tid, body)
+
+    @app.get("/api/maintenance")
+    def maintenance() -> dict:
+        return server.maintenance()
 
     @app.get("/api/streams")
     def streams() -> dict:
@@ -326,7 +358,7 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     def train_stream(stream_id: str) -> dict:
         if server.control.get("stream", stream_id) is None:
             raise KeyError(stream_id)
-        return server.enqueue("retrain", streams=[stream_id])
+        return server.train([stream_id])
 
     @app.get("/api/warnings")
     def warnings() -> dict:
@@ -346,7 +378,15 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
 
     @app.get("/api/jobs")
     def jobs() -> dict:
-        return {"jobs": sorted(server.control.all("job"), key=lambda j: j["created_at"], reverse=True)[:50]}
+        return {"jobs": sorted(server.control.all("job"), key=lambda j: j["created_at"], reverse=True)[:100]}
+
+    @app.post("/api/jobs/{job_id}/cancel")
+    def cancel_job(job_id: str) -> dict:
+        return server.cancel_job(job_id)
+
+    @app.post("/api/jobs/{job_id}/retry", status_code=202)
+    def retry_job(job_id: str) -> dict:
+        return server.retry_job(job_id)
 
     # --- demo ---------------------------------------------------------------------------
     @app.get("/demo", include_in_schema=False)

@@ -111,17 +111,35 @@ def test_full_lifecycle(env):
     setup = client.get("/api/setup").json()
     assert len(setup["sources"]) == 2 and not setup["settings"]["calibrated"]
 
-    # 2. calibration: templates, backfill, a model for the default stream
-    job = client.post("/api/setup/calibrate", json={"sample_cap": 150}).json()
-    assert job["kind"] == "calibrate"
+    # 2. drafts -> review (edit, merge, decide) -> apply: templates, backfill, a model
+    assert client.post("/api/review/generate", json={"sample_cap": 150}).json()["kind"] == "draft"
     run_jobs(server)
-    assert client.post("/api/setup/calibrate", json={}).status_code == 400  # only once
+    assert client.get("/api/overview").json()["templates"] == 0  # nothing live before review
+    batch = client.get("/api/setup").json()["review"]
+    assert batch["initial"] and batch["pending"] == batch["drafts"] >= 4
+    drafts = client.get(f"/api/review/{batch['id']}").json()["drafts"]
+    assert client.post(f"/api/review/{batch['id']}/apply").status_code == 400  # undecided drafts
+    login = next(d for d in drafts if d["tokens"][:2] == ["user", "<VAR:NUMBER>"])
+    # counted over each source's 150 most recent lines (a quarter are logins), not the 4-line sample
+    assert login["count"] == 74 and len(login["samples"]) == 5
+    edited = client.put(f"/api/drafts/{login['id']}", json={"keys": ["user_id", "ip"]}).json()
+    assert edited["keys"] == ["user_id", "ip"] and edited["count"] == login["count"]
+    assert client.put(f"/api/drafts/{login['id']}", json={"keys": ["x"]}).status_code == 400
+    assert client.post(f"/api/review/{batch['id']}/check",
+                       json={"tokens": ["user", "<*>", "logged", "out"], "keys": ["u"]}).json()["count"] == 0
+    assert client.post(f"/api/review/{batch['id']}/check", json={  # widened by hand: still matches
+        "tokens": ["user", "<*>", "logged", "in", "from", "<*>"], "keys": ["u", "ip"]}).json()["count"] == 74
+    assert client.post(f"/api/review/{batch['id']}/decide-all", json={"status": "approved"}).json()["changed"] > 0
+    assert client.post(f"/api/review/{batch['id']}/apply").json()["kind"] == "apply"
+    run_jobs(server)
+    assert client.post("/api/review/generate", json={}).status_code == 400  # only once
     overview = client.get("/api/overview").json()
     assert overview["settings"]["calibrated"] and overview["templates"] >= 4
     assert overview["status"].get("FINAL", 0) >= 450 and overview["models"] == 1
     streams = client.get("/api/streams").json()["streams"]
     assert streams[0]["id"] == "all" and streams[0]["has_model"]
     tpl = client.get("/api/templates").json()["templates"]
+    assert any(t["keys"] == ["user_id", "ip"] for t in tpl)  # the reviewer's field names
     assert all(t["seen_by"] == ["all"] for t in tpl if t["count"])
     assert sum(t["count"] for t in tpl) == overview["status"]["FINAL"]  # back-filled lines counted
 
@@ -133,12 +151,29 @@ def test_full_lifecycle(env):
     assert client.post(f"/api/warnings/{wid}/same-as", json={"target": "web-1|api|python"}).json()["status"] == "resolved"
     assert client.get("/api/overview").json()["warnings"] == {}
 
-    # 4. a different app -> recalibrate appends templates and retrains, ids kept
+    # 4. a different app -> drafted on its own at the threshold -> reviewed -> appended, ids kept
     before = {t["template_id"]: t["text"] for t in client.get("/api/templates").json()["templates"]}
+    server.update_settings({"draft_lines": 100})
     other = [f"disk /dev/sd{'abc'[i % 3]} usage {i % 97} percent" for i in range(120)]
-    send(server, client, headers, events(other, host="db-1", service="disk", source="agent"))
+    send(server, client, headers, events(other[:60], host="db-1", service="disk", source="agent"))
+    assert server.due_drafts() == []
+    assert client.get("/api/maintenance").json()["collecting"][0]["have"] == 60
+    send(server, client, headers, events(other[60:], host="db-1", service="disk", source="agent"))
     wid = "new_source:db-1|disk|agent"
-    assert client.post(f"/api/warnings/{wid}/recalibrate").json()["kind"] == "recalibrate"
+    assert server.due_drafts() == ["db-1|disk|agent"]
+    server.enqueue("draft", sources=server.due_drafts())
+    run_jobs(server)
+    assert server.due_drafts() == []  # in review now
+    batch = client.get("/api/maintenance").json()["review"][0]
+    assert not batch["initial"] and batch["sources"] == ["db-1|disk|agent"]
+    drafts = client.get(f"/api/review/{batch['id']}").json()["drafts"]
+    if len(drafts) > 1:  # merge whatever Drain split
+        same = [d["id"] for d in drafts if len(d["tokens"]) == len(drafts[0]["tokens"])]
+        if len(same) > 1:
+            merged = client.post(f"/api/drafts/{same[0]}/merge", json={"others": same[1:]}).json()
+            assert merged["status"] == "approved"
+    client.post(f"/api/review/{batch['id']}/decide-all", json={"status": "approved"})
+    client.post(f"/api/review/{batch['id']}/apply")
     run_jobs(server)
     after = {t["template_id"]: t["text"] for t in client.get("/api/templates").json()["templates"]}
     assert all(after[k] == v for k, v in before.items()) and len(after) > len(before)
@@ -259,3 +294,65 @@ def test_level_rules_agree_in_python_and_explicit_levels_win():
     assert level('10.0.0.1 - - [x] "GET /a HTTP/1.1" 503 12') == "error"
     assert level('10.0.0.1 - - [x] "GET /a HTTP/1.1" 404 12') == "warn"
     assert level("ERR_CONNECTION refused") == "info" and level("no level here") == "info"
+
+
+def calibrated(server, client, headers, lines):
+    send(server, client, headers, events(lines))
+    client.post("/api/review/generate", json={"sample_cap": 150})
+    run_jobs(server)
+    bid = client.get("/api/setup").json()["review"]["id"]
+    client.post(f"/api/review/{bid}/decide-all", json={"status": "approved"})
+    client.post(f"/api/review/{bid}/apply")
+    run_jobs(server)
+
+
+def test_too_little_data_waits_instead_of_failing(env):
+    server, client, headers = env
+    send(server, client, headers, events(app_lines(10)))
+    assert client.post("/api/review/generate", json={}).status_code == 400  # under 50 lines
+    calibrated(server, client, headers, app_lines(40, seed=5))  # 50 lines: 7 windows of 20, need 8
+    stream = client.get("/api/streams").json()["streams"][0]
+    jobs = client.get("/api/jobs").json()["jobs"]
+    assert all(j["status"] == "done" for j in jobs)  # nothing failed
+    assert stream["waiting"] and stream["data"]["have"] < stream["data"]["need"] == 8
+    assert not stream["has_model"]
+    assert client.post("/api/streams/all/train").json() == {"waiting": ["all"]}
+    assert server.jobs.empty()
+    # more logs arrive -> housekeeping notices and trains by itself
+    send(server, client, headers, events(app_lines(200, seed=6), start=500))
+    server.refresh_readiness()
+    run_jobs(server)
+    stream = client.get("/api/streams").json()["streams"][0]
+    assert stream["has_model"] and not stream["waiting"]
+    assert client.get("/api/maintenance").json()["waiting"] == []
+
+
+def test_jobs_cancel_retry_and_log(env):
+    server, client, headers = env
+    job = server.enqueue("retrain", streams=["missing"])
+    assert client.post(f"/api/jobs/{job['id']}/retry").status_code == 400  # still queued
+    assert client.post(f"/api/jobs/{job['id']}/cancel").json()["status"] == "cancelled"
+    assert server.run_job(server.jobs.get_nowait())["status"] == "cancelled"  # skipped
+    again = client.post(f"/api/jobs/{job['id']}/retry").json()
+    assert again["id"] != job["id"] and again["status"] == "queued"
+    failed = server.run_job(server.jobs.get_nowait())
+    assert failed["status"] == "failed" and failed["log"] == []
+    assert client.post(f"/api/jobs/{again['id']}/cancel").status_code == 400  # not queued
+
+
+def test_online_templates_are_listed_for_review(env):
+    server, client, headers = env
+    calibrated(server, client, headers, app_lines(120))
+    assert client.get("/api/review").json()["auto_templates"] == []  # reviewed ones aren't listed
+    novel = [f"payment {i} refused by bank code {i % 7}" for i in range(40)]
+    send(server, client, headers, events(novel, start=1000))
+    server.pipeline.enrich()
+    auto = client.get("/api/review").json()["auto_templates"]
+    assert auto and client.get("/api/maintenance").json()["auto_templates"] == len(auto)
+    tid = auto[0]["template_id"]
+    slots = sum(t.startswith("<") for t in auto[0]["tokens"])
+    keys = [f"f{i}" for i in range(slots)]
+    assert client.post(f"/api/templates/{tid}/review", json={"keys": ["Bad Name"] * slots}).status_code == 400
+    assert client.post(f"/api/templates/{tid}/review", json={"keys": keys}).json()["reviewed"]
+    entry = server.registry.current.templates[tid]
+    assert list(entry.keys) == keys and tid not in [t["template_id"] for t in client.get("/api/review").json()["auto_templates"]]

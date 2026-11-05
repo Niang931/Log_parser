@@ -255,13 +255,28 @@ def append_calibrate(
     Masks stay as they are, so ids already stored and models trained on them remain valid.
     Returns the ids of the new templates.
     """
+    new_templates = append_drafts(registry, lines, adapter, depth=depth,
+                                  similarity_threshold=similarity_threshold)
+    if not new_templates:
+        return []
+    _, ids = registry.publish(
+        new_templates, key_vocab=[k for t in new_templates for k in t.keys]
+    )
+    return ids
+
+
+def append_drafts(
+    registry: SchemaRegistry,
+    lines: Sequence[str],
+    adapter: LLMAdapter | None,
+    *,
+    depth: int = 5,
+    similarity_threshold: float = 0.4,
+) -> list[NewTemplate]:
+    """The templates :func:`append_calibrate` would add, without publishing them."""
     parser = FrozenParser(registry.current, depth=depth)
     unmatched = [line for line in lines if line.strip() and parser.parse(line).status != Status.FINAL]
     if not unmatched:
         return []
     engine = _mine(unmatched, registry.current.masks, depth, similarity_threshold)
-    new_templates = _new_templates(engine, unmatched, adapter)
-    _, ids = registry.publish(
-        new_templates, key_vocab=[k for t in new_templates for k in t.keys]
-    )
-    return ids
+    return _new_templates(engine, unmatched, adapter)

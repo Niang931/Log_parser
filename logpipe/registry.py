@@ -163,6 +163,23 @@ class SchemaRegistry:
             )
             return self._snapshot
 
+    def replace(self, template_id: int, tokens: Sequence[str], keys: Sequence[str]) -> RegistrySnapshot:
+        """Correct a template's text and field names in place; its id (and stored rows) stay."""
+        with self._lock:
+            base = self._snapshot
+            entry = base.templates.get(template_id)
+            if entry is None:
+                raise ValueError(f"template {template_id} is not registered")
+            if len(keys) != len(slot_labels(tokens)):
+                raise ValueError(f"{len(slot_labels(tokens))} slots but {len(keys)} keys")
+            templates = dict(base.templates)
+            templates[template_id] = TemplateEntry(template_id, tuple(tokens), tuple(keys), entry.alias_of)
+            self._snapshot = RegistrySnapshot(
+                version=base.version + 1, next_id=base.next_id, masks=base.masks,
+                templates=MappingProxyType(templates), key_vocab=base.key_vocab | frozenset(keys),
+            )
+            return self._snapshot
+
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(path.suffix + ".tmp")
