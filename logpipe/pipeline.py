@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import random
 import time
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -88,6 +88,9 @@ class Pipeline:
         self.worker = worker
         self.detector = detector
         self.enrich_every = enrich_every
+        # Unmatched lines this says to hold stay PENDING in the store instead of going to the
+        # online learner (the server holds a new source's lines until its templates are reviewed).
+        self.hold: Callable[[LogEvent], bool] | None = None
         # PENDING rows go here. Defaults to the worker's own queue; a queue without a worker is the publish-only fast path (workers run elsewhere).
         self.queue: UnresolvedQueue | None = (queue if queue is not None else (worker.queue if worker is not None else None))
         self.stats = PipelineStats()
@@ -130,12 +133,10 @@ class Pipeline:
         result = self.handle.parse(event.line)
         self.stats.record_latency(time.perf_counter_ns() - start)
 
-        timestamp = event_time(event.line, result.payload, fallback=event.time or datetime.now(UTC))
-        if event.time is not None:
-            if timestamp is not event.time and event.time.utcoffset():
-                # Agents send their local offset: a zone-less time in the line is that host's wall clock.
-                timestamp = timestamp.replace(tzinfo=event.time.tzinfo)
-            timestamp = timestamp.astimezone(UTC)
+        # Agents send their local offset: a zone-less time in the line is that host's wall clock.
+        local = event.time.tzinfo if event.time is not None and event.time.tzinfo else UTC
+        timestamp = event_time(event.line, result.payload, fallback=event.time or datetime.now(UTC),
+                               local=local).astimezone(UTC)
         self._event_time = timestamp
         row = LogRow.from_result(
             result, device_id=event.device_id, timestamp=timestamp, raw_message=event.line,
@@ -147,7 +148,7 @@ class Pipeline:
             self.stats.final += 1
         else:
             self.stats.pending += 1
-            if self.queue is not None:
+            if self.queue is not None and not (self.hold and self.hold(event)):
                 self.queue.publish(row)
 
         if self.detector is not None:

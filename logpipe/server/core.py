@@ -216,7 +216,16 @@ class Server:
                     registry_path=self.registry_path, enrich_every=10**12)
             else:
                 self.pipeline = Pipeline(ParserHandle(self.registry.current), self.store)
+            self.pipeline.hold = self._held
             self.detectors = {sid: self._detector(s) for sid, s in self.scorers.items()}
+
+    def _held(self, event: LogEvent) -> bool:
+        """A source that appeared after setup waits for its drafted templates to be reviewed,
+        so the online learner doesn't learn its templates first."""
+        if not self.settings["calibrated"]:
+            return False
+        src = self.sources.get(source_id(event.device_id, event.service, event.source))
+        return src is None or not (src["calibrated"] or src.get("alias_of"))
 
     def _detector(self, scorer: LogBERTScorer) -> StreamingDetector:
         handle = self.pipeline.handle
@@ -654,7 +663,10 @@ class Server:
         batch = self._open_batch(batch_id)
         if batch["initial"]:
             raise ValueError("the first calibration can't be skipped; regenerate it instead")
-        return self._finish_batch(batch, [], "discarded: left to the online learner", status="discarded")
+        done = self._finish_batch(batch, [], "discarded: left to the online learner", status="discarded")
+        if self.pipeline.worker is not None:
+            self.pipeline.worker.rehydrate()
+        return done
 
     def _finish_batch(self, batch: dict, ids: list[int], note: str, status: str = "applied") -> dict:
         with self.lock:
@@ -700,8 +712,9 @@ class Server:
         self._finish_batch(doc, ids, f"{len(ids)} templates added (registry v{self.registry.current.version})")
         progress(0.3, f"registry v{self.registry.current.version}; backfilling stored lines")
         self._backfill()
-        if doc["initial"] and self.pipeline.worker is not None:
-            self.pipeline.worker.rehydrate()  # what the review didn't cover is learned online
+        if self.pipeline.worker is not None:
+            # What the review didn't cover (incl. a new source's held lines) is learned online.
+            self.pipeline.worker.rehydrate()
         streams = (sorted(s["id"] for s in self.control.all("stream")) if doc["initial"] else
                    sorted({s["id"] for sid in doc["sources"] for s in self.streams_for(sid)}))
         waiting = self._retrain(streams, progress, 0.5)

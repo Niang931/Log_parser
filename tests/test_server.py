@@ -156,6 +156,8 @@ def test_full_lifecycle(env):
     server.update_settings({"draft_lines": 100})
     other = [f"disk /dev/sd{'abc'[i % 3]} usage {i % 97} percent" for i in range(120)]
     send(server, client, headers, events(other[:60], host="db-1", service="disk", source="agent"))
+    server.pipeline.enrich()  # the online learner must not learn a new source before its review
+    assert not any(t["tokens"][0] == "disk" for t in server.auto_templates())
     assert server.due_drafts() == []
     assert client.get("/api/maintenance").json()["collecting"][0]["have"] == 60
     send(server, client, headers, events(other[60:], host="db-1", service="disk", source="agent"))
@@ -165,7 +167,7 @@ def test_full_lifecycle(env):
     run_jobs(server)
     assert server.due_drafts() == []  # in review now
     batch = client.get("/api/maintenance").json()["review"][0]
-    assert not batch["initial"] and batch["sources"] == ["db-1|disk|agent"]
+    assert not batch["initial"] and batch["sources"] == ["db-1|disk|agent"] and batch["drafts"] >= 1
     drafts = client.get(f"/api/review/{batch['id']}").json()["drafts"]
     if len(drafts) > 1:  # merge whatever Drain split
         same = [d["id"] for d in drafts if len(d["tokens"]) == len(drafts[0]["tokens"])]
@@ -447,3 +449,19 @@ def test_query_builder_schema_saved_and_ask(env):
     assert [q["name"] for q in client.get("/api/queries").json()["queries"]] == ["errors"]
     assert client.delete(f"/api/queries/{saved['id']}").json()["ok"]
     assert client.post("/api/query/ask", json={"question": "errors per service"}).status_code == 400  # offline LLM
+
+
+def test_a_zone_written_in_the_line_wins_over_the_agents_offset():
+    from datetime import timezone
+
+    from logpipe.sources.timestamps import event_time
+
+    host = timezone(timedelta(hours=8))
+    utc = {line: event_time(line, {}, local=host).astimezone(UTC).strftime("%H:%M")
+           for line in ("2026-11-05 09:20:32.599 UTC [24] LOG: x", "2026-11-05 17:20:32 +08 [2] LOG: x",
+                        "2026-11-05T17:20:32+08:00 x", "2026-11-05 17:20:32.599 INFO x",
+                        "time=2026-11-05T09:20:32Z level=info", "2026-11-05 17:20:32 -5 ms late")}
+    assert set(utc.values()) == {"09:20"}, utc
+    # a rule's extracted `ts` without the zone that follows it in the line
+    line = "2026-11-05 09:20:32.599 UTC [24] LOG: x"
+    assert event_time(line, {"ts": "2026-11-05 09:20:32.599"}, local=host).astimezone(UTC).strftime("%H:%M") == "09:20"
