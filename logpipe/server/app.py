@@ -3,6 +3,7 @@ React UI, the built UI at ``/`` and the developer demo at ``/demo/``."""
 
 import asyncio
 import json
+import uuid
 import zlib
 from collections import Counter
 from dataclasses import asdict
@@ -20,7 +21,8 @@ from fastapi.responses import (
 
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
-from .core import MIN_DRAFT_LINES, Busy, Server
+from . import querybuild
+from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
 from .reads import FACETS
 
 STATIC = Path(__file__).with_name("static")
@@ -203,6 +205,53 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
         if not sql.lower().startswith(("select", "with")):
             raise HTTPException(400, "only SELECT / WITH queries")
         return server.reads.query(sql)
+
+    def query_schema() -> dict:
+        snap = server.registry.current
+        fields = set(snap.key_vocab) | {k for t in snap.templates.values() for k in t.keys}
+        return querybuild.schema(engine, sorted(fields))
+
+    @app.get("/api/query/schema")
+    def get_query_schema() -> dict:
+        return query_schema()
+
+    @app.post("/api/query/build")
+    def build_query(body: Annotated[dict, Body()]) -> dict:
+        sql = querybuild.build(body, engine)
+        return {"sql": sql, "result": server.reads.query(sql)}
+
+    @app.post("/api/query/ask")
+    def ask_query(body: Annotated[dict, Body()]) -> dict:
+        question = str(body.get("question", "")).strip()
+        if not question:
+            raise ValueError("ask a question, e.g. 'errors per service in the last hour'")
+        s = query_schema()
+        described = "\n".join(f"- {c['name']}: {c['about']}" for c in s["columns"])
+        described += f"\nExtracted fields (read with {s['payload_access']}): {', '.join(s['fields']) or 'none yet'}"
+        sql = server.adapter.write_sql(question, f"table {s['table']}\n{described}", engine)
+        if not sql.lower().startswith(("select", "with")):
+            raise ValueError(f"the LLM wrote something that isn't a SELECT: {sql[:80]}")
+        return {"sql": sql}
+
+    @app.get("/api/queries")
+    def saved_queries() -> dict:
+        return {"queries": sorted(server.control.all("saved_query"), key=lambda q: q["name"].lower())}
+
+    @app.post("/api/queries")
+    def save_query(body: Annotated[dict, Body()]) -> dict:
+        name, sql = str(body.get("name", "")).strip(), str(body.get("sql", "")).strip()
+        if not name or not sql:
+            raise ValueError("a saved query needs a name and SQL")
+        qid = str(body.get("id") or uuid.uuid4().hex[:10])
+        return server.control.put("saved_query", qid, {"id": qid, "name": name[:120], "sql": sql,
+                                                       "spec": body.get("spec"), "saved_at": now_iso()})
+
+    @app.delete("/api/queries/{qid}")
+    def delete_query(qid: str) -> dict:
+        if server.control.get("saved_query", qid) is None:
+            raise KeyError(qid)
+        server.control.delete("saved_query", qid)
+        return {"ok": True}
 
     @app.get("/api/stats")
     def stats(minutes: int = 60) -> dict:

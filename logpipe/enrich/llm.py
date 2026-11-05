@@ -43,6 +43,10 @@ class LLMAdapter(Protocol):
         new_samples: Sequence[str],
     ) -> bool: ...
 
+    def write_sql(self, question: str, schema: str, engine: str) -> str:
+        """One read-only query answering ``question``; raises ValueError without a chat model."""
+        ...
+
 
 @runtime_checkable
 class KeyVocabAware(Protocol):
@@ -59,6 +63,10 @@ class OfflineAdapter:
 
     def name_keys(self, tokens: Sequence[str], samples: Sequence[str]) -> list[str]:
         return default_keys(tokens)
+
+    def write_sql(self, question: str, schema: str, engine: str) -> str:
+        raise ValueError("asking in plain English needs an LLM: start the server with --llm "
+                         "llm:<provider> (e.g. llm:anthropic) instead of offline")
 
     def confirm_alias(
         self,
@@ -128,6 +136,24 @@ def _schemas():
         same_event: bool
 
     return KeysOut, AliasOut
+
+
+@lru_cache(maxsize=1)
+def _sql_schema():
+    from pydantic import BaseModel
+
+    class SqlOut(BaseModel):
+        sql: str
+
+    return SqlOut
+
+
+_SQL_PROMPT = """Write one read-only SQL query ({engine} dialect) that answers the question.
+Only SELECT or WITH. Use only this table and these columns:
+{schema}
+
+Question: {question}
+Return only the SQL."""
 
 
 class ChatAdapter(OfflineAdapter):
@@ -207,6 +233,12 @@ class ChatAdapter(OfflineAdapter):
             a=" ".join(new_tokens), b=" ".join(old_tokens), samples="\n".join(new_samples[:5]),
         ))
         return bool(parsed and parsed.same_event)
+
+    def write_sql(self, question: str, schema: str, engine: str) -> str:
+        parsed = self._invoke(_sql_schema(), _SQL_PROMPT.format(engine=engine, schema=schema, question=question))
+        if parsed is None or not parsed.sql.strip():
+            raise ValueError("the LLM didn't return a query; try rephrasing")
+        return parsed.sql.strip().rstrip(";")
 
 
 def get_adapter(backend: str, *, browser: Browser = "camoufox") -> LLMAdapter:

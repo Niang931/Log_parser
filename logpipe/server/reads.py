@@ -126,10 +126,12 @@ class MemoryReads:
         rows = self._rows()
         db = sqlite3.connect(":memory:")
         db.execute("CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, service TEXT, "
-                   "source TEXT, template_id INTEGER, status TEXT, payload TEXT, raw_message TEXT)")
-        db.executemany("INSERT INTO logs VALUES (?,?,?,?,?,?,?,?,?)", [
-            (str(r.log_id), r.timestamp.isoformat(), r.device_id, r.service, r.source,
-             r.template_id, str(r.status), json.dumps(r.payload), r.raw_message) for r in rows])
+                   "source TEXT, template_id INTEGER, status TEXT, payload TEXT, raw_message TEXT, "
+                   "level TEXT)")
+        db.executemany("INSERT INTO logs VALUES (?,?,?,?,?,?,?,?,?,?)", [
+            (str(r.log_id), r.timestamp.astimezone(UTC).isoformat(), r.device_id, r.service, r.source,
+             r.template_id, str(r.status), json.dumps(r.payload), r.raw_message, level(r.raw_message))
+            for r in rows])
         db.execute("PRAGMA query_only = ON")
         try:
             cur = db.execute(sql)

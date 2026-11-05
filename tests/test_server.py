@@ -416,3 +416,34 @@ def test_template_links_show_who_made_them_and_can_be_undone(env):
     snap = server.registry.alias(a, b)  # as the enrichment worker's LLM alias check does it
     server.pipeline.handle.swap(snap)
     assert {t["template_id"]: t for t in client.get("/api/templates").json()["templates"]}[a]["linked_by"] == "llm"
+
+
+def test_query_builder_schema_saved_and_ask(env):
+    server, client, headers = env
+    now = datetime.now(UTC)
+    lines = [f"request GET /api/items/{i} took {10 * (i % 5)} ms" for i in range(60)] + ["ERROR db down"] * 3
+    send(server, client, headers, [e | {"ts": (now - timedelta(minutes=5)).isoformat()} for e in events(lines)])
+    send(server, client, headers, [e | {"ts": (now - timedelta(minutes=5)).isoformat()}
+                                   for e in events(["ERROR disk full"], service="db")])
+    calibrated(server, client, headers, [])
+    built = client.post("/api/query/build", json={"minutes": 60, "group_by": ["service"]}).json()
+    assert dict(built["result"]["rows"]) == {"api": 63, "db": 1}
+    errors = client.post("/api/query/build", json={"minutes": 60, "filters": [{"field": "level", "op": "=", "value": "error"}]}).json()
+    assert errors["result"]["rows"] == [[4]]
+    took = next(t for t in client.get("/api/templates").json()["templates"] if "took" in t["text"])
+    assert set(took["keys"]) <= set(client.get("/api/query/schema").json()["fields"])
+    avg = client.post("/api/query/build", json={"minutes": 60, "measure": {"fn": "avg", "field": f"@{took['keys'][-1]}"},
+                                                "filters": [{"field": "message", "op": "contains", "value": "took"}]}).json()
+    assert avg["result"]["rows"] == [[20.0]]  # 0,10,20,30,40 ms evenly
+    over = client.post("/api/query/build", json={"minutes": 60, "over_time": True}).json()
+    assert sum(r[-1] for r in over["result"]["rows"]) == 64 and over["result"]["columns"][0] == "time"
+    for bad in ({"group_by": ["host; DROP TABLE logs"]}, {"filters": [{"field": "@x'y", "value": "1"}]},
+                {"measure": {"fn": "evil"}}, {"filters": [{"field": "host", "op": ">", "value": "abc"}]}):
+        assert client.post("/api/query/build", json=bad).status_code == 400, bad
+    quoted = client.post("/api/query/build", json={"filters": [{"field": "host", "value": "x' OR '1'='1"}]}).json()
+    assert quoted["result"]["rows"] == [[0]]  # the value stays a value
+
+    saved = client.post("/api/queries", json={"name": "errors", "sql": errors["sql"]}).json()
+    assert [q["name"] for q in client.get("/api/queries").json()["queries"]] == ["errors"]
+    assert client.delete(f"/api/queries/{saved['id']}").json()["ok"]
+    assert client.post("/api/query/ask", json={"question": "errors per service"}).status_code == 400  # offline LLM

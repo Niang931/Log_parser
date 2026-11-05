@@ -60,6 +60,15 @@ def test_server_on_clickhouse(store, tmp_path):
     hist = client.get("/api/logs/histogram", params={"minutes": 15}).json()
     assert sum(p["error"] for p in hist["points"]) == 2 and len(hist["points"]) == 90
 
+    # The Query page's builder writes ClickHouse SQL that runs.
+    built = client.post("/api/query/build", json={"minutes": 60, "group_by": ["level"], "over_time": True}).json()
+    assert sum(r[-1] for r in built["result"]["rows"]) == 60 and {r[1] for r in built["result"]["rows"]} == {"info", "error", "warn"}
+    errors = client.post("/api/query/build", json={"minutes": 60, "filters": [
+        {"field": "level", "value": "error"}, {"field": "host", "value": "h1' OR 1=1 --"}]}).json()
+    assert errors["result"]["rows"] == [[0]]
+    p95 = client.post("/api/query/build", json={"minutes": 60, "measure": {"fn": "count_distinct", "field": "host"}}).json()
+    assert p95["result"]["rows"] == [[1]]
+
     # A restart reads keys, sources and streams back from control_docs.
     server2, client2 = make(store, tmp_path)
     assert client2.get("/intake/v1/ping", headers=headers).status_code == 200
