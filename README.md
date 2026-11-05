@@ -36,7 +36,8 @@ uv sync --group dev
 uv run logpipe        # or `logpipe start` / `make start`
 ```
 
-It asks what to run (the browser demo or the pipeline on your own logs), which queue (in-memory,
+It asks what to run (the browser demo, the pipeline on your own logs, or the server for
+logpipe-agent hosts with its operator UI), which queue (in-memory,
 or Kafka, which it starts in Docker for you), who names keys and confirms re-associations
 (offline rules, a signed-in web chat, or a hosted API), and the few settings that matter, then
 prints the equivalent commands and runs them. If you pick a web chat it can open the sign-in

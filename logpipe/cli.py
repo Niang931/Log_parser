@@ -207,6 +207,10 @@ def _demo(args: argparse.Namespace) -> None:
 
 
 def _server(args: argparse.Namespace) -> None:
+    if args.raw == ["server"] and sys.stdin.isatty():  # no flags: ask instead
+        from .start import start
+
+        return start(mode="server")
     from .server import run
 
     run(host=args.host, port=args.port, store=args.store, queue=args.queue, llm=args.llm,

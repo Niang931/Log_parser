@@ -98,13 +98,15 @@ def ask_setup(saved: dict, mode: str | None = None) -> dict:
     a["mode"] = mode or choose("What do you want to run?", [
         ("demo", "browser demo: a live synthetic IoT fleet through every stage"),
         ("pipeline", "the pipeline on your own log files"),
+        ("server", "the server for logpipe-agent hosts, with the operator UI"),
     ], saved.get("mode"))
     a["queue"] = choose("Unresolved queue (lines no template matched wait here to be learned)?", [
         ("memory", "in-process, nothing to install (straightforward)"),
         ("kafka", "Kafka broker in Docker, started for you"),
     ], saved.get("queue"))
     a["store"] = choose("Where do parsed rows go?", [
-        ("memory", "in memory, gone when the run ends"),
+        ("memory", "in memory, gone when the run ends"
+         + (" (API keys and agents too)" if a["mode"] == "server" else "")),
         ("clickhouse", "ClickHouse in Docker, started for you"
          + (" (the demo's Query tab then runs on it)" if a["mode"] == "demo" else "")),
     ], saved.get("store"))
@@ -138,6 +140,12 @@ def ask_setup(saved: dict, mode: str | None = None) -> dict:
         a["devices"] = number("Devices per kind", saved.get("devices", 2))
         a["test_hours"] = number("Hours of live stream (event time)", saved.get("test_hours", 1), float)
         a["port"] = int(text("Port for the page", str(saved.get("port", 8000)), _free_port))
+    elif a["mode"] == "server":
+        a["server_port"] = int(text("Port for agents and the UI", str(saved.get("server_port", 8080)),
+                                    _free_port))
+        a["data_dir"] = text("Directory for the registry and models",
+                             saved.get("data_dir", "artifacts/server"))
+        a["with_demo"] = confirm("Also serve the developer demo at /demo/?", saved.get("with_demo", False))
     else:
         a["logs"] = text("Log directory", saved.get("logs", "logs"), _exists("directory"))
         a["registry"] = text("Registry file (created by calibrating if missing)",
@@ -163,6 +171,10 @@ def plan(a: dict) -> tuple[list[str], list[list[str]]]:
         elif a["masks"] == "recalibrate":
             cmd.append("--recalibrate")
         return services, [cmd]
+    if a["mode"] == "server":
+        cmd = [*top, "server", "--llm", llm, "--queue", a["queue"], "--store", a["store"],
+               "--port", str(a["server_port"]), "--data-dir", a["data_dir"]]
+        return services, [cmd + ["--demo"] if a["with_demo"] else cmd]
     commands = []
     if not Path(a["registry"]).exists():
         commands.append([*top, "calibrate", "--logs", a["logs"], "--registry", a["registry"], "--llm", llm])

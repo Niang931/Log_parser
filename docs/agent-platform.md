@@ -28,7 +28,8 @@ calibrating.
 Without Docker:
 
 ```bash
-uv run logpipe server --store memory              # API on :8080
+uv run logpipe server                             # asks store/queue/LLM/port, like `logpipe demo`
+uv run logpipe server --store memory              # or pass flags: API on :8080
 cd web && npm ci && npm run dev                   # UI on :5173 (proxies /api) or `npm run build`
 cd agent && go build -o logpipe-agent . && ./logpipe-agent -h
 ```

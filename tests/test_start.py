@@ -81,3 +81,16 @@ def test_gemini_needs_no_sign_in(tmp_path, monkeypatch):
     cmd = launched[0]
     assert cmd[:2] == ["--browser", "chrome"] and "llm:web:gemini" in cmd and "--recalibrate" in cmd
     assert json.loads(wizard.SAVED.read_text())["masks"] == "calibrate"
+
+
+def test_server_plan(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(wizard, "_free_port", lambda _: None)
+    launched = []
+    # (server skips the mode question) memory, clickhouse, offline, port, data dir, demo?, start
+    _answers(monkeypatch, "", "clickhouse", "", "9090", "", "y", "n")
+    wizard.start(launch=launched.append, mode="server")
+    saved = json.loads(wizard.SAVED.read_text())
+    assert wizard.plan(saved) == (["clickhouse"], [[
+        "--browser", "camoufox", "server", "--llm", "offline", "--queue", "memory",
+        "--store", "clickhouse", "--port", "9090", "--data-dir", "artifacts/server", "--demo"]])
