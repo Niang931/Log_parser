@@ -533,3 +533,7 @@ tr.linked-row td { background: color-mix(in srgb, var(--surface-2) 55%, transpar
 .toast-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; background: none; border: 0; color: var(--ink); cursor: pointer; font: inherit; }
 .toast-body span { color: var(--ink-2); overflow-wrap: anywhere; }
 .toast-x { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 6px 10px; cursor: pointer; }
+
+/* benchmark */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+tr.selected td { background: var(--accent-soft); }

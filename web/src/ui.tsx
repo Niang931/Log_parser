@@ -70,6 +70,7 @@ export const JOB_NAMES: Record<Job["kind"], string> = {
   calibrate: "Calibration",
   recalibrate: "Recalibration",
   explain: "Explain incident",
+  bench: "Benchmark",
 };
 
 export function jobTarget(job: Job) {
@@ -77,7 +78,8 @@ export function jobTarget(job: Job) {
   if (p.streams?.length) return p.streams.join(", ");
   if (p.sources?.length) return p.sources.map(sourceLabel).join(", ");
   return job.kind === "draft" ? "all sources" : job.kind === "apply" ? "reviewed templates"
-    : job.kind === "explain" ? "an anomaly incident" : "";
+    : job.kind === "explain" ? "an anomaly incident"
+    : job.kind === "bench" ? `${p.store} store` : "";
 }
 
 export function JobRow({ job }: { job: Job }) {

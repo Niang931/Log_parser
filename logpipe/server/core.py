@@ -93,7 +93,7 @@ DEFAULT_SETTINGS = {"sample_cap": 5000, "retrain_days": 7, "calibrated": False,
 MIN_TRAIN_WINDOWS = 8
 MIN_TRAIN_STEPS = 1500
 MIN_DRAFT_LINES = 50  # below this a sample can't say much about a source's templates
-JOB_KINDS = ("draft", "apply", "retrain", "reextract", "explain")
+JOB_KINDS = ("draft", "apply", "retrain", "reextract", "explain", "bench")
 INCIDENT_GAP = timedelta(minutes=5)  # alerts on one service closer than this are one incident
 INCIDENT_STATES = ("open", "acknowledged", "resolved", "false_positive")
 
@@ -1271,6 +1271,31 @@ class Server:
     def explain_incident(self, incident_id: str) -> dict:
         self.incident(incident_id)  # 404 before queueing
         return self.enqueue("explain", incident=incident_id)
+
+    def _job_bench(self, progress, store: str = "memory", max_rate: int = 0, step_seconds: float = 10) -> str:
+        """``logpipe bench`` in its own process (so it neither slows this server nor is skewed
+        by it); its progress lines become the job's, its result a ``bench`` doc."""
+        import subprocess
+        import sys
+
+        out = self.data_dir / "bench" / f"{uuid.uuid4().hex[:8]}.json"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        cmd = [sys.executable, "-m", "logpipe.bench", store, str(int(max_rate)), str(step_seconds), str(out)]
+        done = 0.05
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as proc:
+            assert proc.stdout is not None
+            for line in proc.stdout:
+                line = line.rstrip()
+                if line.startswith(("step ", "flood", "calibrating", "generating", "warming")):
+                    done = min(done + 0.1, 0.95)
+                if line.strip():
+                    progress(done, line.strip())
+        if proc.returncode or not out.exists():
+            raise RuntimeError(f"logpipe bench exited with {proc.returncode}")
+        result = json.loads(out.read_text())
+        self.control.put("bench", result["id"], result)
+        fall = f", falls behind at {result['falls_behind_at']:,}/s" if result["falls_behind_at"] else ""
+        return f"max sustained {result['max_sustained_per_s']:,} lines/s{fall}"
 
     def _job_explain(self, progress, incident: str) -> str:
         progress(0.05, "collecting the incident's lines and what the model expected")

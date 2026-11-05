@@ -3,6 +3,7 @@ import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { usePoll, useServerEvents, type Overview } from "./api";
 import { DesktopToggle, Toasts, useNotifications } from "./notify";
 import AgentDetail from "./pages/AgentDetail";
+import Bench from "./pages/Bench";
 import Agents from "./pages/Agents";
 import Alerts, { IncidentPage } from "./pages/Alerts";
 import Jobs from "./pages/Jobs";
@@ -31,6 +32,7 @@ const paths: Record<string, string> = {
   keys: "M15 7a3 3 0 11-3 3m3-3l5-5m-2 2l2 2M12 10l-8 8v2h2l1-1v-2h2v-2h2l1-1",
   jobs: "M12 7v5l3 3M12 3a9 9 0 100 18 9 9 0 000-18z",
   demo: "M7 4l12 8-12 8V4z",
+  bench: "M12 14l4-4M4 18a8 8 0 1116 0",
 };
 
 export function Icon({ name }: { name: keyof typeof paths }) {
@@ -107,6 +109,7 @@ export default function App() {
         <Item to="/maintenance" icon="warnings" count={todo}>Maintenance</Item>
         <Item to="/streams" icon="streams">Streams &amp; models</Item>
         <Item to="/jobs" icon="jobs" count={note.activeJobs}>Jobs</Item>
+        <Item to="/bench" icon="bench">Benchmark</Item>
         <div className="nav-group">Fleet</div>
         <Item to="/agents" icon="agents">Agents</Item>
         <Item to="/keys" icon="keys">API keys</Item>
@@ -134,6 +137,7 @@ export default function App() {
           <Route path="/review/:id" element={<ReviewPage />} />
           <Route path="/streams" element={<Streams />} />
           <Route path="/jobs" element={<Jobs />} />
+          <Route path="/bench" element={<Bench />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/agents/:host" element={<AgentDetail />} />
           <Route path="/keys" element={<Keys />} />

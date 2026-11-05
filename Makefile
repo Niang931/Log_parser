@@ -22,7 +22,7 @@ TRAIN    := --epochs $(EPOCHS) $(if $(THREADS),--threads $(THREADS))
 SCRAPER  := $(RUN) python -m deepparse.ai_scraper
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo \
+.PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo bench \
         data data-loghub data-hdfs data-bgl \
         retrain-data retrain-eval \
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
@@ -85,6 +85,9 @@ data-bgl: ## BGL from Zenodo
 	$(LOGPIPE) fetch-data BGL
 
 ## --- evaluation (results in EVAL_OUT) ---------------------------------------
+
+bench: ## lines/s one server keeps up with, its CPU and memory (STORE=clickhouse to include writes)
+	$(LOGPIPE) bench --store $(or $(STORE),memory)
 
 eval: eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report ## every benchmark, then the report
 
