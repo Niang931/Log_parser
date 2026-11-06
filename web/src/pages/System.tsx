@@ -2,9 +2,10 @@
 // memory, sampled every 10 s by the server itself (no Prometheus or Grafana needed).
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { api, useAction, usePoll } from "../api";
 import { clock, TimeRange, useRange } from "../charts";
-import { Card, Empty, Loading, PageHead, TimeAgo, fmt } from "../ui";
+import { Card, Empty, Loading, PageHead, Switch, TimeAgo, fmt } from "../ui";
 
 type Meta = { label: string; unit: string; group: string };
 export type SystemData = {
@@ -61,7 +62,7 @@ export type MetricAlert = {
   id: string; rule: string; label: string; metric: string; op: ">" | "<"; threshold: number; value: number; peak: number;
   started_at: number; last_at: number; status: "firing" | "resolved"; resolved_at?: number; resolution?: string;
 };
-type Rule = { id: string; metric: string; op: ">" | "<"; threshold: number; for_minutes: number; enabled: boolean; label: string };
+export type Rule = { id: string; metric: string; op: ">" | "<"; threshold: number; for_minutes: number; enabled: boolean; label: string };
 const iso = (s: number) => new Date(s * 1000).toISOString();
 
 function RuleRow({ rule, metrics }: { rule: Rule; metrics: Record<string, Meta> }) {
@@ -73,7 +74,7 @@ function RuleRow({ rule, metrics }: { rule: Rule; metrics: Record<string, Meta> 
   const unit = metrics[rule.metric]?.unit ?? "";
   return (
     <tr className={rule.enabled ? "" : "muted"}>
-      <td><input type="checkbox" checked={rule.enabled} aria-label={`Enable ${rule.label}`} onChange={(e) => save.mutate({ enabled: e.target.checked })} /></td>
+      <td><Switch checked={rule.enabled} label={`Enable ${rule.label}`} hideLabel onChange={(on) => save.mutate({ enabled: on })} /></td>
       <td>{rule.label}<div className="small muted">{metrics[rule.metric]?.label ?? rule.metric}</div></td>
       <td className="nowrap">{rule.op === ">" ? "above" : "below"}{" "}
         <input type="number" value={threshold} onChange={(e) => setThreshold(e.target.value)} aria-label="Threshold" style={{ width: 90 }} /> <span className="small muted">{unit}</span></td>
@@ -107,16 +108,33 @@ function AddRule({ metrics }: { metrics: Record<string, Meta> }) {
   );
 }
 
+/** Every rule with on/off, threshold and duration editable in place, plus a form to add one. */
+export function RulesEditor({ metrics, only }: { metrics: Record<string, Meta>; only?: (r: Rule) => boolean }) {
+  const { data } = usePoll<{ alerts: MetricAlert[]; rules: Rule[] }>("/api/system/alerts", 5000);
+  if (!data) return <Loading />;
+  const rules = only ? data.rules.filter(only) : data.rules;
+  return (
+    <>
+      <div className="table-wrap">
+        <table>
+          <thead><tr><th>On</th><th>Rule</th><th>When</th><th>For</th><th /></tr></thead>
+          <tbody>{rules.map((r) => <RuleRow key={`${r.id}-${r.threshold}-${r.for_minutes}`} rule={r} metrics={metrics} />)}</tbody>
+        </table>
+      </div>
+      {!only && <AddRule metrics={metrics} />}
+    </>
+  );
+}
+
 function Alerts({ metrics }: { metrics: Record<string, Meta> }) {
   const { data } = usePoll<{ alerts: MetricAlert[]; rules: Rule[] }>("/api/system/alerts", 5000);
-  const [showRules, setShowRules] = useState(false);
   if (!data) return null;
   const firing = data.alerts.filter((a) => a.status === "firing");
   const recent = data.alerts.filter((a) => a.status === "resolved").slice(0, 5);
   const unit = (m: string) => metrics[m]?.unit ?? "";
   return (
     <Card title="Alerts" hint={`${data.rules.filter((r) => r.enabled).length} rules checked every sample`}
-      actions={<button className="btn small" onClick={() => setShowRules(!showRules)} aria-expanded={showRules}>{showRules ? "Hide rules" : "Edit rules"}</button>}>
+      actions={<Link className="btn small" to="/settings#alerts">Edit rules</Link>}>
       {firing.length === 0 && recent.length === 0 ? <Empty title="No alerts">Every rule is within its threshold.</Empty> : (
         <ul className="todos">
           {[...firing, ...recent].map((a) => (
@@ -131,36 +149,31 @@ function Alerts({ metrics }: { metrics: Record<string, Meta> }) {
           ))}
         </ul>
       )}
-      {showRules && (
-        <div style={{ marginTop: 12 }}>
-          <div className="table-wrap">
-            <table>
-              <thead><tr><th>On</th><th>Rule</th><th>When</th><th>For</th><th /></tr></thead>
-              <tbody>{data.rules.map((r) => <RuleRow key={`${r.id}-${r.threshold}-${r.for_minutes}`} rule={r} metrics={metrics} />)}</tbody>
-            </table>
-          </div>
-          <AddRule metrics={metrics} />
-        </div>
-      )}
     </Card>
   );
 }
 
 type DriftRow = { id: string; name: string; live_windows: number; has_baseline: boolean; trained_at: string | null; psi: number | null; alert_pct: number | null };
 
-function psiLabel(psi: number | null, hasBaseline: boolean) {
+/** The "drifted" cutoff: the enabled PSI alert rule's threshold if there is one, else the usual 0.25. */
+export function driftCutoff(rules?: Rule[]) {
+  return rules?.find((r) => r.metric === "score_psi_max" && r.op === ">" && r.enabled)?.threshold ?? 0.25;
+}
+
+function psiLabel(psi: number | null, hasBaseline: boolean, cutoff: number) {
   if (!hasBaseline) return <span className="muted small">no baseline: retrain once to start tracking</span>;
   if (psi === null) return <span className="muted small">collecting (needs 200 scored windows)</span>;
-  const [tone, text] = psi < 0.1 ? ["good", "stable"] : psi < 0.25 ? ["warn", "moderate shift"] : ["bad", "drifted: retrain"];
+  const [tone, text] = psi < Math.min(0.1, cutoff) ? ["good", "stable"] : psi < cutoff ? ["warn", "moderate shift"] : ["bad", "drifted: retrain"];
   return <><span className="num">{psi.toFixed(3)}</span> <span className={`badge ${tone}`}>{text}</span></>;
 }
 
 function DriftCard() {
   const { data } = usePoll<{ streams: DriftRow[] }>("/api/drift", 10000);
   const retrain = useAction((id: string) => api(`/api/streams/${id}/train`, { method: "POST" }));
+  const cutoff = driftCutoff(usePoll<{ rules: Rule[] }>("/api/system/alerts", 5000).data?.rules);
   if (!data) return null;
   return (
-    <Card title="Model drift" hint="How far each stream's anomaly scores have moved from what its model learned (PSI over the last 2,000 windows)">
+    <Card title="Model drift" hint={<>How far each stream's anomaly scores have moved from what its model learned (PSI over the last 2,000 windows). Flagged at {cutoff}; <Link to="/settings#drift">change</Link>.</>}>
       {data.streams.length === 0 ? <Empty title="No streams yet" /> : (
         <div className="table-wrap">
           <table>
@@ -169,7 +182,7 @@ function DriftCard() {
               {data.streams.map((d) => (
                 <tr key={d.id}>
                   <td>{d.name}</td>
-                  <td>{psiLabel(d.psi, d.has_baseline)}</td>
+                  <td>{psiLabel(d.psi, d.has_baseline, cutoff)}</td>
                   <td className="right num">{fmt(d.live_windows)}</td>
                   <td className="right num">{d.alert_pct === null ? "–" : `${d.alert_pct}%`}</td>
                   <td className="small">{d.trained_at ? <TimeAgo iso={d.trained_at} /> : "never"}</td>

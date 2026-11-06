@@ -5,6 +5,9 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { LoginGate } from "./login";
 import "./styles.css";
+import { getTheme, setTheme } from "./theme";
+
+setTheme(getTheme());
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true, staleTime: 1000 } },
