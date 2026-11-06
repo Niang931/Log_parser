@@ -279,4 +279,8 @@ def reads_for(store):
         return MemoryReads(store)
     if hasattr(store, "client"):  # the ClickHouse store; MongoStore has none on purpose
         return ClickHouseReads(store)
+    if type(store).__name__ == "MongoStore":
+        from .reads_mongo import MongoReads
+
+        return MongoReads(store)
     raise ValueError(f"no reads for store {type(store).__name__}")
