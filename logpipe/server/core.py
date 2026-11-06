@@ -45,9 +45,12 @@ from ..parsing.kv import SLOT_RE
 from ..pipeline import Pipeline
 from ..registry import UNK_TEMPLATE_ID, NewTemplate, SchemaRegistry
 from ..sources.file_replay import LogEvent
+from ..storage.memory import MemoryStore
 from ..unresolved import UnresolvedQueue
 from . import review
 from .control import ControlStore
+from .drift import Drift, histogram
+from .metrics import ClickHouseSeries, CountedAdapter, MemorySeries, MetricRules, Metrics
 from .reads import reads_for
 
 LOGGER = logging.getLogger("logpipe.server")
@@ -242,6 +245,10 @@ class Server:
                  min_train_steps: int = MIN_TRAIN_STEPS):
         self.store, self.control = store, control
         self.reads = reads_for(store)
+        self.metrics = Metrics(MemorySeries() if isinstance(store, MemoryStore) else ClickHouseSeries(store.client))
+        self.metric_rules = MetricRules(control)
+        self.drift = Drift()
+        self._templates_at: tuple[float, int] | None = None
         self.data_dir = data_dir
         self.registry_path = data_dir / "registry.json"
         self.adapter_factory, self.queue_factory = adapter_factory, queue_factory
@@ -296,7 +303,7 @@ class Server:
     @property
     def adapter(self) -> LLMAdapter:
         if self._adapter is None:
-            self._adapter = self.adapter_factory()
+            self._adapter = CountedAdapter(self.adapter_factory(), self.metrics)
         return self._adapter
 
     def _build_pipeline(self) -> None:
@@ -324,7 +331,7 @@ class Server:
     def _detector(self, scorer: LogBERTScorer) -> StreamingDetector:
         handle = self.pipeline.handle
         return StreamingDetector(
-            scorer, DetectorConfig(window=self.window, stride=self.stride),
+            scorer, DetectorConfig(window=self.window, stride=self.stride, record_windows=True),
             registry_version=lambda: handle.version,
             resolver=lambda line: self.registry.current.canonical_id(int(handle.parse(line).template_id)))
 
@@ -387,11 +394,14 @@ class Server:
             try:
                 self.process(event)
             except Exception:
+                self.metrics.count("errors")
                 LOGGER.exception("failed to process a line from %s", event.device_id)
 
     def process(self, event: LogEvent) -> None:
         with self.lock:
+            started = time.perf_counter_ns()
             result = self.pipeline.process(event)
+            parse_ns, n_alerts = time.perf_counter_ns() - started, 0
             ts = self.pipeline._event_time or datetime.now(UTC)
             self.received += 1
             sid = source_id(event.device_id, event.service, event.source)
@@ -425,9 +435,14 @@ class Server:
                     continue
                 alerts = detector.observe(device, tid, ts, event.line)
                 if alerts:
+                    n_alerts += len(alerts)
                     self.store.insert_alerts(alerts)
+                if detector.scored:  # drained every line, so it never grows
+                    self.drift.observe(stream["id"], detector.scored)
+                    detector.scored.clear()
                 if tid != UNK_TEMPLATE_ID and tid not in detector.scorer.vocab:
                     self._novel(tid, stream["id"])
+            self.metrics.parsed(parse_ns, tid == UNK_TEMPLATE_ID, n_alerts)
 
     def streams_for(self, sid: str) -> list[dict]:
         src = self.sources.get(sid)
@@ -1116,9 +1131,11 @@ class Server:
         with self.lock:
             self.scorers[stream_id] = scorer
             self.detectors[stream_id] = self._detector(scorer)
+            self.drift.reset(stream_id)
         self.control.update("stream", stream_id, trained_at=now_iso(), model_version=version,
                             vocab=sorted(vocab.to_json()), windows=len(windows),
                             miss_threshold=round(miss, 3), model_error=None, waiting=False,
+                            miss_baseline=histogram(misses) if misses else None,
                             data={"have": len(windows), "need": MIN_TRAIN_WINDOWS, "at": now_iso()})
         for w in self.control.all("warning"):
             if (w["kind"] == "novel_template" and w["status"] == "open"
@@ -1426,13 +1443,48 @@ class Server:
                 due.append(stream["id"])
         return due
 
+    def store_usage(self) -> dict[str, float | None]:
+        """The log store's size on disk and how full its disk is (ClickHouse only)."""
+        client = getattr(self.store, "client", None)
+        if client is None:
+            return {}
+        size = client.query("SELECT sum(bytes_on_disk) FROM system.parts WHERE active AND "
+                            "database = currentDatabase()").result_rows[0][0] or 0
+        free, total = client.query("SELECT sum(free_space), sum(total_space) FROM system.disks").result_rows[0]
+        return {"store_mb": size / 2**20, "disk_used_pct": 100 * (1 - free / total) if total else None}
+
+    def sample_metrics(self) -> dict[str, float]:
+        gauges: dict[str, float | None] = {"inbox": self.inbox.qsize()}
+        try:
+            gauges["pending_rows"] = self.store.count_by_status().get("PENDING", 0)
+            gauges |= self.store_usage()
+        except Exception:  # a store hiccup must not stop the process metrics
+            LOGGER.warning("store metrics unavailable", exc_info=True)
+        drift = self.drift.report(self.control.all("stream"))
+        gauges["score_psi_max"] = max((d["psi"] for d in drift if d["psi"] is not None), default=None)
+        gauges["alert_window_pct"] = max((d["alert_pct"] for d in drift if d["alert_pct"] is not None), default=None)
+        now, count = time.time(), len(self.registry.current.templates)
+        if self._templates_at is not None and now > self._templates_at[0]:
+            gauges["new_templates_per_hour"] = max(0, count - self._templates_at[1]) * 3600 / (now - self._templates_at[0])
+        self._templates_at = (now, count)
+        q = getattr(self.pipeline, "queue", None)
+        if q is not None and hasattr(q, "stats"):
+            gauges["queue_lag"] = q.stats().lag
+        values = self.metrics.sample(gauges)
+        for alert in self.metric_rules.evaluate(values):
+            LOGGER.warning("metric alert: %s (%s = %g)", alert["label"], alert["metric"], alert["value"])
+        return values
+
     def _housekeeping_loop(self) -> None:
-        last_enrich = last_schedule = time.monotonic()
+        last_enrich = last_schedule = last_sample = time.monotonic()
         last_ready = 0.0
         while not self._stop.wait(5):
             try:
                 self.persist()
                 now = time.monotonic()
+                if now - last_sample >= self.metrics.every - 0.5:
+                    last_sample = now
+                    self.sample_metrics()
                 if now - last_enrich >= self.enrich_every_s and self.pipeline.worker is not None:
                     last_enrich = now
                     # Not under self.lock: the worker takes it only to publish, so lines that

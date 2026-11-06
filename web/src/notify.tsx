@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePoll, type Incident, type Job } from "./api";
+import type { MetricAlert } from "./pages/System";
 import { JOB_NAMES, jobTarget } from "./ui";
 
 interface Toast { id: string; title: string; body: string; to: string; tone: "bad" | "good" | "info" }
@@ -18,6 +19,8 @@ function desktopOn() {
 export function useNotifications() {
   const incidents = usePoll<{ incidents: Incident[] }>("/api/incidents", 5000).data?.incidents;
   const jobs = usePoll<{ jobs: Job[] }>("/api/jobs", 3000).data?.jobs;
+  const metricAlerts = usePoll<{ alerts: MetricAlert[] }>("/api/system/alerts", 10000).data?.alerts;
+  const seenMetric = useRef<Set<string> | null>(null);
   const seenIncidents = useRef<Set<string> | null>(null);
   const seenJobs = useRef<Map<string, Job["status"]> | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -44,6 +47,19 @@ export function useNotifications() {
   }, [incidents]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (!metricAlerts) return;
+    const firing = metricAlerts.filter((a) => a.status === "firing");
+    if (seenMetric.current === null) { seenMetric.current = new Set(firing.map((a) => `${a.rule}@${a.started_at}`)); return; }
+    for (const a of firing) {
+      const key = `${a.rule}@${a.started_at}`;
+      if (seenMetric.current.has(key)) continue;
+      seenMetric.current.add(key);
+      push({ id: `metric-${key}`, title: a.label, tone: "bad", to: "/system",
+        body: `${a.metric} is ${a.value.toLocaleString()} (threshold ${a.op} ${a.threshold.toLocaleString()}).` }, true);
+    }
+  }, [metricAlerts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (!jobs) return;
     if (seenJobs.current === null) { seenJobs.current = new Map(jobs.map((j) => [j.id, j.status])); return; }
     for (const j of jobs) {
@@ -63,6 +79,7 @@ export function useNotifications() {
   return {
     toasts, dismiss: (id: string) => setToasts((all) => all.filter((x) => x.id !== id)),
     openIncidents: incidents?.filter((i) => i.status === "open").length ?? 0,
+    firingMetrics: metricAlerts?.filter((a) => a.status === "firing").length ?? 0,
     activeJobs: jobs?.filter((j) => j.status === "queued" || j.status === "running").length ?? 0,
   };
 }

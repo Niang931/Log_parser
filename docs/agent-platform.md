@@ -188,3 +188,36 @@ on `GET /api/events` (server-sent events) and refetches on each change; polling 
 fallback. Agents older than the long-poll fall back to heartbeats (online for 45s after the last).
 
 The UI's API is browsable at `/api/docs`.
+
+## System metrics
+
+The server measures itself; no Prometheus or Grafana is needed. Every 10 s it records:
+lines/s, parse latency p50/p95/p99, the share of lines no template matched, lines that failed,
+the intake buffer, PENDING rows, unresolved-queue lag, LLM calls/errors/duration, anomaly alerts,
+its own CPU (100% = one core), RSS and threads, host CPU and memory, and (ClickHouse) the
+store's size and how full its disk is. With ClickHouse the samples go to `server_metrics`, which
+keeps them 30 days. The memory store keeps 24 h in process. The **System** page charts them, and
+`GET /api/system?minutes=N` returns the same data as JSON.
+
+`LOGPIPE_LOG_FORMAT=json` writes `server.log` as one JSON object per line.
+
+### Alerts on metrics
+
+Rules such as "parse p99 above 5 ms for 5 minutes" are checked after every sample. A breach
+that lasts its full duration opens a firing alert: it is shown on the System page with a toast,
+counted in the sidebar, and logged as a warning. The alert resolves once the metric is back. The
+defaults cover parse p99, a filling intake buffer, the PENDING backlog, queue lag, LLM errors,
+the share of unmatched lines, disk use and CPU. They can be edited, switched off or deleted
+under **System → Edit rules**, and rules can be added for any metric. Rules and alerts live in
+`control_docs`, and the last 200 resolved alerts are kept.
+
+### Drift
+
+When a stream's LogBERT model is trained, the server keeps a histogram of how much of each
+held-out (normal) window the model missed. Live, every scored window goes into a rolling
+histogram per stream (the last 2,000 windows). The population stability index (PSI) between the
+two shows how far traffic has moved from what the model learned: < 0.1 stable, 0.1–0.25
+moderate, > 0.25 retrain. **System → Model drift** lists every stream with its PSI, the share of
+windows alerted and a Retrain button. The metrics `score_psi_max`, `alert_window_pct` and
+`new_templates_per_hour` (log formats changing) are charted, and each has a default alert rule.
+Models trained before this change have no baseline until they are retrained.
