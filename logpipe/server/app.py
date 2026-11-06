@@ -600,10 +600,10 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     def bench_start(body: Annotated[dict | None, Body()] = None) -> dict:
         body = body or {}
         store = str(body.get("store") or "memory")
-        if store not in ("memory", "clickhouse"):
-            raise ValueError("store is memory or clickhouse")
-        if store == "clickhouse" and engine != "clickhouse":
-            raise ValueError("this server has no ClickHouse to benchmark against")
+        if store not in ("memory", "clickhouse", "mongodb"):
+            raise ValueError("store is memory, clickhouse or mongodb")
+        if store != "memory" and engine != store:
+            raise ValueError(f"this server has no {store} to benchmark against")
         return server.enqueue("bench", store=store, max_rate=max(0, int(body.get("max_rate") or 0)),
                               step_seconds=min(max(float(body.get("step_seconds") or 10), 2), 120))
 
