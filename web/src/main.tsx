@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import { LoginGate } from "./login";
 import "./styles.css";
 
 const client = new QueryClient({
@@ -13,7 +14,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={client}>
       <BrowserRouter>
-        <App />
+        <LoginGate>
+          <App />
+        </LoginGate>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,

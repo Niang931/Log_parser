@@ -25,6 +25,14 @@ stack traces plus an nginx access log) and an agent that tracks the app log. The
 To see the new-source flow, push `/logs/access.log` to `compose-agent` from the Agents page after
 setup: it is drafted for review under Maintenance once it has 500 lines.
 
+**Logging in.** The UI and every `/api` route need the admin password; agents only need their
+API key. On a first start the server generates a password and prints it once (in Docker:
+`docker compose logs server`). Interactive `logpipe server` asks for one instead. Change it
+under **API keys & password**. Changing it signs every other browser out. Forgot it? Set
+`LOGPIPE_ADMIN_PASSWORD` and restart: that value always replaces the stored password. It is kept
+as a scrypt hash in `control_docs`. Five wrong passwords from one address lock that address out
+for 15 minutes.
+
 Without Docker:
 
 ```bash

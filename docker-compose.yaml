@@ -70,6 +70,8 @@ services:
       LLM_BACKEND: ${LLM_BACKEND:-offline}
       # Accepted as an agent API key, so the compose agent can ship before you create keys in the UI.
       LOGPIPE_BOOTSTRAP_KEY: ${LOGPIPE_BOOTSTRAP_KEY:-lp_compose_demo_key}
+      # UI login. Unset: generated on first start and printed (`docker compose logs server`).
+      LOGPIPE_ADMIN_PASSWORD: ${LOGPIPE_ADMIN_PASSWORD:-}
     ports:
       - "8080:8080"
     volumes:
