@@ -58,6 +58,11 @@ class MongoStore:
         self.logs = db["logs"]
         self.alerts = db["alerts"]
         self.logs.create_index([("status", ASCENDING), ("timestamp", ASCENDING)])
+        # UI reads: time-range scans, and the per-source tail. (timestamp, device_id) rather than
+        # `timestamp` alone, because the TTL index below owns the plain `timestamp` key.
+        self.logs.create_index([("timestamp", ASCENDING), ("device_id", ASCENDING)])
+        self.logs.create_index([("device_id", ASCENDING), ("service", ASCENDING),
+                                ("source", ASCENDING), ("timestamp", ASCENDING)])
         if retention_days:
             self.logs.create_index("timestamp", expireAfterSeconds=retention_days * 86_400)
 
