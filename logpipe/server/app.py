@@ -306,6 +306,29 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
                 "every": server.metrics.every, "cpus": os.cpu_count(),
                 **server.metrics.series(clamp(minutes))}
 
+    @app.get("/api/drift")
+    def drift() -> dict:
+        return {"streams": server.drift.report(server.control.all("stream"))}
+
+    @app.get("/api/system/alerts")
+    def system_alerts() -> dict:
+        return {"alerts": server.metric_rules.alerts(), "rules": server.metric_rules.rules()}
+
+    @app.post("/api/system/rules")
+    def add_rule(body: Annotated[dict, Body()]) -> dict:
+        return server.metric_rules.save(body)
+
+    @app.put("/api/system/rules/{rule_id}")
+    def edit_rule(rule_id: str, body: Annotated[dict, Body()]) -> dict:
+        if server.control.get("metric_rule", rule_id) is None:
+            raise KeyError(rule_id)
+        return server.metric_rules.save(body, rule_id)
+
+    @app.delete("/api/system/rules/{rule_id}")
+    def delete_rule(rule_id: str) -> dict:
+        server.metric_rules.delete(rule_id)
+        return {"ok": True}
+
     @app.get("/api/alerts")
     def alerts(limit: int = 200) -> dict:
         return {"alerts": server.reads.alerts(min(max(limit, 1), 1000)),

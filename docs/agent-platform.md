@@ -192,3 +192,24 @@ keeps them 30 days. The memory store keeps 24 h in process. The **System** page 
 `GET /api/system?minutes=N` returns the same data as JSON.
 
 `LOGPIPE_LOG_FORMAT=json` writes `server.log` as one JSON object per line.
+
+### Alerts on metrics
+
+Rules such as "parse p99 above 5 ms for 5 minutes" are checked after every sample. A breach
+that lasts its full duration opens a firing alert: it is shown on the System page with a toast,
+counted in the sidebar, and logged as a warning. The alert resolves once the metric is back. The
+defaults cover parse p99, a filling intake buffer, the PENDING backlog, queue lag, LLM errors,
+the share of unmatched lines, disk use and CPU. They can be edited, switched off or deleted
+under **System → Edit rules**, and rules can be added for any metric. Rules and alerts live in
+`control_docs`, and the last 200 resolved alerts are kept.
+
+### Drift
+
+When a stream's LogBERT model is trained, the server keeps a histogram of how much of each
+held-out (normal) window the model missed. Live, every scored window goes into a rolling
+histogram per stream (the last 2,000 windows). The population stability index (PSI) between the
+two shows how far traffic has moved from what the model learned: < 0.1 stable, 0.1–0.25
+moderate, > 0.25 retrain. **System → Model drift** lists every stream with its PSI, the share of
+windows alerted and a Retrain button. The metrics `score_psi_max`, `alert_window_pct` and
+`new_templates_per_hour` (log formats changing) are charted, and each has a default alert rule.
+Models trained before this change have no baseline until they are retrained.
