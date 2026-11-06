@@ -23,6 +23,22 @@ services:
       retries: 5
       start_period: 10s
 
+  # Alternative store: `docker compose --profile mongo up -d mongo`. No auth, localhost only.
+  mongo:
+    profiles: [mongo]
+    image: "mongo:8.2"
+    container_name: logpipe_mongo
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ping:1}).ok' | grep -q 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   # Unresolved queue: one Kafka broker in KRaft mode (no ZooKeeper). Reachable
   # from the host at localhost:9092 (KAFKA_BOOTSTRAP in .env).
   kafka:
@@ -109,6 +125,7 @@ services:
 
 volumes:
   clickhouse_data:
+  mongo_data:
   kafka_data:
   server_data:
   demo_logs:
