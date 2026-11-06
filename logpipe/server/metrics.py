@@ -126,8 +126,40 @@ class ClickHouseSeries:
         return out
 
 
+class MongoSeries:
+    """``server_metrics``: a time-series collection (metric name = metaField), dropped after 30 days."""
+
+    TTL_SECONDS = 30 * 86_400
+
+    def __init__(self, db):
+        if "server_metrics" not in db.list_collection_names():
+            db.create_collection("server_metrics", expireAfterSeconds=self.TTL_SECONDS,
+                                 timeseries={"timeField": "ts", "metaField": "name", "granularity": "seconds"})
+        self.col = db["server_metrics"]
+
+    def write(self, ts: float, values: dict[str, float]) -> None:
+        from datetime import UTC, datetime
+
+        when = datetime.fromtimestamp(ts, UTC)
+        self.col.insert_many([{"ts": when, "name": k, "value": float(v)} for k, v in values.items()])
+
+    def query(self, minutes: int, step: int) -> dict[str, list[list[float]]]:
+        from datetime import UTC, datetime, timedelta
+
+        ms = {"$toLong": "$ts"}
+        rows = self.col.aggregate([
+            {"$match": {"ts": {"$gte": datetime.now(UTC) - timedelta(minutes=minutes)}}},
+            {"$group": {"_id": {"name": "$name", "b": {"$subtract": [ms, {"$mod": [ms, step * 1000]}]}},
+                        "v": {"$avg": "$value"}}},
+            {"$sort": {"_id.name": 1, "_id.b": 1}}])
+        out: dict[str, list[list[float]]] = {}
+        for r in rows:
+            out.setdefault(r["_id"]["name"], []).append([r["_id"]["b"] / 1000, round(r["v"], 3)])
+        return out
+
+
 class Metrics:
-    def __init__(self, sink: MemorySeries | ClickHouseSeries | None = None, every: float = 10):
+    def __init__(self, sink: MemorySeries | ClickHouseSeries | MongoSeries | None = None, every: float = 10):
         self.sink = sink or MemorySeries()
         self.every = every
         self._lock = threading.Lock()

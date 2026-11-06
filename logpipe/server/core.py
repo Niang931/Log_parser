@@ -50,7 +50,14 @@ from ..unresolved import UnresolvedQueue
 from . import review
 from .control import ControlStore
 from .drift import Drift, histogram
-from .metrics import ClickHouseSeries, CountedAdapter, MemorySeries, MetricRules, Metrics
+from .metrics import (
+    ClickHouseSeries,
+    CountedAdapter,
+    MemorySeries,
+    MetricRules,
+    Metrics,
+    MongoSeries,
+)
 from .reads import reads_for
 
 LOGGER = logging.getLogger("logpipe.server")
@@ -246,8 +253,6 @@ class Server:
         self.store, self.control = store, control
         self.reads = reads_for(store)
         if type(store).__name__ == "MongoStore":
-            from .metrics_mongo import MongoSeries
-
             self.metrics = Metrics(MongoSeries(store.db))
         else:
             self.metrics = Metrics(MemorySeries() if isinstance(store, MemoryStore) else ClickHouseSeries(store.client))
