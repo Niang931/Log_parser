@@ -2,6 +2,7 @@
 React UI, the built UI at ``/`` and the developer demo at ``/demo/``."""
 
 import asyncio
+import importlib.metadata
 import json
 import os
 import uuid
@@ -45,7 +46,9 @@ def template_sql(entry, engine: str) -> str:
             f"WHERE template_id = {entry.template_id}\nORDER BY timestamp DESC\nLIMIT 50")
 
 
-def create_app(server: Server, demo: Any = None) -> FastAPI:
+def create_app(server: Server, demo: Any = None, info: dict | None = None) -> FastAPI:
+    """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
+    started = now_iso()
     app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
     engine = "sqlite" if server.reads.__class__.__name__ == "MemoryReads" else "clickhouse"
     auth = Auth(server.control)
@@ -464,6 +467,15 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
             "min_lines": MIN_DRAFT_LINES,
             "review": next((b for b in server.batches() if b["initial"]), None),
         }
+
+    @app.get("/api/about")
+    def about() -> dict:
+        try:
+            version = importlib.metadata.version("logpipe")
+        except importlib.metadata.PackageNotFoundError:
+            version = "dev"
+        return {"version": version, "engine": engine, "started_at": started, "cpus": os.cpu_count(),
+                "password_set": auth.configured, "metrics_days": 30, **(info or {})}
 
     @app.get("/api/settings")
     def get_settings() -> dict:
