@@ -471,7 +471,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.get("/api/about")
     def about() -> dict:
         try:
-            version = importlib.metadata.version("logpipe")
+            version = importlib.metadata.version("log-parser")
         except importlib.metadata.PackageNotFoundError:
             version = "dev"
         return {"version": version, "engine": engine, "started_at": started, "cpus": os.cpu_count(),
