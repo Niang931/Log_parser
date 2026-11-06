@@ -211,6 +211,15 @@ Only SELECT or WITH. Use only this table and these columns:
 Question: {question}
 Return only the SQL."""
 
+_SPEC_PROMPT = """Turn the question into one JSON query spec for a log search (MongoDB). Keys, all optional:
+minutes (int, time range), filters (list of {{"field", "op", "value"}}), measure ({{"fn", "field"}}),
+group_by (up to 2 fields), over_time (bool), limit (int). op is one of =, !=, contains, not contains, >, <.
+fn is one of count, count_distinct, avg, min, max, sum, p95. Use only these fields:
+{schema}
+Do not use the field "level". Put the JSON object in the `sql` field and nothing else.
+
+Question: {question}"""
+
 
 class ChatAdapter(OfflineAdapter):
     """Chat model through ``deepparse.providers``: hosted (``anthropic``, ``openai``, ...) or
@@ -307,7 +316,8 @@ class ChatAdapter(OfflineAdapter):
         return {"summary": parsed.summary, "likely_cause": parsed.likely_cause, "next_steps": parsed.next_steps[:4]}
 
     def write_sql(self, question: str, schema: str, engine: str) -> str:
-        parsed = self._invoke(_sql_schema(), _SQL_PROMPT.format(engine=engine, schema=schema, question=question))
+        parsed = self._invoke(_sql_schema(), (_SPEC_PROMPT if engine == "mongodb" else _SQL_PROMPT).format(
+            engine=engine, schema=schema, question=question))
         if parsed is None or not parsed.sql.strip():
             raise ValueError("the LLM didn't return a query; try rephrasing")
         return parsed.sql.strip().rstrip(";")

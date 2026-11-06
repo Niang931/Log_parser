@@ -6,15 +6,18 @@ or group by it (streamed, 3 fields only).
 """
 from __future__ import annotations
 
+import json
 import re
 from collections import Counter
 from datetime import UTC, datetime, timedelta
 from itertools import islice
 
 from pymongo import ASCENDING, DESCENDING
+from pymongo.errors import PyMongoError
 
 from ..storage.mongo import MongoStore, _row
-from .reads import _keys, alert_json, level, row_json, step_for, zero_fill
+from .querybuild_mongo import check
+from .reads import MAX_QUERY_ROWS, _keys, alert_json, level, row_json, step_for, zero_fill
 
 FIELDS = {"host": "device_id", "service": "service", "source": "source",
           "status": "status", "template_id": "template_id"}
@@ -110,5 +113,16 @@ class MongoReads:
         cur = self.alerts_col.find().sort("window_end", DESCENDING).limit(limit)
         return [alert_json({**d, "alert_id": d["_id"]}) for d in cur]
 
-    def query(self, sql: str) -> dict:
-        raise ValueError("raw SQL is not supported on MongoDB")
+    def query(self, text: str) -> dict:
+        """Run a JSON aggregation pipeline over ``logs`` (the Query page's text box)."""
+        try:
+            pipeline = json.loads(text)
+        except ValueError:
+            raise ValueError("raw SQL is not supported on MongoDB; send a JSON aggregation pipeline") from None
+        try:
+            docs = list(islice(self.logs.aggregate(check(pipeline), maxTimeMS=10_000), MAX_QUERY_ROWS))
+        except PyMongoError as error:
+            raise ValueError(str(error).splitlines()[0]) from error
+        columns = list(dict.fromkeys(k for d in docs for k in d))
+        return {"columns": columns, "rows": [[d.get(c) for c in columns] for d in docs],
+                "engine": "mongodb", "table": "logs"}
