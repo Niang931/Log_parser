@@ -7,12 +7,13 @@ or group by it (streamed, 3 fields only).
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections import Counter
 from datetime import UTC, datetime, timedelta
 from itertools import islice
 
-from pymongo import ASCENDING, DESCENDING
+from pymongo import ASCENDING, DESCENDING, MongoClient
 from pymongo.errors import PyMongoError
 
 from ..storage.mongo import MongoStore, _row
@@ -29,6 +30,9 @@ class MongoReads:
         self.store = store
         self.logs = store.logs
         self.alerts_col = store.alerts
+        # Free-form pipelines run as a read-only user when MONGO_READONLY_URI is set (see docker-compose).
+        ro = os.environ.get("MONGO_READONLY_URI")
+        self.query_logs = MongoClient(ro, tz_aware=True)[store.db.name]["logs"] if ro else self.logs
 
     @staticmethod
     def _where(filters: dict, text: str, minutes: int | None) -> dict:
@@ -120,7 +124,7 @@ class MongoReads:
         except ValueError:
             raise ValueError("raw SQL is not supported on MongoDB; send a JSON aggregation pipeline") from None
         try:
-            docs = list(islice(self.logs.aggregate(check(pipeline), maxTimeMS=10_000), MAX_QUERY_ROWS))
+            docs = list(islice(self.query_logs.aggregate(check(pipeline), maxTimeMS=10_000), MAX_QUERY_ROWS))
         except PyMongoError as error:
             raise ValueError(str(error).splitlines()[0]) from error
         columns = list(dict.fromkeys(k for d in docs for k in d))
