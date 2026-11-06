@@ -275,4 +275,8 @@ class ClickHouseReads:
 
 
 def reads_for(store):
-    return MemoryReads(store) if isinstance(store, MemoryStore) else ClickHouseReads(store)
+    if isinstance(store, MemoryStore):
+        return MemoryReads(store)
+    if hasattr(store, "client"):  # the ClickHouse store; MongoStore has none on purpose
+        return ClickHouseReads(store)
+    raise ValueError(f"no reads for store {type(store).__name__}")

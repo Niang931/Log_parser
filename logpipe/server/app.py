@@ -47,7 +47,7 @@ def template_sql(entry, engine: str) -> str:
 
 def create_app(server: Server, demo: Any = None) -> FastAPI:
     app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
-    engine = "sqlite" if server.reads.__class__.__name__ == "MemoryReads" else "clickhouse"
+    engine = {"MemoryReads": "sqlite", "MongoReads": "mongodb"}.get(server.reads.__class__.__name__, "clickhouse")
     auth = Auth(server.control)
 
     @app.middleware("http")
