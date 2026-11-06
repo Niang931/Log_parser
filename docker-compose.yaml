@@ -23,21 +23,33 @@ services:
       retries: 5
       start_period: 10s
 
-  # Alternative store: `docker compose --profile mongo up -d mongo`. No auth, localhost only.
+  # Alternative store: `docker compose --profile mongo up -d mongo` (or `--profile platform-mongo up --build`
+  # for the whole platform on it). Auth is on: users are created from docker/mongo-init.js on the first
+  # start only, so an old volume without them needs `down -v`. Localhost only.
   mongo:
-    profiles: [mongo]
+    profiles: [mongo, platform-mongo]
     image: "mongo:8.2"
     container_name: logpipe_mongo
     ports:
       - "127.0.0.1:27017:27017"
+    command: ["mongod", "--auth"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-}
+      MONGO_DB: ${MONGO_DB:-logpipe}
+      MONGO_APP_USER: ${MONGO_APP_USER:-logpipe}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:-}
+      MONGO_RO_USER: ${MONGO_RO_USER:-logpipe_ro}
+      MONGO_RO_PASSWORD: ${MONGO_RO_PASSWORD:-}
     volumes:
       - mongo_data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ping:1}).ok' | grep -q 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
   # Unresolved queue: one Kafka broker in KRaft mode (no ZooKeeper). Reachable
   # from the host at localhost:9092 (KAFKA_BOOTSTRAP in .env).
@@ -94,6 +106,28 @@ services:
       - server_data:/app/artifacts
     depends_on:
       clickhouse:
+        condition: service_healthy
+
+  # Same server image on MongoDB. Passwords with `@ : / ?` must be URL-encoded in the URIs below.
+  server_mongo:
+    profiles: [platform-mongo]
+    build: .
+    image: ghcr.io/minhthien2103/logpipe-server:latest
+    container_name: logpipe_server_mongo
+    command: ["logpipe", "server", "--host", "0.0.0.0", "--port", "8080", "--store", "mongodb"]
+    environment:
+      MONGO_URI: mongodb://${MONGO_APP_USER:-logpipe}:${MONGO_APP_PASSWORD:-}@mongo:27017/?authSource=${MONGO_DB:-logpipe}
+      MONGO_READONLY_URI: mongodb://${MONGO_RO_USER:-logpipe_ro}:${MONGO_RO_PASSWORD:-}@mongo:27017/?authSource=${MONGO_DB:-logpipe}
+      MONGO_DB: ${MONGO_DB:-logpipe}
+      LLM_BACKEND: ${LLM_BACKEND:-offline}
+      LOGPIPE_BOOTSTRAP_KEY: ${LOGPIPE_BOOTSTRAP_KEY:-lp_compose_demo_key}
+      LOGPIPE_ADMIN_PASSWORD: ${LOGPIPE_ADMIN_PASSWORD:-}
+    ports:
+      - "8080:8080"
+    volumes:
+      - server_data:/app/artifacts
+    depends_on:
+      mongo:
         condition: service_healthy
 
   # Writes a live app log (with Java stack traces) and an nginx access log for the agent to tail.
