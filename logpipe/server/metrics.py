@@ -35,6 +35,9 @@ METRICS: dict[str, tuple[str, str, str]] = {
     "threads": ("Server threads", "threads", "Process"),
     "host_cpu_pct": ("Host CPU (all cores)", "%", "Host"),
     "host_mem_pct": ("Host memory used", "%", "Host"),
+    "score_psi_max": ("Anomaly-score drift, worst stream (PSI)", "PSI", "Drift"),
+    "alert_window_pct": ("Windows alerted, worst stream", "%", "Drift"),
+    "new_templates_per_hour": ("New templates learned", "templates/h", "Drift"),
     "store_mb": ("Log store on disk", "MB", "Storage"),
     "disk_used_pct": ("Store disk used", "%", "Storage"),
 }
@@ -242,6 +245,9 @@ DEFAULT_RULES = (
     ("disk_used_pct", ">", 80, 5, True, "Store disk above 80%"),
     ("cpu_pct", ">", 90, 10, True, "Server CPU saturated"),
     ("lines_per_s", "<", 0.1, 15, False, "No logs arriving"),
+    ("score_psi_max", ">", 0.25, 30, True, "Anomaly model drifting: retrain it"),
+    ("alert_window_pct", ">", 5, 30, True, "Unusually many windows alerted"),
+    ("new_templates_per_hour", ">", 50, 30, True, "Log formats changing fast: consider recalibrating"),
 )
 OPS = {">": lambda v, t: v > t, "<": lambda v, t: v < t}
 
@@ -253,11 +259,14 @@ class MetricRules:
     def __init__(self, control):
         self.control = control
         self._since: dict[str, float] = {}  # rule id -> when its breach began
-        if control.get("meta", "metric_rules_seeded") is None:  # once, so deleted defaults stay deleted
-            for metric, op, threshold, minutes, enabled, label in DEFAULT_RULES:
+        # Each default once (newer versions add theirs), so deleted defaults stay deleted.
+        seeded = set((control.get("meta", "metric_rules_seeded") or {}).get("ids", ()))
+        for metric, op, threshold, minutes, enabled, label in DEFAULT_RULES:
+            if (rid := f"default-{metric}") not in seeded:
                 self.save({"metric": metric, "op": op, "threshold": threshold, "for_minutes": minutes,
-                           "enabled": enabled, "label": label}, rule_id=f"default-{metric}")
-            control.put("meta", "metric_rules_seeded", {"at": time.time()})
+                           "enabled": enabled, "label": label}, rule_id=rid)
+                seeded.add(rid)
+        control.put("meta", "metric_rules_seeded", {"ids": sorted(seeded)})
 
     def rules(self) -> list[dict]:
         return sorted(self.control.all("metric_rule"), key=lambda r: r["id"])

@@ -49,6 +49,7 @@ from ..storage.memory import MemoryStore
 from ..unresolved import UnresolvedQueue
 from . import review
 from .control import ControlStore
+from .drift import Drift, histogram
 from .metrics import ClickHouseSeries, CountedAdapter, MemorySeries, MetricRules, Metrics
 from .reads import reads_for
 
@@ -246,6 +247,8 @@ class Server:
         self.reads = reads_for(store)
         self.metrics = Metrics(MemorySeries() if isinstance(store, MemoryStore) else ClickHouseSeries(store.client))
         self.metric_rules = MetricRules(control)
+        self.drift = Drift()
+        self._templates_at: tuple[float, int] | None = None
         self.data_dir = data_dir
         self.registry_path = data_dir / "registry.json"
         self.adapter_factory, self.queue_factory = adapter_factory, queue_factory
@@ -328,7 +331,7 @@ class Server:
     def _detector(self, scorer: LogBERTScorer) -> StreamingDetector:
         handle = self.pipeline.handle
         return StreamingDetector(
-            scorer, DetectorConfig(window=self.window, stride=self.stride),
+            scorer, DetectorConfig(window=self.window, stride=self.stride, record_windows=True),
             registry_version=lambda: handle.version,
             resolver=lambda line: self.registry.current.canonical_id(int(handle.parse(line).template_id)))
 
@@ -434,6 +437,9 @@ class Server:
                 if alerts:
                     n_alerts += len(alerts)
                     self.store.insert_alerts(alerts)
+                if detector.scored:  # drained every line, so it never grows
+                    self.drift.observe(stream["id"], detector.scored)
+                    detector.scored.clear()
                 if tid != UNK_TEMPLATE_ID and tid not in detector.scorer.vocab:
                     self._novel(tid, stream["id"])
             self.metrics.parsed(parse_ns, tid == UNK_TEMPLATE_ID, n_alerts)
@@ -1125,9 +1131,11 @@ class Server:
         with self.lock:
             self.scorers[stream_id] = scorer
             self.detectors[stream_id] = self._detector(scorer)
+            self.drift.reset(stream_id)
         self.control.update("stream", stream_id, trained_at=now_iso(), model_version=version,
                             vocab=sorted(vocab.to_json()), windows=len(windows),
                             miss_threshold=round(miss, 3), model_error=None, waiting=False,
+                            miss_baseline=histogram(misses) if misses else None,
                             data={"have": len(windows), "need": MIN_TRAIN_WINDOWS, "at": now_iso()})
         for w in self.control.all("warning"):
             if (w["kind"] == "novel_template" and w["status"] == "open"
@@ -1452,6 +1460,13 @@ class Server:
             gauges |= self.store_usage()
         except Exception:  # a store hiccup must not stop the process metrics
             LOGGER.warning("store metrics unavailable", exc_info=True)
+        drift = self.drift.report(self.control.all("stream"))
+        gauges["score_psi_max"] = max((d["psi"] for d in drift if d["psi"] is not None), default=None)
+        gauges["alert_window_pct"] = max((d["alert_pct"] for d in drift if d["alert_pct"] is not None), default=None)
+        now, count = time.time(), len(self.registry.current.templates)
+        if self._templates_at is not None and now > self._templates_at[0]:
+            gauges["new_templates_per_hour"] = max(0, count - self._templates_at[1]) * 3600 / (now - self._templates_at[0])
+        self._templates_at = (now, count)
         q = getattr(self.pipeline, "queue", None)
         if q is not None and hasattr(q, "stats"):
             gauges["queue_lag"] = q.stats().lag
