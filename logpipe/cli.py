@@ -212,6 +212,15 @@ def _showcase(args: argparse.Namespace) -> None:
     run(port=args.port, auto=args.auto, ask=not args.no_ask)
 
 
+def _bench(args: argparse.Namespace) -> None:
+    from datetime import UTC, datetime
+
+    from .bench import main
+
+    main(args.store, args.max_rate, args.step_seconds,
+         args.out or Path("artifacts/bench") / f"{datetime.now(UTC):%Y%m%dT%H%M%S}.json")
+
+
 def _server(args: argparse.Namespace) -> None:
     if args.raw == ["server"] and sys.stdin.isatty():  # no flags: ask instead
         from .start import start
@@ -403,6 +412,14 @@ def main(argv: list[str] | None = None) -> None:
     sc.add_argument("--no-ask", action="store_true", help="memory store, offline LLM, no questions")
     sc.add_argument("--auto", action="store_true", help="do every act without waiting for you (implies --no-ask)")
     sc.set_defaults(func=_showcase)
+
+    bn = sub.add_parser("bench", help="how many lines/s one server keeps up with, its CPU and memory")
+    bn.add_argument("--store", choices=["memory", "clickhouse"], default="memory",
+                    help="clickhouse uses a throwaway database, dropped afterwards")
+    bn.add_argument("--max-rate", type=int, default=None, help="highest step in lines/s (default 100k)")
+    bn.add_argument("--step-seconds", type=float, default=10)
+    bn.add_argument("--out", type=Path, default=None, help="result JSON (default artifacts/bench/<time>.json)")
+    bn.set_defaults(func=_bench)
 
     fd = sub.add_parser("fetch-data", help="download the evaluation datasets up front")
     fd.add_argument("datasets", nargs="*", choices=["loghub2k", "HDFS", "BGL"],

@@ -585,6 +585,29 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     def recalibrate(wid: str) -> dict:
         return server.recalibrate_warning(wid)
 
+    @app.get("/api/bench")
+    def bench_runs() -> dict:
+        return {"runs": sorted(server.control.all("bench"), key=lambda r: r["started_at"], reverse=True),
+                "cpus": os.cpu_count()}
+
+    @app.post("/api/bench", status_code=202)
+    def bench_start(body: Annotated[dict | None, Body()] = None) -> dict:
+        body = body or {}
+        store = str(body.get("store") or "memory")
+        if store not in ("memory", "clickhouse"):
+            raise ValueError("store is memory or clickhouse")
+        if store == "clickhouse" and engine != "clickhouse":
+            raise ValueError("this server has no ClickHouse to benchmark against")
+        return server.enqueue("bench", store=store, max_rate=max(0, int(body.get("max_rate") or 0)),
+                              step_seconds=min(max(float(body.get("step_seconds") or 10), 2), 120))
+
+    @app.delete("/api/bench/{run_id}")
+    def bench_delete(run_id: str) -> dict:
+        if server.control.get("bench", run_id) is None:
+            raise KeyError(run_id)
+        server.control.delete("bench", run_id)
+        return {"ok": True}
+
     @app.get("/api/jobs")
     def jobs() -> dict:
         return {"jobs": sorted(server.control.all("job"), key=lambda j: j["created_at"], reverse=True)[:100]}

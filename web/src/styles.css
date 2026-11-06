@@ -206,6 +206,8 @@ label.field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px
 .badge.good { background: var(--good-soft); color: var(--good-ink); }
 .badge.warn { background: var(--warn-soft); color: var(--warn-ink); }
 .badge.bad { background: var(--bad-soft); color: var(--bad-ink); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+tr.selected td { background: var(--accent-soft); }
 .badge.info { background: var(--accent-soft); color: var(--accent); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
 .dot.good { background: var(--good); }

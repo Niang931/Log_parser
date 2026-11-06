@@ -63,8 +63,8 @@ export interface Settings {
 
 export interface Job {
   id: string;
-  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate" | "explain";
-  params: { sources?: string[]; streams?: string[]; batch?: string; incident?: string };
+  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate" | "explain" | "bench";
+  params: { sources?: string[]; streams?: string[]; batch?: string; incident?: string; store?: string };
   status: "queued" | "running" | "done" | "failed" | "cancelled";
   progress: number;
   message: string;
