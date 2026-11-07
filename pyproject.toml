@@ -20,6 +20,12 @@ dependencies = [
 [project.scripts]
 logpipe = "logpipe.cli:main"
 
+[project.optional-dependencies]
+datadog = [
+    "datadog>=0.56.0",
+    "ddtrace>=4.16.3",
+]
+
 [dependency-groups]
 dev = [
     "deepparse-artifact[test]",
