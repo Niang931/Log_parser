@@ -447,6 +447,10 @@ def main(argv: list[str] | None = None) -> None:
 
     args = parser.parse_args(argv)
     args.raw = sys.argv[1:] if argv is None else argv
+    from . import observability  # once per process: a DogStatsD client must not cross processes
+
+    observability.init()
+    observability.init_llm()
     args.func(args)
 
 

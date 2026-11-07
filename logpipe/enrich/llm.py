@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 from deepparse.api import synth_masks
 from deepparse.masks_types import Mask
 
+from ..observability import traced
 from ..parsing.kv import default_keys
 
 if TYPE_CHECKING:
@@ -330,10 +331,10 @@ def get_adapter(backend: str, *, browser: Browser = "camoufox") -> LLMAdapter:
     """
     if backend.startswith("llm:"):
         _, provider, *model = backend.split(":", 2)
-        return ChatAdapter(provider, model[0] if model else None, browser=browser)
+        return traced(ChatAdapter(provider, model[0] if model else None, browser=browser), backend)
     adapters = {"offline": OfflineAdapter, "hf": HFDeepSeekAdapter}
     if backend not in adapters:
         raise ValueError(
             f"unknown LLM backend {backend!r}; expected one of {sorted(adapters)} or llm:<provider>"
         )
-    return adapters[backend]()
+    return traced(adapters[backend](), backend)

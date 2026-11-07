@@ -53,3 +53,47 @@ def test_pipeline_without_enrichment_leaves_rows_pending(snapshot):
     stats = Pipeline(ParserHandle(snapshot), store).run(_events())
     assert stats.summary()["resolved_by_enrichment"] == 0
     assert store.count_by_status() == {"FINAL": 17, "PENDING": len(NEW)}
+
+
+def test_pipeline_reports_stage_timings_and_line_counts(snapshot, monkeypatch):
+    from collections import Counter
+
+    from logpipe import observability as obs
+
+    class Rec:
+        def __init__(self):
+            self.calls = Counter()
+
+        def distribution(self, name, value, tags):
+            self.calls[(name, tuple(tags))] += 1
+
+        def increment(self, name, n=1, tags=()):
+            self.calls[(name, tuple(tags))] += n
+
+    rec = Rec()
+    monkeypatch.setattr(obs, "_statsd", rec)
+    Pipeline(ParserHandle(snapshot), MemoryStore()).run(_events())
+    assert rec.calls[("logpipe.stage.duration", ("stage:parse",))] == 17 + len(NEW)
+    assert rec.calls[("logpipe.stage.duration", ("stage:store",))] == 17 + len(NEW)
+    assert rec.calls[("logpipe.lines", ("status:final",))] == 17
+    assert rec.calls[("logpipe.lines", ("status:pending",))] == len(NEW)
+
+
+def test_pipeline_writes_json_lines_for_the_agent(snapshot, tmp_path, monkeypatch):
+    import json
+
+    from logpipe import observability as obs
+
+    monkeypatch.setenv("DD_ENABLED", "1")
+    monkeypatch.setenv("DD_LOG_FILE", str(tmp_path / "dd.jsonl"))
+    try:
+        assert obs.init() and obs.logging_on()
+        Pipeline(ParserHandle(snapshot), MemoryStore()).run(_events())
+    finally:
+        monkeypatch.delenv("DD_ENABLED")
+        obs.init()  # closes the file, turns everything off
+    rows = [json.loads(x) for x in (tmp_path / "dd.jsonl").read_text().splitlines()]
+    assert len(rows) == 17 + len(NEW)
+    assert all("message" in r and "template_id" in r for r in rows)
+    assert sum(r["template"] is not None for r in rows) >= 17
+    assert not obs.logging_on()

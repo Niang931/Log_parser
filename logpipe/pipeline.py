@@ -19,6 +19,7 @@ from .anomaly.detector import DetectorConfig, StreamingDetector
 from .anomaly.scorer import Scorer
 from .enrich.llm import LLMAdapter
 from .enrich.worker import CycleReport, EnrichmentWorker
+from .observability import incr, log, log_alerts, logging_on, stage
 from .parsing.frozen_parser import ParseResult, ParserHandle, Status
 from .progress import progress
 from .registry import SchemaRegistry
@@ -133,7 +134,8 @@ class Pipeline:
 
     def process(self, event: LogEvent) -> ParseResult:
         start = time.perf_counter_ns()
-        result = self.handle.parse(event.line)
+        with stage("parse"):
+            result = self.handle.parse(event.line)
         self.stats.record_latency(time.perf_counter_ns() - start)
 
         # Agents send their local offset: a zone-less time in the line is that host's wall clock.
@@ -145,19 +147,27 @@ class Pipeline:
             result, device_id=event.device_id, timestamp=timestamp, raw_message=event.line,
             service=event.service, source=event.source, tags=event.tags,
         )
-        self.store.insert_logs([row])
+        with stage("store"):
+            self.store.insert_logs([row])
+        if logging_on():
+            entry = self.handle.snapshot.templates.get(result.template_id)
+            log(message=event.line, service=event.service or "logpipe", device_id=event.device_id,
+                template_id=result.template_id, template=" ".join(entry.tokens) if entry else None,
+                parse_status=str(result.status))
         self.stats.lines += 1
         if result.status == Status.FINAL:
             self.stats.final += 1
+            incr("lines", 1, "status:final")
         else:
             self.stats.pending += 1
+            incr("lines", 1, "status:pending")
             if self.queue is not None and not (self.hold and self.hold(event)):
                 self.queue.publish(row)
 
         if self.detector is not None:
-            self._alerts(self.detector.observe(
-                event.device_id, result.template_id, timestamp, event.line
-            ))
+            with stage("detect"):
+                alerts = self.detector.observe(event.device_id, result.template_id, timestamp, event.line)
+            self._alerts(alerts)
         if self.worker is not None and self.stats.lines % self.enrich_every == 0:
             self.enrich()
         return result
@@ -166,7 +176,8 @@ class Pipeline:
         if self.worker is None:
             return None
         self.store.flush()
-        report = self.worker.run_cycle(now=self._event_time)
+        with stage("enrich"):
+            report = self.worker.run_cycle(now=self._event_time)
         if report.buffered == 0:
             return None
         self.stats.cycles.append(report)
@@ -176,6 +187,8 @@ class Pipeline:
         if alerts:
             self.store.insert_alerts(alerts)
             self.stats.alerts.extend(alerts)
+            incr("anomalies", len(alerts))
+            log_alerts(alerts)
 
     def run(self, events: Iterable[LogEvent], *, total: int | None = None) -> PipelineStats:
         started = time.perf_counter()

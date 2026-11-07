@@ -31,6 +31,7 @@ import yaml
 from deepparse.masks_types import Mask
 from deepparse.utils.sampling import entropy_greedy_sample
 
+from .. import observability as obs
 from ..anomaly.detector import DetectorConfig, StreamingDetector, sliding_windows
 from ..anomaly.logbert import LogBERTConfig, TrainConfig, train_logbert
 from ..anomaly.scorer import LogBERTScorer, ScorerSettings, Thresholds
@@ -443,9 +444,12 @@ class Server:
                 detector = self.detectors.get(stream["id"])
                 if detector is None:
                     continue
-                alerts = detector.observe(device, tid, ts, event.line)
+                with obs.stage("detect"):
+                    alerts = detector.observe(device, tid, ts, event.line)
                 if alerts:
                     n_alerts += len(alerts)
+                    obs.incr("anomalies", len(alerts))
+                    obs.log_alerts(alerts)
                     self.store.insert_alerts(alerts)
                 if detector.scored:  # drained every line, so it never grows
                     self.drift.observe(stream["id"], detector.scored)
@@ -1492,6 +1496,7 @@ class Server:
         gauges: dict[str, float | None] = {"inbox": self.inbox.qsize()}
         try:
             gauges["pending_rows"] = self.store.count_by_status().get("PENDING", 0)
+            obs.gauge("enrich.backlog", gauges["pending_rows"])
             gauges |= self.store_usage()
         except Exception:  # a store hiccup must not stop the process metrics
             LOGGER.warning("store metrics unavailable", exc_info=True)
