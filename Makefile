@@ -22,7 +22,7 @@ TRAIN    := --epochs $(EPOCHS) $(if $(THREADS),--threads $(THREADS))
 SCRAPER  := $(RUN) python -m deepparse.ai_scraper
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo bench \
+.PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo demo-datadog bench \
         data data-loghub data-hdfs data-bgl \
         retrain-data retrain-eval \
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
@@ -69,6 +69,9 @@ demo: gen-iot ## end to end on the synthetic fleet
 	$(LOGPIPE) calibrate --logs artifacts/fleet/history $(LLM_ARG)
 	$(LOGPIPE) train-logbert --logs artifacts/fleet/history --epochs $(EPOCHS)
 	$(LOGPIPE) run --logs artifacts/fleet/test $(LLM_ARG)
+
+demo-datadog: ## incident for Datadog: slow then failing store (DD_ENABLED=1; PHASE=seconds each)
+	DD_ENABLED=1 $(RUN) python examples/datadog_incident.py --phase $(or $(PHASE),60)
 
 ## --- datasets (artifacts/datasets) ------------------------------------------
 
