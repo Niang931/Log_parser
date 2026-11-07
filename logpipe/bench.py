@@ -111,6 +111,11 @@ def _setup(store: str, data_dir: Path, say: Callable[[str], None]):
 
         db = f"logpipe_bench_{uuid.uuid4().hex[:8]}"
         log_store = ClickHouseStore.from_env(database=db)
+    elif store == "mongodb":
+        from .storage.mongo import MongoStore
+
+        db = f"logpipe_bench_{uuid.uuid4().hex[:8]}"
+        log_store = MongoStore.from_env(database=db)
     else:
         from .storage.memory import MemoryStore
 
@@ -136,6 +141,8 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
         server.process = parse.wrap(server.process)  # the ingest thread looks it up per line
         if (client := getattr(log_store, "client", None)) is not None:
             client.insert = inserts.wrap(client.insert)
+        elif store == "mongodb":
+            log_store.insert_logs = inserts.wrap(log_store.insert_logs)
         cursor = 0
 
         def batch(n: int) -> list[dict]:
@@ -191,6 +198,7 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
             return res
 
         steps: list[dict] = []
+        disk = None
         try:
             say("warming up")
             step_seconds, real = min(2, step_seconds), step_seconds
@@ -210,7 +218,16 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
                 say(f"  processed {steps[-1]['processed_per_s']:,}/s, CPU {steps[-1]['cpu_pct']}%")
         finally:
             server.close()
-            if db:
+            if store == "mongodb":  # bytes on disk for the rows written, measured before the database goes
+                from .storage.mongo import MongoStore
+
+                again = MongoStore.from_env(database=db)  # server.close() closed the first client
+                st = again.db.command("dbStats")
+                disk = {"lines": again.db["logs"].count_documents({}),
+                        "data_bytes": st["storageSize"], "index_bytes": st["indexSize"]}
+                again.db.client.drop_database(db)
+                again.close()
+            elif db:
                 log_store.client.command(f"DROP DATABASE IF EXISTS `{db}`")  # type: ignore[attr-defined]
     kept = [s for s in steps if s["kept_up"]]
     behind = next((s for s in steps if s["target"] and not s["kept_up"]), None)
@@ -225,7 +242,7 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
         "flood_per_s": steps[-1]["processed_per_s"] if flood and steps and steps[-1]["target"] is None else None,
         "peak_rss_mb": max((s["rss_mb"] for s in steps), default=0),
         "steps": steps,
-    }
+    } | ({"disk": disk} if disk else {})
 
 
 def table(result: dict) -> str:

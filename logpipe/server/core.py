@@ -50,7 +50,14 @@ from ..unresolved import UnresolvedQueue
 from . import review
 from .control import ControlStore
 from .drift import Drift, histogram
-from .metrics import ClickHouseSeries, CountedAdapter, MemorySeries, MetricRules, Metrics
+from .metrics import (
+    ClickHouseSeries,
+    CountedAdapter,
+    MemorySeries,
+    MetricRules,
+    Metrics,
+    MongoSeries,
+)
 from .reads import reads_for
 
 LOGGER = logging.getLogger("logpipe.server")
@@ -245,7 +252,10 @@ class Server:
                  min_train_steps: int = MIN_TRAIN_STEPS):
         self.store, self.control = store, control
         self.reads = reads_for(store)
-        self.metrics = Metrics(MemorySeries() if isinstance(store, MemoryStore) else ClickHouseSeries(store.client))
+        if type(store).__name__ == "MongoStore":
+            self.metrics = Metrics(MongoSeries(store.db))
+        else:
+            self.metrics = Metrics(MemorySeries() if isinstance(store, MemoryStore) else ClickHouseSeries(store.client))
         self.metric_rules = MetricRules(control)
         self.drift = Drift()
         self._templates_at: tuple[float, int] | None = None

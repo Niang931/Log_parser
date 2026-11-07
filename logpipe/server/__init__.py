@@ -68,6 +68,10 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
     log_store = open_store(store)
     # shortcut: with the memory store the control plane is in memory too; use clickhouse to keep agents, keys and models across restarts.
     control = ControlStore(ClickHouseDocs(log_store.client) if store == "clickhouse" else None)  # type: ignore[attr-defined]
+    if store == "mongodb":
+        from ..storage.mongo import MongoDocs
+
+        control = ControlStore(MongoDocs(log_store.db))  # type: ignore[attr-defined]
     server = Server(log_store, control, data_dir=data_dir, epochs=epochs,
                     adapter_factory=lambda: get_adapter(llm, browser=browser),  # type: ignore[arg-type]
                     queue_factory=lambda: open_queue(queue),

@@ -125,3 +125,10 @@ def test_server_start_asks_the_admin_password_without_saving_it(monkeypatch, tmp
     wizard.start(launch=lambda cmd: None, mode="server")
     assert wizard.os.environ.pop("LOGPIPE_ADMIN_PASSWORD") == "long enough"
     assert "long enough" not in wizard.SAVED.read_text()
+
+
+def test_mongodb_store_starts_the_mongo_service(tmp_path):
+    a = {"mode": "server", "queue": "memory", "llm_kind": "offline", "store": "mongodb",
+         "server_port": 8080, "data_dir": str(tmp_path), "with_demo": False}
+    services, commands = wizard.plan(a)
+    assert services == ["mongo"] and commands[0][commands[0].index("--store") + 1] == "mongodb"

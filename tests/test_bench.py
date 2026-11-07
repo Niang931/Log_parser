@@ -8,6 +8,7 @@ from tests.test_server import env, run_jobs  # noqa: F401 - env is a fixture
 def test_bench_job_records_a_run(env):  # noqa: F811
     server, client, _ = env
     assert client.post("/api/bench", json={"store": "clickhouse"}).status_code == 400  # memory server
+    assert client.post("/api/bench", json={"store": "mongodb"}).status_code == 400
     job = client.post("/api/bench", json={"max_rate": 500, "step_seconds": 2}).json()
     assert job["kind"] == "bench"
     run_jobs(server)

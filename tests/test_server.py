@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import gzip
 import json
+import os
 import random
 import threading
+import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -39,12 +41,23 @@ def events(lines, host="web-1", service="api", source="python", start=0):
 
 @pytest.fixture
 def env(tmp_path):
-    server = Server(MemoryStore(), ControlStore(), data_dir=tmp_path,
+    mongo = os.environ.get("STORE") == "mongodb"  # opt in: `STORE=mongodb pytest tests/test_server.py`
+    if mongo:
+        from logpipe.storage.mongo import MongoDocs, MongoStore
+
+        store = MongoStore.from_env(database=f"logpipe_test_{uuid.uuid4().hex[:8]}")
+        control = ControlStore(MongoDocs(store.db))
+    else:
+        store, control = MemoryStore(), ControlStore()
+    server = Server(store, control, data_dir=tmp_path,
                     adapter_factory=lambda: get_adapter("offline"), epochs=1,
                     start_threads=False, min_train_steps=0)  # one epoch: fast, the model's quality isn't tested here
     client = TestClient(create_app(server))
     key = client.post("/api/keys", json={"name": "test"}).json()["token"]
-    return server, client, {"X-API-Key": key}
+    yield server, client, {"X-API-Key": key}
+    if mongo:
+        store.db.client.drop_database(store.db.name)
+        store.close()
 
 
 def pump(server: Server) -> None:
@@ -247,6 +260,7 @@ def test_each_source_is_in_one_stream_ticked_sources_win(env):
     assert streams["cron"]["sources"] == ["web-9|cron|go"]  # web-9 got a stream of its own
 
 
+@pytest.mark.skipif(os.environ.get("STORE") == "mongodb", reason="raw SQL: not on MongoDB")
 def test_streams_settings_query_stats(env):
     server, client, headers = env
     send(server, client, headers, events(app_lines(30)))
@@ -500,6 +514,7 @@ def test_template_links_show_who_made_them_and_can_be_undone(env):
     assert {t["template_id"]: t for t in client.get("/api/templates").json()["templates"]}[a]["linked_by"] == "llm"
 
 
+@pytest.mark.skipif(os.environ.get("STORE") == "mongodb", reason="SQL query builder: MongoDB pipeline builder is Phase 6")
 def test_query_builder_schema_saved_and_ask(env):
     server, client, headers = env
     now = datetime.now(UTC)

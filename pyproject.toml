@@ -14,6 +14,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn>=0.32",
     "opentelemetry-proto>=1.45.2",
+    "pymongo>=4.19.0",
 ]
 
 [project.scripts]
