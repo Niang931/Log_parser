@@ -12,7 +12,6 @@ from ..enrich.llm import NeedsLLM
 from .spec import AGG_FNS, Catalog, QuerySpec, validate
 
 
-
 @dataclass
 class Routed:
     spec: QuerySpec
@@ -23,21 +22,21 @@ class Routed:
 _UNITS = {"m": 1, "min": 1, "mins": 1, "minute": 1, "minutes": 1, "h": 60, "hr": 60, "hrs": 60,
           "hour": 60, "hours": 60, "d": 1440, "day": 1440, "days": 1440}
 _LAST = re.compile(r"\b(?:last|past|previous|in the last|over the last)\s+(\d+)\s*(" + "|".join(
-    sorted(_UNITS, key=len, reverse=True)) + r")\b", re.I)
-_LAST_ONE = re.compile(r"\b(?:last|past|previous)\s+(minute|hour|day)\b", re.I)
-_TODAY = re.compile(r"\btoday\b", re.I)
-_CLOCK = re.compile(r"\b(at|around|since|after|before|near)\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?\b", re.I)
+    sorted(_UNITS, key=len, reverse=True)) + r")\b", re.IGNORECASE)
+_LAST_ONE = re.compile(r"\b(?:last|past|previous)\s+(minute|hour|day)\b", re.IGNORECASE)
+_TODAY = re.compile(r"\btoday\b", re.IGNORECASE)
+_CLOCK = re.compile(r"\b(at|around|since|after|before|near)\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?\b", re.IGNORECASE)
 _QUOTED = re.compile(r"\"([^\"]{1,100})\"|“([^”]{1,100})”|'([^']{2,100})'")
-_CONTAINING = re.compile(r"\b(?:containing|contains|mentioning|matching|with the word)\s+([\w.:/-]{2,100})", re.I)
+_CONTAINING = re.compile(r"\b(?:containing|contains|mentioning|matching|with the word)\s+([\w.:/-]{2,100})", re.IGNORECASE)
 _RCA = re.compile(r"\b(why|root[ -]?cause|what caused|cause of|caused|went down|go(?:es)? down|crash(?:ed|es|ing)?|"
-                  r"outage|broke|died|what happened|stopp?ed working|fell over)\b", re.I)
-_SUMMARY = re.compile(r"\b(summar\w*|overview|what'?s going on|anything (?:unusual|weird|strange)|status report)\b", re.I)
-_ERRORS = re.compile(r"\b(errors?|fatal|failures?|exceptions?|critical)\b", re.I)
-_WARNS = re.compile(r"\b(warn(?:ing)?s?)\b", re.I)
-_COUNT = re.compile(r"\b(how many|count|number of)\b", re.I)
-_PER = re.compile(r"\b(?:per|by|for each|grouped by)\s+(service|host|level|source|template)s?\b", re.I)
-_OVER_TIME = re.compile(r"\b(over time|per minute|per hour|trend|timeline of)\b", re.I)
-_HARD = re.compile(r"\b(average|avg|mean|p\d\d|percentile|max(?:imum)?|minimum|lowest|highest|sum|total|distinct|unique)\b", re.I)
+                  r"outage|broke|died|what happened|stopp?ed working|fell over)\b", re.IGNORECASE)
+_SUMMARY = re.compile(r"\b(summar\w*|overview|what'?s going on|anything (?:unusual|weird|strange)|status report)\b", re.IGNORECASE)
+_ERRORS = re.compile(r"\b(errors?|fatal|failures?|exceptions?|critical)\b", re.IGNORECASE)
+_WARNS = re.compile(r"\b(warn(?:ing)?s?)\b", re.IGNORECASE)
+_COUNT = re.compile(r"\b(how many|count|number of)\b", re.IGNORECASE)
+_PER = re.compile(r"\b(?:per|by|for each|grouped by)\s+(service|host|level|source|template)s?\b", re.IGNORECASE)
+_OVER_TIME = re.compile(r"\b(over time|per minute|per hour|trend|timeline of)\b", re.IGNORECASE)
+_HARD = re.compile(r"\b(average|avg|mean|p\d\d|percentile|max(?:imum)?|minimum|lowest|highest|sum|total|distinct|unique)\b", re.IGNORECASE)
 
 
 def _tz(offset_minutes: int | None) -> timezone:

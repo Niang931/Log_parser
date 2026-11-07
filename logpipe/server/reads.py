@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sqlite3
 from collections import Counter
@@ -50,6 +51,31 @@ def _sql_str(text: str) -> str:
 LEVEL_SQL = "multiIf(" + "".join(f"has(tags, 'severity:{lvl}'), '{lvl}', " for lvl in LEVELS) + ", ".join(
     f"match({f'substring(raw_message, 1, {HEAD})' if head else 'raw_message'}, {_sql_str(rx)}), '{lvl}'"
     for lvl, rx, head in LEVEL_RULES) + ", 'info')"
+
+
+_LITERAL = re.compile(r"'(?:[^'\\]|\\.|'')*'|--[^\n]*|/\*.*?\*/|#[^\n]*", re.S)
+_QUOTED_NAME = re.compile(r'"((?:[^"]|"")*)"|`((?:[^`]|``)*)`')
+_TABLE_FUNCTION = re.compile(r"\b(?:from|join)\s+([a-z_][\w]*)\s*\(", re.I)
+_DENIED = re.compile(r"\b(?:into\s+outfile|attach|detach|pragma|vacuum|load_extension|readfile|writefile|"
+                     r"fts3_tokenizer|system\s*\.|information_schema\s*\.)", re.I)
+
+
+def guard_sql(sql: str) -> str:
+    """One read-only SELECT over the log tables, or ValueError. Table functions (url, file, remote,
+    s3, mysql, ...) would read or reach outside the store, so none are allowed; nor are system
+    tables, file output or SQLite's ATTACH/PRAGMA. The database's own read-only mode (and, on
+    ClickHouse, a read-only user) stay the real barrier; this refuses early with a clear message."""
+    sql = sql.strip().rstrip(";").strip()
+    bare = _QUOTED_NAME.sub(lambda m: m.group(1) or m.group(2) or "", _LITERAL.sub("''", sql))
+    if not re.match(r"(?is)\s*(select|with)\b", bare):
+        raise ValueError("only SELECT / WITH queries")
+    if ";" in bare:
+        raise ValueError("one statement at a time")
+    if m := _TABLE_FUNCTION.search(bare):
+        raise ValueError(f"table function {m.group(1)}() is not allowed; query iot_logs / logs")
+    if m := _DENIED.search(bare):
+        raise ValueError(f"{' '.join(m.group(0).split()).rstrip('.')} is not allowed in a query")
+    return sql
 
 
 def step_for(minutes: int) -> int:
@@ -135,7 +161,8 @@ class MemoryReads:
             alerts = list(self.store.alerts)
         return [alert_json(asdict(a)) for a in reversed(alerts[-limit:])]
 
-    def query(self, sql: str) -> dict:
+    def query(self, sql: str, max_rows: int = MAX_QUERY_ROWS) -> dict:
+        sql = guard_sql(sql)
         rows = self._rows()
         db = sqlite3.connect(":memory:")
         db.execute("CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, service TEXT, "
@@ -151,7 +178,7 @@ class MemoryReads:
         except sqlite3.Error as error:
             raise ValueError(str(error)) from error
         return {"columns": [d[0] for d in cur.description or ()],
-                "rows": cur.fetchmany(MAX_QUERY_ROWS), "engine": "sqlite", "table": "logs"}
+                "rows": cur.fetchmany(max_rows), "engine": "sqlite", "table": "logs"}
 
 
 def _keys(by: str) -> tuple[str, ...]:
@@ -178,6 +205,16 @@ class ClickHouseReads:
     def __init__(self, store):
         self.store = store
         self.client = store.client
+        self.query_client = self.client
+        # Free-form and Ask queries run as a read-only user when CLICKHOUSE_READONLY_USER is set
+        # (docker/clickhouse-init.sh creates it with SELECT on the log tables only).
+        if user := os.environ.get("CLICKHOUSE_READONLY_USER"):
+            import clickhouse_connect
+
+            self.query_client = clickhouse_connect.get_client(
+                host=os.environ.get("CLICKHOUSE_HOST", "127.0.0.1"), port=int(os.environ.get("CLICKHOUSE_PORT", "8123")),
+                username=user, password=os.environ.get("CLICKHOUSE_READONLY_PASSWORD", ""),
+                database=store.client.database)
 
     def _q(self, sql: str, **params):
         self.store.flush()
@@ -263,14 +300,17 @@ class ClickHouseReads:
                        "LIMIT {limit:UInt32}", limit=limit)
         return [alert_json(dict(zip(cols, r))) for r in rows]
 
-    def query(self, sql: str) -> dict:
+    def query(self, sql: str, max_rows: int = MAX_QUERY_ROWS) -> dict:
+        sql = guard_sql(sql)
         self.store.flush()
         try:
-            result = self.client.query(sql, settings={"readonly": 2, "max_result_rows": MAX_QUERY_ROWS,
-                                                      "result_overflow_mode": "break"})
+            settings = {"max_result_rows": max_rows, "result_overflow_mode": "break", "max_execution_time": 30}
+            if self.query_client is self.client:  # the read-only user's profile pins readonly itself
+                settings["readonly"] = 2
+            result = self.query_client.query(sql, settings=settings)
         except Exception as error:  # the server's message, shown under the editor
             raise ValueError(str(error).strip().splitlines()[0]) from error
-        return {"columns": list(result.column_names), "rows": result.result_rows[:MAX_QUERY_ROWS],
+        return {"columns": list(result.column_names), "rows": result.result_rows[:max_rows],
                 "engine": "clickhouse", "table": "iot_logs"}
 
 

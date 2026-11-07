@@ -88,7 +88,7 @@ def test_server_on_mongodb(store, tmp_path):
     assert client.post("/api/query", json={"sql": by_service["sql"]}).json()["rows"] == [["jobs", 60]]
     for bad in ('[{"$out": "x"}]', '[{"$match": {"$where": "1"}}]', '[{"$lookup": {"from": "control_docs"}}]'):
         assert client.post("/api/query", json={"sql": bad}).status_code == 400, bad
-    for spec in ({"group_by": ["host; DROP"]}, {"measure": {"fn": "evil"}}, {"filters": [{"field": "level", "value": "e"}]}):
+    for spec in ({"group_by": ["host; DROP"]}, {"measure": {"fn": "evil"}}, {"filters": [{"field": "level", "op": ">", "value": "e"}]}):
         assert client.post("/api/query/build", json=spec).status_code == 400, spec
     assert client.get("/api/query/schema").json()["engine"] == "mongodb"
     assert client.post("/api/query/ask", json={"question": "errors per service"}).status_code == 400  # offline LLM

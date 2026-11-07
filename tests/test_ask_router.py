@@ -97,14 +97,14 @@ def test_llm_route_is_validated_and_fails_closed():
     assert r.spec.answer == "Bad gateway."
 
     for bad, match in [
-        (dict(intent="keyword", services=["payments"]), "unknown service"),  # invented name
-        (dict(intent="drop table"), "intent"),
-        (dict(intent="event", template_ids=[999]), "unknown template"),
-        (dict(intent="keyword", aggregate_fn="evil"), "unknown measure"),
-        (dict(intent="keyword", group_by=["host; DROP"], aggregate_fn="count"), "group by"),
-        (dict(intent="semantic"), "needs something"),
-        (dict(intent="keyword", minutes=10**9), "minutes"),
-        (dict(_none=True, intent="x"), "no usable answer"),
+        ({"intent": "keyword", "services": ["payments"]}, "unknown service"),  # invented name
+        ({"intent": "drop table"}, "intent"),
+        ({"intent": "event", "template_ids": [999]}, "unknown template"),
+        ({"intent": "keyword", "aggregate_fn": "evil"}, "unknown measure"),
+        ({"intent": "keyword", "group_by": ["host; DROP"], "aggregate_fn": "count"}, "group by"),
+        ({"intent": "semantic"}, "needs something"),
+        ({"intent": "keyword", "minutes": 10**9}, "minutes"),
+        ({"_none": True, "intent": "x"}, "no usable answer"),
     ]:
         with pytest.raises(ValueError, match=match):
             route("show me payment problems", CAT, Scripted(**bad), NOW)

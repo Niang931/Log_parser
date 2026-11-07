@@ -49,7 +49,7 @@ def test_build_shapes():
 
 @pytest.mark.parametrize("bad", [
     {"group_by": ["host; DROP"]}, {"filters": [{"field": "@x'y", "value": "1"}]}, {"measure": {"fn": "evil"}},
-    {"filters": [{"field": "host", "op": ">", "value": "abc"}]}, {"filters": [{"field": "level", "value": "error"}]},
+    {"filters": [{"field": "host", "op": ">", "value": "abc"}]}, {"filters": [{"field": "level", "op": ">", "value": "error"}]},
     {"filters": [{"field": "template_id", "value": "x"}]}, {"minutes": 10**9}, {"measure": {"fn": "avg"}}])
 def test_build_rejects_bad_specs(bad):
     with pytest.raises(ValueError):
