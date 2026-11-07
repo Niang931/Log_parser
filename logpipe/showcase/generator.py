@@ -26,6 +26,58 @@ FILES = {
 AGENTS = ("Mozilla/5.0 (X11; Linux x86_64)", "Mozilla/5.0 (Macintosh)", "curl/8.5.0", "okhttp/4.12")
 
 
+# mode -> root-cause lines (service, level, text) at the fault's start, the symptom lines each order
+# logs after it, services that stop logging, and `truth`: text only the root-cause line contains.
+FAULTS: dict[str, dict] = {
+    "sigterm": {"root": [("pg", "", "LOG:  received fast shutdown request"),
+                         ("pg", "", "LOG:  aborting any active transactions")], "silent": ("pg",),
+                "symptoms": [("api", "ERROR", "could not get JDBC connection: Connection to postgres:5432 refused after {ms} ms")],
+                "truth": "received fast shutdown request"},
+    "oom": {"root": [("api", "ERROR", "java.lang.OutOfMemoryError: Java heap space")], "logger": "c.s.cart.CartController",
+            "silent": ("api",), "gateway": True, "truth": "OutOfMemoryError"},
+    "segfault": {"root": [("pg", "", "LOG:  server process (PID {pid}) was terminated by signal 11: Segmentation fault"),
+                          ("pg", "", "LOG:  terminating any other active server processes")],
+                 "symptoms": [("api", "ERROR", "could not get JDBC connection: the database system is in recovery mode")],
+                 "truth": "Segmentation fault"},
+    "disk_full": {"root": [("pg", "", "PANIC:  could not write to file \"pg_wal/xlogtemp.{pid}\": No space left on device")],
+                  "symptoms": [("api", "ERROR", "could not get JDBC connection: the database system is shutting down")],
+                  "silent": ("pg",), "truth": "No space left on device"},
+    "db_port_blocked": {"root": [("api", "ERROR", "Connection to db.internal:5432 refused. Check that the hostname and port are correct")],
+                        "logger": "c.s.db.ConnectionPool", "repeat": 7,
+                        "symptoms": [("api", "WARN", "retrying database call, attempt {n}")],
+                        "truth": "Connection to db.internal:5432 refused"},
+    "pool_exhausted": {"root": [("api", "WARN", "HikariPool-1 - Connection is not available, request timed out after 30000ms")],
+                       "logger": "com.zaxxer.hikari.pool.HikariPool", "repeat": 3,
+                       "symptoms": [("api", "ERROR", "transaction rolled back after {ms} ms")],
+                       "truth": "Connection is not available"},
+    "gateway_timeout": {"root": [("api", "ERROR", "payment pay_{pid} declined: gateway timeout after 30000 ms")],
+                        "logger": "c.s.payment.PaymentClient", "repeat": 2,
+                        "symptoms": [("api", "WARN", "payment slow response {ms} ms, retrying")],
+                        "truth": "gateway timeout after 30000 ms"},
+    "dns_failure": {"root": [("api", "ERROR", "java.net.UnknownHostException: payments.internal: Name or service not known")],
+                    "logger": "c.s.payment.PaymentClient", "repeat": 5, "truth": "UnknownHostException"},
+    "tls_expired": {"root": [("api", "ERROR", "javax.net.ssl.SSLHandshakeException: PKIX path validation failed: "
+                                              "validity check failed: certificate expired on 2026-11-01")],
+                    "logger": "c.s.payment.PaymentClient", "repeat": 5, "truth": "certificate expired"},
+    "config_reload": {"root": [("nginx", "", "[emerg] {pid}#0: unknown directive \"proxy_passs\" in /etc/nginx/conf.d/shop.conf:14")],
+                      "silent": ("nginx", "api"), "truth": "unknown directive"},
+    "dependency_503": {"root": [("api", "ERROR", "payment provider returned HTTP 503 Service Unavailable")],
+                       "logger": "c.s.payment.PaymentClient", "repeat": 3, "truth": "returned HTTP 503"},
+    "gc_thrash": {"root": [("api", "WARN", "GC overhead: 92% of time spent in GC over the last 60 s (pause {n}.4 s)")],
+                  "logger": "jvm.gc", "repeat": 4, "symptoms": [("api", "WARN", "request took {ms} ms, over the 1000 ms budget")],
+                  "truth": "GC overhead"},
+    "lock_contention": {"root": [("pg", "", "LOG:  process {pid} still waiting for ShareLock on transaction 9{n} after 1000.{n} ms")],
+                        "repeat": 3, "symptoms": [("api", "ERROR", "statement timeout after {ms} ms on table orders")],
+                        "truth": "still waiting for ShareLock"},
+    "clock_skew": {"root": [("api", "ERROR", "JWT validation failed: token issued in the future, clock skew {n}12 s")],
+                   "logger": "c.s.auth.TokenFilter", "repeat": 4, "truth": "clock skew"},
+    "api_hang": {"root": [], "silent": ("api",), "gateway": True, "truth": "silence:shop-api"},
+    "control_quiet": {"root": [], "normal": True, "truth": None},
+    "control_busy": {"root": [("api", "INFO", "cache warmed: {n} entries")], "logger": "c.s.cache.Cache", "repeat": 9,
+                     "normal": True, "truth": None},
+}
+
+
 @dataclass
 class Event:
     service: str
@@ -100,6 +152,35 @@ class ShopGenerator:
             if r.random() < 0.15:
                 ev.append(Event("inventory", f'time={now.astimezone(UTC):%Y-%m-%dT%H:%M:%SZ} level=warn msg="stock level low" sku={sku} left={r.randint(0, 9)}'))
         return ev
+
+    # --- injected faults (logpipe.eval.rca_eval) ----------------------------------------
+    def fault(self, mode: str, now: datetime, step: int) -> list[Event]:
+        """What the services log ``step`` orders after fault ``mode`` started: step 0 carries the
+        root cause; the steps after it the symptoms a person would see first (502s, failed orders)."""
+        f = FAULTS[mode]
+        r = self.rng
+        api = lambda lvl, logger, text: Event("shop-api", self._api(now, lvl, r.randint(1, 12), logger, text))
+        pg = lambda text: Event("postgres", self._pg(now, text))
+        root: list[Event] = []
+        ev: list[Event] = []
+        if step == 0 or (f.get("repeat") and step % f["repeat"] == 0):
+            root += [{"api": lambda lvl, text: api(lvl, f.get("logger", "c.s.Main"), text), "pg": lambda _lvl, text: pg(text),
+                    "nginx": lambda _lvl, text: Event("nginx", f"{now.astimezone():%Y/%m/%d %H:%M:%S} {text}")}[svc](lvl, text.format(
+                        pid=r.randint(200, 9999), ms=r.randint(1000, 9000), n=r.randint(1, 99)))
+                   for svc, lvl, text in f["root"]]
+        if f.get("normal"):  # the fault doesn't break orders (a control, or a slow burn)
+            ev += self.order(now)
+        else:
+            nginx_status = 502 if f.get("gateway") else 504
+            ev += [Event("nginx", self._nginx(now, "GET", f"/api/products/{r.randint(1, 80)}", 200)),
+                   Event("nginx", self._nginx(now, "POST", "/api/checkout", nginx_status))]
+            if "api" not in f.get("silent", ()):
+                oid = r.randint(10**5, 10**6 - 1)
+                for svc, lvl, text in f.get("symptoms", ()):
+                    ev.append(api(lvl, "c.s.order.OrderService", text.format(oid=oid, ms=r.randint(1000, 30000), n=r.randint(1, 50))))
+                ev.append(api("ERROR", "c.s.order.OrderService", f"order {oid} failed: checkout could not be completed"))
+        silent = {"api": "shop-api", "pg": "postgres", "nginx": "nginx"}
+        return root + [e for e in ev if e.service not in {silent[x] for x in f.get("silent", ())}]  # its last words, then quiet
 
     # --- running ----------------------------------------------------------------------
     def incident(self, seconds: float = 60) -> None:
