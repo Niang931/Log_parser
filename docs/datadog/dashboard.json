@@ -1,0 +1,98 @@
+{
+  "title": "logpipe pipeline",
+  "layout_type": "ordered",
+  "description": "Time and errors per stage.",
+  "widgets": [
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Stage duration p99 (ms)",
+        "requests": [
+          {
+            "q": "p99:logpipe.stage.duration{*} by {stage}",
+            "display_type": "line"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Stage duration avg (ms)",
+        "requests": [
+          {
+            "q": "avg:logpipe.stage.duration{*} by {stage}",
+            "display_type": "line"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Stage errors",
+        "requests": [
+          {
+            "q": "sum:logpipe.stage.errors{*} by {stage}.as_count()",
+            "display_type": "bars"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Lines by status",
+        "requests": [
+          {
+            "q": "sum:logpipe.lines{*} by {status}.as_count()",
+            "display_type": "bars"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Anomalies",
+        "requests": [
+          {
+            "q": "sum:logpipe.anomalies{*}.as_count()",
+            "display_type": "bars"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Enrich backlog (PENDING rows)",
+        "requests": [
+          {
+            "q": "avg:logpipe.enrich.backlog{*}",
+            "display_type": "line"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "log_stream",
+        "title": "Anomaly logs",
+        "query": "service:logpipe @is_anomaly:true",
+        "columns": [
+          "host",
+          "service"
+        ],
+        "indexes": [],
+        "message_display": "expanded-md",
+        "show_date_column": true,
+        "show_message_column": true,
+        "sort": {
+          "column": "time",
+          "order": "desc"
+        }
+      }
+    }
+  ]
+}

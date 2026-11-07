@@ -1,0 +1,16 @@
+{
+  "name": "logpipe: parse p99 above 1 ms",
+  "type": "query alert",
+  "query": "avg(last_5m):p99:logpipe.stage.duration{stage:parse} > 1",
+  "message": "Parsing is slower than 1 ms (p99). Compare the other stages on the dashboard.",
+  "tags": [
+    "service:logpipe"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 1
+    },
+    "notify_no_data": false,
+    "require_full_window": false
+  }
+}
