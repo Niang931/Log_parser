@@ -110,25 +110,6 @@ function StreamRow({ s, onEdit }: { s: Stream; onEdit: () => void }) {
   );
 }
 
-function SettingsCard({ s }: { s: Settings }) {
-  const [cap, setCap] = useState(s.sample_cap);
-  const [days, setDays] = useState(s.retrain_days);
-  const save = useAction(() => api("/api/settings", { method: "PUT", json: { sample_cap: cap, retrain_days: days } }));
-  return (
-    <Card title="Learning settings" hint="Apply to template drafting and every retrain">
-      <form className="row" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
-        <label className="field">Sample cap (lines per source)<input type="number" min={100} max={200000} step={100} value={cap} onChange={(e) => setCap(Number(e.target.value))} /></label>
-        <label className="field">Default retrain period (days)<input type="number" min={1} value={days} onChange={(e) => setDays(Number(e.target.value))} /></label>
-        <button className="btn" style={{ alignSelf: "flex-end" }} disabled={save.isPending}>{save.isSuccess ? "Saved" : "Save"}</button>
-        {save.error && <span className="error-text">{save.error.message}</span>}
-      </form>
-      <p className="muted small" style={{ marginTop: 10, marginBottom: 0 }}>
-        A stream retrains on its own once its model is older than its period <em>and</em> it has templates its model hasn't seen.
-      </p>
-    </Card>
-  );
-}
-
 function StreamCard({ s, defaultDays, onEdit }: { s: Stream; defaultDays: number; onEdit: () => void }) {
   const train = useAction(() => api<{ waiting?: string[] }>(`/api/streams/${s.id}/train`, { method: "POST" }));
   const short = s.waiting && s.data && s.data.have < s.data.need;
@@ -171,14 +152,13 @@ function StreamCard({ s, defaultDays, onEdit }: { s: Stream; defaultDays: number
 }
 
 export default function Streams() {
-  const settings = usePoll<Settings>("/api/settings", 10000).data;
   return (
     <>
       <PageHead title="Streams & models"
         sub="A stream is a group of sources that behave alike. Each source is in exactly one stream, and each stream trains its own LogBERT anomaly model." />
       <div className="stack">
         <StreamsEditor />
-        {settings && <SettingsCard s={settings} />}
+        <p className="muted small">Sample cap, retrain period and when templates are drafted: <Link to="/settings#learning">Settings → Learning</Link>.</p>
       </div>
     </>
   );

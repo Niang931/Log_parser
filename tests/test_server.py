@@ -273,6 +273,8 @@ def test_streams_settings_query_stats(env):
     assert client.delete("/api/streams/web-tier").json() == {"ok": True}
     assert client.put("/api/settings", json={"sample_cap": 5}).status_code == 400
     assert client.put("/api/settings", json={"retrain_days": 14}).json()["retrain_days"] == 14
+    about = client.get("/api/about").json()
+    assert about["engine"] == "sqlite" and about["version"] and about["password_set"] is False
     q = client.post("/api/query", json={"sql": "SELECT device_id, count(*) FROM logs GROUP BY 1"}).json()
     assert q["rows"] == [["web-1", 30]]
     assert client.post("/api/query", json={"sql": "DELETE FROM logs"}).status_code == 400

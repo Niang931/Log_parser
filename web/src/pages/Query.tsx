@@ -5,7 +5,7 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 import { useSearchParams } from "react-router-dom";
 import { api, useAction, usePoll, type QueryResult } from "../api";
 import { RANGES, TimeRange } from "../charts";
-import { Card, Empty, PageHead, fmt } from "../ui";
+import { Card, Empty, PageHead, Switch, fmt } from "../ui";
 
 interface Schema {
   engine: string; table: string; payload_access: string; measures: string[]; ops: string[];
@@ -71,7 +71,7 @@ function Builder({ spec, setSpec, schema, onRun, running }: { spec: Spec; setSpe
             <FieldSelect key={i} allowNone label={`Group by ${i + 1}`} fields={fields} value={spec.group_by[i] ?? ""}
               onChange={(v) => { const g = [...spec.group_by]; g[i] = v; setSpec({ ...spec, group_by: g.filter(Boolean) }); }} />
           ))}
-          <label className="row small"><input type="checkbox" checked={spec.over_time} onChange={(e) => setSpec({ ...spec, over_time: e.target.checked })} /> over time</label>
+          <Switch checked={spec.over_time} onChange={(on) => setSpec({ ...spec, over_time: on })} label="over time" />
         </div>
       </div>
       <div className="b-row"><span /><button className="btn primary" disabled={running}>{running ? "Running…" : "Run"}</button></div>

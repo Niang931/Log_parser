@@ -91,7 +91,7 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
         print(f"[server] admin password for the UI: {generated}  (change it in the UI; set "
               "LOGPIPE_ADMIN_PASSWORD to reset it)", flush=True)
     try:
-        uvicorn.run(create_app(server, demo_instance), host=host, port=port, log_config=None,
+        uvicorn.run(create_app(server, demo_instance, {"store": store, "queue": queue, "llm": llm}), host=host, port=port, log_config=None,
                     timeout_graceful_shutdown=2)  # SSE streams and agent long-polls never end on their own
     finally:
         server.close()
