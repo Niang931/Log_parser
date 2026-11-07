@@ -71,8 +71,16 @@ class KeyVocabAware(Protocol):
     key_vocab: list[str]
 
 
+class NeedsLLM(ValueError):
+    """The request needs a chat model and the server runs without one."""
+
+
 class OfflineAdapter:
     MODE = "offline"
+    can_ask = False  # no free-form structured questions without a model
+
+    def ask(self, schema: type, prompt: str):
+        raise NeedsLLM("this needs an LLM: start the server with --llm llm:<provider>")
 
     def synth_masks(self, lines: Sequence[str], sample_size: int) -> list[Mask]:
         return [Mask.from_dict(m) for m in synth_masks(lines, sample_size, mode=self.MODE)]
@@ -224,6 +232,11 @@ Question: {question}"""
 class ChatAdapter(OfflineAdapter):
     """Chat model through ``deepparse.providers``: hosted (``anthropic``, ``openai``, ...) or
     ``web``, a signed-in browser driven by ``deepparse.ai_scraper``."""
+    can_ask = True
+
+    def ask(self, schema: type, prompt: str):
+        """One structured answer (an instance of ``schema``) or None; callers validate it."""
+        return self._invoke(schema, prompt)
 
     def __init__(self, provider: str, model_name: str | None = None, key_vocab: Sequence[str] = (),
                  browser: Browser = "camoufox"):
