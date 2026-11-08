@@ -25,3 +25,34 @@
 - After plan approval: write `docs/plan/persona.md`, `features.md`, `tech-decisions.md` first.
 
 ## Decisions made during the unattended run
+Made without asking, since the user was away overnight. Each one is easy to revisit.
+
+| Decision | Choice | Why |
+|---|---|---|
+| Plan docs location | `docs/plan/ai-rca/` | `docs/plan/*.md` already held the agent project's plan; not overwritten |
+| Relative times at approval | **not** re-resolved: the approved text runs exactly as shown | "the query you approved is the query that ran" is the stronger guarantee; the 15-min TTL bounds staleness |
+| Spec edits | separate `POST /api/ask/{id}/edit` that re-plans and waits again (even with approval off) | approving in the same call would run queries the person never saw |
+| Template-catalog lookups | semantic/event template search runs at planning time, not as an approved query | it reads template text from the registry, not log data; every log-store read is gated |
+| Anchor rule 5 | first ERROR/WARN template absent from the 24 h before | the server's detectors run with novelty threshold `inf`, so unseen-template faults raise no LogBERT alerts; without this, 7/15 faults had no anchor |
+| Aggregates | `QuerySpec.aggregate` (fn, field, group_by, over_time) on the keyword intent | keeps the old Ask's "errors per service" questions working without LLM-written SQL |
+| Mongo level filter | `LEVEL_EXPR` ($switch of LEVEL_RULES) in the builder; Query page gains level on Mongo | RCA needs error/warn reads on every store |
+| Memory store queries | SQLite copy cached until the next insert | an RCA runs ~10 queries; rebuilding per query made the eval 10x slower |
+| MiniLM | used when `sentence-transformers` is installed (not added to `pyproject`/`uv.lock`) | changing the lock overnight risked CI; TF-IDF + synonyms is the default |
+| Qdrant / CLI | cut by the user | `VectorIndex`-style `search`/`neighbours` stay the swap point |
+
+## Results (`python -m logpipe.eval.rca_eval`, rules only, no LLM)
+
+| variant | evidence recall | answer correct |
+|---|---|---|
+| naive (last 200 lines) | 0.714 | - |
+| full | 1.0 | 1.0 |
+| no LogBERT | 1.0 | 1.0 |
+| no semantic | 1.0 | 1.0 |
+
+17 scenarios (15 faults + 2 controls). "answer correct" means the top lead cites the root-cause line (for a hung
+service, that the silence leads); on the controls it means "insufficient evidence" or a clarification request.
+
+Caveats: the heuristics were tuned on these same scenarios, so this is a fit, not a held-out score. LogBERT and
+semantic search change nothing on this set; the scenarios don't need them. The LLM path is wired and
+record/replay-tested with a scripted model, but no real-model numbers exist yet
+(`--llm llm:anthropic --record eval/rca-replies.json`).
