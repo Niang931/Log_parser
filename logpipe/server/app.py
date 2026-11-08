@@ -344,7 +344,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.post("/api/ask/{plan_id}/edit")
     def edit_plan(plan_id: str, body: Annotated[dict, Body()]) -> dict:
         if not isinstance(body.get("spec"), dict):
-            raise ValueError("send the edited spec as {\"spec\": {...}}")
+            raise ValueError("send the edited spec as {\"spec\": {...}}")  # noqa: TRY004 (ValueError is the 400 handler)
         return server.ask.edit(plan_id, body["spec"])
 
     @app.post("/api/ask/{plan_id}/reject")

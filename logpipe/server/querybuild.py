@@ -53,7 +53,7 @@ def absolute_range(spec: dict) -> tuple[datetime, datetime] | None:
     if not (spec.get("start") or spec.get("end")):
         return None
     try:
-        start, end = (datetime.fromisoformat(str(spec[k]).replace("Z", "+00:00")) for k in ("start", "end"))
+        start, end = (datetime.fromisoformat(str(spec[k])) for k in ("start", "end"))
     except (KeyError, ValueError):
         raise ValueError("start and end must both be ISO 8601 times") from None
     start, end = (t if t.tzinfo else t.replace(tzinfo=UTC) for t in (start, end))

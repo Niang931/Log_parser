@@ -54,11 +54,11 @@ LEVEL_SQL = "multiIf(" + "".join(f"has(tags, 'severity:{lvl}'), '{lvl}', " for l
     for lvl, rx, head in LEVEL_RULES) + ", 'info')"
 
 
-_LITERAL = re.compile(r"'(?:[^'\\]|\\.|'')*'|--[^\n]*|/\*.*?\*/|#[^\n]*", re.S)
+_LITERAL = re.compile(r"'(?:[^'\\]|\\.|'')*'|--[^\n]*|/\*.*?\*/|#[^\n]*", re.DOTALL)
 _QUOTED_NAME = re.compile(r'"((?:[^"]|"")*)"|`((?:[^`]|``)*)`')
-_TABLE_FUNCTION = re.compile(r"\b(?:from|join)\s+([a-z_][\w]*)\s*\(", re.I)
+_TABLE_FUNCTION = re.compile(r"\b(?:from|join)\s+([a-z_][\w]*)\s*\(", re.IGNORECASE)
 _DENIED = re.compile(r"\b(?:into\s+outfile|attach|detach|pragma|vacuum|load_extension|readfile|writefile|"
-                     r"fts3_tokenizer|system\s*\.|information_schema\s*\.)", re.I)
+                     r"fts3_tokenizer|system\s*\.|information_schema\s*\.)", re.IGNORECASE)
 
 
 def guard_sql(sql: str) -> str:

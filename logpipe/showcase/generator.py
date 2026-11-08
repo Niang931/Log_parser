@@ -56,8 +56,8 @@ FAULTS: dict[str, dict] = {
                         "truth": "gateway timeout after 30000 ms"},
     "dns_failure": {"root": [("api", "ERROR", "java.net.UnknownHostException: payments.internal: Name or service not known")],
                     "logger": "c.s.payment.PaymentClient", "repeat": 5, "truth": "UnknownHostException"},
-    "tls_expired": {"root": [("api", "ERROR", "javax.net.ssl.SSLHandshakeException: PKIX path validation failed: "
-                                              "validity check failed: certificate expired on 2026-11-01")],
+    "tls_expired": {"root": [("api", "ERROR", ("javax.net.ssl.SSLHandshakeException: PKIX path validation failed: "
+                                              "validity check failed: certificate expired on 2026-11-01"))],
                     "logger": "c.s.payment.PaymentClient", "repeat": 5, "truth": "certificate expired"},
     "config_reload": {"root": [("nginx", "", "[emerg] {pid}#0: unknown directive \"proxy_passs\" in /etc/nginx/conf.d/shop.conf:14")],
                       "silent": ("nginx", "api"), "truth": "unknown directive"},

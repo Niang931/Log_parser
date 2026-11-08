@@ -16,8 +16,10 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
-def store():
+def store(monkeypatch):
     from logpipe.storage.clickhouse import ClickHouseStore
+
+    monkeypatch.delenv("CLICKHOUSE_READONLY_USER", raising=False)  # .env may leak in (load_env); that user exists only in compose
 
     db = f"logpipe_server_test_{uuid.uuid4().hex[:8]}"
     st = ClickHouseStore.from_env(database=db, batch_size=10)
