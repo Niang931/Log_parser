@@ -91,10 +91,13 @@ def test_server_on_mongodb(store, tmp_path):
     for spec in ({"group_by": ["host; DROP"]}, {"measure": {"fn": "evil"}}, {"filters": [{"field": "level", "op": ">", "value": "e"}]}):
         assert client.post("/api/query/build", json=spec).status_code == 400, spec
     assert client.get("/api/query/schema").json()["engine"] == "mongodb"
-    assert client.post("/api/query/ask", json={"question": "errors per service"}).status_code == 400  # offline LLM
-    server.adapter.write_sql = lambda q, schema, engine: '{"group_by": ["service"], "minutes": 60}'  # a chat model's reply
-    asked = client.post("/api/query/ask", json={"question": "lines per service"}).json()
-    assert client.post("/api/query", json={"sql": asked["sql"]}).json()["rows"] == [["jobs", 60]]
+    plan = client.post("/api/ask", json={"question": "how many lines per service in the last hour"}).json()
+    assert plan["status"] == "waiting_approval" and plan["rounds"][0]["queries"][0]["engine"] == "mongodb"
+    client.post(f"/api/ask/{plan['id']}/approve")
+    while not server.jobs.empty():
+        server.run_job(server.jobs.get_nowait())
+    done = client.get(f"/api/ask/{plan['id']}").json()
+    assert done["status"] == "done" and done["result"]["rows"] == [["jobs", 60]]
 
     # A restart reads keys, sources and streams back from control_docs.
     server2, client2 = make(store, tmp_path)

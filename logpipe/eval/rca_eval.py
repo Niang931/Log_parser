@@ -25,9 +25,9 @@ from pathlib import Path
 
 from ..showcase.generator import FAULTS, FILES, ShopGenerator
 
-ORDER_EVERY = timedelta(seconds=20)
+ORDER_EVERY = timedelta(seconds=5)
 NORMAL_BEFORE = timedelta(minutes=60)  # normal traffic before each fault
-ASK_AFTER = timedelta(minutes=5)  # the question comes this long after the fault starts, while it lasts
+ASK_AFTER = timedelta(minutes=15)  # the question comes this long after the fault starts, while it lasts
 TRAIN_FOR = timedelta(hours=2)
 NAIVE_LINES = 200
 
@@ -37,18 +37,18 @@ QUESTIONS = {
     "oom": "why is checkout returning 502s?",
     "segfault": "what caused the checkout errors around {at}?",
     "disk_full": "why did the database go down?",
-    "db_port_blocked": "why are orders failing in the last 10 minutes?",
+    "db_port_blocked": "why are orders failing in the last 30 minutes?",
     "pool_exhausted": "why did shop-api fail around {at}?",
     "gateway_timeout": "why are checkouts failing?",
     "dns_failure": "why did payments break around {at}?",
-    "tls_expired": "why are orders failing in the last 15 minutes?",
+    "tls_expired": "why are orders failing in the last 30 minutes?",
     "config_reload": "why did the shop go down around {at}?",
-    "dependency_503": "what caused the failed orders in the last 10 minutes?",
+    "dependency_503": "what caused the failed orders in the last 30 minutes?",
     "gc_thrash": "why is shop-api slow around {at}?",
     "lock_contention": "why are database statements timing out?",
     "clock_skew": "why did logins break around {at}?",
     "api_hang": "why did shop-api go down?",
-    "control_quiet": "why did shop-api go down in the last 10 minutes?",
+    "control_quiet": "why did shop-api go down in the last 30 minutes?",
     "control_busy": "what caused the outage around {at}?",
 }
 
@@ -141,7 +141,7 @@ def build_world(modes: list[str] | None = None, data_dir: Path | None = None, se
             t, step = t + ORDER_EVERY, step + 1
         server.enrich()  # mint templates for the new lines, as the learner does every 30 s
         world.slots.append(Slot(mode, fault, QUESTIONS[mode].format(at=f"{fault:%H:%M}"), FAULTS[mode]["truth"],
-                                fault + ASK_AFTER))
+                                fault + ASK_AFTER - timedelta(seconds=1)))  # the next slot starts at fault + ASK_AFTER
         log(f"  injected {mode} at {fault:%H:%M}")
     for _ in range(3):
         server.enrich()
@@ -188,9 +188,9 @@ def score_report(report: dict, slot: Slot) -> dict:
     else:
         recall = contains_truth(texts, slot.truth)
     answer = report.get("answer") or {}
-    hyps = answer.get("hypotheses") or []
+    hyps = answer.get("hypotheses") or answer.get("leads") or []  # leads: the rule-based ranking (no LLM)
     if slot.truth is None:
-        correct = bool(answer.get("insufficient_evidence")) or report.get("status") == "clarify"
+        correct = bool(answer.get("insufficient_evidence")) or report.get("kind") == "clarify"
     elif not hyps:
         correct = False
     else:
@@ -251,11 +251,26 @@ def main(argv: list[str] | None = None) -> None:
     print(table(result["summary"]))
 
 
-VARIANTS: dict[str, dict] = {}
+VARIANTS: dict[str, dict] = {
+    "full": {},
+    "no_logbert": {"use_logbert": False},
+    "no_semantic": {"use_semantic": False},
+}
+
+
+def investigate(world: World, slot: Slot, **flags) -> dict:
+    """The question routed and every round approved as planned (the eval stands in for the person)."""
+    from ..ask.engine import run_unattended
+    from ..ask.router import route
+
+    server = world.server
+    ctx = server.ask.ctx(now=slot.now, **flags)
+    spec = route(slot.question, server.ask.catalog(), server.adapter, slot.now).spec
+    return run_unattended(spec, ctx) | {"spec": spec.model_dump(mode="json")}
 
 
 def _investigate_or_none():
-    return lambda world, slot, **kw: {}
+    return investigate
 
 
 if __name__ == "__main__":
