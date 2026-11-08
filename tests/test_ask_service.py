@@ -144,3 +144,34 @@ def test_shutdown_set_is_editable(ready):
     off = client.put("/api/ask-shutdown", json={"template_id": tid, "shutdown": None}).json()
     assert not next(t for t in off["templates"] if t["template_id"] == tid)["edited"]
     assert client.put("/api/ask-shutdown", json={"template_id": 10**6, "shutdown": True}).status_code == 400
+
+
+def test_follow_up_searches_wait_for_approval_and_stop_at_three(ready):
+    server, client = ready
+
+    class Curious:
+        """Always wants one more search."""
+        can_ask = True
+
+        def ask(self, schema, prompt):
+            if schema.__name__ == "RouteOut":
+                return schema(intent="rca", services=["db"], anchor_event="db down")
+            return schema(summary="need more", hypotheses=[], follow_up=[{"keywords": ["pool"], "services": ["db"]}])
+
+    server._adapter = Curious()
+    plan = plan_of(client, "what is wrong with the database lately")
+    assert plan["via"] == "llm"
+    purposes = []
+    for _ in range(10):
+        p = client.get(f"/api/ask/{plan['id']}").json()
+        if p["status"] != "waiting_approval":
+            break
+        purposes.append(p["rounds"][-1]["purpose"])
+        client.post(f"/api/ask/{plan['id']}/approve")
+        run_jobs(server)
+    done = client.get(f"/api/ask/{plan['id']}").json()
+    follow = [x for x in purposes if x.startswith("follow-up")]
+    assert follow == ["follow-up 1 of 3", "follow-up 2 of 3", "follow-up 3 of 3"]
+    assert done["status"] == "done" and done["result"]["answer"]["insufficient_evidence"]
+    q = done["rounds"][-1]["queries"][0]
+    assert "'%pool%'" in q["compiled"] or "lower('pool')" in q["compiled"]
