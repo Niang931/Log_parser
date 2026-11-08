@@ -210,7 +210,7 @@ def evaluate(world: World, investigate, variants: dict[str, dict], log=print) ->
                "naive": {"recall": None if slot.truth is None or slot.truth.startswith("silence:")
                          else contains_truth(naive_bundle(world, slot), slot.truth)}}
         for name, kw in variants.items():
-            report = investigate(world, slot, **kw)
+            report = investigate(world, slot, **dict(kw))
             row[name] = score_report(report, slot) | {"lines": len(report.get("evidence", [])),
                                                       "anchor": (report.get("anchor") or {}).get("kind")}
         rows.append(row)
@@ -241,11 +241,21 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--modes", nargs="*", help="faults to inject (default: all)")
     ap.add_argument("--out", type=Path, default=Path("artifacts/eval/rca.json"))
     ap.add_argument("--epochs", type=int, default=4)
+    ap.add_argument("--llm", help="llm:<provider>[:<model>] for the router and the synthesizer (default: none, rules only)")
+    ap.add_argument("--record", type=Path, help="with --llm: save every reply here")
+    ap.add_argument("--replay", type=Path, help="answer from replies saved by --record, no model needed")
     args = ap.parse_args(argv)
+    variants = dict(VARIANTS)
+    if args.llm or args.replay:
+        from ..enrich.llm import get_adapter
+
+        inner = get_adapter(args.llm) if args.llm else None
+        llm = Recorded(args.replay or args.record, None if args.replay else inner) if (args.replay or args.record) else inner
+        variants = {f"{k}+llm": v | {"adapter": llm} for k, v in VARIANTS.items()} | variants
     with utc_clock():
         world = build_world(args.modes, epochs=args.epochs)
         print(f"world built in {world.seconds:.0f} s")
-        result = evaluate(world, _investigate_or_none(), VARIANTS)
+        result = evaluate(world, _investigate_or_none(), variants)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
     print(table(result["summary"]))
@@ -258,14 +268,40 @@ VARIANTS: dict[str, dict] = {
 }
 
 
+class Recorded:
+    """An LLM whose replies are kept by prompt: ``record`` asks ``inner`` and saves, ``replay``
+    answers from the file (a prompt it hasn't seen fails: re-record after changing a prompt)."""
+    can_ask = True
+
+    def __init__(self, path: Path, inner=None):
+        import hashlib
+
+        self.path, self.inner, self._hash = path, inner, lambda p: hashlib.sha256(p.encode()).hexdigest()[:16]
+        self.replies: dict[str, dict | None] = json.loads(path.read_text("utf-8")) if path.exists() else {}
+
+    def ask(self, schema, prompt):
+        key = f"{schema.__name__}:{self._hash(prompt)}"
+        if self.inner is None:
+            if key not in self.replies:
+                raise KeyError(f"no recorded reply for {key}; run the eval with --record")
+            reply = self.replies[key]
+            return None if reply is None else schema(**reply)
+        out = self.inner.ask(schema, prompt)
+        self.replies[key] = out.model_dump() if out is not None else None
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps(self.replies, indent=1, sort_keys=True), "utf-8")
+        return out
+
+
 def investigate(world: World, slot: Slot, **flags) -> dict:
     """The question routed and every round approved as planned (the eval stands in for the person)."""
     from ..ask.engine import run_unattended
     from ..ask.router import route
 
     server = world.server
-    ctx = server.ask.ctx(now=slot.now, **flags)
-    spec = route(slot.question, server.ask.catalog(), server.adapter, slot.now).spec
+    adapter = flags.pop("adapter", None) or server.adapter
+    ctx = server.ask.ctx(now=slot.now, adapter=adapter, **flags)
+    spec = route(slot.question, server.ask.catalog(), adapter, slot.now).spec
     return run_unattended(spec, ctx) | {"spec": spec.model_dump(mode="json")}
 
 

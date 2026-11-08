@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sqlite3
+import threading
 from collections import Counter
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
@@ -104,6 +105,8 @@ def row_json(r: LogRow) -> dict:
 class MemoryReads:
     def __init__(self, store: MemoryStore):
         self.store = store
+        self._db: tuple[int, sqlite3.Connection] | None = None
+        self._db_lock = threading.Lock()
 
     def _rows(self) -> list[LogRow]:
         with self.store._lock:
@@ -161,24 +164,35 @@ class MemoryReads:
             alerts = list(self.store.alerts)
         return [alert_json(asdict(a)) for a in reversed(alerts[-limit:])]
 
+    def _sqlite(self) -> sqlite3.Connection:
+        """The rows as a read-only SQLite table, rebuilt only after new inserts (an Ask runs
+        several queries in a row)."""
+        if self._db is None or self._db[0] != self.store.inserts:
+            rows = self._rows()
+            inserts = self.store.inserts
+            db = sqlite3.connect(":memory:", check_same_thread=False)
+            db.execute("CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, service TEXT, "
+                       "source TEXT, template_id INTEGER, status TEXT, payload TEXT, raw_message TEXT, "
+                       "level TEXT)")
+            db.executemany("INSERT INTO logs VALUES (?,?,?,?,?,?,?,?,?,?)", [
+                (str(r.log_id), r.timestamp.astimezone(UTC).isoformat(), r.device_id, r.service, r.source,
+                 r.template_id, str(r.status), json.dumps(r.payload), r.raw_message, level(r.raw_message, r.tags))
+                for r in rows])
+            db.commit()
+            db.execute("PRAGMA query_only = ON")
+            self._db = (inserts, db)
+        return self._db[1]
+
     def query(self, sql: str, max_rows: int = MAX_QUERY_ROWS) -> dict:
         sql = guard_sql(sql)
-        rows = self._rows()
-        db = sqlite3.connect(":memory:")
-        db.execute("CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, service TEXT, "
-                   "source TEXT, template_id INTEGER, status TEXT, payload TEXT, raw_message TEXT, "
-                   "level TEXT)")
-        db.executemany("INSERT INTO logs VALUES (?,?,?,?,?,?,?,?,?,?)", [
-            (str(r.log_id), r.timestamp.astimezone(UTC).isoformat(), r.device_id, r.service, r.source,
-             r.template_id, str(r.status), json.dumps(r.payload), r.raw_message, level(r.raw_message, r.tags))
-            for r in rows])
-        db.execute("PRAGMA query_only = ON")
-        try:
-            cur = db.execute(sql)
-        except sqlite3.Error as error:
-            raise ValueError(str(error)) from error
-        return {"columns": [d[0] for d in cur.description or ()],
-                "rows": cur.fetchmany(max_rows), "engine": "sqlite", "table": "logs"}
+        with self._db_lock:
+            db = self._sqlite()
+            try:
+                cur = db.execute(sql)
+                return {"columns": [d[0] for d in cur.description or ()],
+                        "rows": cur.fetchmany(max_rows), "engine": "sqlite", "table": "logs"}
+            except sqlite3.Error as error:
+                raise ValueError(str(error)) from error
 
 
 def _keys(by: str) -> tuple[str, ...]:

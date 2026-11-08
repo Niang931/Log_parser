@@ -18,7 +18,9 @@ Score per (template, service) seen in the window = anomaly x rarity x proximity:
 * rarity: 1 for a template absent from the 24 h baseline, else how far its count in the window
   exceeds the baseline median for a window that long ((ratio - 1) / 9, clamped to 0.02..1);
 * proximity: exp(-|first seen - anchor| / 10 min).
-Ties go to the earlier template: a cause comes before its effects.
+Ties go to the earlier template: a cause comes before its effects. A new template first seen up to
+2 minutes before the strongest one gets anomaly 0.8 (a precursor), and the earliest template
+scoring at least half the best leads the answer ("earliest in chain").
 """
 from __future__ import annotations
 
@@ -38,6 +40,7 @@ SILENCE_MIN_RATE = 2.0  # lines/minute a service must have kept up before going 
 SILENCE_MINUTES = 3
 LEVEL_WEIGHT = {"error": 0.8, "warn": 0.5}
 MAX_CANDIDATES = 15
+PRECURSOR_SECONDS = 120
 STRONG = 0.15  # a candidate that stands out: a new warning near the anchor scores 0.5, a new info line 0.1
 MAX_LINES = 40
 LINE_CHARS = 300
@@ -198,9 +201,10 @@ def silence(buckets: list[dict], counts: list[dict], start: datetime, end: datet
     per: dict[str, dict[int, int]] = defaultdict(dict)
     for b in buckets:
         per[b["key"]][int(b["bucket"])] = int(b["n"])
-    last_seen = {}
+    last_seen, last_words = {}, {}
     for c in counts:
-        last_seen[c["service"]] = max(last_seen.get(c["service"], ""), c["last"])
+        if c["last"] >= last_seen.get(c["service"], ""):
+            last_seen[c["service"]], last_words[c["service"]] = c["last"], c
     found = []
     for service, by in per.items():
         last = max(by)
@@ -209,11 +213,14 @@ def silence(buckets: list[dict], counts: list[dict], start: datetime, end: datet
         if quiet < SILENCE_MINUTES or not before or sum(before) / len(before) < SILENCE_MIN_RATE:
             continue
         at = last_seen.get(service) or _iso(origin + timedelta(minutes=last + 1))
-        found.append({"kind": "silence", "at": at, "service": service, "host": None,
-                      "why": f"{service} logged {sum(before) / len(before):.0f} lines/minute, then nothing for {quiet} minutes"})
-    if focus and (mine := [f for f in found if f["service"] in focus]):
-        found = mine
-    return min(found, key=lambda f: f["at"]) if found else None
+        words = last_words.get(service)
+        loud = bool(words) and (words.get("level") in ("error", "warn") or ctx.canonical(int(words["template_id"])) in ctx.shutdown)
+        found.append({"kind": "silence", "at": at, "service": service, "host": None, "loud": loud,
+                      "why": f"{service} logged {sum(before) / len(before):.0f} lines/minute, then nothing for {quiet} minutes"
+                             + (", its last line an error" if loud else "")})
+    # A service that died saying why beats one that went quiet because nothing reached it
+    # (a database with no callers); then the one asked about; then the first.
+    return min(found, key=lambda f: (not f["loud"], f["service"] not in focus, f["at"])) if found else None
 
 
 # --- ranking --------------------------------------------------------------------------------
@@ -228,9 +235,11 @@ def rank(spec: QuerySpec, anchor: dict, done: Round, outputs: dict, ctx: Ctx) ->
     length = _t(window["end"]) - _t(window["start"])
     n_buckets = max(1, int(BASELINE / max(length, timedelta(minutes=1))))
     base: dict[int, list[int]] = defaultdict(lambda: [0] * n_buckets)
+    covered: set[int] = set()  # slices the store has any line in: before its first line there's no baseline
     for b in buckets:
         if 0 <= int(b["bucket"]) < n_buckets:
             base[ctx.canonical(int(b["key"]))][int(b["bucket"])] += int(b["n"])
+            covered.add(int(b["bucket"]))
 
     surprise = logbert_surprise(rows, anchor, ctx)
     if surprise is None and ctx.use_logbert and anchor.get("service"):
@@ -243,12 +252,14 @@ def rank(spec: QuerySpec, anchor: dict, done: Round, outputs: dict, ctx: Ctx) ->
     cands = []
     for c in counts:
         tid = ctx.canonical(int(c["template_id"]))
-        history = base.get(tid)
+        history = [base[tid][i] for i in sorted(covered)] if tid in base else [0] * len(covered)
         med = median(history) if history else 0.0
-        is_new = not history or sum(history) == 0
+        expected = med or (sum(history) / len(history) if history else 0.0)  # a sporadic template: its mean
+        is_new = bool(covered) and expected == 0
         n = int(c["n"])
-        ratio = n / med if med else math.inf
-        rarity = 1.0 if is_new else min(1.0, max(0.02, (ratio - 1) / 9))
+        ratio = n / expected if expected else math.inf
+        rarity = (1.0 if is_new else 0.5 if not covered  # no baseline at all: neither rare nor common
+                  else min(1.0, max(0.02, (ratio - 1) / 9)))
         level_w = LEVEL_WEIGHT.get(c.get("level") or "", 0.1)
         lb = (surprise or {}).get(tid)
         parts = {"level": level_w}
@@ -265,7 +276,8 @@ def rank(spec: QuerySpec, anchor: dict, done: Round, outputs: dict, ctx: Ctx) ->
         proximity = 1.0 if anchor["kind"] == "range" else math.exp(-abs((first - at).total_seconds()) / 600)
         score = anomaly * rarity * proximity
         why = [f"anomaly {anomaly:.2f} ({max(parts, key=lambda k: parts[k])})",
-               "new: not in the 24 h before" if is_new else f"{n} lines vs baseline median {med:g} per window (x{ratio:.1f})",
+               "new: not in the 24 h before" if is_new else "no baseline: the store has no lines from the 24 h before"
+               if not covered else f"{n} lines vs {expected:.3g} expected per window (x{ratio:.1f})",
                f"first seen {_ago(first, at)}" if anchor["kind"] != "range" else f"first seen {c['first'][11:19]}"]
         cands.append({"template_id": tid, "service": c["service"], "host": c["host"], "count": n, "first": c["first"],
                       "last": c["last"], "level": c.get("level"), "example": c["example"], "log_id": c["log_id"],
@@ -273,6 +285,15 @@ def rank(spec: QuerySpec, anchor: dict, done: Round, outputs: dict, ctx: Ctx) ->
                       "proximity": round(proximity, 3), "score": round(score, 4), "why": "; ".join(why),
                       "template": ctx.templates.get(tid, "not parsed yet")})
     cands.sort(key=lambda c: (-round(c["score"], 2), c["first"]))
+    if cands and cands[0]["score"] >= STRONG:  # precursors: new lines just before the strongest one
+        lead = cands[0]
+        for c in cands[1:]:
+            gap = (_t(lead["first"]) - _t(c["first"])).total_seconds()
+            if c["new"] and 0 < gap <= PRECURSOR_SECONDS and c["anomaly"] < 0.8:
+                c["anomaly"] = 0.8
+                c["score"] = round(0.8 * c["rarity"] * c["proximity"], 4)
+                c["why"] += f"; new, {gap:.0f} s before the top line: a likely cause"
+        cands.sort(key=lambda c: (-round(c["score"], 2), c["first"]))
     top = cands[:MAX_CANDIDATES]
     if top:
         best = top[0]["score"]

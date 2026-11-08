@@ -118,16 +118,19 @@ def check_citations(answer: dict, report: dict) -> dict:
 
 def offline_answer(spec: QuerySpec, report: dict) -> dict:
     cands = [c for c in report.get("candidates", []) if c["score"] >= STRONG]
+    cands.sort(key=lambda c: not c.get("earliest_in_chain"))  # the earliest of the strong chain leads; stable otherwise
     ref_of = {(e["template_id"], e["service"]): e["ref"] for e in report.get("evidence", [])}
-    leads = [{"cause": f"{c['service']}: {c['template'][:160]}", "confidence": "ranked", "reasoning": c["why"],
+    leads = [{"cause": f"{c['service']}: {c['example'].splitlines()[0][:200]}", "confidence": "ranked", "reasoning": c["why"],
               "cites": [r for r in (ref_of.get((c["template_id"], c["service"])), f"T{c['template_id']}") if r]}
              for c in cands[:3]]
     anchor = report.get("anchor") or {}
     if anchor.get("kind") == "silence":
         svc = anchor.get("service") or anchor.get("host")
         last = [e["ref"] for e in report.get("evidence", []) if svc in (e.get("service"), e.get("host")) and e["timestamp"] <= anchor["at"]]
-        leads.insert(0, {"cause": f"{svc} stopped logging", "confidence": "ranked", "reasoning": anchor["why"],
-                         "cites": last[-1:]})
+        silent = {"cause": f"{svc} stopped logging", "confidence": "ranked", "reasoning": anchor["why"], "cites": last[-1:]}
+        # first when nothing it logged explains it; else its last words already lead, and the silence follows
+        own = any(c["service"] == svc for c in cands[:1])
+        leads.insert(1 if own or (leads and not anchor.get("loud")) else 0, silent)
     timeline = [{"at": e["timestamp"], "what": f"{e['service']}: {e['message'][:160]}", "cites": [e["ref"]]}
                 for e in report.get("evidence", []) if e.get("score") is not None][:8]
     timeline.sort(key=lambda e: e["at"])

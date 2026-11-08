@@ -174,7 +174,7 @@ class ShopGenerator:
             nginx_status = 502 if f.get("gateway") else 504
             ev += [Event("nginx", self._nginx(now, "GET", f"/api/products/{r.randint(1, 80)}", 200)),
                    Event("nginx", self._nginx(now, "POST", "/api/checkout", nginx_status))]
-            if "api" not in f.get("silent", ()):
+            if "api" not in f.get("silent", ()) and (step > 0 or not f["root"]):  # the cause comes first
                 oid = r.randint(10**5, 10**6 - 1)
                 for svc, lvl, text in f.get("symptoms", ()):
                     ev.append(api(lvl, "c.s.order.OrderService", text.format(oid=oid, ms=r.randint(1000, 30000), n=r.randint(1, 50))))

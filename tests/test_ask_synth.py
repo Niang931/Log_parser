@@ -9,8 +9,10 @@ from logpipe.ask.synth import check_citations, offline_answer, synth_schema, syn
 REPORT = {
     "anchor": {"kind": "shutdown", "at": "2026-11-08T10:05:00+00:00", "why": "first shutdown-type message", "service": "db"},
     "candidates": [{"template_id": 7, "service": "db", "template": "PANIC: could not write: No space left on device",
-                    "count": 1, "score": 0.9, "why": "new"},
-                   {"template_id": 8, "service": "api", "template": "order <*> failed", "count": 40, "score": 0.1, "why": "x4"}],
+                    "count": 1, "score": 0.9, "why": "new",
+                    "example": "PANIC: could not write: No space left on device"},
+                   {"template_id": 8, "service": "api", "template": "order <*> failed", "count": 40, "score": 0.1, "why": "x4",
+                    "example": "order 1 failed"}],
     "evidence": [{"ref": "L1", "timestamp": "2026-11-08T10:05:00+00:00", "service": "db", "level": "error", "template_id": 7,
                   "message": "PANIC: could not write: No space left on device", "score": 0.9},
                  {"ref": "L2", "timestamp": "2026-11-08T10:05:03+00:00", "service": "api", "level": "error", "template_id": 8,
