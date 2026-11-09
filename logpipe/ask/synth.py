@@ -11,9 +11,9 @@ import re
 from functools import lru_cache
 
 from .engine import Ctx
+from .query import Filters
 from .rca import STRONG
 from .spec import QuerySpec
-from .store import Filters
 
 CHARS_PER_TOKEN = 4
 

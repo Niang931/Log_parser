@@ -16,9 +16,9 @@ from pathlib import Path
 
 from ..registry import UNK_TEMPLATE_ID
 from .engine import MAX_ROUNDS, Ctx, Outcome, Round, advance, execute, first_round, overlap_search
+from .query import Query
 from .router import route
 from .spec import Catalog, QuerySpec, validate
-from .store import LogStore, Query
 
 PLAN_TTL = timedelta(minutes=15)
 KIND = "ask_plan"
@@ -32,7 +32,6 @@ def _now() -> datetime:
 class AskService:
     def __init__(self, server):
         self.server = server
-        self.store = LogStore(server.reads)
         self.dir = Path(server.data_dir) / "ask"
         self.index = None  # set by logpipe.ask.index once built
 
@@ -63,7 +62,7 @@ class AskService:
         from .index import shutdown_set
 
         index = self.index_for(cat)
-        return Ctx(store=self.store, templates=cat.templates, canonical=snap.canonical_id, scorer_for=scorer_for,
+        return Ctx(store=s.reads, templates=cat.templates, canonical=snap.canonical_id, scorer_for=scorer_for,
                    agents=s.agents, alerts=s.reads.alerts,
                    search_templates=index.search if index else overlap_search(cat.templates),
                    neighbours=index.neighbours if index else (lambda tid, k: []),

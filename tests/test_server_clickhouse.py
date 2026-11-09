@@ -107,15 +107,15 @@ def test_ask_reads_are_read_only_on_clickhouse(store, tmp_path):
     """Compiled Ask reads run; writes, table functions and system tables don't, through any path."""
     from datetime import UTC, datetime, timedelta
 
-    from logpipe.ask.store import Filters, LogStore
+    from logpipe.ask.query import Filters
 
     server, _ = make(store, tmp_path)
-    ls = LogStore(server.reads)
+    c = server.reads.compiler
     now = datetime.now(UTC)
-    for compiled in (ls.rows(Filters(levels=["error"]), now - timedelta(hours=1), now),
-                     ls.template_counts(Filters(), now - timedelta(hours=1), now),
-                     ls.buckets(Filters(), now - timedelta(hours=1), now, 60)):
-        assert ls.run(compiled) == []
+    for compiled in (c.rows(Filters(levels=["error"]).builder(), now - timedelta(hours=1), now),
+                     c.template_counts([], now - timedelta(hours=1), now),
+                     c.buckets([], now - timedelta(hours=1), now, 60)):
+        assert server.reads.records(compiled, 2000) == []
     for sql in ("SELECT * FROM url('http://127.0.0.1:8123/?query=SELECT+1', CSV)", "SELECT * FROM system.users",
                 "SELECT 1; DROP TABLE iot_logs", "INSERT INTO iot_logs (raw_message) VALUES ('x')"):
         with pytest.raises(ValueError):

@@ -59,7 +59,7 @@ from .metrics import (
     Metrics,
     MongoSeries,
 )
-from .reads import reads_for
+from .stores import reads_for
 
 LOGGER = logging.getLogger("logpipe.server")
 

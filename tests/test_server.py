@@ -358,7 +358,7 @@ def test_tracebacks_go_to_the_log_file_not_the_console(tmp_path, capsys):
 
 
 def test_level_rules_agree_in_python_and_explicit_levels_win():
-    from logpipe.server.reads import level
+    from logpipe.server.stores import level
 
     assert level("2026-11-05 10:00:00 WARN  [db] slow query") == "warn"
     assert level("INFO request failed java.lang.IllegalStateException") == "info"  # declared level

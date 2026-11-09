@@ -24,33 +24,22 @@ from fastapi.responses import (
 
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
-from . import otlp, querybuild, querybuild_mongo
+from . import otlp
 from .auth import COOKIE, Auth
 from .core import Busy, Server, now_iso
 from .metrics import METRICS
-from .reads import FACETS
+from .stores import FACETS
 
 STATIC = Path(__file__).with_name("static")
 DEMO_INDEX = Path(__file__).parent.parent / "demo" / "index.html"
-
-
-def template_sql(entry, engine: str) -> str:
-    keys = [k for k in entry.keys if k not in ("timestamp", "device_id")]
-    if engine == "clickhouse":
-        cols = "".join(f",\n  payload.`{k}` AS `{k}`" for k in keys)
-        return (f"SELECT timestamp, device_id AS host, service{cols}\nFROM iot_logs FINAL\n"
-                f"WHERE template_id = {entry.template_id}\nORDER BY timestamp DESC\nLIMIT 50")
-    cols = "".join(f",\n  json_extract(payload, '$.\"{k}\"') AS \"{k}\"" for k in keys)
-    return (f"SELECT timestamp, device_id AS host, service{cols}\nFROM logs\n"
-            f"WHERE template_id = {entry.template_id}\nORDER BY timestamp DESC\nLIMIT 50")
 
 
 def create_app(server: Server, demo: Any = None, info: dict | None = None) -> FastAPI:
     """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
     started = now_iso()
     app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
-    engine = {"MemoryReads": "sqlite", "MongoReads": "mongodb"}.get(server.reads.__class__.__name__, "clickhouse")
-    qb = querybuild_mongo if engine == "mongodb" else querybuild
+    engine = server.reads.engine
+    compiler = server.reads.compiler
     auth = Auth(server.control)
 
     @app.middleware("http")
@@ -281,22 +270,19 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                 "first_seen": meta.get("first_seen"), "last_seen": meta.get("last_seen"),
                 "seen_by": seen_by,
                 "candidate": not seen_by and (meta.get("first_seen") or "") > calibrated_at,
-                "sql": template_sql(t, engine)})
+                "sql": compiler.template_sample(t.template_id, [k for k in t.keys if k not in ("timestamp", "device_id")])})
         return {"version": snap.version, "masks": [m.to_dict() for m in snap.masks],
                 "templates": out, "engine": engine,
                 "pending": server.store.count_by_status().get("PENDING", 0)}
 
     @app.post("/api/query")
     def query(body: Annotated[dict, Body()]) -> dict:
-        sql = str(body.get("sql", "")).strip().rstrip(";")
-        if engine != "mongodb" and not sql.lower().startswith(("select", "with")):
-            raise HTTPException(400, "only SELECT / WITH queries")
-        return server.reads.query(sql)
+        return server.reads.query(str(body.get("sql", "")))
 
     def query_schema() -> dict:
         snap = server.registry.current
         fields = set(snap.key_vocab) | {k for t in snap.templates.values() for k in t.keys}
-        return qb.schema(engine, sorted(fields))
+        return compiler.schema(sorted(fields))
 
     @app.get("/api/query/schema")
     def get_query_schema() -> dict:
@@ -304,7 +290,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.post("/api/query/build")
     def build_query(body: Annotated[dict, Body()]) -> dict:
-        sql = qb.build(body, engine)
+        sql = compiler.build(body)
         return {"sql": sql, "result": server.reads.query(sql)}
 
     # --- Ask: question -> plan of read-only queries -> approval -> answer (logpipe.ask) ---

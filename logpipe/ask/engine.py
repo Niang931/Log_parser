@@ -1,5 +1,5 @@
 """From a validated QuerySpec to an answer, in rounds. Each round is a list of reads
-(:class:`~logpipe.ask.store.Query`) that are shown for approval before any of them runs; what
+(:class:`~logpipe.ask.query.Query`) that are shown for approval before any of them runs; what
 the next round needs depends on what the last one found (a root-cause search first looks for
 when things broke, then reads around that moment).
 
@@ -14,15 +14,17 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from ..server.stores import StoreReads
+from ..settings import get_settings
+from .query import Filters, Query
 from .spec import QuerySpec, time_range
-from .store import Filters, LogStore, Query
 
 MAX_ROUNDS = 6  # discovery, evidence, one widening, up to three follow-ups
 
 
 @dataclass
 class Ctx:
-    store: LogStore
+    store: StoreReads
     templates: dict[int, str]  # id -> text, canonical ids only
     canonical: Callable[[int], int] = lambda t: t
     scorer_for: Callable[[str], Any] = lambda service: None  # service -> LogBERT scorer
@@ -65,19 +67,23 @@ def local(n: int, i: int, tool: str, title: str, why: str, describe: str, **args
 
 def log_read(ctx: Ctx, n: int, i: int, tool: str, title: str, why: str, **args) -> Query:
     start, end = (datetime.fromisoformat(args[k]) for k in ("start", "end"))
-    f = Filters(**args.get("filters", {}))
-    s = ctx.store
+    f = Filters(**args.get("filters", {})).builder()
+    c = ctx.store.compiler
     if tool == "rows":
-        compiled = s.rows(f, start, end, args.get("limit", 200), args.get("newest_first", False))
+        compiled = c.rows(f, start, end, args.get("limit", 200), args.get("newest_first", False))
     elif tool == "template_counts":
-        compiled = s.template_counts(f, start, end)
+        compiled = c.template_counts(f, start, end)
     elif tool == "buckets":
-        compiled = s.buckets(f, start, end, args["step"], args.get("by", "template_id"))
+        compiled = c.buckets(f, start, end, args["step"], args.get("by", "template_id"))
     elif tool == "aggregate":
-        compiled = s.aggregate(QuerySpec.model_validate(args["spec"]), start, end)
+        spec = QuerySpec.model_validate(args["spec"])
+        assert spec.aggregate is not None
+        compiled = c.build({**span(start, end), "filters": Filters.of(spec).builder(), "group_by": spec.aggregate.group_by,
+                            "measure": {"fn": spec.aggregate.fn, "field": spec.aggregate.field},
+                            "over_time": spec.aggregate.over_time, "limit": spec.limit})
     else:
         raise ValueError(f"unknown read {tool}")
-    return _q(n, i, tool, title, why, compiled, s.engine, **args)
+    return _q(n, i, tool, title, why, compiled, c.engine, **args)
 
 
 def span(start: datetime, end: datetime) -> dict:
@@ -89,7 +95,8 @@ def execute(q: Query, ctx: Ctx) -> list[dict]:
     if q.status != "approved":
         raise PermissionError(f"query {q.id} is {q.status}, not approved")
     if q.engine != "local":
-        return ctx.store.run(q.compiled)
+        cfg = get_settings().ask
+        return ctx.store.records(q.compiled, cfg.row_cap if q.tool == "rows" else cfg.agg_cap)
     if q.tool == "agents":
         return [{"host": a.get("hostname"), "last_seen": a.get("last_seen"), "online": a.get("online")}
                 for a in ctx.agents()]
