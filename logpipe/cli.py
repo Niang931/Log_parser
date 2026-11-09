@@ -212,6 +212,15 @@ def _showcase(args: argparse.Namespace) -> None:
     run(port=args.port, auto=args.auto, ask=not args.no_ask)
 
 
+def _bench(args: argparse.Namespace) -> None:
+    from datetime import UTC, datetime
+
+    from .bench import main
+
+    main(args.store, args.max_rate, args.step_seconds,
+         args.out or Path("artifacts/bench") / f"{datetime.now(UTC):%Y%m%dT%H%M%S}.json")
+
+
 def _server(args: argparse.Namespace) -> None:
     if args.raw == ["server"] and sys.stdin.isatty():  # no flags: ask instead
         from .start import start
@@ -319,7 +328,7 @@ def main(argv: list[str] | None = None) -> None:
     run = sub.add_parser("run", help="full pipeline: parse, store, enrich, detect")
     run.add_argument("--logs", type=Path, default=settings.logs_path)
     run.add_argument("--registry", type=Path, default=settings.registry_path)
-    run.add_argument("--store", choices=["memory", "clickhouse"], default=settings.store)
+    run.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
     run.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue, help="unresolved queue; kafka + --no-enrich is the publish-only fast path")
     run.add_argument("--llm", default=settings.llm_backend)
     run.add_argument("--model", type=Path, default=settings.model_path)
@@ -333,7 +342,7 @@ def main(argv: list[str] | None = None) -> None:
 
     wk = sub.add_parser("worker", help="learning worker: consume the unresolved queue")
     wk.add_argument("--registry", type=Path, default=settings.registry_path)
-    wk.add_argument("--store", choices=["memory", "clickhouse"], default=settings.store)
+    wk.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
     wk.add_argument("--queue", choices=["memory", "kafka"], default="kafka")
     wk.add_argument("--llm", default=settings.llm_backend)
     wk.add_argument("--batch", type=int, default=10_000, help="rows per cycle")
@@ -376,7 +385,7 @@ def main(argv: list[str] | None = None) -> None:
                     help="key naming + alias check (and masks when calibrating), e.g. llm:web:gemini")
     dm.add_argument("--queue", choices=["memory", "kafka"], default="memory",
                     help="unresolved queue; kafka is started in Docker if needed")
-    dm.add_argument("--store", choices=["memory", "clickhouse"], default="memory",
+    dm.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default="memory",
                     help="clickhouse also writes every row there (started in Docker if needed)")
     dm.add_argument("--registry", type=Path,
                     help="load a saved registry (e.g. fine-tuned masks from Colab) instead of calibrating")
@@ -389,7 +398,7 @@ def main(argv: list[str] | None = None) -> None:
     sv = sub.add_parser("server", help="agent intake + operator UI (React) + learning lifecycle")
     sv.add_argument("--host", default="0.0.0.0")
     sv.add_argument("--port", type=int, default=8080)
-    sv.add_argument("--store", choices=["memory", "clickhouse"], default=settings.store)
+    sv.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
     sv.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue)
     sv.add_argument("--llm", default=settings.llm_backend, help="masks, key names and alias checks")
     sv.add_argument("--data-dir", type=Path, default=Path("artifacts/server"),
@@ -403,6 +412,14 @@ def main(argv: list[str] | None = None) -> None:
     sc.add_argument("--no-ask", action="store_true", help="memory store, offline LLM, no questions")
     sc.add_argument("--auto", action="store_true", help="do every act without waiting for you (implies --no-ask)")
     sc.set_defaults(func=_showcase)
+
+    bn = sub.add_parser("bench", help="how many lines/s one server keeps up with, its CPU and memory")
+    bn.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default="memory",
+                    help="clickhouse uses a throwaway database, dropped afterwards")
+    bn.add_argument("--max-rate", type=int, default=None, help="highest step in lines/s (default 100k)")
+    bn.add_argument("--step-seconds", type=float, default=10)
+    bn.add_argument("--out", type=Path, default=None, help="result JSON (default artifacts/bench/<time>.json)")
+    bn.set_defaults(func=_bench)
 
     fd = sub.add_parser("fetch-data", help="download the evaluation datasets up front")
     fd.add_argument("datasets", nargs="*", choices=["loghub2k", "HDFS", "BGL"],

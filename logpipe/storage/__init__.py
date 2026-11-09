@@ -5,11 +5,15 @@ __all__ = ["AnomalyAlert", "LogRow", "LogStore", "MemoryStore", "open_store"]
 
 
 def open_store(kind: str) -> LogStore:
-    """``memory`` or ``clickhouse`` (connection settings come from the environment)."""
+    """``memory``, ``clickhouse`` or ``mongodb`` (connection settings come from the environment)."""
     if kind == "memory":
         return MemoryStore()
     if kind == "clickhouse":
         from .clickhouse import ClickHouseStore
 
         return ClickHouseStore.from_env()
-    raise ValueError(f"unknown store {kind!r}; expected 'memory' or 'clickhouse'")
+    if kind == "mongodb":
+        from .mongo import MongoStore
+
+        return MongoStore.from_env()
+    raise ValueError(f"unknown store {kind!r}; expected 'memory', 'clickhouse' or 'mongodb'")

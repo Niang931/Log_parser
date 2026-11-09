@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import select
 import shutil
 import signal
@@ -33,13 +34,19 @@ B, D, G, Y, R = "\033[1m", "\033[2m", "\033[32m", "\033[33m", "\033[0m"
 class Api:
     def __init__(self, base: str):
         self.base = base
+        self.cookie = ""  # the admin session, after login()
 
     def __call__(self, path: str, body: dict | None = None, method: str | None = None):
         req = urllib.request.Request(self.base + path, method=method or ("POST" if body is not None else "GET"),
                                      data=json.dumps(body).encode() if body is not None else None,
-                                     headers={"Content-Type": "application/json"})
+                                     headers={"Content-Type": "application/json", "Cookie": self.cookie})
         with urllib.request.urlopen(req, timeout=30) as res:
+            if set_cookie := res.headers.get("Set-Cookie"):
+                self.cookie = set_cookie.split(";", 1)[0]
             return json.loads(res.read() or b"null")
+
+    def login(self, password: str) -> None:
+        self("/api/auth/login", {"password": password})
 
 
 def find_agent(out: Path) -> str:
@@ -205,7 +212,8 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
     port = int(a["server_port"])
     if services:
         docker_up(services)
-    env = os.environ | {"CLICKHOUSE_DB": "logpipe_showcase"}
+    password = os.environ.get("LOGPIPE_ADMIN_PASSWORD") or secrets.token_urlsafe(9)
+    env = os.environ | {"CLICKHOUSE_DB": "logpipe_showcase", "LOGPIPE_ADMIN_PASSWORD": password}
     if a["store"] == "clickhouse":  # a fresh database every run
         import clickhouse_connect
         clickhouse_connect.get_client(
@@ -225,15 +233,16 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
                                       stdout=(ROOT / "server.out").open("w"), stderr=subprocess.STDOUT, env=env))
         for _ in range(120):
             try:
-                api("/api/overview")
+                api("/api/auth/status")
                 break
             except (urllib.error.URLError, ConnectionError):
                 if procs[0].poll() is not None:
                     raise SystemExit(f"the server stopped; see {ROOT / 'server.out'}") from None
                 time.sleep(0.5)
+        api.login(password)
         # Shorter thresholds so the tour's new service is drafted within a minute or two.
         api("/api/settings", {"draft_lines": 200, "draft_after_minutes": 2}, "PUT")
-        _tour(Tour(api, url, auto), gen, agent_bin, procs)
+        _tour(Tour(api, url, auto), gen, agent_bin, procs, password)
     except KeyboardInterrupt:
         print("\nstopping")
     finally:
@@ -247,7 +256,7 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
                 p.kill()
 
 
-def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Popen]) -> None:
+def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Popen], password: str) -> None:
     api, url = t.api, t.url
     conf = ROOT / "agent"
 
@@ -256,6 +265,7 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
         subprocess.run([agent_bin, "-c", str(conf), *args], check=True, stdout=subprocess.DEVNULL)
 
     t.act(0, "The server is up", [f"Open {B}{url}{R} in a browser and keep it next to this terminal.",
+                                  f"Log in with the admin password {B}{password}{R}.",
                                   "Every act says what to look at; do it in the UI, or press Enter and I'll do it."])
     t.pause()
 

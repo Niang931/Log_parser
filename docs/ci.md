@@ -8,6 +8,7 @@ Everything in CI runs with `LLM_BACKEND=offline`: deterministic, no paid LLM cal
 |---|---|---|
 | Lint | `ruff check logpipe tests`; `ruff format --check` is advisory until the codebase is formatted in one dedicated PR | 5 min |
 | Unit tests | `pytest -m "not integration"` with coverage (`coverage.xml` artifact), then `DeepParse/tests -m "not integration"` | 10 min |
+| Integration (MongoDB) | `mongo:8.2` service container (no auth), then the Mongo integration tests and `STORE=mongodb pytest tests/test_server.py`. | 15 min |
 | Integration | ClickHouse 25.8 service container, then `pytest -m integration`. Credentials are the ones from `.env.example` (`logpipe` / `ci-password` / db `logpipe`). | 15 min |
 
 Same commands locally:

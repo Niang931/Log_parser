@@ -22,13 +22,28 @@ class _Console(logging.Formatter):
         return line
 
 
+class _Json(logging.Formatter):
+    """One JSON object per line (``LOGPIPE_LOG_FORMAT=json``), for log shippers, logpipe's own
+    agent included."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        import json
+
+        out = {"ts": self.formatTime(record), "level": record.levelname.lower(), "logger": record.name,
+               "message": record.getMessage(), "thread": record.threadName}
+        if record.exc_info:
+            out["error"] = self.formatException(record.exc_info)
+        return json.dumps(out, default=str)
+
+
 def setup_logging(data_dir: Path) -> Path:
     """Everything, with tracebacks, to ``data_dir/server.log``; warnings and errors as one
     line each to the console."""
     data_dir.mkdir(parents=True, exist_ok=True)
     log_file = data_dir / "server.log"
     to_file = logging.handlers.RotatingFileHandler(log_file, maxBytes=10 << 20, backupCount=3)
-    to_file.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
+    to_file.setFormatter(_Json() if os.environ.get("LOGPIPE_LOG_FORMAT") == "json"
+                         else logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
     console = logging.StreamHandler()
     console.setLevel(logging.WARNING)
     console.setFormatter(_Console(log_file))
@@ -53,10 +68,17 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
     log_store = open_store(store)
     # shortcut: with the memory store the control plane is in memory too; use clickhouse to keep agents, keys and models across restarts.
     control = ControlStore(ClickHouseDocs(log_store.client) if store == "clickhouse" else None)  # type: ignore[attr-defined]
+    if store == "mongodb":
+        from ..storage.mongo import MongoDocs
+
+        control = ControlStore(MongoDocs(log_store.db))  # type: ignore[attr-defined]
     server = Server(log_store, control, data_dir=data_dir, epochs=epochs,
                     adapter_factory=lambda: get_adapter(llm, browser=browser),  # type: ignore[arg-type]
                     queue_factory=lambda: open_queue(queue),
                     bootstrap_key=os.environ.get("LOGPIPE_BOOTSTRAP_KEY") or None)
+    from .auth import Auth
+
+    generated = Auth(control).ensure(os.environ.get("LOGPIPE_ADMIN_PASSWORD") or None)
     demo_instance = None
     if demo:
         from ..demo.server import Demo
@@ -65,8 +87,11 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
         threading.Thread(target=demo_instance.replay, daemon=True).start()
     print(f"[server] logpipe on http://{host}:{port}/ ({store} store, {queue} queue, {llm}); "
           f"log: {log_file}", flush=True)
+    if generated:
+        print(f"[server] admin password for the UI: {generated}  (change it in the UI; set "
+              "LOGPIPE_ADMIN_PASSWORD to reset it)", flush=True)
     try:
-        uvicorn.run(create_app(server, demo_instance), host=host, port=port, log_config=None,
+        uvicorn.run(create_app(server, demo_instance, {"store": store, "queue": queue, "llm": llm}), host=host, port=port, log_config=None,
                     timeout_graceful_shutdown=2)  # SSE streams and agent long-polls never end on their own
     finally:
         server.close()

@@ -50,7 +50,7 @@ export function LevelBadge({ level }: { level: Level }) {
 
 type Series = { key: string; label: string; color: string };
 
-function clock(t: number, step: number) {
+export function clock(t: number, step: number) {
   const d = new Date(t);
   const hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: step < 60 ? "2-digit" : undefined });
   return step >= 1800 ? `${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${hm}` : hm;

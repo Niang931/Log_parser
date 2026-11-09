@@ -70,6 +70,7 @@ export const JOB_NAMES: Record<Job["kind"], string> = {
   calibrate: "Calibration",
   recalibrate: "Recalibration",
   explain: "Explain incident",
+  bench: "Benchmark",
 };
 
 export function jobTarget(job: Job) {
@@ -77,7 +78,8 @@ export function jobTarget(job: Job) {
   if (p.streams?.length) return p.streams.join(", ");
   if (p.sources?.length) return p.sources.map(sourceLabel).join(", ");
   return job.kind === "draft" ? "all sources" : job.kind === "apply" ? "reviewed templates"
-    : job.kind === "explain" ? "an anomaly incident" : "";
+    : job.kind === "explain" ? "an anomaly incident"
+    : job.kind === "bench" ? `${p.store} store` : "";
 }
 
 export function JobRow({ job }: { job: Job }) {
@@ -267,5 +269,32 @@ export function Stepper({ steps, current, onPick }: {
         );
       })}
     </ol>
+  );
+}
+
+/** An on/off switch: a real checkbox (keyboard, screen readers) drawn as a track and knob. */
+export function Switch({ checked, onChange, label, hideLabel, disabled, title }: {
+  checked: boolean; onChange: (on: boolean) => void; label: ReactNode; hideLabel?: boolean; disabled?: boolean; title?: string;
+}) {
+  return (
+    <label className={`switch${disabled ? " disabled" : ""}`} title={title}>
+      <input type="checkbox" role="switch" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)}
+        aria-label={hideLabel && typeof label === "string" ? label : undefined} />
+      <span className="switch-track" aria-hidden="true"><span className="switch-knob" /></span>
+      {!hideLabel && <span>{label}</span>}
+    </label>
+  );
+}
+
+/** A small set of mutually exclusive choices side by side; same look as the time-range picker. */
+export function Segmented<T extends string>({ value, options, onChange, label }: {
+  value: T; options: [T, string][]; onChange: (v: T) => void; label: string;
+}) {
+  return (
+    <div className="seg" role="group" aria-label={label}>
+      {options.map(([v, text]) => (
+        <button key={v} type="button" className={v === value ? "on" : ""} aria-pressed={v === value} onClick={() => onChange(v)}>{text}</button>
+      ))}
+    </div>
   );
 }

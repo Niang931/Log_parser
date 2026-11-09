@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, useAction, usePoll, type Incident, type IncidentDetail, type IncidentStatus } from "../api";
-import { Card, Empty, JobRow, Loading, PageHead, TimeAgo, time } from "../ui";
+import { Card, Empty, JobRow, Loading, PageHead, Switch, TimeAgo, time } from "../ui";
 
 export const STATUS: Record<IncidentStatus, { label: string; badge: string }> = {
   open: { label: "Open", badge: "bad" },
@@ -128,7 +128,7 @@ export function IncidentPage() {
         <Card title={`The lines (${unusual} of ${inc.events.length} unusual)`}
           hint={inc.model_current ? "Each line masked in turn: did the model expect it there, and what it expected instead."
             : "The model was retrained since this incident: marks come from the current model."}
-          actions={<label className="row small"><input type="checkbox" checked={onlyUnusual} onChange={(e) => setOnlyUnusual(e.target.checked)} />Only unusual</label>}>
+          actions={<Switch checked={onlyUnusual} onChange={setOnlyUnusual} label="Only unusual" />}>
           {events.length === 0 ? <Empty title="No lines">The lines of this stretch are no longer stored.</Empty> : (
             <ol className="incident-lines">
               {events.map((e, i) => (

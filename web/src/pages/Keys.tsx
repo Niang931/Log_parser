@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { api, useAction, usePoll, type ApiKey } from "../api";
-import { Card, CopyBlock, Empty, Loading, PageHead, TimeAgo } from "../ui";
+import { CopyBlock, Empty, Loading, TimeAgo } from "../ui";
 
+/** Agent API keys: create (shown once), list, revoke. Lives in Settings → API keys. */
 export default function Keys() {
   const { data, error } = usePoll<{ keys: ApiKey[] }>("/api/keys", 10000);
   const [name, setName] = useState("");
@@ -9,17 +10,15 @@ export default function Keys() {
   const create = useAction((n: string) => api<{ token: string }>("/api/keys", { method: "POST", json: { name: n } }));
   const revoke = useAction((id: string) => api(`/api/keys/${id}`, { method: "DELETE" }));
   return (
-    <>
-      <PageHead title="API keys" sub="Agents authenticate with these. Keys are stored hashed: copy a new one when it is shown." />
-      <div className="stack">
-        <Card title="Create a key">
+    <div className="stack">
+      <div>
           <form className="row" onSubmit={(e) => { e.preventDefault(); create.mutate(name, { onSuccess: (r) => { setToken(r.token); setName(""); } }); }}>
             <input placeholder="Name, e.g. prod gateways" value={name} onChange={(e) => setName(e.target.value)} aria-label="Key name" required />
             <button className="btn primary" disabled={create.isPending}>Create</button>
           </form>
           {token && <div style={{ marginTop: 12 }}><p><strong>Copy it now</strong>: it won't be shown again.</p><CopyBlock text={token} /></div>}
-        </Card>
-        <Card>
+      </div>
+      <div>
           {!data ? <Loading error={error} /> : data.keys.length === 0 ? <Empty title="No keys yet" /> : (
             <div className="table-wrap">
               <table>
@@ -40,8 +39,7 @@ export default function Keys() {
               </table>
             </div>
           )}
-        </Card>
       </div>
-    </>
+    </div>
   );
 }

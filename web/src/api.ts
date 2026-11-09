@@ -13,6 +13,7 @@ export async function api<T>(path: string, init?: RequestInit & { json?: unknown
   });
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
+  if (res.status === 401 && !path.startsWith("/api/auth/")) window.dispatchEvent(new Event("logpipe:logged-out"));
   if (!res.ok) {
     const detail = data?.detail;
     throw new ApiError(typeof detail === "string" ? detail : `${res.status} ${res.statusText}`);
@@ -62,8 +63,8 @@ export interface Settings {
 
 export interface Job {
   id: string;
-  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate" | "explain";
-  params: { sources?: string[]; streams?: string[]; batch?: string; incident?: string };
+  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate" | "explain" | "bench";
+  params: { sources?: string[]; streams?: string[]; batch?: string; incident?: string; store?: string };
   status: "queued" | "running" | "done" | "failed" | "cancelled";
   progress: number;
   message: string;

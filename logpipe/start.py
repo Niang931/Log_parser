@@ -108,6 +108,26 @@ def _listener(port: int) -> str | None:
     return f"{m.group(1)} (pid {m.group(2)})" if m else None
 
 
+def ask_password() -> str:
+    """The UI's admin password ('' keeps the stored one, or generates one on a first start)."""
+    import getpass
+
+    while True:
+        try:
+            pw = getpass.getpass("Admin password for the UI (Enter keeps the current one; a new "
+                                 "server generates and prints one): ")
+        except EOFError:
+            raise SystemExit("\nstopped") from None
+        if not pw:
+            return ""
+        if len(pw) < 8:
+            print("  at least 8 characters")
+        elif getpass.getpass("Again: ") == pw:
+            return pw
+        else:
+            print("  they don't match")
+
+
 def ask_setup(saved: dict, mode: str | None = None) -> dict:
     """The questions; returns the answers (saved as next time's defaults)."""
     a: dict = {}
@@ -125,6 +145,7 @@ def ask_setup(saved: dict, mode: str | None = None) -> dict:
          + (" (API keys and agents too)" if a["mode"] == "server" else "")),
         ("clickhouse", "ClickHouse in Docker, started for you"
          + (" (the demo's Query tab then runs on it)" if a["mode"] == "demo" else "")),
+        ("mongodb", "MongoDB in Docker, started for you (everything except raw SQL)"),
     ], saved.get("store"))
     a["llm_kind"] = choose("Who names slot keys and confirms template re-associations?", [
         ("offline", "rules, no model (never re-associates a reworded template)"),
@@ -177,7 +198,8 @@ def plan(a: dict) -> tuple[list[str], list[list[str]]]:
            "api": f"llm:{a.get('provider')}"}[a["llm_kind"]]
     top = ["--browser", "chrome" if a.get("browser") == "chromium" else a.get("browser", "camoufox")]
     services = [name for name, on in (("kafka", a["queue"] == "kafka"),
-                                      ("clickhouse", a["store"] == "clickhouse")) if on]
+                                      ("clickhouse", a["store"] == "clickhouse"),
+                                      ("mongo", a["store"] == "mongodb")) if on]
     if a["mode"] == "demo":
         cmd = [*top, "demo", "--llm", llm, "--queue", a["queue"], "--store", a["store"],
                "--devices", str(a["devices"]),
@@ -268,6 +290,8 @@ def start(run: Callable = subprocess.run, launch: Callable[[list[str]], None] | 
                  "chrome" if a["browser"] == "chromium" else "camoufox"], check=True)
             signed_in = sorted({*signed_in, a["site"]})
         _save(a, signed_in)
+    if a["mode"] == "server" and not os.environ.get("LOGPIPE_ADMIN_PASSWORD"):
+        os.environ["LOGPIPE_ADMIN_PASSWORD"] = ask_password()  # this run only; never saved
     if launch is None:
         from .cli import main as launch
     for cmd in commands:

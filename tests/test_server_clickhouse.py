@@ -99,3 +99,14 @@ def test_one_client_serves_concurrent_threads(store):
     with ThreadPoolExecutor(8) as pool:
         list(pool.map(work, range(32)))  # used to raise "concurrent queries within the same session"
     assert len(docs.load()) == 32
+
+
+def test_metrics_on_clickhouse(store, tmp_path):
+    server, client = make(store, tmp_path)
+    server.metrics.parsed(5000, unknown=False)
+    first = server.sample_metrics()
+    assert first["store_mb"] >= 0 and 0 <= first["disk_used_pct"] <= 100
+    server.sample_metrics()
+    body = client.get("/api/system?minutes=5").json()
+    assert body["current"]["threads"] >= 1
+    assert len(body["series"]["rss_mb"]) >= 1 and body["series"]["lines_per_s"][0][0] > 1.7e9

@@ -150,6 +150,36 @@ jobs:
           scan-type: config
           severity: CRITICAL,HIGH
           exit-code: "1"
+  integration-mongo:
+    name: Integration (MongoDB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mongo:
+        image: mongo:8.2
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping:1}).ok' | grep -q 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MONGO_URI: mongodb://127.0.0.1:27017
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            DeepParse/uv.lock
+      - run: uv python install 3.13
+      - run: uv sync --group dev
+      - name: integration tests
+        run: uv run pytest -m integration -p no:cacheprovider tests/test_mongo_integration.py tests/test_server_mongo.py
+      - name: server tests on MongoDB
+        run: STORE=mongodb uv run pytest -p no:cacheprovider tests/test_server.py
 
   agent:
     name: Agent (Go)

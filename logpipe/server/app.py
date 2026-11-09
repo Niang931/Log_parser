@@ -2,7 +2,9 @@
 React UI, the built UI at ``/`` and the developer demo at ``/demo/``."""
 
 import asyncio
+import importlib.metadata
 import json
+import os
 import uuid
 import zlib
 from collections import Counter
@@ -22,8 +24,10 @@ from fastapi.responses import (
 
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
-from . import otlp, querybuild
+from . import otlp, querybuild, querybuild_mongo
+from .auth import COOKIE, SESSION_SECONDS, Auth
 from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
+from .metrics import METRICS
 from .reads import FACETS
 from ..enrich.sql_guard import validate_sql
 
@@ -43,9 +47,65 @@ def template_sql(entry, engine: str) -> str:
             f"WHERE template_id = {entry.template_id}\nORDER BY timestamp DESC\nLIMIT 50")
 
 
-def create_app(server: Server, demo: Any = None) -> FastAPI:
+def create_app(server: Server, demo: Any = None, info: dict | None = None) -> FastAPI:
+    """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
+    started = now_iso()
     app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
-    engine = "sqlite" if server.reads.__class__.__name__ == "MemoryReads" else "clickhouse"
+    engine = {"MemoryReads": "sqlite", "MongoReads": "mongodb"}.get(server.reads.__class__.__name__, "clickhouse")
+    qb = querybuild_mongo if engine == "mongodb" else querybuild
+    auth = Auth(server.control)
+
+    @app.middleware("http")
+    async def require_login(request: Request, call_next):
+        # `logpipe server` always sets a password before serving; with none set (tests, an
+        # embedded app) the API stays open. Agents' intake routes use API keys instead.
+        path = request.url.path
+        guarded = (path.startswith(("/api/", "/demo/api/")) and not path.startswith("/api/auth/"))
+        if guarded and auth.configured and not auth.valid(request.cookies.get(COOKIE)):
+            return JSONResponse({"detail": "log in first"}, 401)
+        return await call_next(request)
+
+    def client_of(request: Request) -> str:
+        return request.client.host if request.client else "?"
+
+    @app.get("/api/auth/status")
+    def auth_status(request: Request) -> dict:
+        return {"required": auth.configured,
+                "authenticated": not auth.configured or auth.valid(request.cookies.get(COOKIE))}
+
+    @app.post("/api/auth/login")
+    def login(request: Request, body: Annotated[dict, Body()]) -> Response:
+        client = client_of(request)
+        if wait := auth.blocked_for(client):
+            raise HTTPException(429, f"too many wrong passwords; try again in {int(wait) // 60 + 1} min")
+        token = auth.login(client, str(body.get("password") or ""))
+        if token is None:
+            raise HTTPException(401, "wrong password")
+        res = JSONResponse({"ok": True})
+        res.set_cookie(COOKIE, token, max_age=SESSION_SECONDS, httponly=True, samesite="strict",
+                       secure=request.url.scheme == "https")
+        return res
+
+    @app.post("/api/auth/logout")
+    def logout() -> Response:
+        res = JSONResponse({"ok": True})
+        res.delete_cookie(COOKIE)
+        return res
+
+    @app.post("/api/auth/password")
+    def change_password(request: Request, body: Annotated[dict, Body()]) -> Response:
+        if not auth.valid(request.cookies.get(COOKIE)):
+            raise HTTPException(401, "log in first")
+        client = client_of(request)
+        if wait := auth.blocked_for(client):
+            raise HTTPException(429, f"too many wrong passwords; try again in {int(wait) // 60 + 1} min")
+        if auth.login(client, str(body.get("current") or "")) is None:
+            raise HTTPException(403, "the current password is wrong")
+        auth.set_password(str(body.get("new") or ""))  # ValueError -> 400 when too short
+        res = JSONResponse({"ok": True})  # the old sessions are void now; this one is renewed
+        res.set_cookie(COOKIE, auth.login(client, str(body["new"])) or "", max_age=SESSION_SECONDS,
+                       httponly=True, samesite="strict", secure=request.url.scheme == "https")
+        return res
 
     def agent_key(x_api_key: Annotated[str | None, Header()] = None,
                   authorization: Annotated[str | None, Header()] = None) -> dict:
@@ -237,7 +297,7 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     def query_schema() -> dict:
         snap = server.registry.current
         fields = set(snap.key_vocab) | {k for t in snap.templates.values() for k in t.keys}
-        return querybuild.schema(engine, sorted(fields))
+        return qb.schema(engine, sorted(fields))
 
     @app.get("/api/query/schema")
     def get_query_schema() -> dict:
@@ -298,6 +358,38 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
                            else ("unparsed (pending)" if tid == UNK_TEMPLATE_ID else f"#{tid}")]
                           for tid, n in top_t],
         }
+
+    @app.get("/api/system")
+    def system(minutes: int = 60) -> dict:
+        """The server's own metrics (see ``metrics.py``) over the last ``minutes``."""
+        return {"metrics": {k: {"label": label, "unit": unit, "group": group}
+                            for k, (label, unit, group) in METRICS.items()},
+                "current": server.metrics.current, "sampled_at": server.metrics.sampled_at,
+                "every": server.metrics.every, "cpus": os.cpu_count(),
+                **server.metrics.series(clamp(minutes))}
+
+    @app.get("/api/drift")
+    def drift() -> dict:
+        return {"streams": server.drift.report(server.control.all("stream"))}
+
+    @app.get("/api/system/alerts")
+    def system_alerts() -> dict:
+        return {"alerts": server.metric_rules.alerts(), "rules": server.metric_rules.rules()}
+
+    @app.post("/api/system/rules")
+    def add_rule(body: Annotated[dict, Body()]) -> dict:
+        return server.metric_rules.save(body)
+
+    @app.put("/api/system/rules/{rule_id}")
+    def edit_rule(rule_id: str, body: Annotated[dict, Body()]) -> dict:
+        if server.control.get("metric_rule", rule_id) is None:
+            raise KeyError(rule_id)
+        return server.metric_rules.save(body, rule_id)
+
+    @app.delete("/api/system/rules/{rule_id}")
+    def delete_rule(rule_id: str) -> dict:
+        server.metric_rules.delete(rule_id)
+        return {"ok": True}
 
     @app.get("/api/alerts")
     def alerts(limit: int = 200) -> dict:
@@ -380,6 +472,15 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
             "min_lines": MIN_DRAFT_LINES,
             "review": next((b for b in server.batches() if b["initial"]), None),
         }
+
+    @app.get("/api/about")
+    def about() -> dict:
+        try:
+            version = importlib.metadata.version("log-parser")
+        except importlib.metadata.PackageNotFoundError:
+            version = "dev"
+        return {"version": version, "engine": engine, "started_at": started, "cpus": os.cpu_count(),
+                "password_set": auth.configured, "metrics_days": 30, **(info or {})}
 
     @app.get("/api/settings")
     def get_settings() -> dict:
@@ -500,6 +601,29 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
     @app.post("/api/warnings/{wid}/recalibrate", status_code=202)
     def recalibrate(wid: str) -> dict:
         return server.recalibrate_warning(wid)
+
+    @app.get("/api/bench")
+    def bench_runs() -> dict:
+        return {"runs": sorted(server.control.all("bench"), key=lambda r: r["started_at"], reverse=True),
+                "cpus": os.cpu_count()}
+
+    @app.post("/api/bench", status_code=202)
+    def bench_start(body: Annotated[dict | None, Body()] = None) -> dict:
+        body = body or {}
+        store = str(body.get("store") or "memory")
+        if store not in ("memory", "clickhouse", "mongodb"):
+            raise ValueError("store is memory, clickhouse or mongodb")
+        if store != "memory" and engine != store:
+            raise ValueError(f"this server has no {store} to benchmark against")
+        return server.enqueue("bench", store=store, max_rate=max(0, int(body.get("max_rate") or 0)),
+                              step_seconds=min(max(float(body.get("step_seconds") or 10), 2), 120))
+
+    @app.delete("/api/bench/{run_id}")
+    def bench_delete(run_id: str) -> dict:
+        if server.control.get("bench", run_id) is None:
+            raise KeyError(run_id)
+        server.control.delete("bench", run_id)
+        return {"ok": True}
 
     @app.get("/api/jobs")
     def jobs() -> dict:
