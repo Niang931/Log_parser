@@ -7,6 +7,7 @@ quoted here, so a spec can't inject SQL; the result still runs through the read-
 from __future__ import annotations
 
 import math
+
 from ..enrich.validate import KEY_RE
 from .reads import LEVEL_SQL, step_for
 

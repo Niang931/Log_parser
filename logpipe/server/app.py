@@ -22,6 +22,7 @@ from fastapi.responses import (
     StreamingResponse,
 )
 
+from ..enrich.sql_guard import validate_sql
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild, querybuild_mongo
@@ -29,7 +30,6 @@ from .auth import COOKIE, SESSION_SECONDS, Auth
 from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
 from .metrics import METRICS
 from .reads import FACETS
-from ..enrich.sql_guard import validate_sql
 
 STATIC = Path(__file__).with_name("static")
 DEMO_INDEX = Path(__file__).parent.parent / "demo" / "index.html"
@@ -289,9 +289,10 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                 "pending": server.store.count_by_status().get("PENDING", 0)}
 
     @app.post("/api/query")
-    def query(body: dict = Body(...)):
-        sql = str(body.get("sql", ""))
-        validate_sql(sql, engine)
+    def query(body: Annotated[dict, Body()]) -> dict:
+        sql = str(body.get("sql", "")).strip().rstrip(";")
+        if engine != "mongodb":
+            validate_sql(sql, engine)
         return server.reads.query(sql)
 
     def query_schema() -> dict:
@@ -304,13 +305,14 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return query_schema()
 
     @app.post("/api/query/build")
-    def build_query(body: dict = Body(...)):
-        sql = querybuild.build(body, engine)
-        validate_sql(sql, engine)
+    def build_query(body: Annotated[dict, Body()]) -> dict:
+        sql = qb.build(body, engine)
+        if engine != "mongodb":
+            validate_sql(sql, engine)
         return {"sql": sql, "result": server.reads.query(sql)}
 
     @app.post("/api/query/ask")
-    def ask_query(body: dict = Body(...)) -> dict:
+    def ask_query(body: Annotated[dict, Body()]) -> dict:
         question = str(body.get("question", "")).strip()
         if not question:
             raise ValueError("ask a question, e.g. 'errors per service in the last hour'")
@@ -322,6 +324,11 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
             f"table {s['table']}\n{described}",
             engine,
         )
+        if engine == "mongodb":
+            try:
+                return {"sql": qb.build(json.loads(sql)), "spec": json.loads(sql)}
+            except (TypeError, AttributeError):
+                raise ValueError(f"the LLM didn't return a builder spec: {sql[:80]}") from None
         validate_sql(sql, engine)
         return {"sql": sql}
 

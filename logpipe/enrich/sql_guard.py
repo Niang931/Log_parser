@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import sqlglot
 from sqlglot import exp
-
+from sqlglot.errors import SqlglotError
 
 MAX_SQL_LENGTH = 20_000
 
@@ -129,10 +129,7 @@ def _function_name(node: exp.Expression) -> str:
     """Get a normalized SQL function name."""
     if isinstance(node, exp.Anonymous):
         return node.name.lower()
-    try:
-        return str(node.sql_name()).lower()
-    except Exception:
-        return ""
+    return str(node.sql_name()).lower()
 
 
 def _get_cte_names(tree: exp.Expression) -> set[str]:
@@ -340,7 +337,7 @@ def validate_sql(sql: str, engine: str) -> None:
             sql,
             read=engine,
         )
-    except Exception as error:
+    except (SqlglotError, RecursionError) as error:  # deep nesting overflows sqlglot's parser
         _reject(f"SQL could not be parsed ({str(error).splitlines()[0]})")
 
     # Reject empty input and multiple statements.
@@ -370,8 +367,6 @@ def validate_sql(sql: str, engine: str) -> None:
     _check_columns(tree, engine)
     _check_functions(tree)
     _check_tautologies(tree)
-
-    return None
 
 
 if __name__ == "__main__":

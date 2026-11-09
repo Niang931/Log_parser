@@ -148,7 +148,7 @@ def test_sql_an_llm_was_talked_into_never_writes(env, sql):  # noqa: F811
 
 
 @pytest.mark.parametrize("sql", HOSTILE_SQL)
-def test_server_rejects_hostile_sql(env, sql):
+def test_server_rejects_hostile_sql(env, sql):  # noqa: F811
     server, _, _ = env
     client = TestClient(create_app(server))
 
