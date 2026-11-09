@@ -6,13 +6,13 @@ or group by it (streamed, 3 fields only).
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 from collections import Counter
 from datetime import UTC, datetime, timedelta
 from itertools import islice
 
-from bson import json_util
 from pymongo import ASCENDING, DESCENDING, MongoClient
 from pymongo.errors import PyMongoError
 
@@ -117,15 +117,14 @@ class MongoReads:
         cur = self.alerts_col.find().sort("window_end", DESCENDING).limit(limit)
         return [alert_json({**d, "alert_id": d["_id"]}) for d in cur]
 
-    def query(self, text: str, max_rows: int = MAX_QUERY_ROWS) -> dict:
-        """Run a JSON aggregation pipeline over ``logs`` (the Query page's text box). Extended JSON
-        (``{"$date": "..."}``) is read, so time ranges can use the timestamp index."""
+    def query(self, text: str) -> dict:
+        """Run a JSON aggregation pipeline over ``logs`` (the Query page's text box)."""
         try:
-            pipeline = json_util.loads(text)
+            pipeline = json.loads(text)
         except ValueError:
             raise ValueError("raw SQL is not supported on MongoDB; send a JSON aggregation pipeline") from None
         try:
-            docs = list(islice(self.query_logs.aggregate(check(pipeline), maxTimeMS=10_000), max_rows))
+            docs = list(islice(self.query_logs.aggregate(check(pipeline), maxTimeMS=10_000), MAX_QUERY_ROWS))
         except PyMongoError as error:
             raise ValueError(str(error).splitlines()[0]) from error
         columns = list(dict.fromkeys(k for d in docs for k in d))
