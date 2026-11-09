@@ -99,12 +99,11 @@ SOURCE_TYPES = {"file", "journald", "docker", "tcp", "udp"}
 RULE_TYPES = {"multi_line", "exclude_at_match", "include_at_match", "mask_sequences"}
 DEFAULT_SETTINGS = {"sample_cap": 5000, "retrain_days": 7, "calibrated": False,
                     "calibrated_at": None, "setup_done": False,
-                    "draft_lines": 500, "draft_after_minutes": 60,
-                    "ask_require_approval": True}  # Ask: every query waits for a person (logpipe.ask.service)
+                    "draft_lines": 500, "draft_after_minutes": 60}
 MIN_TRAIN_WINDOWS = 8
 MIN_TRAIN_STEPS = 1500
 MIN_DRAFT_LINES = 50  # below this a sample can't say much about a source's templates
-JOB_KINDS = ("draft", "apply", "retrain", "reextract", "bench", "ask")
+JOB_KINDS = ("draft", "apply", "retrain", "reextract", "explain", "bench")
 INCIDENT_GAP = timedelta(minutes=5)  # alerts on one service closer than this are one incident
 INCIDENT_STATES = ("open", "acknowledged", "resolved", "false_positive")
 
@@ -217,10 +216,10 @@ class _Traced:
                             f"synthesizing masks from {min(len(lines), sample_size)} sample lines",
                             lambda out: f"{len(out)} masks; Drain is mining templates")
 
-    def ask(self, schema, prompt):
-        return self._traced(f"ask:{schema.__name__}", self._inner.ask, (schema, prompt),
-                            {"prompt": prompt}, f"asking the LLM ({schema.__name__})",
-                            lambda out: "answered" if out is not None else "no usable answer")
+    def explain_incident(self, facts):
+        return self._traced("explain_incident", self._inner.explain_incident, (facts,),
+                            {"context": facts["text"]}, "asking for a summary, a likely cause and next steps",
+                            lambda out: f"answer: {out['summary']}")
 
     def name_keys(self, tokens, samples):
         return self._traced("name_keys", self._inner.name_keys, (tokens, samples),
@@ -305,9 +304,6 @@ class Server:
                 control.update("job", job["id"], status="failed", error="server restarted",
                                finished_at=now_iso())
 
-        from ..ask.service import AskService
-
-        self.ask = AskService(self)
         self._stop = threading.Event()
         if start_threads:
             for target in (self._ingest_loop, self._job_loop, self._housekeeping_loop):
@@ -1166,10 +1162,6 @@ class Server:
         limits = {"sample_cap": (100, 200_000, int), "retrain_days": (0.01, 3650, float),
                   "draft_lines": (MIN_DRAFT_LINES, 200_000, int), "draft_after_minutes": (1, 100_000, float)}
         changes = {}
-        if "ask_require_approval" in body:
-            if not isinstance(body["ask_require_approval"], bool):
-                raise ValueError("ask_require_approval is true or false")
-            changes["ask_require_approval"] = body["ask_require_approval"]
         for key, (lo, hi, cast) in limits.items():
             if key in body:
                 value = cast(body[key])
@@ -1284,11 +1276,10 @@ class Server:
                   for line, tid, v in zip(lines, ids, verdicts)]
         around = [r for r in self.reads.between(start - timedelta(minutes=1), end + timedelta(minutes=1), 2000)
                   if r["level"] in ("error", "warn") and (r["host"], r["service"]) != (inc["host"], inc["service"])][:50]
-        plan_id = (self.control.get("incident", incident_id) or {}).get("ask_plan")
-        plan = self.control.get("ask_plan", plan_id) if plan_id else None
+        jobs = [j for j in self.control.all("job") if j["kind"] == "explain" and j["params"].get("incident") == incident_id]
         return inc | {"events": events, "around": around,
                       "model_current": bool(scorer) and scorer.version == inc["model_version"],
-                      "ask_plan": plan}
+                      "explain_job": max(jobs, key=lambda j: j["created_at"]) if jobs else None}
 
     def set_incident(self, incident_id: str, status: str, note: str = "") -> dict:
         if status not in INCIDENT_STATES:
@@ -1304,20 +1295,9 @@ class Server:
         self.events.notify()
         return doc
 
-    def explain_incident(self, incident_id: str, require_approval: bool | None = None) -> dict:
-        """A root-cause Ask anchored at the incident's start, on its service: its queries wait for
-        approval like any other question."""
-        inc = self.incident(incident_id)  # 404 before planning
-        spec = {"intent": "rca", "anchor_time": inc["start"], "anchor_event": f"anomaly incident on {inc['key']}",
-                "services": [inc["service"]] if inc["service"] else [], "hosts": [inc["host"]] if inc["host"] else []}
-        plan = self.ask.ask(f"Why did {inc['key']} misbehave from {inc['start']}?", spec=spec,
-                            require_approval=require_approval, incident=incident_id)
-        self.control.put("incident", incident_id, (self.control.get("incident", incident_id) or {"id": incident_id, "status": "open"})
-                         | {"ask_plan": plan["id"], "stream": inc["stream"]})
-        return plan
-
-    def _job_ask(self, progress, plan: str, round: int) -> str:
-        return self.ask.run(progress, plan, round, adapter=_Traced(self.adapter, progress, 0.5, 0.95))
+    def explain_incident(self, incident_id: str) -> dict:
+        self.incident(incident_id)  # 404 before queueing
+        return self.enqueue("explain", incident=incident_id)
 
     def _job_bench(self, progress, store: str = "memory", max_rate: int = 0, step_seconds: float = 10) -> str:
         """``logpipe bench`` in its own process (so it neither slows this server nor is skewed
@@ -1343,6 +1323,34 @@ class Server:
         self.control.put("bench", result["id"], result)
         fall = f", falls behind at {result['falls_behind_at']:,}/s" if result["falls_behind_at"] else ""
         return f"max sustained {result['max_sustained_per_s']:,} lines/s{fall}"
+
+    def _job_explain(self, progress, incident: str) -> str:
+        progress(0.05, "collecting the incident's lines and what the model expected")
+        inc = self.incident(incident)
+        events = inc["events"]
+        unusual = [e for e in events if e["status"] != "expected"]
+        mark = {"expected": " ", "unexpected": "*", "unseen": "?"}
+        shown = events if len(events) <= 60 else (unusual or events)[:60]
+        text = "\n".join([
+            (f"Service: {inc['key']}  from {inc['start']} to {inc['end']}  ({inc['alerts']} alerts, "
+             f"up to {round(inc['peak_miss'] * 100)}% of events mispredicted)"),
+            (f"{len(unusual)} of {len(events)} events were unusual. * = not what the model expected there, "
+             "? = a kind of line the model never saw:"),
+            *(f"{mark[e['status']]} {e['timestamp']} {e['message'].splitlines()[0][:300]}"
+              + (f"   (expected: {e['expected'][0]['words']})" if e["expected"] and e["status"] == "unexpected" else "")
+              for e in shown),
+            "Warnings and errors from other services at the same time:" if inc["around"] else "No other service logged warnings or errors then.",
+            *(f"  {a['timestamp']} {a['host']}/{a['service']}: {a['message'].splitlines()[0][:200]}" for a in inc["around"][:20])])
+        facts = {"text": text, "key": inc["key"], "events": unusual, "total": len(events), "around": inc["around"]}
+        progress(0.15, f"{len(unusual)} unusual events of {len(events)}; asking the LLM", {
+            "Input": {"incident": inc["key"], "unusual events": len(unusual), "prompt context": text}})
+        adapter = _Traced(self.adapter, progress, 0.2, 0.9)
+        result = adapter.explain_incident(facts)
+        self.control.put("incident", incident, (self.control.get("incident", incident) or {"id": incident, "status": "open"})
+                         | {"explanation": result | {"at": now_iso()}, "stream": inc["stream"]})
+        progress(0.95, "explanation saved", {"LLM calls": adapter.calls, "Output": result})
+        self.events.notify()
+        return result["summary"]
 
     # --- streams ------------------------------------------------------------------------
     def save_stream(self, doc: dict, stream_id: str | None = None) -> dict:

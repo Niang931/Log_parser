@@ -16,10 +16,8 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
-def store(monkeypatch):
+def store():
     from logpipe.storage.clickhouse import ClickHouseStore
-
-    monkeypatch.delenv("CLICKHOUSE_READONLY_USER", raising=False)  # .env may leak in (load_env); that user exists only in compose
 
     db = f"logpipe_server_test_{uuid.uuid4().hex[:8]}"
     st = ClickHouseStore.from_env(database=db, batch_size=10)
@@ -101,25 +99,3 @@ def test_metrics_on_clickhouse(store, tmp_path):
     body = client.get("/api/system?minutes=5").json()
     assert body["current"]["threads"] >= 1
     assert len(body["series"]["rss_mb"]) >= 1 and body["series"]["lines_per_s"][0][0] > 1.7e9
-
-
-def test_ask_reads_are_read_only_on_clickhouse(store, tmp_path):
-    """Compiled Ask reads run; writes, table functions and system tables don't, through any path."""
-    from datetime import UTC, datetime, timedelta
-
-    from logpipe.ask.store import Filters, LogStore
-
-    server, _ = make(store, tmp_path)
-    ls = LogStore(server.reads)
-    now = datetime.now(UTC)
-    for compiled in (ls.rows(Filters(levels=["error"]), now - timedelta(hours=1), now),
-                     ls.template_counts(Filters(), now - timedelta(hours=1), now),
-                     ls.buckets(Filters(), now - timedelta(hours=1), now, 60)):
-        assert ls.run(compiled) == []
-    for sql in ("SELECT * FROM url('http://127.0.0.1:8123/?query=SELECT+1', CSV)", "SELECT * FROM system.users",
-                "SELECT 1; DROP TABLE iot_logs", "INSERT INTO iot_logs (raw_message) VALUES ('x')"):
-        with pytest.raises(ValueError):
-            server.reads.query(sql)
-    # past the guard, the server itself refuses: readonly=2 (or the read-only user)
-    with pytest.raises(ValueError):
-        server.reads.query("SELECT * FROM iot_logs SETTINGS readonly = 0")
