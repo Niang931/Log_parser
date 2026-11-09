@@ -295,6 +295,20 @@ export function ReportView({ r }: { r: AskResult }) {
                 </ol>
               </section>
             )}
+            {a.hypotheses.length > 0 && a.insufficient_evidence && a.leads.length > 0 && (
+              <section>
+                <h3>Leads from the ranking<span className="muted small"> the rules' own top picks, for when the answer above is unsure</span></h3>
+                <ol className="ask-causes">
+                  {a.leads.map((h, i) => (
+                    <li key={i}>
+                      <div className="ask-cause-head"><span className="ask-cause-n">{i + 1}</span><strong className="grow">{h.cause}</strong></div>
+                      {h.reasoning && <p className="ask-reason">{h.reasoning}</p>}
+                      <Cites cites={h.cites} />
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
             {a.timeline.length > 0 && (
               <section>
                 <h3>Timeline</h3>
