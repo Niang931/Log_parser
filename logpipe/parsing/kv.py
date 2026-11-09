@@ -56,7 +56,7 @@ def compile_extractor(tokens: Sequence[str]) -> re.Pattern[str]:
         piece: list[str] = []
         last = 0
         for match in SLOT_RE.finditer(tok):
-            piece.append(re.escape(tok[last : match.start()]))
+            piece.append(re.escape(tok[last: match.start()]))
             piece.append(r"(.+?)" if match.group(1) else r"(\S+?)")
             last = match.end()
         piece.append(re.escape(tok[last:]))
