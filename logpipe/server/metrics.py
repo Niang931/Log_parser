@@ -177,7 +177,6 @@ class Metrics:
         self.current: dict[str, float] = {}
         self.sampled_at: float | None = None
 
-    # --- the hot path ----------------------------------------------------------------------
     def parsed(self, ns: int, unknown: bool, alerts: int = 0) -> None:
         with self._lock:
             self._counts["lines"] += 1
@@ -199,7 +198,6 @@ class Metrics:
             self._counts["llm_errors"] += not ok
             self._llm_seconds += seconds
 
-    # --- sampling ----------------------------------------------------------------------------
     def sample(self, gauges: dict[str, float | None] | None = None) -> dict[str, float]:
         """Rates since the last sample, plus ``gauges``; written to the sink and kept as
         :attr:`current`."""

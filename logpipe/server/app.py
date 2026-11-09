@@ -111,7 +111,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     async def bad_request(_request, exc: ValueError):
         return JSONResponse({"detail": str(exc)}, 400)
 
-    # --- intake ---------------------------------------------------------------------
     @app.get("/intake/v1/ping")
     def ping(key: Annotated[dict, Depends(agent_key)]) -> dict:
         return {"ok": True, "key": key["name"]}
@@ -199,7 +198,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return StreamingResponse(stream(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
-    # --- overview, logs, templates, stats --------------------------------------------
     @app.get("/api/overview")
     def overview() -> dict:
         agents = server.agents()
@@ -293,7 +291,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         sql = compiler.build(body)
         return {"sql": sql, "result": server.reads.query(sql)}
 
-    # --- Ask: question -> plan of read-only queries -> approval -> answer (logpipe.ask) ---
+    # Ask: question -> plan of read-only queries -> approval -> answer (logpipe.ask)
     def ask_flag(body: dict) -> bool | None:
         v = body.get("require_approval")
         if v is not None and not isinstance(v, bool):
@@ -433,7 +431,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     def explain_incident(incident_id: str, body: Annotated[dict | None, Body()] = None) -> dict:
         return server.explain_incident(incident_id, ask_flag(body or {}))
 
-    # --- agents, keys -------------------------------------------------------------------
     @app.get("/api/agents")
     def agents() -> dict:
         return {"agents": server.agents()}
@@ -470,7 +467,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         server.revoke_key(key_id)
         return {"ok": True}
 
-    # --- learning lifecycle -------------------------------------------------------------
     @app.get("/api/sources")
     def sources() -> dict:
         return {"sources": sorted(({**s, "streams": [x["id"] for x in server.streams_for(s["id"])]}
@@ -509,7 +505,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     def update_settings(body: Annotated[dict, Body()]) -> dict:
         return server.update_settings(body)
 
-    # --- template review -----------------------------------------------------------------
     @app.post("/api/review/generate", status_code=202)
     def generate_drafts(body: Annotated[dict | None, Body()] = None) -> dict:
         return server.generate_drafts((body or {}).get("sample_cap"))
@@ -656,7 +651,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     def retry_job(job_id: str) -> dict:
         return server.retry_job(job_id)
 
-    # --- demo ---------------------------------------------------------------------------
     @app.get("/demo", include_in_schema=False)
     def demo_redirect():
         return RedirectResponse("/demo/")
@@ -701,7 +695,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
             except Exception as error:  # noqa: BLE001
                 return JSONResponse({"error": f"{type(error).__name__}: {error}"}, 400)
 
-    # --- the React app --------------------------------------------------------------------
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str):
         if path.startswith(("api/", "intake/")):

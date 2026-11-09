@@ -18,9 +18,10 @@ class Filters:
     template_ids: list[int] = field(default_factory=list)
 
     @classmethod
-    def of(cls, spec: QuerySpec) -> Filters:
-        return cls(list(spec.services), list(spec.hosts), levels_at_least(spec.min_level),
-                   list(spec.keywords), list(spec.template_ids))
+    def of(cls, spec: QuerySpec, groups: dict[str, list[str]] | None = None) -> Filters:
+        """The spec's filters; a group named in it stands for the services of its streams."""
+        services = list(dict.fromkeys([*spec.services, *(s for g in spec.groups for s in (groups or {}).get(g, []))]))
+        return cls(services, list(spec.hosts), levels_at_least(spec.min_level), list(spec.keywords), list(spec.template_ids))
 
     def builder(self) -> list[dict]:
         """As the Query builder's filter list (the builders quote and check every value)."""

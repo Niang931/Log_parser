@@ -8,22 +8,31 @@ explanation) and never reads anything that isn't one of the approved queries.
 """
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
 from ..server.stores import StoreReads
-from ..settings import get_settings
+from ..settings import AskSettings, RcaSettings, get_settings
+from .models import (
+    ClarifyResult,
+    GeneralResult,
+    LinesResult,
+    LogLine,
+    Result,
+    TableResult,
+    TemplateCount,
+    TemplateSeen,
+)
 from .query import Filters, Query
 from .spec import QuerySpec, time_range
-
-MAX_ROUNDS = 6  # discovery, evidence, one widening, up to three follow-ups
 
 
 @dataclass
 class Ctx:
+    """Everything a plan reads from besides the approved queries: the server's catalog, models
+    and settings, frozen at the moment the round is planned or run."""
     store: StoreReads
     templates: dict[int, str]  # id -> text, canonical ids only
     canonical: Callable[[int], int] = lambda t: t
@@ -33,12 +42,27 @@ class Ctx:
     search_templates: Callable[[str, int], list[tuple[int, float]]] = lambda text, k: []
     neighbours: Callable[[int, int], list[tuple[int, float]]] = lambda tid, k: []  # LogBERT vectors
     shutdown: set[int] = field(default_factory=set)
+    groups: dict[str, list[str]] = field(default_factory=dict)  # group -> the services its streams cover
     adapter: Any = None
+    question: str = ""  # the person's words, for the LLM's final answer
     now: datetime = field(default_factory=lambda: datetime.now(UTC))
     window: int = 20  # LogBERT window length
     use_logbert: bool = True
     use_semantic: bool = True
-    budget_tokens: int = 6000
+    ask: AskSettings = field(default_factory=lambda: get_settings().ask)
+    rca: RcaSettings = field(default_factory=lambda: get_settings().rca)
+
+    def scope(self, spec: QuerySpec) -> dict:
+        """The filters a root-cause read keeps to: the services of the groups asked about, else
+        the hosts asked about. Services named alone don't narrow it: what broke them may be elsewhere."""
+        if spec.groups:
+            return {"services": sorted({s for g in spec.groups for s in self.groups.get(g, [])})}
+        return {"hosts": list(spec.hosts)} if spec.hosts and not spec.services else {}
+
+    def groups_of(self, services) -> dict[str, list[str]]:
+        """The groups the given services belong to, with all their services."""
+        named = {s for s in services if s}
+        return {g: svcs for g, svcs in self.groups.items() if named & set(svcs)}
 
 
 @dataclass
@@ -52,8 +76,8 @@ class Round:
 class Outcome:
     """What ``advance`` returns: the next round, or the finished result."""
     round: Round | None = None
-    result: dict | None = None
-    state: dict = field(default_factory=dict)
+    result: Result | None = None
+    state: dict = field(default_factory=dict)  # JSON, stored with the plan between rounds
 
 
 def _q(n: int, i: int, tool: str, title: str, why: str, compiled: str, engine: str, **args) -> Query:
@@ -78,8 +102,8 @@ def log_read(ctx: Ctx, n: int, i: int, tool: str, title: str, why: str, **args) 
     elif tool == "aggregate":
         spec = QuerySpec.model_validate(args["spec"])
         assert spec.aggregate is not None
-        compiled = c.build({**span(start, end), "filters": Filters.of(spec).builder(), "group_by": spec.aggregate.group_by,
-                            "measure": {"fn": spec.aggregate.fn, "field": spec.aggregate.field},
+        compiled = c.build({**span(start, end), "filters": Filters.of(spec, ctx.groups).builder(),
+                            "group_by": spec.aggregate.group_by, "measure": {"fn": spec.aggregate.fn, "field": spec.aggregate.field},
                             "over_time": spec.aggregate.over_time, "limit": spec.limit})
     else:
         raise ValueError(f"unknown read {tool}")
@@ -95,8 +119,7 @@ def execute(q: Query, ctx: Ctx) -> list[dict]:
     if q.status != "approved":
         raise PermissionError(f"query {q.id} is {q.status}, not approved")
     if q.engine != "local":
-        cfg = get_settings().ask
-        return ctx.store.records(q.compiled, cfg.row_cap if q.tool == "rows" else cfg.agg_cap)
+        return ctx.store.records(q.compiled, ctx.ask.row_cap if q.tool == "rows" else ctx.ask.agg_cap)
     if q.tool == "agents":
         return [{"host": a.get("hostname"), "last_seen": a.get("last_seen"), "online": a.get("online")}
                 for a in ctx.agents()]
@@ -106,7 +129,6 @@ def execute(q: Query, ctx: Ctx) -> list[dict]:
     raise ValueError(f"unknown local read {q.tool}")
 
 
-# --- planning ---------------------------------------------------------------------------
 def describe_templates(found: list[tuple[int, float]], templates: dict[int, str]) -> str:
     return "; ".join(f"#{t} {templates.get(t, '?')[:60]} ({s:.2f})" for t, s in found)
 
@@ -123,14 +145,12 @@ def lookup_templates(spec: QuerySpec, ctx: Ctx) -> tuple[list[int], str]:
 
 def first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
     if spec.intent == "general":
-        return Outcome(result={"kind": "general", "answer": spec.answer or "(no answer)",
-                               "note": "From general knowledge, not from your logs."})
+        return Outcome(result=GeneralResult(answer=spec.answer or "(no answer)"))
     if spec.intent == "rca":
         from .rca import rca_first_round
 
         return rca_first_round(spec, ctx)
     start, end = time_range(spec, ctx.now)
-    f = asdict(Filters.of(spec))
     if spec.intent == "summary":
         from .rca import summary_round
 
@@ -139,22 +159,22 @@ def first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
         return Outcome(Round(1, "count", [log_read(ctx, 1, 1, "aggregate", "Count",
                                                     f"{spec.aggregate.fn} per {', '.join(spec.aggregate.group_by) or 'range'}",
                                                     spec=spec.model_dump(mode="json"), **span(start, end))]))
+    f = Filters.of(spec, ctx.groups)
     note = ""
     if spec.intent in ("event", "semantic"):
         tids, note = lookup_templates(spec, ctx)
         if not tids and not spec.keywords:
-            return Outcome(result={"kind": "clarify", "message": "No template looks like that event. Name it with "
-                                   "words the lines contain (in quotes), or pick a template on the Templates page.",
-                                   "note": note})
-        f["template_ids"] = sorted(set(f["template_ids"]) | set(tids)) if tids else f["template_ids"]
+            return Outcome(result=ClarifyResult(message="No template looks like that event. Name it with words the lines "
+                                                        "contain (in quotes), or pick a template on the Templates page.", note=note))
         if tids:
-            f["keywords"] = []  # the templates are the match; the words described them
-    queries = [log_read(ctx, 1, 1, "rows", "Matching lines", "the newest lines that match: " + Filters(**f).describe(),
-                        filters=f, limit=spec.limit, newest_first=True, **span(start, end))]
+            f.template_ids = sorted(set(f.template_ids) | set(tids))
+            f.keywords = []  # the templates are the match; the words described them
+    queries = [log_read(ctx, 1, 1, "rows", "Matching lines", "the newest lines that match: " + f.describe(),
+                        filters=asdict(f), limit=spec.limit, newest_first=True, **span(start, end))]
     if spec.intent in ("event", "semantic"):
         queries.append(log_read(ctx, 1, 2, "template_counts", "When each template occurred",
                                 "first and last time per template, to say when the event happened",
-                                filters=f, **span(start, end)))
+                                filters=asdict(f), **span(start, end)))
     return Outcome(Round(1, "search", queries), state={"note": note})
 
 
@@ -166,51 +186,28 @@ def advance(spec: QuerySpec, state: dict, done: Round, outputs: dict[str, list[d
         return rca_advance(spec, state, done, outputs, ctx)
     q = done.queries[0]
     if q.id not in outputs:
-        return Outcome(result={"kind": "clarify", "message": "The search was not approved, so there is nothing to show."})
+        return Outcome(result=ClarifyResult(message="The search was not approved, so there is nothing to show."))
     rows = outputs[q.id]
     if q.tool == "aggregate":
         cols = list(rows[0]) if rows else []
-        return Outcome(result={"kind": "table", "columns": cols, "rows": [[r[c] for c in cols] for r in rows],
-                               "compiled": q.compiled})
-    result = {"kind": "lines", "lines": [_line(r, ctx) for r in rows], "note": state.get("note", "")}
+        return Outcome(result=TableResult(columns=cols, rows=[[r[c] for c in cols] for r in rows], compiled=q.compiled))
+    lines = [LogLine.model_validate(r) for r in rows]
+    for line in lines:
+        line.template_id = ctx.canonical(int(line.template_id or 0))
+    seen = []
     if len(done.queries) > 1 and done.queries[1].id in outputs:
-        result["templates"] = [{"template_id": ctx.canonical(int(c["template_id"])), "service": c["service"],
-                                "count": c["n"], "first": c["first"], "last": c["last"],
-                                "text": ctx.templates.get(ctx.canonical(int(c["template_id"])), "")}
-                               for c in outputs[done.queries[1].id]]
-    return Outcome(result=result)
-
-
-def _line(r: dict, ctx: Ctx) -> dict:
-    tid = ctx.canonical(int(r["template_id"]))
-    return {"log_id": r["log_id"], "timestamp": r["timestamp"], "host": r["host"], "service": r["service"],
-            "level": r["level"], "template_id": tid, "message": r["message"]}
-
-
-def words(text: str) -> set[str]:
-    return {w for w in re.findall(r"[a-z][a-z0-9]{2,}", text.lower())}
-
-
-def overlap_search(templates: dict[int, str]) -> Callable[[str, int], list[tuple[int, float]]]:
-    """Word-overlap search over template text: the fallback when no embedding index is built."""
-    def search(text: str, k: int) -> list[tuple[int, float]]:
-        q = words(text)
-        if not q:
-            return []
-        scored = [(t, len(q & words(s)) / len(q)) for t, s in templates.items()]
-        return sorted((x for x in scored if x[1] > 0), key=lambda x: -x[1])[:k]
-    return search
-
-
-def clamp_now(t: datetime, ctx: Ctx) -> datetime:
-    return min(t, ctx.now + timedelta(minutes=1))
+        for c in (TemplateCount.model_validate(r) for r in outputs[done.queries[1].id]):
+            tid = ctx.canonical(c.template_id)
+            seen.append(TemplateSeen(template_id=tid, service=c.service, count=c.n, first=c.first, last=c.last,
+                                     text=ctx.templates.get(tid, "")))
+    return Outcome(result=LinesResult(lines=lines, templates=seen, note=state.get("note", "")))
 
 
 def run_unattended(spec: QuerySpec, ctx: Ctx) -> dict:
     """Every round approved as planned: for the eval and tests only (the server never does this
-    unless approval is switched off). The result carries the rounds that ran."""
+    unless approval is switched off). The result, as JSON, carries the rounds that ran."""
     out, state, rounds = first_round(spec, ctx), {}, []
-    while out.result is None and len(rounds) < MAX_ROUNDS:
+    while out.result is None and len(rounds) < ctx.ask.max_rounds:
         state |= out.state
         r = out.round
         assert r is not None
@@ -221,5 +218,6 @@ def run_unattended(spec: QuerySpec, ctx: Ctx) -> dict:
             q.status = "done"
         rounds.append(r)
         out = advance(spec, state, r, outputs, ctx)
-    result = out.result or {"kind": "clarify", "message": "too many rounds"}
-    return result | {"rounds": [{"n": r.n, "purpose": r.purpose, "queries": [asdict(q) for q in r.queries]} for r in rounds]}
+    result = out.result or ClarifyResult(message="too many rounds")
+    return result.model_dump(mode="json") | {
+        "rounds": [{"n": r.n, "purpose": r.purpose, "queries": [asdict(q) for q in r.queries]} for r in rounds]}

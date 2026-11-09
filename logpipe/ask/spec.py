@@ -53,6 +53,7 @@ class QuerySpec(BaseModel):
     end: datetime | None = None
     services: list[str] = Field(default_factory=list, max_length=20)
     hosts: list[str] = Field(default_factory=list, max_length=20)
+    groups: list[str] = Field(default_factory=list, max_length=10)  # stream groups: their services, together
     min_level: Literal["debug", "info", "warn", "error"] | None = None
     keywords: list[str] = Field(default_factory=list, max_length=MAX_KEYWORDS)
     template_ids: list[int] = Field(default_factory=list, max_length=50)
@@ -79,16 +80,20 @@ class QuerySpec(BaseModel):
 
 @dataclass
 class Catalog:
-    """What a spec may name: services, hosts and templates that exist."""
+    """What a spec may name: services, hosts, stream groups and templates that exist."""
     services: set[str] = field(default_factory=set)
     hosts: set[str] = field(default_factory=set)
     templates: dict[int, str] = field(default_factory=dict)  # id -> text
+    groups: dict[str, list[str]] = field(default_factory=dict)  # group name -> the services of its streams
 
     def describe(self, max_templates: int = 60) -> str:
         shown = list(self.templates.items())[:max_templates]
+        grouped = [f"  {g}: {', '.join(svcs) or '(no services yet)'}" for g, svcs in sorted(self.groups.items())]
         return "\n".join([
             f"services: {', '.join(sorted(self.services)) or '(none)'}",
             f"hosts: {', '.join(sorted(self.hosts)) or '(none)'}",
+            "groups (a group is several services managed together; name it to cover all of them):",
+            *(grouped or ["  (none)"]),
             "templates (id: text):", *(f"  {i}: {t[:120]}" for i, t in shown),
             *([f"  ... and {len(self.templates) - len(shown)} more"] if len(self.templates) > len(shown) else [])])
 
@@ -117,6 +122,9 @@ def validate(raw: dict | QuerySpec, catalog: Catalog, now: datetime | None = Non
     spec = spec.model_copy(deep=True)
     spec.services = _pick(spec.services, catalog.services, "service")
     spec.hosts = _pick(spec.hosts, catalog.hosts, "host")
+    spec.groups = _pick(spec.groups, set(catalog.groups), "group")
+    if empty := [g for g in spec.groups if not catalog.groups[g]]:
+        raise ValueError(f"group {empty[0]!r} has no services yet: add streams that have sources to it")
     if unknown := [t for t in spec.template_ids if t not in catalog.templates]:
         raise ValueError(f"unknown template id {unknown[0]}")
     if spec.start or spec.end:

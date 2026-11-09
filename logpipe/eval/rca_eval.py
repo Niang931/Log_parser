@@ -164,7 +164,6 @@ def _calibrate(server, client) -> None:
     run_jobs()
 
 
-# --- metrics ------------------------------------------------------------------------------
 def naive_bundle(world: World, slot: Slot) -> list[str]:
     """The baseline: the last 200 lines before the question, whatever they are."""
     rows = world.server.reads.between(slot.now - timedelta(hours=2), slot.now, 100_000)

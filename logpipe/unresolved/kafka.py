@@ -127,7 +127,6 @@ class KafkaQueue:
             self._consumer.subscribe([self.topic])
         return self._consumer
 
-    # __producer_____________________
     def publish(self, row: LogRow, *, attempts: int = 0) -> None:
         headers = [(ATTEMPTS_HEADER, str(attempts).encode())]
         self._produce(self.topic, partition_key(row, self.key_by), encode_row(row), headers)
@@ -222,7 +221,6 @@ class KafkaQueue:
             self._retry_at = 0.0
             self._drain_spill(limit=self.spill_size)
 
-    # __consumers_____________________
     def consume(self, max_messages: int, timeout: float = 1.0) -> list[Message]:
         raw = self.consumer.consume(num_messages=max(1, max_messages), timeout=timeout)
         batch: list[Message] = []
@@ -280,7 +278,6 @@ class KafkaQueue:
             LOGGER.debug("kafka: lag unavailable: %s", error)
             return None
 
-    # __common_____________________
     def stats(self) -> QueueStats:
         snapshot = QueueStats(**self._stats.to_json())
         snapshot.spilled = len(self._parked)

@@ -51,6 +51,7 @@ from ..unresolved import UnresolvedQueue
 from . import review
 from .control import ControlStore
 from .drift import Drift, histogram
+from .groups import Groups
 from .metrics import (
     ClickHouseSeries,
     CountedAdapter,
@@ -299,13 +300,13 @@ class Server:
 
         from ..ask.service import AskService
 
+        self.groups = Groups(self)
         self.ask = AskService(self)
         self._stop = threading.Event()
         if start_threads:
             for target in (self._ingest_loop, self._job_loop, self._housekeeping_loop):
                 threading.Thread(target=target, daemon=True, name=target.__name__).start()
 
-    # --- pipeline -----------------------------------------------------------------------
     @property
     def adapter(self) -> LLMAdapter:
         if self._adapter is None:
@@ -344,7 +345,6 @@ class Server:
     def _model_dir(self, stream_id: str) -> Path:
         return self.data_dir / "models" / stream_id
 
-    # --- API keys -----------------------------------------------------------------------
     def _store_key(self, name: str, token: str) -> dict:
         digest = hashlib.sha256(token.encode()).hexdigest()
         doc = {"id": uuid.uuid4().hex[:12], "name": name, "hash": digest, "prefix": token[:7],
@@ -373,7 +373,6 @@ class Server:
             self._dirty.add(("key", doc["id"]))
         return doc
 
-    # --- intake -------------------------------------------------------------------------
     def ingest(self, events: list[dict]) -> int:
         if self.inbox.qsize() + len(events) > self.inbox.maxsize:
             raise Busy(f"{self.inbox.qsize()} events waiting")
@@ -497,7 +496,6 @@ class Server:
             if stream["id"] not in homes and not stream.get("selectors"):
                 self.delete_stream(stream["id"])
 
-    # --- warnings -----------------------------------------------------------------------
     def _warn(self, kind: str, subject: str, title: str, detail: str, streams: list[str]) -> dict:
         wid = f"{kind}:{subject}"
         doc = self.control.get("warning", wid)
@@ -571,7 +569,6 @@ class Server:
             return self.enqueue("draft", sources=[w["subject"]])
         return self.train(w["streams"])
 
-    # --- jobs ---------------------------------------------------------------------------
     def enqueue(self, kind: str, **params) -> dict:
         if kind not in JOB_KINDS:
             raise ValueError(f"unknown job kind {kind!r}")
@@ -653,7 +650,6 @@ class Server:
             progress(start + (end - start) * (i + 1) / len(sids), f"sampled {src['service'] or sid}")
         return lines, pool
 
-    # --- template review ----------------------------------------------------------------
     def _lines_path(self, batch_id: str) -> Path:
         return self.data_dir / "review" / f"{batch_id}.json"
 
@@ -999,7 +995,6 @@ class Server:
         self.store.flush()
         return f"{len(out)} of {len(rows)} stored lines re-extracted with the new rule"
 
-    # --- training -----------------------------------------------------------------------
     def train(self, streams: list[str]) -> dict:
         """Retrain now if there is enough data; otherwise the stream waits and trains by itself."""
         ready, waiting = [], []
@@ -1153,13 +1148,11 @@ class Server:
                     self.resolve_warning(w["id"], f"learned by {version}")
         progress(1.0, f"{stream['name']}: model {version} ready")
 
-    # --- settings -----------------------------------------------------------------------
     def update_settings(self, body: dict) -> dict:
         self.settings = self.settings.changed(body)
         self.control.put("settings", "server", self.settings.model_dump())
         return self.settings.model_dump()
 
-    # --- maintenance --------------------------------------------------------------------
     def due_drafts(self) -> list[str]:
         """New sources that collected enough lines (or waited long enough) for a template sample."""
         if not self.settings.calibrated:
@@ -1212,7 +1205,6 @@ class Server:
             "warnings": warnings,
         }
 
-    # --- incidents ----------------------------------------------------------------------
     def incidents(self, limit: int = 2000) -> list[dict]:
         """Alerts grouped: one service's alerts less than ``incident_gap_minutes`` apart are one incident,
         named by its first alert, newest first, with what a person decided about it."""
@@ -1323,7 +1315,6 @@ class Server:
         fall = f", falls behind at {result['falls_behind_at']:,}/s" if result["falls_behind_at"] else ""
         return f"max sustained {result['max_sustained_per_s']:,} lines/s{fall}"
 
-    # --- streams ------------------------------------------------------------------------
     def save_stream(self, doc: dict, stream_id: str | None = None) -> dict:
         name = str(doc.get("name", "")).strip()
         if not name:
@@ -1337,7 +1328,11 @@ class Server:
         if days is not None and (not isinstance(days, int | float) or days <= 0):
             raise ValueError("retrain_days must be a positive number of days")
         stream_id = stream_id or self._stream_id(name)
-        existing = self.control.get("stream", stream_id) or {"id": stream_id, "created_at": now_iso()}
+        existing = self.control.get("stream", stream_id) or {"id": stream_id, "created_at": now_iso(), "group": None}
+        if "group" in doc:  # null takes it out of its group
+            if doc["group"] is not None and self.control.get("group", str(doc["group"])) is None:
+                raise ValueError(f"unknown group {doc['group']!r}")
+            existing = existing | {"group": doc["group"]}
         for other in self.control.all("stream"):  # a ticked source moves here from wherever it was
             if other["id"] != stream_id and set(other.get("picked") or []) & set(picked):
                 self.control.update("stream", other["id"], picked=sorted(set(other["picked"]) - set(picked)))
@@ -1360,7 +1355,6 @@ class Server:
         shutil.rmtree(self._model_dir(stream_id), ignore_errors=True)  # a later stream may reuse the id
         self.events.notify()
 
-    # --- agents -------------------------------------------------------------------------
     def heartbeat(self, status: dict, key: dict) -> dict:
         host = str(status.get("hostname") or "unknown")[:200]
         prev = self.control.get("agent", host) or {"first_seen": now_iso()}
@@ -1410,7 +1404,6 @@ class Server:
                             "remote_applied": st.get("remote_hash", "") == remote.get("hash", "")})
         return sorted(out, key=lambda a: a["hostname"])
 
-    # --- housekeeping -------------------------------------------------------------------
     def rate(self) -> float:
         """Lines per second over the last minute."""
         now = time.monotonic()

@@ -67,7 +67,6 @@ class Auth:
         self.set_password(generated)
         return generated
 
-    # --- login throttling ------------------------------------------------------------------
     def blocked_for(self, client: str) -> float:
         """Seconds until ``client`` may try again (0 when it may)."""
         now = time.monotonic()
@@ -89,7 +88,6 @@ class Auth:
             self._failures.setdefault(client, []).append(time.monotonic())
         return None
 
-    # --- sessions ----------------------------------------------------------------------------
     @staticmethod
     def _sig(doc: dict, expires: int) -> str:
         key = (doc["secret"] + doc["hash"]).encode()
