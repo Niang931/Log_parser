@@ -25,14 +25,13 @@ from fastapi.responses import (
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild, querybuild_mongo
-from .auth import COOKIE, SESSION_SECONDS, Auth
-from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
+from .auth import COOKIE, Auth
+from .core import Busy, Server, now_iso
 from .metrics import METRICS
 from .reads import FACETS
 
 STATIC = Path(__file__).with_name("static")
 DEMO_INDEX = Path(__file__).parent.parent / "demo" / "index.html"
-MAX_BODY = 64 << 20  # decompressed intake batch
 
 
 def template_sql(entry, engine: str) -> str:
@@ -81,7 +80,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         if token is None:
             raise HTTPException(401, "wrong password")
         res = JSONResponse({"ok": True})
-        res.set_cookie(COOKIE, token, max_age=SESSION_SECONDS, httponly=True, samesite="strict",
+        res.set_cookie(COOKIE, token, max_age=server.config.server.session_seconds, httponly=True, samesite="strict",
                        secure=request.url.scheme == "https")
         return res
 
@@ -102,7 +101,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
             raise HTTPException(403, "the current password is wrong")
         auth.set_password(str(body.get("new") or ""))  # ValueError -> 400 when too short
         res = JSONResponse({"ok": True})  # the old sessions are void now; this one is renewed
-        res.set_cookie(COOKIE, auth.login(client, str(body["new"])) or "", max_age=SESSION_SECONDS,
+        res.set_cookie(COOKIE, auth.login(client, str(body["new"])) or "", max_age=server.config.server.session_seconds,
                        httponly=True, samesite="strict", secure=request.url.scheme == "https")
         return res
 
@@ -133,7 +132,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         if request.headers.get("content-encoding") == "gzip":
             try:
                 d = zlib.decompressobj(16 + zlib.MAX_WBITS)
-                raw = d.decompress(raw, MAX_BODY)
+                raw = d.decompress(raw, server.config.server.max_body_mb << 20)
                 if d.unconsumed_tail:
                     raise HTTPException(413, "batch too large")
             except zlib.error as error:
@@ -227,7 +226,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
             "warnings": dict(Counter(w["kind"] for w in warnings)),
             "review": len(server.batches()),
             "streams": len(server.control.all("stream")), "models": len(server.scorers),
-            "settings": server.settings, "jobs": jobs,
+            "settings": server.settings.model_dump(), "jobs": jobs,
             "recent_alerts": server.reads.alerts(5),
         }
 
@@ -262,7 +261,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.get("/api/templates")
     def templates() -> dict:
         snap = server.registry.current
-        calibrated_at = server.settings.get("calibrated_at") or ""
+        calibrated_at = server.settings.calibrated_at or ""
         vocabs = {sid: s.vocab for sid, s in server.scorers.items()}
         out = []
         links: dict[int, list[int]] = {}
@@ -328,7 +327,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.get("/api/ask")
     def asked(limit: int = 20) -> dict:
         return {"plans": server.ask.recent(max(1, min(limit, 100))),
-                "require_approval": bool(server.settings.get("ask_require_approval", True))}
+                "require_approval": server.settings.ask_require_approval}
 
     @app.get("/api/ask/{plan_id}")
     def ask_plan(plan_id: str) -> dict:
@@ -500,10 +499,10 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                        for a in server.agents()],
             "sources": [{**s, "streams": [x["id"] for x in server.streams_for(s["id"])]}
                         for s in server.sources.values()],
-            "settings": server.settings,
+            "settings": server.settings.model_dump(),
             "streams": server.control.all("stream"),
             "jobs": sorted(server.control.all("job"), key=lambda j: j["created_at"])[-5:],
-            "min_lines": MIN_DRAFT_LINES,
+            "min_lines": server.config.server.min_draft_lines,
             "review": next((b for b in server.batches() if b["initial"]), None),
         }
 
@@ -518,7 +517,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.get("/api/settings")
     def get_settings() -> dict:
-        return server.settings
+        return server.settings.model_dump()
 
     @app.put("/api/settings")
     def update_settings(body: Annotated[dict, Body()]) -> dict:

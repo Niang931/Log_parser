@@ -23,10 +23,10 @@ from pathlib import Path
 from deepparse.ai_scraper.session import BROWSERS
 
 from .calibrate import GroundTruth, calibrate
-from .config import Settings
 from .enrich.llm import get_adapter
 from .parsing.frozen_parser import FrozenParser, ParserHandle
 from .registry import SchemaRegistry
+from .settings import get_settings
 from .sources.file_replay import replay
 
 
@@ -298,9 +298,9 @@ def _eval(args: argparse.Namespace) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    settings = Settings.from_env()
+    settings = get_settings()
     parser = argparse.ArgumentParser(prog="logpipe")
-    parser.add_argument("--browser", choices=BROWSERS, default=settings.web_browser,
+    parser.add_argument("--browser", choices=BROWSERS, default=settings.llm.web_browser,
                         help="browser for LLM backend llm:web:<site>")
     parser.set_defaults(func=_start)
     sub = parser.add_subparsers(dest="command")
@@ -309,10 +309,10 @@ def main(argv: list[str] | None = None) -> None:
     st.set_defaults(func=_start)
 
     cal = sub.add_parser("calibrate", help="build registry v1 from historical logs")
-    cal.add_argument("--logs", type=Path, default=settings.logs_path)
+    cal.add_argument("--logs", type=Path, default=settings.app.logs_path)
     cal.add_argument("--dataset", type=Path, help="DeepParse dataset dir (raw.log + templates.json)")
-    cal.add_argument("--registry", type=Path, default=settings.registry_path)
-    cal.add_argument("--llm", default=settings.llm_backend)
+    cal.add_argument("--registry", type=Path, default=settings.app.registry_path)
+    cal.add_argument("--llm", default=settings.llm.llm_backend)
     cal.add_argument("--sample", type=int, default=200)
     cal.add_argument("--depth", type=int, default=5)
     cal.add_argument("--similarity", type=float, default=0.4)
@@ -320,18 +320,18 @@ def main(argv: list[str] | None = None) -> None:
     cal.set_defaults(func=_calibrate)
 
     rep = sub.add_parser("replay", help="parse log files with the frozen registry")
-    rep.add_argument("--logs", type=Path, default=settings.logs_path)
-    rep.add_argument("--registry", type=Path, default=settings.registry_path)
+    rep.add_argument("--logs", type=Path, default=settings.app.logs_path)
+    rep.add_argument("--registry", type=Path, default=settings.app.registry_path)
     rep.add_argument("--quiet", action="store_true", help="print only the summary")
     rep.set_defaults(func=_replay)
 
     run = sub.add_parser("run", help="full pipeline: parse, store, enrich, detect")
-    run.add_argument("--logs", type=Path, default=settings.logs_path)
-    run.add_argument("--registry", type=Path, default=settings.registry_path)
-    run.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
-    run.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue, help="unresolved queue; kafka + --no-enrich is the publish-only fast path")
-    run.add_argument("--llm", default=settings.llm_backend)
-    run.add_argument("--model", type=Path, default=settings.model_path)
+    run.add_argument("--logs", type=Path, default=settings.app.logs_path)
+    run.add_argument("--registry", type=Path, default=settings.app.registry_path)
+    run.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.app.store)
+    run.add_argument("--queue", choices=["memory", "kafka"], default=settings.app.queue, help="unresolved queue; kafka + --no-enrich is the publish-only fast path")
+    run.add_argument("--llm", default=settings.llm.llm_backend)
+    run.add_argument("--model", type=Path, default=settings.app.model_path)
     run.add_argument("--enrich-every", type=int, default=5_000)
     run.add_argument("--no-enrich", action="store_true", help="no learning in this process (use `logpipe worker`)")
     run.add_argument("--rehydrate", action="store_true", help="reload PENDING rows from the store")
@@ -341,10 +341,10 @@ def main(argv: list[str] | None = None) -> None:
     run.set_defaults(func=_run)
 
     wk = sub.add_parser("worker", help="learning worker: consume the unresolved queue")
-    wk.add_argument("--registry", type=Path, default=settings.registry_path)
-    wk.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
+    wk.add_argument("--registry", type=Path, default=settings.app.registry_path)
+    wk.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.app.store)
     wk.add_argument("--queue", choices=["memory", "kafka"], default="kafka")
-    wk.add_argument("--llm", default=settings.llm_backend)
+    wk.add_argument("--llm", default=settings.llm.llm_backend)
     wk.add_argument("--batch", type=int, default=10_000, help="rows per cycle")
     wk.add_argument("--poll", type=float, default=1.0, help="seconds to wait for a batch")
     wk.add_argument("--interval", type=float, default=2.0, help="sleep after an empty cycle")
@@ -353,9 +353,9 @@ def main(argv: list[str] | None = None) -> None:
     wk.set_defaults(func=_worker)
 
     tl = sub.add_parser("train-logbert", help="train LogBERT on per-device windows")
-    tl.add_argument("--logs", type=Path, default=settings.logs_path)
-    tl.add_argument("--registry", type=Path, default=settings.registry_path)
-    tl.add_argument("--out", type=Path, default=settings.model_path)
+    tl.add_argument("--logs", type=Path, default=settings.app.logs_path)
+    tl.add_argument("--registry", type=Path, default=settings.app.registry_path)
+    tl.add_argument("--out", type=Path, default=settings.app.model_path)
     tl.add_argument("--window", type=int, default=20)
     tl.add_argument("--stride", type=int, default=5)
     tl.add_argument("--hidden", type=int, default=64)
@@ -398,9 +398,9 @@ def main(argv: list[str] | None = None) -> None:
     sv = sub.add_parser("server", help="agent intake + operator UI (React) + learning lifecycle")
     sv.add_argument("--host", default="0.0.0.0")
     sv.add_argument("--port", type=int, default=8080)
-    sv.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
-    sv.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue)
-    sv.add_argument("--llm", default=settings.llm_backend, help="masks, key names and alias checks")
+    sv.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.app.store)
+    sv.add_argument("--queue", choices=["memory", "kafka"], default=settings.app.queue)
+    sv.add_argument("--llm", default=settings.llm.llm_backend, help="masks, key names and alias checks")
     sv.add_argument("--data-dir", type=Path, default=Path("artifacts/server"),
                     help="registry and per-stream LogBERT models")
     sv.add_argument("--epochs", type=int, default=8, help="LogBERT epochs per stream")
@@ -433,7 +433,7 @@ def main(argv: list[str] | None = None) -> None:
                     help="gate: committed numbers to compare against")
     ev.add_argument("--write-baseline", action="store_true",
                     help="gate: record the current results as the new baseline instead of checking")
-    ev.add_argument("--llm", default=settings.llm_backend)
+    ev.add_argument("--llm", default=settings.llm.llm_backend)
     ev.add_argument("--no-tune", action="store_true")
     ev.add_argument("--dataset", choices=["HDFS", "BGL"], default="HDFS")
     ev.add_argument("--normal", type=int, default=20_000)

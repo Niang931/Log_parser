@@ -6,7 +6,6 @@ into its FINAL version. A plain collection with a version-guarded replace gives 
 """
 from __future__ import annotations
 
-import os
 import uuid
 from collections.abc import Sequence
 
@@ -15,6 +14,7 @@ from pymongo.database import Database
 from pymongo.errors import BulkWriteError
 
 from ..parsing.frozen_parser import Status
+from ..settings import get_settings
 from .base import AnomalyAlert, LogRow
 
 DUPLICATE_KEY = 11000
@@ -69,8 +69,9 @@ class MongoStore:
     @classmethod
     def from_env(cls, database: str | None = None, **kwargs) -> MongoStore:
         """``MONGO_URI`` / ``MONGO_DB`` settings; ``database`` overrides ``MONGO_DB``."""
-        client = MongoClient(os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017"), tz_aware=True)
-        return cls(client[database or os.environ.get("MONGO_DB", "logpipe")], **kwargs)
+        cfg = get_settings().mongo
+        client = MongoClient(cfg.uri, tz_aware=True)
+        return cls(client[database or cfg.db], **kwargs)
 
     def insert_logs(self, rows: Sequence[LogRow]) -> None:
         if not rows:

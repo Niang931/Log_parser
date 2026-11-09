@@ -79,7 +79,7 @@ class AskService:
         return self.index
 
     def require_approval(self, asked: bool | None) -> bool:
-        return bool(self.server.settings.get("ask_require_approval", True)) or asked is True
+        return self.server.settings.ask_require_approval or asked is True
 
     # --- plans --------------------------------------------------------------------------
     def ask(self, question: str, *, require_approval: bool | None = None, tz_offset: int | None = None,

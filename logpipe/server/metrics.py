@@ -15,6 +15,8 @@ from collections import deque
 
 import numpy as np
 
+from ..settings import get_settings
+
 # name -> (label, unit, group); the UI draws one chart per metric, grouped.
 METRICS: dict[str, tuple[str, str, str]] = {
     "lines_per_s": ("Lines processed", "lines/s", "Throughput"),
@@ -41,7 +43,6 @@ METRICS: dict[str, tuple[str, str, str]] = {
     "store_mb": ("Log store on disk", "MB", "Storage"),
     "disk_used_pct": ("Store disk used", "%", "Storage"),
 }
-LATENCY_CAP = 20_000  # latencies kept per sample (a uniform reservoir beyond that)
 
 
 def _host_cpu() -> tuple[float, float] | None:
@@ -169,6 +170,7 @@ class Metrics:
         self._llm_seconds = 0.0
         self._lat: list[int] = []
         self._seen = 0  # latencies offered this sample (for the reservoir)
+        self._cap = get_settings().server.metrics_latency_cap
         self._at = time.monotonic()
         self._cpu = sum(os.times()[:2])
         self._host = _host_cpu()
@@ -182,9 +184,9 @@ class Metrics:
             self._counts["unknown"] += unknown
             self._counts["alerts"] += alerts
             self._seen += 1
-            if len(self._lat) < LATENCY_CAP:
+            if len(self._lat) < self._cap:
                 self._lat.append(ns)
-            elif (j := self._rng.randrange(self._seen)) < LATENCY_CAP:
+            elif (j := self._rng.randrange(self._seen)) < self._cap:
                 self._lat[j] = ns
 
     def count(self, name: str, n: int = 1) -> None:

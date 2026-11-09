@@ -18,6 +18,8 @@ from pathlib import Path
 from deepparse.ai_scraper.sites import SITES
 from deepparse.synth.chat_provider import API_KEY_ENV
 
+from .settings import get_settings
+
 SAVED = Path(".logpipe/start.json")
 
 
@@ -29,6 +31,7 @@ def load_env(path: Path = Path(".env")) -> None:
         key, sep, value = line.strip().partition("=")
         if sep and key and not key.startswith("#"):
             os.environ.setdefault(key, value.strip().strip('"'))
+    get_settings.cache_clear()  # settings read before now missed these
 
 
 def _ask(prompt: str) -> str:
@@ -290,8 +293,9 @@ def start(run: Callable = subprocess.run, launch: Callable[[list[str]], None] | 
                  "chrome" if a["browser"] == "chromium" else "camoufox"], check=True)
             signed_in = sorted({*signed_in, a["site"]})
         _save(a, signed_in)
-    if a["mode"] == "server" and not os.environ.get("LOGPIPE_ADMIN_PASSWORD"):
+    if a["mode"] == "server" and not get_settings().server.admin_password:
         os.environ["LOGPIPE_ADMIN_PASSWORD"] = ask_password()  # this run only; never saved
+        get_settings.cache_clear()
     if launch is None:
         from .cli import main as launch
     for cmd in commands:

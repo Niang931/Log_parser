@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from logpipe.server.drift import MIN_LIVE, Drift, histogram, psi
+from logpipe.server.drift import Drift, histogram, psi
+from logpipe.settings import get_settings
+
+MIN_LIVE = get_settings().server.drift_min_live
 from tests.test_server import app_lines, calibrated, env, events, send  # noqa: F401 - env is a fixture
 
 

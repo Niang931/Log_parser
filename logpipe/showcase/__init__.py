@@ -22,6 +22,7 @@ import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 
+from ..settings import get_settings
 from .generator import FILES, ShopGenerator
 
 ROOT = Path("artifacts/showcase")
@@ -212,14 +213,15 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
     port = int(a["server_port"])
     if services:
         docker_up(services)
-    password = os.environ.get("LOGPIPE_ADMIN_PASSWORD") or secrets.token_urlsafe(9)
+    settings = get_settings()
+    password = settings.server.admin_password or secrets.token_urlsafe(9)
+    # The server runs as a child process: its settings travel as environment variables.
     env = os.environ | {"CLICKHOUSE_DB": "logpipe_showcase", "LOGPIPE_ADMIN_PASSWORD": password}
     if a["store"] == "clickhouse":  # a fresh database every run
         import clickhouse_connect
-        clickhouse_connect.get_client(
-            host=env.get("CLICKHOUSE_HOST", "127.0.0.1"), port=int(env.get("CLICKHOUSE_PORT", "8123")),
-            username=env.get("CLICKHOUSE_USER", "default"), password=env.get("CLICKHOUSE_PASSWORD", ""),
-        ).command("DROP DATABASE IF EXISTS logpipe_showcase")
+        ch = settings.clickhouse
+        clickhouse_connect.get_client(host=ch.host, port=ch.port, username=ch.user, password=ch.password,
+                                      ).command("DROP DATABASE IF EXISTS logpipe_showcase")
     shutil.rmtree(ROOT, ignore_errors=True)
     ROOT.mkdir(parents=True)
     agent_bin = find_agent(ROOT / "bin" / "logpipe-agent")

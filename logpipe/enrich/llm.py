@@ -14,7 +14,6 @@ can carry prompt injection, so callers validate the output (see
 from __future__ import annotations
 
 import atexit
-import os
 from collections.abc import Callable, Sequence
 from contextvars import ContextVar
 from functools import lru_cache
@@ -24,6 +23,7 @@ from deepparse.api import synth_masks
 from deepparse.masks_types import Mask
 
 from ..parsing.kv import default_keys
+from ..settings import get_settings
 
 if TYPE_CHECKING:
     from deepparse.ai_scraper.session import Browser
@@ -95,8 +95,6 @@ class OfflineAdapter:
         return False
 
 
-HF_BASE = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
-HF_ADAPTER = "MThien213/deepparse-iot-r1-8b"
 
 
 class HFDeepSeekAdapter(OfflineAdapter):
@@ -112,8 +110,8 @@ class HFDeepSeekAdapter(OfflineAdapter):
 
         sample = deterministic_sample(lines, min(sample_size, len(lines)))
         # QLoRA adapter: serve it on the 4-bit base it was trained on, or 8B does not fit a T4.
-        masks = synthesize_hf(sample, model_name=os.environ.get("HF_BASE", HF_BASE),
-                              adapter_path=os.environ.get("HF_ADAPTER", HF_ADAPTER),
+        cfg = get_settings().llm
+        masks = synthesize_hf(sample, model_name=cfg.hf_base, adapter_path=cfg.hf_adapter,
                               load_in_4bit=True)
         validate_regexes([m.pattern for m in masks])
         return masks

@@ -44,6 +44,7 @@ from ..parsing.grok import compile_rule, rule_from_template
 from ..parsing.kv import SLOT_RE
 from ..pipeline import Pipeline
 from ..registry import UNK_TEMPLATE_ID, NewTemplate, SchemaRegistry
+from ..settings import RuntimeSettings, get_settings
 from ..sources.file_replay import LogEvent
 from ..storage.memory import MemoryStore
 from ..unresolved import UnresolvedQueue
@@ -62,8 +63,6 @@ from .reads import reads_for
 
 LOGGER = logging.getLogger("logpipe.server")
 
-ONLINE_SECONDS = 45  # agents that don't hold /intake/v1/wait open (older builds)
-GONE_SECONDS = 1  # an agent whose wait connection closed and didn't come back is offline
 
 
 class Notifier:
@@ -97,15 +96,7 @@ class Notifier:
             return False
 SOURCE_TYPES = {"file", "journald", "docker", "tcp", "udp"}
 RULE_TYPES = {"multi_line", "exclude_at_match", "include_at_match", "mask_sequences"}
-DEFAULT_SETTINGS = {"sample_cap": 5000, "retrain_days": 7, "calibrated": False,
-                    "calibrated_at": None, "setup_done": False,
-                    "draft_lines": 500, "draft_after_minutes": 60,
-                    "ask_require_approval": True}  # Ask: every query waits for a person (logpipe.ask.service)
-MIN_TRAIN_WINDOWS = 8
-MIN_TRAIN_STEPS = 1500
-MIN_DRAFT_LINES = 50  # below this a sample can't say much about a source's templates
 JOB_KINDS = ("draft", "apply", "retrain", "reextract", "bench", "ask")
-INCIDENT_GAP = timedelta(minutes=5)  # alerts on one service closer than this are one incident
 INCIDENT_STATES = ("open", "acknowledged", "resolved", "false_positive")
 
 
@@ -250,7 +241,8 @@ class Server:
                  bootstrap_key: str | None = None, epochs: int = 8, window: int = 20,
                  stride: int = 5, inbox_size: int = 50_000, enrich_every_s: float = 30,
                  schedule_every_s: float = 600, start_threads: bool = True,
-                 min_train_steps: int = MIN_TRAIN_STEPS):
+                 min_train_steps: int | None = None):
+        self.config = get_settings()
         self.store, self.control = store, control
         self.reads = reads_for(store)
         if type(store).__name__ == "MongoStore":
@@ -265,7 +257,7 @@ class Server:
         self.adapter_factory, self.queue_factory = adapter_factory, queue_factory
         self._adapter: LLMAdapter | None = None
         self.epochs, self.window, self.stride = epochs, window, stride
-        self.min_train_steps = min_train_steps
+        self.min_train_steps = min_train_steps or self.config.server.min_train_steps
         self.enrich_every_s, self.schedule_every_s = enrich_every_s, schedule_every_s
         self.lock = threading.RLock()
         self.inbox: queue.Queue[LogEvent] = queue.Queue(maxsize=inbox_size)
@@ -280,7 +272,7 @@ class Server:
         self._waiting: dict[str, int] = {}  # host -> open /intake/v1/wait requests
         self._gone: dict[str, float] = {}  # host -> monotonic time its last wait closed
 
-        self.settings = {**DEFAULT_SETTINGS, **(control.get("settings", "server") or {})}
+        self.settings = RuntimeSettings.model_validate(control.get("settings", "server") or {})
         self.sources = {d["id"]: d for d in control.all("source")}
         if (legacy := control.get("stream", "all")) is not None and "picked" not in legacy:
             # The old catch-all stream: it keeps the sources it was catching, now as ticked ones.
@@ -324,7 +316,7 @@ class Server:
         """Before calibration: store everything as PENDING, learn nothing (the setup guide
         decides when calibration starts). After: online enrichment + per-stream detectors."""
         with self.lock:
-            if self.settings["calibrated"]:
+            if self.settings.calibrated:
                 self.pipeline = Pipeline.assemble(
                     self.registry, self.store, adapter=self.adapter,
                     queue=self.queue_factory() if self.queue_factory else None,
@@ -337,7 +329,7 @@ class Server:
     def _held(self, event: LogEvent) -> bool:
         """A source that appeared after setup waits for its drafted templates to be reviewed,
         so the online learner doesn't learn its templates first."""
-        if not self.settings["calibrated"]:
+        if not self.settings.calibrated:
             return False
         src = self.sources.get(source_id(event.device_id, event.service, event.source))
         return src is None or not (src["calibrated"] or src.get("alias_of"))
@@ -426,7 +418,7 @@ class Server:
                     "source": event.source, "first_seen": now_iso(), "count": 0,
                     "calibrated": False, "alias_of": None}
                 self._assign(sid)
-                if self.settings["calibrated"]:
+                if self.settings.calibrated:
                     self._warn("new_source", sid, f"New log source {event.service or event.source} on {event.device_id}",
                                "Templates are drafted from a sample once it has collected enough lines; "
                                "you review them before they reach the parser.",
@@ -574,8 +566,8 @@ class Server:
             raise KeyError(wid)
         if w["kind"] == "new_source":
             src = self.sources.get(w["subject"], {})
-            if src.get("count", 0) < MIN_DRAFT_LINES:
-                raise ValueError(f"only {src.get('count', 0)} lines so far, need {MIN_DRAFT_LINES}")
+            if src.get("count", 0) < self.config.server.min_draft_lines:
+                raise ValueError(f"only {src.get('count', 0)} lines so far, need {self.config.server.min_draft_lines}")
             return self.enqueue("draft", sources=[w["subject"]])
         return self.train(w["streams"])
 
@@ -650,7 +642,7 @@ class Server:
         """(sample, recent): up to ``sample_cap`` lines per source picked by entropy-greedy
         priority sampling from the 4x most recent, so one chatty source can't crowd out the
         rest; and each source's ``sample_cap`` most recent lines, which reviewers' counts use."""
-        cap = int(self.settings["sample_cap"])
+        cap = self.settings.sample_cap
         lines: list[str] = []
         pool: list[str] = []
         for i, sid in enumerate(sids):
@@ -674,17 +666,17 @@ class Server:
 
     def generate_drafts(self, sample_cap: int | None = None) -> dict:
         """First calibration: draft templates from every source for the setup guide's review."""
-        if self.settings["calibrated"]:
+        if self.settings.calibrated:
             raise ValueError("already calibrated; new sources are drafted on their own")
         if sample_cap is not None:
             self.update_settings({"sample_cap": sample_cap})
         total = sum(s["count"] for s in self.sources.values())
-        if total < MIN_DRAFT_LINES:
-            raise ValueError(f"only {total} lines collected so far, need {MIN_DRAFT_LINES}")
+        if total < self.config.server.min_draft_lines:
+            raise ValueError(f"only {total} lines collected so far, need {self.config.server.min_draft_lines}")
         return self.enqueue("draft", sources=[])
 
     def _job_draft(self, progress, sources: list[str]) -> str:
-        initial = not self.settings["calibrated"]
+        initial = not self.settings.calibrated
         sids = sources or [sid for sid, s in self.sources.items() if not s.get("alias_of")]
         if not sids:
             raise ValueError("no log sources yet: connect an agent and track some files first")
@@ -874,8 +866,8 @@ class Server:
                 registry = SchemaRegistry()
                 _, ids = registry.publish(templates, masks=self._masks(doc), key_vocab=vocab)
                 self.registry = registry
-                self.settings.update(calibrated=True, calibrated_at=now_iso(), setup_done=True)
-                self.control.put("settings", "server", self.settings)
+                self.settings = self.settings.model_copy(update={"calibrated": True, "calibrated_at": now_iso(), "setup_done": True})
+                self.control.put("settings", "server", self.settings.model_dump())
             else:
                 ids = self.registry.publish(templates, key_vocab=vocab)[1] if templates else []
             self.registry.save(self.registry_path)
@@ -902,7 +894,7 @@ class Server:
     # Templates the online learner added without review: listed so a person can keep, correct
     # or merge them; they go live at once so parsing never waits on a person.
     def auto_templates(self) -> list[dict]:
-        if not self.settings["calibrated"]:
+        if not self.settings.calibrated:
             return []
         snap = self.registry.current
         return [{"template_id": t.template_id, "tokens": list(t.tokens), "keys": list(t.keys),
@@ -1013,7 +1005,7 @@ class Server:
         ready, waiting = [], []
         for sid in streams:
             have = self._window_count(sid)
-            if have >= MIN_TRAIN_WINDOWS:
+            if have >= self.config.server.min_train_windows:
                 ready.append(sid)
             else:
                 self._wait(sid, have)
@@ -1024,7 +1016,7 @@ class Server:
 
     def _wait(self, stream_id: str, have: int) -> None:
         self.control.update("stream", stream_id, waiting=True, model_error=None,
-                            data={"have": have, "need": MIN_TRAIN_WINDOWS, "at": now_iso()})
+                            data={"have": have, "need": self.config.server.min_train_windows, "at": now_iso()})
         self.events.notify()
 
     def _job_retrain(self, progress, streams: list[str], warning: str | None = None) -> str:
@@ -1070,7 +1062,7 @@ class Server:
     def _windows(self, stream_id: str) -> tuple[list[list[int]], int]:
         """(training windows, sources they come from): capped, per-source sequences of canonical
         template ids."""
-        cap = int(self.settings["sample_cap"])
+        cap = self.settings.sample_cap
         snapshot = self.registry.current
         sequences: list[list[int]] = []
         sids = [sid for sid in self.sources
@@ -1090,7 +1082,7 @@ class Server:
         return windows, len(sequences)
 
     def _window_count(self, stream_id: str) -> int:
-        return len(self._windows(stream_id)[0]) if self.settings["calibrated"] else 0
+        return len(self._windows(stream_id)[0]) if self.settings.calibrated else 0
 
     def _train(self, stream_id: str, progress) -> None:
         """Train this stream's LogBERT."""
@@ -1098,8 +1090,8 @@ class Server:
         if stream is None:
             raise KeyError(stream_id)
         windows, n_sources = self._windows(stream_id)
-        if len(windows) < MIN_TRAIN_WINDOWS:
-            raise NotEnoughData(stream["name"], len(windows), MIN_TRAIN_WINDOWS)
+        if len(windows) < self.config.server.min_train_windows:
+            raise NotEnoughData(stream["name"], len(windows), self.config.server.min_train_windows)
         random.Random(7).shuffle(windows)
         n_valid = max(1, len(windows) // 10)
         vocab = TemplateVocab.build(windows)
@@ -1150,7 +1142,7 @@ class Server:
                             vocab=sorted(vocab.to_json()), windows=len(windows),
                             miss_threshold=round(miss, 3), model_error=None, waiting=False,
                             miss_baseline=histogram(misses) if misses else None,
-                            data={"have": len(windows), "need": MIN_TRAIN_WINDOWS, "at": now_iso()})
+                            data={"have": len(windows), "need": self.config.server.min_train_windows, "at": now_iso()})
         for w in self.control.all("warning"):
             if (w["kind"] == "novel_template" and w["status"] == "open"
                     and int(w["subject"]) in vocab and stream_id in w["streams"]):
@@ -1163,47 +1155,34 @@ class Server:
 
     # --- settings -----------------------------------------------------------------------
     def update_settings(self, body: dict) -> dict:
-        limits = {"sample_cap": (100, 200_000, int), "retrain_days": (0.01, 3650, float),
-                  "draft_lines": (MIN_DRAFT_LINES, 200_000, int), "draft_after_minutes": (1, 100_000, float)}
-        changes = {}
-        if "ask_require_approval" in body:
-            if not isinstance(body["ask_require_approval"], bool):
-                raise ValueError("ask_require_approval is true or false")
-            changes["ask_require_approval"] = body["ask_require_approval"]
-        for key, (lo, hi, cast) in limits.items():
-            if key in body:
-                value = cast(body[key])
-                if not lo <= value <= hi:
-                    raise ValueError(f"{key} must be between {lo} and {hi}")
-                changes[key] = value
-        self.settings.update(changes)
-        self.control.put("settings", "server", self.settings)
-        return self.settings
+        self.settings = self.settings.changed(body)
+        self.control.put("settings", "server", self.settings.model_dump())
+        return self.settings.model_dump()
 
     # --- maintenance --------------------------------------------------------------------
     def due_drafts(self) -> list[str]:
         """New sources that collected enough lines (or waited long enough) for a template sample."""
-        if not self.settings["calibrated"]:
+        if not self.settings.calibrated:
             return []
         busy = {sid for b in self.control.all("batch") if b["status"] == "review" for sid in b["sources"]}
         busy |= {sid for j in self.control.all("job") if j["kind"] == "draft"
                  and j["status"] in ("queued", "running") for sid in j["params"]["sources"]}
-        cutoff = (datetime.now(UTC) - timedelta(minutes=float(self.settings["draft_after_minutes"]))).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(minutes=self.settings.draft_after_minutes)).isoformat()
         return sorted(sid for sid, s in self.sources.items()
                       if not s["calibrated"] and not s.get("alias_of") and sid not in busy
-                      and (s["count"] >= int(self.settings["draft_lines"])
-                           or (s["count"] >= MIN_DRAFT_LINES and s["first_seen"] <= cutoff)))
+                      and (s["count"] >= self.settings.draft_lines
+                           or (s["count"] >= self.config.server.min_draft_lines and s["first_seen"] <= cutoff)))
 
     def collecting(self) -> list[dict]:
         """New sources still gathering lines before their templates are drafted."""
-        if not self.settings["calibrated"]:
+        if not self.settings.calibrated:
             return []
         busy = {sid for b in self.control.all("batch") if b["status"] == "review" for sid in b["sources"]}
-        need = int(self.settings["draft_lines"])
+        need = self.settings.draft_lines
         return [{"id": sid, "host": s["host"], "service": s["service"], "source": s["source"],
                  "have": s["count"], "need": need, "first_seen": s["first_seen"],
                  "draft_by": (datetime.fromisoformat(s["first_seen"])
-                              + timedelta(minutes=float(self.settings["draft_after_minutes"]))).isoformat()}
+                              + timedelta(minutes=self.settings.draft_after_minutes)).isoformat()}
                 for sid, s in sorted(self.sources.items())
                 if not s["calibrated"] and not s.get("alias_of") and sid not in busy]
 
@@ -1214,8 +1193,8 @@ class Server:
                 continue
             have = self._window_count(stream["id"])
             self.control.update("stream", stream["id"],
-                                data={"have": have, "need": MIN_TRAIN_WINDOWS, "at": now_iso()})
-            if have >= MIN_TRAIN_WINDOWS:
+                                data={"have": have, "need": self.config.server.min_train_windows, "at": now_iso()})
+            if have >= self.config.server.min_train_windows:
                 self.enqueue("retrain", streams=[stream["id"]])
 
     def maintenance(self) -> dict:
@@ -1235,13 +1214,13 @@ class Server:
 
     # --- incidents ----------------------------------------------------------------------
     def incidents(self, limit: int = 2000) -> list[dict]:
-        """Alerts grouped: one service's alerts less than INCIDENT_GAP apart are one incident,
+        """Alerts grouped: one service's alerts less than ``incident_gap_minutes`` apart are one incident,
         named by its first alert, newest first, with what a person decided about it."""
         groups: dict[str, dict] = {}
         out: list[dict] = []
         for a in sorted(self.reads.alerts(limit), key=lambda a: a["window_start"]):
             cur = groups.get(a["key"])
-            if cur is None or _when(a["window_start"]) - _when(cur["end"]) > INCIDENT_GAP:
+            if cur is None or _when(a["window_start"]) - _when(cur["end"]) > self.config.server.incident_gap:
                 host, _, service = a["key"].partition("/")
                 cur = groups[a["key"]] = {
                     "id": a["alert_id"], "key": a["key"], "host": host, "service": service,
@@ -1410,20 +1389,20 @@ class Server:
             else:
                 self._gone.pop(host, None)
         # agents reconnect within milliseconds; only a lasting disconnect turns them offline
-        self.events.notify(GONE_SECONDS + 0.2 if delta < 0 else 0)
+        self.events.notify(self.config.server.gone_seconds + 0.2 if delta < 0 else 0)
 
     def _online(self, a: dict, cutoff: str) -> bool:
         host = a["hostname"]
         if host in self._waiting:
             return True
         gone = self._gone.get(host)
-        if gone is not None and time.monotonic() - gone > GONE_SECONDS:
+        if gone is not None and time.monotonic() - gone > self.config.server.gone_seconds:
             return False
         return a["last_seen"] >= cutoff
 
     def agents(self) -> list[dict]:
         out = []
-        cutoff = (datetime.now(UTC) - timedelta(seconds=ONLINE_SECONDS)).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(seconds=self.config.server.online_seconds)).isoformat()
         for a in self.control.all("agent"):
             remote = self.control.get("remote", a["hostname"]) or {}
             st = a.get("status", {})
@@ -1463,7 +1442,7 @@ class Server:
                         if w["kind"] == "novel_template" and w["status"] == "open" for s in w["streams"]}
         due = []
         for stream in self.control.all("stream"):
-            days = stream.get("retrain_days") or self.settings["retrain_days"]
+            days = stream.get("retrain_days") or self.settings.retrain_days
             trained = stream.get("trained_at")
             if (stream["id"] in open_streams and trained and
                     datetime.fromisoformat(trained) + timedelta(days=days) <= datetime.now(UTC)):
