@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 export const GO: [string, string, string][] = [
   ["o", "/", "Overview"], ["l", "/logs", "Log Explorer"], ["t", "/templates", "Templates"], ["q", "/query", "Query"],
+  ["k", "/query?tab=ask", "Ask a question"],
   ["n", "/stats", "Analytics"], ["a", "/alerts", "Anomaly alerts"], ["m", "/maintenance", "Maintenance"],
   ["r", "/streams", "Streams & models"], ["j", "/jobs", "Jobs"], ["y", "/system", "System"],
   ["f", "/agents", "Agents"], ["b", "/bench", "Benchmark"], ["s", "/settings", "Settings"],

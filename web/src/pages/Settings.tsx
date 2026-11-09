@@ -7,13 +7,13 @@ import { ChangePassword, logout, usePasswordRequired } from "../login";
 import { DesktopToggle } from "../notify";
 import { ShortcutList } from "../shortcuts";
 import { getTheme, setTheme, type Theme } from "../theme";
-import { Card, Loading, PageHead, Segmented, TimeAgo } from "../ui";
+import { Card, Loading, PageHead, Segmented, Switch, TimeAgo } from "../ui";
 import Keys from "./Keys";
 import { RulesEditor, type SystemData } from "./System";
 
 const SECTIONS: [string, string][] = [
   ["appearance", "Appearance"], ["notifications", "Notifications"], ["security", "Password & session"],
-  ["keys", "API keys"], ["learning", "Learning"], ["alerts", "Metric alerts"], ["drift", "Model drift"],
+  ["keys", "API keys"], ["ask", "Ask"], ["learning", "Learning"], ["alerts", "Metric alerts"], ["drift", "Model drift"],
   ["shortcuts", "Keyboard shortcuts"], ["about", "About this server"],
 ];
 
@@ -28,6 +28,23 @@ function Appearance() {
       <span className="small ink-2">Theme</span>
       <Segmented label="Theme" value={theme} onChange={(t) => { setTheme(t); set(t); }}
         options={[["auto", "Match system"], ["light", "Light"], ["dark", "Dark"]]} />
+    </div>
+  );
+}
+
+function AskSettings({ s }: { s: ServerSettings }) {
+  const save = useAction((v: boolean) => api("/api/settings", { method: "PUT", json: { ask_require_approval: v } }));
+  return (
+    <div className="stack" style={{ gap: 6 }}>
+      <Switch checked={s.ask_require_approval} disabled={save.isPending} onChange={(v) => save.mutate(v)}
+        label="Approve every query before it runs" />
+      <p className="muted small" style={{ margin: 0 }}>
+        {s.ask_require_approval
+          ? "Each round of queries is shown (with its exact SQL or pipeline) and waits for you. Turning this off lets rounds run as soon as they're planned; anyone asking can still turn approval back on for their question."
+          : "Rounds run as soon as they're planned. A question can still ask for approval; it can't skip it once this is on."}
+        {" "}Queries are read-only either way.
+      </p>
+      {save.error && <span className="error-text small">{save.error.message}</span>}
     </div>
   );
 }
@@ -126,6 +143,9 @@ export default function Settings() {
           </div>
           <Section id="keys" title="API keys" hint="Agents authenticate with these. They are stored hashed: copy a new one when it is shown.">
             <Keys />
+          </Section>
+          <Section id="ask" title="Ask" hint="Questions in plain English and root-cause investigations run read-only queries against your logs.">
+            {settings ? <AskSettings s={settings} /> : <Loading />}
           </Section>
           <Section id="learning" title="Learning" hint="How the server drafts templates for new sources and retrains anomaly models.">
             {settings ? <Learning key={JSON.stringify(settings)} s={settings} /> : <Loading />}

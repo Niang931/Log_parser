@@ -308,23 +308,56 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         sql = qb.build(body, engine)
         return {"sql": sql, "result": server.reads.query(sql)}
 
-    @app.post("/api/query/ask")
-    def ask_query(body: Annotated[dict, Body()]) -> dict:
-        question = str(body.get("question", "")).strip()
-        if not question:
-            raise ValueError("ask a question, e.g. 'errors per service in the last hour'")
-        s = query_schema()
-        described = "\n".join(f"- {c['name']}: {c['about']}" for c in s["columns"])
-        described += f"\nExtracted fields (read with {s['payload_access']}): {', '.join(s['fields']) or 'none yet'}"
-        sql = server.adapter.write_sql(question, f"table {s['table']}\n{described}", engine)
-        if engine == "mongodb":  # the LLM returns a builder spec, never a pipeline: the builder is the guard
-            try:
-                return {"sql": qb.build(json.loads(sql)), "spec": json.loads(sql)}
-            except (TypeError, AttributeError):
-                raise ValueError(f"the LLM didn't return a builder spec: {sql[:80]}") from None
-        if not sql.lower().startswith(("select", "with")):
-            raise ValueError(f"the LLM wrote something that isn't a SELECT: {sql[:80]}")
-        return {"sql": sql}
+    # --- Ask: question -> plan of read-only queries -> approval -> answer (logpipe.ask) ---
+    def ask_flag(body: dict) -> bool | None:
+        v = body.get("require_approval")
+        if v is not None and not isinstance(v, bool):
+            raise ValueError("require_approval is true or false")
+        return v
+
+    @app.post("/api/ask")
+    def ask(body: Annotated[dict, Body()]) -> dict:
+        tz = body.get("tz_offset")
+        if tz is not None and (not isinstance(tz, int) or not -16 * 60 <= tz <= 16 * 60):
+            raise ValueError("tz_offset is minutes east of UTC")
+        spec = body.get("spec")
+        if spec is not None and not isinstance(spec, dict):
+            raise ValueError("spec is an object")
+        return server.ask.ask(str(body.get("question", "")), require_approval=ask_flag(body), tz_offset=tz, spec=spec)
+
+    @app.get("/api/ask")
+    def asked(limit: int = 20) -> dict:
+        return {"plans": server.ask.recent(max(1, min(limit, 100))),
+                "require_approval": bool(server.settings.get("ask_require_approval", True))}
+
+    @app.get("/api/ask/{plan_id}")
+    def ask_plan(plan_id: str) -> dict:
+        return server.ask.get(plan_id)
+
+    @app.post("/api/ask/{plan_id}/approve")
+    def approve_plan(plan_id: str, body: Annotated[dict | None, Body()] = None) -> dict:
+        ids = (body or {}).get("queries")
+        if ids is not None and not (isinstance(ids, list) and all(isinstance(i, str) for i in ids)):
+            raise ValueError("queries is a list of query ids")
+        return server.ask.approve(plan_id, ids)
+
+    @app.post("/api/ask/{plan_id}/edit")
+    def edit_plan(plan_id: str, body: Annotated[dict, Body()]) -> dict:
+        if not isinstance(body.get("spec"), dict):
+            raise ValueError("send the edited spec as {\"spec\": {...}}")  # noqa: TRY004 (ValueError is the 400 handler)
+        return server.ask.edit(plan_id, body["spec"])
+
+    @app.post("/api/ask/{plan_id}/reject")
+    def reject_plan(plan_id: str) -> dict:
+        return server.ask.reject(plan_id)
+
+    @app.get("/api/ask-shutdown")
+    def shutdown_templates() -> dict:
+        return server.ask.shutdown_view()
+
+    @app.put("/api/ask-shutdown")
+    def edit_shutdown(body: Annotated[dict, Body()]) -> dict:
+        return server.ask.edit_shutdown(body)
 
     @app.get("/api/queries")
     def saved_queries() -> dict:
@@ -412,8 +445,8 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return server.set_incident(incident_id, str(body.get("status", "")), str(body.get("note") or ""))
 
     @app.post("/api/incidents/{incident_id}/explain", status_code=202)
-    def explain_incident(incident_id: str) -> dict:
-        return server.explain_incident(incident_id)
+    def explain_incident(incident_id: str, body: Annotated[dict | None, Body()] = None) -> dict:
+        return server.explain_incident(incident_id, ask_flag(body or {}))
 
     # --- agents, keys -------------------------------------------------------------------
     @app.get("/api/agents")

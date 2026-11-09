@@ -545,7 +545,7 @@ def test_query_builder_schema_saved_and_ask(env):
     saved = client.post("/api/queries", json={"name": "errors", "sql": errors["sql"]}).json()
     assert [q["name"] for q in client.get("/api/queries").json()["queries"]] == ["errors"]
     assert client.delete(f"/api/queries/{saved['id']}").json()["ok"]
-    assert client.post("/api/query/ask", json={"question": "errors per service"}).status_code == 400  # offline LLM
+    assert client.post("/api/query/ask", json={"question": "errors per service"}).status_code in (404, 405)  # now /api/ask
 
 
 def test_a_zone_written_in_the_line_wins_over_the_agents_offset():
@@ -638,11 +638,18 @@ def test_incidents_group_alerts_explain_lines_and_learn_false_positives(env):
     assert len(inc["events"]) == 25 and inc["model_current"] and inc["events"][0]["template"].startswith("worker")
     assert {e["status"] for e in inc["events"]} <= {"expected", "unexpected", "unseen"}
 
-    assert client.post(f"/api/incidents/{iid}/explain").json()["kind"] == "explain"
-    run_jobs(server)
+    plan = client.post(f"/api/incidents/{iid}/explain").json()  # a root-cause Ask, waiting for approval
+    assert plan["status"] == "waiting_approval" and plan["spec"]["anchor_time"].startswith(t.isoformat()[:19])
+    assert plan["spec"]["services"] == ["api"] and server.jobs.empty()  # nothing ran yet
+    assert client.get(f"/api/incidents/{iid}").json()["ask_plan"]["id"] == plan["id"]
+    for _ in range(4):  # each round waits for its own approval (a thin first pass widens once)
+        client.post(f"/api/ask/{plan['id']}/approve")
+        run_jobs(server)
+        if client.get(f"/api/ask/{plan['id']}").json()["status"] == "done":
+            break
     inc = client.get(f"/api/incidents/{iid}").json()
-    assert "of 25 events on web-1/api" in inc["explanation"]["summary"] and inc["explanation"]["next_steps"]
-    assert inc["explain_job"]["detail"]["Output"]["summary"] == inc["explanation"]["summary"]
+    assert inc["ask_plan"]["status"] == "done" and inc["explanation"]["plan"] == plan["id"]
+    assert inc["explanation"]["kind"] == "report" and inc["explanation"]["anchor"]["kind"] == "user"
 
     before = len(server._windows("api")[0])
     client.put(f"/api/incidents/{iid}", json={"status": "false_positive", "note": "nightly batch"})

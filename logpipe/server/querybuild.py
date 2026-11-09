@@ -6,6 +6,8 @@ quoted here, so a spec can't inject SQL; the result still runs through the read-
 """
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+
 from ..enrich.validate import KEY_RE
 from .reads import LEVEL_SQL, step_for
 
@@ -19,7 +21,7 @@ COLUMNS = {  # builder name -> (clickhouse, sqlite, what it is)
     "message": ("raw_message", "raw_message", "the raw line"),
 }
 MEASURES = ("count", "count_distinct", "avg", "min", "max", "sum", "p95")
-OPS = ("=", "!=", "contains", "not contains", ">", "<")
+OPS = ("=", "!=", "contains", "not contains", ">", "<", "in")  # in: comma-separated values
 MAX_LIMIT = 500
 
 
@@ -45,20 +47,59 @@ def _field(name: str, engine: str, numeric: bool = False) -> str:
     return COLUMNS[name][0 if engine == "clickhouse" else 1]
 
 
-def build(spec: dict, engine: str) -> str:
-    table = "iot_logs FINAL" if engine == "clickhouse" else "logs"
+def absolute_range(spec: dict) -> tuple[datetime, datetime] | None:
+    """``start``/``end`` (ISO 8601) when the spec has them: an absolute range instead of the last
+    ``minutes``."""
+    if not (spec.get("start") or spec.get("end")):
+        return None
+    try:
+        start, end = (datetime.fromisoformat(str(spec[k])) for k in ("start", "end"))
+    except (KeyError, ValueError):
+        raise ValueError("start and end must both be ISO 8601 times") from None
+    start, end = (t if t.tzinfo else t.replace(tzinfo=UTC) for t in (start, end))
+    if not timedelta(0) < end - start <= timedelta(days=90):
+        raise ValueError("time range must be between 1 minute and 90 days")
+    return start.astimezone(UTC), end.astimezone(UTC)
+
+
+def sql_time(t: datetime, engine: str) -> str:
+    """A UTC instant as a literal ``timestamp`` (ClickHouse) or ``julianday(timestamp)`` compares against."""
+    if engine == "clickhouse":
+        return f"toDateTime64('{t.astimezone(UTC):%Y-%m-%d %H:%M:%S.%f}', 3, 'UTC')"
+    return f"julianday('{t.astimezone(UTC):%Y-%m-%dT%H:%M:%S.%f}+00:00')"
+
+
+def time_where(spec: dict, engine: str) -> list[str]:
+    if rng := absolute_range(spec):
+        col = "timestamp" if engine == "clickhouse" else "julianday(timestamp)"  # SQLite: ISO text with offsets
+        return [f"{col} >= {sql_time(rng[0], engine)}", f"{col} <= {sql_time(rng[1], engine)}"]
     minutes = int(spec.get("minutes") or 60)
     if not 1 <= minutes <= 60 * 24 * 90:
         raise ValueError("time range must be between 1 minute and 90 days")
-    where = [f"timestamp >= now() - INTERVAL {minutes} MINUTE" if engine == "clickhouse"
-             else f"timestamp >= strftime('%Y-%m-%dT%H:%M:%S', 'now', '-{minutes} minutes')"]
-    for f in spec.get("filters") or []:
+    return [f"timestamp >= now() - INTERVAL {minutes} MINUTE" if engine == "clickhouse"
+            else f"timestamp >= strftime('%Y-%m-%dT%H:%M:%S', 'now', '-{minutes} minutes')"]
+
+
+def filter_where(filters, engine: str) -> list[str]:
+    where = []
+    for f in filters or []:
         op, value = f.get("op", "="), str(f.get("value", ""))
         if op not in OPS:
             raise ValueError(f"operator must be one of {', '.join(OPS)}")
         numeric = op in (">", "<")
-        col = _field(str(f.get("field", "")), engine, numeric)
-        if op in ("contains", "not contains"):
+        name = str(f.get("field", ""))
+        col = _field(name, engine, numeric)
+        if op == "in":
+            values = [v.strip() for v in value.split(",") if v.strip()]
+            if not values:
+                raise ValueError(f"{name} in needs at least one value")
+            if name == "template_id":
+                if not all(v.isdigit() for v in values):
+                    raise ValueError("template_id in needs numbers")
+                where.append(f"{col} IN ({', '.join(values)})")
+            else:
+                where.append(f"{col} IN ({', '.join(_quote(v, engine) for v in values)})")
+        elif op in ("contains", "not contains"):
             expr = (f"positionCaseInsensitive({col}, {_quote(value, engine)}) > 0" if engine == "clickhouse"
                     else f"instr(lower({col}), lower({_quote(value, engine)})) > 0")
             where.append(("NOT " if op == "not contains" else "") + expr)
@@ -70,6 +111,14 @@ def build(spec: dict, engine: str) -> str:
             where.append(f"{col} {op} {number}")
         else:
             where.append(f"{col} {'=' if op == '=' else '!='} {_quote(value, engine)}")
+    return where
+
+
+def build(spec: dict, engine: str) -> str:
+    table = "iot_logs FINAL" if engine == "clickhouse" else "logs"
+    where = time_where(spec, engine) + filter_where(spec.get("filters"), engine)
+    rng = absolute_range(spec)
+    minutes = int((rng[1] - rng[0]).total_seconds() // 60) or 1 if rng else int(spec.get("minutes") or 60)
 
     measure = spec.get("measure") or {"fn": "count"}
     fn = measure.get("fn", "count")

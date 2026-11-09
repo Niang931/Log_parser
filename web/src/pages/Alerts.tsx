@@ -1,10 +1,11 @@
 // Anomaly alerts, grouped into incidents (one service's alerts close together in time). The list
 // says what to look at; an incident's page shows the lines the model found unusual and what it
-// expected instead, what else broke at the same time, an explanation, and what was decided.
+// expected instead, what else broke at the same time, a root-cause investigation (approved query by query), and what was decided.
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { IncidentAsk } from "../ask";
 import { api, useAction, usePoll, type Incident, type IncidentDetail, type IncidentStatus } from "../api";
-import { Card, Empty, JobRow, Loading, PageHead, Switch, TimeAgo, time } from "../ui";
+import { Card, Empty, Loading, PageHead, Switch, time } from "../ui";
 
 export const STATUS: Record<IncidentStatus, { label: string; badge: string }> = {
   open: { label: "Open", badge: "bad" },
@@ -51,7 +52,7 @@ export default function Alerts() {
                     <td className="small nowrap">{time(i.start)} <span className="muted">· {span(i.start, i.end)}</span></td>
                     <td className="right num">{i.alerts}</td>
                     <td className="right num">{Math.round(i.peak_miss * 100)}%</td>
-                    <td className="small ellipsis" style={{ maxWidth: 380 }}>{i.explanation?.summary ?? <span className="muted">Open it to see the unusual lines</span>}</td>
+                    <td className="small ellipsis" style={{ maxWidth: 380 }}>{(typeof i.explanation?.answer === "object" ? i.explanation.answer.summary : i.explanation?.message) ?? <span className="muted">Open it to see the unusual lines</span>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -86,29 +87,6 @@ function Decide({ inc }: { inc: IncidentDetail }) {
   );
 }
 
-function Explanation({ inc }: { inc: IncidentDetail }) {
-  const run = useAction(() => api(`/api/incidents/${inc.id}/explain`, { method: "POST" }));
-  const job = inc.explain_job;
-  const busy = run.isPending || job?.status === "queued" || job?.status === "running";
-  const e = inc.explanation;
-  return (
-    <Card title="What happened" actions={
-      <button className="btn small" disabled={busy} onClick={() => run.mutate()}>{e ? "Explain again" : "Explain with AI"}</button>}>
-      {e ? (
-        <div className="stack" style={{ gap: 8 }}>
-          <p style={{ margin: 0 }}>{e.summary}</p>
-          <div><span className="muted small">Likely cause</span><p style={{ margin: "2px 0 0" }}>{e.likely_cause}</p></div>
-          {!!e.next_steps.length && <div><span className="muted small">Next steps</span>
-            <ol style={{ margin: "4px 0 0", paddingLeft: 20 }}>{e.next_steps.map((s, i) => <li key={i}>{s}</li>)}</ol></div>}
-          <span className="muted small">Written <TimeAgo iso={e.at} />{e.note ? ` · ${e.note}` : ""}</span>
-        </div>
-      ) : !job && <p className="muted" style={{ margin: 0 }}>The LLM reads the unusual lines below and what other services logged meanwhile, and writes a summary, a likely cause and next steps.</p>}
-      {job && <div style={{ marginTop: 10 }}><JobRow job={job} /></div>}
-      {run.error && <div className="error-text small">{run.error.message}</div>}
-    </Card>
-  );
-}
-
 const MARK = { expected: "", unexpected: "unexpected", unseen: "never seen" };
 
 export function IncidentPage() {
@@ -124,7 +102,7 @@ export function IncidentPage() {
         sub={<><span className={`badge ${STATUS[inc.status].badge}`}>{STATUS[inc.status].label}</span> {time(inc.start)} to {time(inc.end)} · {inc.alerts} alert{inc.alerts === 1 ? "" : "s"}, up to {Math.round(inc.peak_miss * 100)}% of events mispredicted · <Link to="/alerts">All incidents</Link></>} />
       <div className="stack">
         <Card title="Decision"><Decide inc={inc} /></Card>
-        <Explanation inc={inc} />
+        <IncidentAsk incident={inc.id} plan={inc.ask_plan} />
         <Card title={`The lines (${unusual} of ${inc.events.length} unusual)`}
           hint={inc.model_current ? "Each line masked in turn: did the model expect it there, and what it expected instead."
             : "The model was retrained since this incident: marks come from the current model."}

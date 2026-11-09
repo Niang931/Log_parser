@@ -10,15 +10,21 @@ import json
 import re
 
 from ..enrich.validate import KEY_RE
-from .querybuild import COLUMNS, MAX_LIMIT, MEASURES, OPS
-from .reads import step_for
+from .querybuild import COLUMNS, MAX_LIMIT, MEASURES, OPS, absolute_range
+from .reads import HEAD, LEVEL_RULES, LEVELS, step_for
 
 FIELDS = {"host": "device_id", "service": "service", "source": "source", "status": "status",
-          "template_id": "template_id", "message": "raw_message"}  # `level` is computed, not stored
+          "template_id": "template_id", "message": "raw_message"}  # `level` is computed: LEVEL_EXPR
 STAGES = {"$match", "$group", "$project", "$sort", "$limit", "$skip", "$unwind", "$addFields", "$set",
           "$unset", "$count", "$sortByCount", "$replaceRoot", "$replaceWith", "$bucket", "$bucketAuto"}
 BANNED = {"$where", "$function", "$accumulator", "$out", "$merge"}
-PAYLOAD_ERROR = "level is computed in Python on MongoDB; filter or group by it on the Logs page"
+# reads.level() as an aggregation expression: a stated severity tag, then LEVEL_RULES in order.
+# The rules are written in the regex subset Python, RE2 and PCRE share, so all stores agree.
+LEVEL_EXPR = {"$switch": {"branches": [
+    *({"case": {"$in": [f"severity:{lvl}", {"$ifNull": ["$tags", []]}]}, "then": lvl} for lvl in LEVELS),
+    *({"case": {"$regexMatch": {"input": {"$substrCP": ["$raw_message", 0, HEAD]} if head else "$raw_message",
+                                "regex": rx}}, "then": lvl} for lvl, rx, head in LEVEL_RULES)],
+    "default": "info"}}
 
 
 def check(pipeline) -> list[dict]:
@@ -49,8 +55,6 @@ def _field(name: str) -> str:
         if not KEY_RE.match(name[1:]):
             raise ValueError(f"field {name!r}: extracted field names are lower_snake_case")
         return "payload." + name[1:]
-    if name == "level":
-        raise ValueError(PAYLOAD_ERROR)
     if name not in FIELDS:
         raise ValueError(f"unknown field {name!r}; use one of {', '.join(FIELDS)} or @extracted_field")
     return FIELDS[name]
@@ -69,19 +73,42 @@ def _value(field: str, value: str):
     return value
 
 
-def build(spec: dict, engine: str = "mongodb") -> str:
+def mongo_date(t) -> dict:
+    """Extended JSON, read back as a date by ``MongoReads.query``."""
+    return {"$date": t.isoformat().replace("+00:00", "Z")}
+
+
+def time_match(spec: dict) -> list[dict]:
+    if rng := absolute_range(spec):
+        return [{"timestamp": {"$gte": mongo_date(rng[0]), "$lte": mongo_date(rng[1])}}]
     minutes = int(spec.get("minutes") or 60)
     if not 1 <= minutes <= 60 * 24 * 90:
         raise ValueError("time range must be between 1 minute and 90 days")
     since = {"$dateSubtract": {"startDate": "$$NOW", "unit": "minute", "amount": minutes}}
-    match: list[dict] = [{"$expr": {"$gte": ["$timestamp", since]}}]
-    for f in spec.get("filters") or []:
+    return [{"$expr": {"$gte": ["$timestamp", since]}}]
+
+
+def filter_match(filters) -> list[dict]:
+    match: list[dict] = []
+    for f in filters or []:
         op, value = f.get("op", "="), str(f.get("value", ""))
         if op not in OPS:
             raise ValueError(f"operator must be one of {', '.join(OPS)}")
         name = str(f.get("field", ""))
+        if name == "level":
+            if op not in ("=", "!=", "in"):
+                raise ValueError("level takes =, != or in")
+            values = [v.strip() for v in value.split(",") if v.strip()] if op == "in" else [value]
+            cond = {"$in": [LEVEL_EXPR, values]}
+            match.append({"$expr": cond if op != "!=" else {"$not": [cond]}})
+            continue
         path = _field(name)
-        if op in ("contains", "not contains"):
+        if op == "in":
+            values = [_value(name, v.strip()) for v in value.split(",") if v.strip()]
+            if not values:
+                raise ValueError(f"{name} in needs at least one value")
+            match.append({path: {"$in": values}})
+        elif op in ("contains", "not contains"):
             rx = {"$regex": re.escape(value), "$options": "i"}
             match.append({path: rx if op == "contains" else {"$not": rx}})
         elif op in (">", "<"):
@@ -94,6 +121,13 @@ def build(spec: dict, engine: str = "mongodb") -> str:
         else:
             v = _value(name, value)
             match.append({path: v if op == "=" else {"$ne": v}})
+    return match
+
+
+def build(spec: dict, engine: str = "mongodb") -> str:
+    match = time_match(spec) + filter_match(spec.get("filters"))
+    rng = absolute_range(spec)
+    minutes = int((rng[1] - rng[0]).total_seconds() // 60) or 1 if rng else int(spec.get("minutes") or 60)
 
     measure = spec.get("measure") or {"fn": "count"}
     fn = measure.get("fn", "count")
@@ -122,7 +156,7 @@ def build(spec: dict, engine: str = "mongodb") -> str:
         cols.append("time")
     for i, g in enumerate((spec.get("group_by") or [])[:2]):
         alias = str(g).lstrip("@") if KEY_RE.match(str(g).lstrip("@")) else f"g{i}"
-        ids[alias] = "$" + _field(str(g))
+        ids[alias] = LEVEL_EXPR if g == "level" else "$" + _field(str(g))
         cols.append(alias)
 
     pipeline: list[dict] = [{"$match": {"$and": match}}, {"$group": {"_id": ids or None, label: acc}}]
@@ -138,7 +172,8 @@ def build(spec: dict, engine: str = "mongodb") -> str:
 def schema(engine: str, fields: list[str]) -> dict:
     """What the Query page's sidebar lists."""
     cols = [{"name": "timestamp", "about": "when the line was logged"}] + [
-        {"name": FIELDS[k], "builder": k, "about": about} for k, (_, _, about) in COLUMNS.items() if k in FIELDS]
+        {"name": FIELDS.get(k, "level (computed)"), "builder": k, "about": about}
+        for k, (_, _, about) in COLUMNS.items() if k in FIELDS or k == "level"]
     cols.append({"name": "payload", "about": "fields extracted by the line's template (a sub-document)"})
     return {"engine": engine, "table": "logs", "columns": cols, "fields": sorted(fields),
             "payload_access": "payload.name", "measures": list(MEASURES), "ops": list(OPS)}
