@@ -12,13 +12,14 @@ from deepparse.masks_types import Mask
 
 from ..parsing.kv import SLOT_RE, compile_extractor, default_keys, extract
 
-KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 # Nested quantifiers such as (a+)+ or (.*)* backtrack catastrophically.
 _NESTED_QUANTIFIER_RE = re.compile(r"\([^()]*[+*][^()]*\)[+*{]")
-MAX_TEMPLATE_TOKENS = 256
-
-
 _DIGIT_RE = re.compile(r"\d")
+KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
+
+MAX_TEMPLATE_TOKENS = 256
+MAX_TOKEN_LENGTH = 256  # Change if needed since I am not sure the value here
+MAX_MASK_LENGTH = 256
 
 
 def generalize_digits(tokens: Sequence[str]) -> tuple[str, ...]:
@@ -44,14 +45,26 @@ def template_problem(
 
     # make sure there are at least 1 literal and literal ratio > min amount
     literals = sum(1 for tok in tokens if not SLOT_RE.fullmatch(tok))
+
     if literals == 0 or literals / len(tokens) < min_literal_ratio:
         return f"over-general: only {literals}/{len(tokens)} literal tokens"
 
-    pattern = compile_extractor(tokens)
+    if any(not isinstance(tok, str) or len(tok) > MAX_TOKEN_LENGTH
+           for tok in tokens):
+        return "template contains an invalid or excessively long token"
+
+    try:
+        pattern = compile_extractor(tokens)
+    except (re.error, ValueError):
+        return "could not compile template extractor"
+
     keys = default_keys(tokens)
+
     misses = [s for s in samples if extract(pattern, keys, s) is None]
+
     if misses:
         return f"extractor misses {len(misses)}/{len(samples)} samples, e.g. {misses[0][:80]!r}"
+
     return None
 
 
@@ -71,12 +84,28 @@ def clean_keys(proposed: Sequence[str] | None, tokens: Sequence[str]) -> list[st
 def safe_masks(masks: Sequence[Mask]) -> list[Mask]:
     """Drop masks that do not compile or that risk catastrophic backtracking."""
     kept: list[Mask] = []
+
     for mask in masks:
-        if _NESTED_QUANTIFIER_RE.search(mask.pattern):
+        pattern = mask.pattern
+
+        # Reject empty or excessively long patterns
+        if not pattern or len(pattern) > MAX_MASK_LENGTH:
             continue
+
+        # Reject known high-risk regex structures
+        if _NESTED_QUANTIFIER_RE.search(pattern):
+            continue
+
+        # Reject quantified groups containing alternation,
+        # e.g. (a|aa)+, which can cause excessive backtracking
+        if re.search(r"\([^)]*\|[^)]*\)\s*[+*{]", pattern):
+            continue
+
         try:
-            re.compile(mask.pattern)
+            re.compile(pattern)
         except re.error:
             continue
+
         kept.append(mask)
+
     return kept

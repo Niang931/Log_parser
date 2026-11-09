@@ -1,5 +1,4 @@
-"""``logpipe server`` end to end on the memory store: intake, agents, setup, calibration,
-per-stream LogBERT, warnings and their actions."""
+"""``logpipe server`` end to end on the memory store: intake, agents, setup, calibration, per-stream LogBERT, warnings and their actions."""
 from __future__ import annotations
 
 import gzip
