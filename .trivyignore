@@ -1,0 +1,4 @@
+# filelock: DeepParse/uv.lock resolves 4.1.0 only for Python 3.10 (DeepParse supports >=3.10);
+# the fixed 4.2.x needs 3.11+, which every other resolution (and the root uv.lock) already uses.
+# Drop this when DeepParse requires Python 3.11.
+CVE-2026-112940

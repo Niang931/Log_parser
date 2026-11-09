@@ -22,6 +22,7 @@ from fastapi.responses import (
     StreamingResponse,
 )
 
+from ..enrich.sql_guard import validate_sql
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild, querybuild_mongo
@@ -290,8 +291,8 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.post("/api/query")
     def query(body: Annotated[dict, Body()]) -> dict:
         sql = str(body.get("sql", "")).strip().rstrip(";")
-        if engine != "mongodb" and not sql.lower().startswith(("select", "with")):
-            raise HTTPException(400, "only SELECT / WITH queries")
+        if engine != "mongodb":
+            validate_sql(sql, engine)
         return server.reads.query(sql)
 
     def query_schema() -> dict:
@@ -306,6 +307,8 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.post("/api/query/build")
     def build_query(body: Annotated[dict, Body()]) -> dict:
         sql = qb.build(body, engine)
+        if engine != "mongodb":
+            validate_sql(sql, engine)
         return {"sql": sql, "result": server.reads.query(sql)}
 
     @app.post("/api/query/ask")
@@ -316,14 +319,17 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         s = query_schema()
         described = "\n".join(f"- {c['name']}: {c['about']}" for c in s["columns"])
         described += f"\nExtracted fields (read with {s['payload_access']}): {', '.join(s['fields']) or 'none yet'}"
-        sql = server.adapter.write_sql(question, f"table {s['table']}\n{described}", engine)
-        if engine == "mongodb":  # the LLM returns a builder spec, never a pipeline: the builder is the guard
+        sql = server.adapter.write_sql(
+            question,
+            f"table {s['table']}\n{described}",
+            engine,
+        )
+        if engine == "mongodb":
             try:
                 return {"sql": qb.build(json.loads(sql)), "spec": json.loads(sql)}
             except (TypeError, AttributeError):
                 raise ValueError(f"the LLM didn't return a builder spec: {sql[:80]}") from None
-        if not sql.lower().startswith(("select", "with")):
-            raise ValueError(f"the LLM wrote something that isn't a SELECT: {sql[:80]}")
+        validate_sql(sql, engine)
         return {"sql": sql}
 
     @app.get("/api/queries")

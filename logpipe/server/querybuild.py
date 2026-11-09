@@ -6,6 +6,8 @@ quoted here, so a spec can't inject SQL; the result still runs through the read-
 """
 from __future__ import annotations
 
+import math
+
 from ..enrich.validate import KEY_RE
 from .reads import LEVEL_SQL, step_for
 
@@ -67,6 +69,10 @@ def build(spec: dict, engine: str) -> str:
                 number = float(value)
             except ValueError:
                 raise ValueError(f"{f.get('field')} {op} needs a number, got {value!r}") from None
+
+            if not math.isfinite(number):  # just in case
+                raise ValueError("numeric filters must use finite numbers")
+
             where.append(f"{col} {op} {number}")
         else:
             where.append(f"{col} {'=' if op == '=' else '!='} {_quote(value, engine)}")
@@ -104,7 +110,7 @@ def build(spec: dict, engine: str) -> str:
         select.append(f"{_field(str(g), engine)} AS {alias}")
         group.append(alias)
     select.append(f"{value_sql} AS {label}")
-    limit = min(int(spec.get("limit") or 100), MAX_LIMIT)
+    limit = max(1, min(int(spec.get("limit") or 100), MAX_LIMIT)) # old one can be bypass with negative number so I change it
     sql = f"SELECT {', '.join(select)}\nFROM {table}\nWHERE " + "\n  AND ".join(where)
     if group:
         sql += f"\nGROUP BY {', '.join(group)}"
