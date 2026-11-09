@@ -298,6 +298,18 @@ export interface Stream {
   sources: string[];
   has_model: boolean;
   vocab: number;
+  /** the group it is in (a group's id), if any */
+  group?: string | null;
+}
+
+/** Several streams managed together (e.g. mail: ldap + proxy). A stream is in at most one group. */
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  streams: { id: string; name: string }[];
+  /** services of its streams' sources */
+  services: string[];
 }
 
 export interface Warning {

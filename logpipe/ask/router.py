@@ -52,7 +52,7 @@ def fast_path(question: str, catalog: Catalog, now: datetime, tz_offset: int | N
     """A spec dict for questions simple enough to read without a model, else None."""
     q = question.strip()
     spec: dict = {"intent": "keyword", "services": _names(q, catalog.services),
-                  "hosts": _names(q, catalog.hosts - catalog.services)}
+                  "hosts": _names(q, catalog.hosts - catalog.services), "groups": _names(q, set(catalog.groups))}
     if m := _LAST.search(q):
         spec["minutes"] = int(m.group(1)) * _UNITS[m.group(2).lower()]
     elif m := _LAST_ONE.search(q):
@@ -99,7 +99,7 @@ def fast_path(question: str, catalog: Catalog, now: datetime, tz_offset: int | N
         groups = [g.lower() for g in dict.fromkeys(m.group(1) for m in _PER.finditer(q))]
         spec["aggregate"] = {"fn": "count", "group_by": [{"template": "template_id"}.get(g, g) for g in groups][:2],
                              "over_time": bool(_OVER_TIME.search(q))}
-    if not (keywords or spec.get("min_level") or spec["services"] or spec["hosts"] or spec.get("aggregate")):
+    if not (keywords or spec.get("min_level") or spec["services"] or spec["hosts"] or spec["groups"] or spec.get("aggregate")):
         return None  # nothing concrete to search for
     return spec
 
@@ -116,6 +116,7 @@ def route_schema():
         end: str | None = Field(None, description="absolute range end, ISO 8601 UTC")
         services: list[str] = Field(default_factory=list)
         hosts: list[str] = Field(default_factory=list)
+        groups: list[str] = Field(default_factory=list, description="groups named in the question (each covers several services)")
         min_level: str | None = Field(None, description="debug | info | warn | error")
         keywords: list[str] = Field(default_factory=list, description="literal words the lines must contain")
         template_ids: list[int] = Field(default_factory=list)
@@ -134,7 +135,9 @@ def route_schema():
 ROUTE_PROMPT = """You turn an on-call engineer's question into a query over their log store.
 You never see the logs; you only describe the query. Current time (UTC): {now}. The user's clock is UTC{tz}.
 
-What exists (use only these names; leave a field empty rather than invent one):
+What exists (use only these names; leave a field empty rather than invent one). When the question
+names a group (or clearly means one, e.g. "the mail system"), put it in `groups` instead of listing
+its services:
 {catalog}
 
 Intents:
@@ -153,6 +156,7 @@ Q: errors in checkout in the last 15 minutes -> {{"intent": "keyword", "services
 Q: how many lines per service over the last day -> {{"intent": "keyword", "minutes": 1440, "aggregate_fn": "count", "group_by": ["service"]}}
 Q: average response time by host -> {{"intent": "keyword", "aggregate_fn": "avg", "aggregate_field": "@duration_ms", "group_by": ["host"]}}
 Q: when did the database restart? -> {{"intent": "event", "services": ["postgres"], "anchor_event": "database restart"}}
+Q: why is the mail system down? (a group "mail" exists) -> {{"intent": "rca", "groups": ["mail"], "anchor_event": "mail system down"}}
 Q: anything about running out of memory -> {{"intent": "semantic", "semantic_query": "out of memory"}}
 Q: why did the server go down around 14:05? -> {{"intent": "rca", "anchor_event": "server went down", "anchor_time": "<today>T14:05:00Z"}}
 Q: what happened overnight? -> {{"intent": "summary", "minutes": 720}}
@@ -166,7 +170,7 @@ def _from_llm(out) -> dict:
     d = out.model_dump() if hasattr(out, "model_dump") else dict(out)
     spec = {k: d.get(k) for k in ("intent", "minutes", "start", "end", "min_level", "anchor_event",
                                   "anchor_time", "semantic_query", "answer") if d.get(k) not in (None, "")}
-    for k in ("services", "hosts", "keywords", "template_ids"):
+    for k in ("services", "hosts", "groups", "keywords", "template_ids"):
         if d.get(k):
             spec[k] = d[k]
     if d.get("aggregate_fn"):

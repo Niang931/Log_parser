@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { api, useAction, usePoll, type Selector, type Settings, type Source, type Stream } from "../api";
+import { api, useAction, usePoll, type Group, type Selector, type Settings, type Source, type Stream } from "../api";
 import { Card, Loading, PageHead, TimeAgo, fmt, sourceLabel, Meter } from "../ui";
 
-interface Draft { name: string; picked: string[]; selectors: Selector[]; retrain_days: number | null }
+interface Draft { name: string; picked: string[]; selectors: Selector[]; retrain_days: number | null; group: string | null }
 
 /** Name, the sources it watches (ticked; each source is in one stream), and, folded away,
  *  patterns for sources that don't exist yet and the retrain period. */
-function StreamForm({ initial, streams, onDone }: { initial?: Stream; streams: Stream[]; onDone: () => void }) {
+function StreamForm({ initial, streams, groups, onDone }: { initial?: Stream; streams: Stream[]; groups: Group[]; onDone: () => void }) {
   const sources = usePoll<{ sources: Source[] }>("/api/sources", 5000).data?.sources.filter((s) => !s.alias_of);
   const [d, setD] = useState<Draft>({
     name: initial?.name ?? "", picked: initial?.picked ?? initial?.sources ?? [],
-    selectors: initial?.selectors ?? [], retrain_days: initial?.retrain_days ?? null,
+    selectors: initial?.selectors ?? [], retrain_days: initial?.retrain_days ?? null, group: initial?.group ?? null,
   });
   const save = useAction((draft: Draft) => api(initial ? `/api/streams/${initial.id}` : "/api/streams",
     { method: initial ? "PUT" : "POST", json: { ...draft, selectors: draft.selectors.filter((s) => s.host || s.service || s.source) } }));
@@ -21,7 +21,15 @@ function StreamForm({ initial, streams, onDone }: { initial?: Stream; streams: S
   const owner = (id: string) => streams.find((s) => s.sources.includes(id));
   return (
     <form className="stack" style={{ gap: 12 }} onSubmit={(e) => { e.preventDefault(); save.mutate(d, { onSuccess: onDone }); }}>
-      <label className="field">Name<input value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} required placeholder="e.g. Payments" /></label>
+      <div className="row" style={{ alignItems: "flex-end" }}>
+        <label className="field grow">Name<input value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} required placeholder="e.g. Payments" /></label>
+        <label className="field">Group
+          <select value={d.group ?? ""} onChange={(e) => setD({ ...d, group: e.target.value || null })}>
+            <option value="">No group</option>
+            {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
+        </label>
+      </div>
         <div>
           <h3>Sources it watches</h3>
           <p className="muted small" style={{ margin: "0 0 6px" }}>Ticking a source moves it here. A source you untick goes back to a stream of the same service, or gets its own; a stream left empty is removed.</p>
@@ -76,15 +84,17 @@ function StreamForm({ initial, streams, onDone }: { initial?: Stream; streams: S
 /** The stream list with add/edit in place: the Streams page and the setup guide's step. */
 export function StreamsEditor({ compact = false }: { compact?: boolean }) {
   const { data, error } = usePoll<{ streams: Stream[] }>("/api/streams", 5000);
+  const groups = usePoll<{ groups: Group[] }>("/api/groups", 5000).data?.groups ?? [];
   const settings = usePoll<Settings>("/api/settings", 10000).data;
   const [editing, setEditing] = useState<string | null>(null);  // stream id, or "new"
   if (!data) return <Loading error={error} />;
-  const form = (s?: Stream) => <StreamForm initial={s} streams={data.streams} onDone={() => setEditing(null)} />;
+  const form = (s?: Stream) => <StreamForm initial={s} streams={data.streams} groups={groups} onDone={() => setEditing(null)} />;
+  const groupName = (s: Stream) => groups.find((g) => g.id === s.group)?.name;
   return (
     <div className="stack">
       {data.streams.map((s) => editing === s.id ? <Card key={s.id} title={`Edit ${s.name}`}>{form(s)}</Card>
         : compact ? <StreamRow key={s.id} s={s} onEdit={() => setEditing(s.id)} />
-        : <StreamCard key={s.id} s={s} defaultDays={settings?.retrain_days ?? 7} onEdit={() => setEditing(s.id)} />)}
+        : <StreamCard key={s.id} s={s} group={groupName(s)} defaultDays={settings?.retrain_days ?? 7} onEdit={() => setEditing(s.id)} />)}
       {editing === "new" ? <Card title="New stream">{form()}</Card>
         : <button className="btn" style={{ alignSelf: "flex-start" }} onClick={() => setEditing("new")}>+ New stream</button>}
     </div>
@@ -110,12 +120,12 @@ function StreamRow({ s, onEdit }: { s: Stream; onEdit: () => void }) {
   );
 }
 
-function StreamCard({ s, defaultDays, onEdit }: { s: Stream; defaultDays: number; onEdit: () => void }) {
+function StreamCard({ s, group, defaultDays, onEdit }: { s: Stream; group?: string; defaultDays: number; onEdit: () => void }) {
   const train = useAction(() => api<{ waiting?: string[] }>(`/api/streams/${s.id}/train`, { method: "POST" }));
   const short = s.waiting && s.data && s.data.have < s.data.need;
   const del = useAction(() => api(`/api/streams/${s.id}`, { method: "DELETE" }));
   return (
-    <Card title={s.name}
+    <Card title={<>{s.name} {group && <span className="badge info" title="The group this stream is in">{group}</span>}</>}
       hint={s.selectors.length ? `also future sources matching ${s.selectors.map((sel) => Object.entries(sel).map(([k, v]) => `${k}=${v}`).join(" ")).join(" or ")}` : undefined}
       actions={
         <>
@@ -155,11 +165,91 @@ export default function Streams() {
   return (
     <>
       <PageHead title="Streams & models"
-        sub="A stream is a group of sources that behave alike. Each source is in exactly one stream, and each stream trains its own LogBERT anomaly model." />
+        sub="A stream is a set of sources that behave alike: each source is in exactly one stream, and each stream trains its own LogBERT model. A group puts several streams together, e.g. mail = ldap + proxy, so you can ask about all of them at once." />
       <div className="stack">
+        <GroupsCard />
         <StreamsEditor />
         <p className="muted small">Sample cap, retrain period and when templates are drafted: <Link to="/settings#learning">Settings → Learning</Link>.</p>
       </div>
     </>
+  );
+}
+
+/** Groups: each one names several streams (a stream is in at most one). Ask can be asked about a
+ *  group ("why is mail down?"), which covers the services of all its streams. */
+function GroupsCard() {
+  const groups = usePoll<{ groups: Group[] }>("/api/groups", 5000);
+  const streams = usePoll<{ streams: Stream[] }>("/api/streams", 5000).data?.streams ?? [];
+  const [editing, setEditing] = useState<string | null>(null);  // group id, or "new"
+  if (!groups.data) return <Loading error={groups.error} />;
+  const list = groups.data.groups;
+  return (
+    <Card title="Groups" hint="Streams managed together. Ask covers all of a group's services when you name it."
+      actions={editing !== "new" && <button className="btn small" onClick={() => setEditing("new")}>+ New group</button>}>
+      <div className="stack" style={{ gap: 8 }}>
+        {list.length === 0 && editing !== "new" && <p className="muted small" style={{ margin: 0 }}>No groups yet. Make one for each system you run, e.g. <em>mail</em> with the ldap and proxy streams.</p>}
+        {list.map((g) => editing === g.id ? <GroupForm key={g.id} initial={g} streams={streams} onDone={() => setEditing(null)} />
+          : <GroupRow key={g.id} g={g} onEdit={() => setEditing(g.id)} />)}
+        {editing === "new" && <GroupForm streams={streams} onDone={() => setEditing(null)} />}
+      </div>
+    </Card>
+  );
+}
+
+function GroupRow({ g, onEdit }: { g: Group; onEdit: () => void }) {
+  const del = useAction(() => api(`/api/groups/${g.id}`, { method: "DELETE" }));
+  return (
+    <div className="stream-row">
+      <div className="grow">
+        <strong>{g.name}</strong> {g.description && <span className="muted small">{g.description}</span>}
+        <div className="row" style={{ marginTop: 4 }}>
+          {g.streams.length ? g.streams.map((s) => <span key={s.id} className="badge">{s.name}</span>)
+            : <span className="muted small">No streams yet.</span>}
+        </div>
+        {g.services.length > 0 && <div className="muted small" style={{ marginTop: 4 }}>Services: {g.services.join(", ")}</div>}
+      </div>
+      <button className="btn small" onClick={onEdit}>Edit</button>
+      <button className="btn small ghost danger" disabled={del.isPending} onClick={() => del.mutate()}
+        title="Its streams stay; they just leave the group">Delete</button>
+      {del.error && <span className="error-text small">{del.error.message}</span>}
+    </div>
+  );
+}
+
+function GroupForm({ initial, streams, onDone }: { initial?: Group; streams: Stream[]; onDone: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [picked, setPicked] = useState<string[]>(initial?.streams.map((s) => s.id) ?? []);
+  const save = useAction(() => api(initial ? `/api/groups/${initial.id}` : "/api/groups",
+    { method: initial ? "PUT" : "POST", json: { name, description, streams: picked } }));
+  const toggle = (id: string) => setPicked(picked.includes(id) ? picked.filter((p) => p !== id) : [...picked, id]);
+  return (
+    <form className="stack" style={{ gap: 10, padding: 12, border: "1px solid var(--line)", borderRadius: "var(--radius)" }}
+      onSubmit={(e) => { e.preventDefault(); save.mutate(undefined, { onSuccess: onDone }); }}>
+      <div className="row" style={{ alignItems: "flex-end" }}>
+        <label className="field">Name<input value={name} onChange={(e) => setName(e.target.value)} required maxLength={60} placeholder="e.g. mail" /></label>
+        <label className="field grow">Description<input value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} placeholder="optional, e.g. ldap + proxy in front of the mail servers" /></label>
+      </div>
+      <div>
+        <h3>Streams in it</h3>
+        <ul className="pick-list">
+          {streams.map((s) => {
+            const elsewhere = s.group && s.group !== initial?.id;
+            return (
+              <li key={s.id}><label>
+                <input type="checkbox" checked={picked.includes(s.id)} onChange={() => toggle(s.id)} />
+                <span className="grow">{s.name} <span className="muted small">{s.sources.length} source{s.sources.length === 1 ? "" : "s"}</span></span>
+                {elsewhere && picked.includes(s.id) && <span className="badge warn">moves from its group</span>}
+              </label></li>
+            );
+          })}
+        </ul>
+      </div>
+      <div className="row">
+        <button className="btn primary small" disabled={save.isPending}>Save group</button>
+        <button type="button" className="btn ghost small" onClick={onDone}>Cancel</button>
+        {save.error && <span className="error-text small">{save.error.message}</span>}
+      </div>
+    </form>
   );
 }

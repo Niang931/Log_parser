@@ -594,6 +594,23 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         server.delete_stream(stream_id)
         return {"ok": True}
 
+    @app.get("/api/groups")
+    def groups() -> dict:
+        return {"groups": server.groups.list()}
+
+    @app.post("/api/groups")
+    def create_group(body: Annotated[dict, Body()]) -> dict:
+        return server.groups.save(body)
+
+    @app.put("/api/groups/{group_id}")
+    def update_group(group_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.groups.save(body, group_id)
+
+    @app.delete("/api/groups/{group_id}")
+    def delete_group(group_id: str) -> dict:
+        server.groups.delete(group_id)
+        return {"ok": True}
+
     @app.post("/api/streams/{stream_id}/train", status_code=202)
     def train_stream(stream_id: str) -> dict:
         if server.control.get("stream", stream_id) is None:
