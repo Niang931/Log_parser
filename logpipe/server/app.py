@@ -25,6 +25,7 @@ from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild
 from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
 from .reads import FACETS
+from ..enrich.sql_guard import validate_sql
 
 STATIC = Path(__file__).with_name("static")
 DEMO_INDEX = Path(__file__).parent.parent / "demo" / "index.html"
@@ -228,10 +229,9 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
                 "pending": server.store.count_by_status().get("PENDING", 0)}
 
     @app.post("/api/query")
-    def query(body: Annotated[dict, Body()]) -> dict:
-        sql = str(body.get("sql", "")).strip().rstrip(";")
-        if not sql.lower().startswith(("select", "with")):
-            raise HTTPException(400, "only SELECT / WITH queries")
+    def query(body: dict = Body(...)):
+        sql = str(body.get("sql", ""))
+        validate_sql(sql, engine)
         return server.reads.query(sql)
 
     def query_schema() -> dict:
@@ -244,21 +244,25 @@ def create_app(server: Server, demo: Any = None) -> FastAPI:
         return query_schema()
 
     @app.post("/api/query/build")
-    def build_query(body: Annotated[dict, Body()]) -> dict:
+    def build_query(body: dict = Body(...)):
         sql = querybuild.build(body, engine)
+        validate_sql(sql, engine)
         return {"sql": sql, "result": server.reads.query(sql)}
 
     @app.post("/api/query/ask")
-    def ask_query(body: Annotated[dict, Body()]) -> dict:
+    def ask_query(body: dict = Body(...)) -> dict:
         question = str(body.get("question", "")).strip()
         if not question:
             raise ValueError("ask a question, e.g. 'errors per service in the last hour'")
         s = query_schema()
         described = "\n".join(f"- {c['name']}: {c['about']}" for c in s["columns"])
         described += f"\nExtracted fields (read with {s['payload_access']}): {', '.join(s['fields']) or 'none yet'}"
-        sql = server.adapter.write_sql(question, f"table {s['table']}\n{described}", engine)
-        if not sql.lower().startswith(("select", "with")):
-            raise ValueError(f"the LLM wrote something that isn't a SELECT: {sql[:80]}")
+        sql = server.adapter.write_sql(
+            question,
+            f"table {s['table']}\n{described}",
+            engine,
+        )
+        validate_sql(sql, engine)
         return {"sql": sql}
 
     @app.get("/api/queries")
