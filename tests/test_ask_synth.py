@@ -90,3 +90,16 @@ def test_text_index_finds_failure_wording():
     assert idx.search("out of memory", 1)[0][0] == 1
     assert idx.search("disk full", 1)[0][0] == 3
     assert {1, 3, 5} <= set(auto_shutdown(templates, idx)) and 2 not in auto_shutdown(templates, idx)
+
+
+def test_unparsed_lines_are_cited_by_line_not_by_their_shared_template():
+    unparsed = REPORT.model_copy(update={
+        "candidates": [cand(1, "db", "FATAL: too many connections", 3, 0.9)],
+        "evidence": [Evidence(ref="L1", timestamp=AT, service="db", level="error", template_id=1,
+                              message="FATAL: too many connections", why="#1", score=0.9)]})
+    ctx = Ctx(store=None, templates={})  # type: ignore[arg-type]
+    assert offline_answer(unparsed, ctx).leads[0].cites == ["L1"]
+    assert "T1" not in unparsed.refs()
+    llm = Scripted(summary="s", hypotheses=[{"cause": "x", "confidence": "low", "reasoning": "", "cites": ["T1"]}])
+    answer, _ = synthesize(QuerySpec(intent="rca"), unparsed, Ctx(store=None, templates={}, adapter=llm))  # type: ignore[arg-type]
+    assert answer.insufficient_evidence and "unparsed: FATAL" in llm.prompts[0]

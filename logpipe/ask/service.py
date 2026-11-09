@@ -14,7 +14,6 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 
-from ..registry import UNK_TEMPLATE_ID
 from ..settings import get_settings
 from .engine import Ctx, Outcome, Round, advance, execute, first_round
 from .models import ClarifyResult
@@ -252,7 +251,3 @@ class AskService:
         inc = control.get("incident", plan["incident"]) or {"id": plan["incident"], "status": "open"}
         control.put("incident", plan["incident"], inc | {"explanation": plan["result"] | {"at": _now().isoformat(),
                                                                                            "plan": plan["id"]}})
-
-
-def unparsed(tid: int) -> bool:
-    return tid == UNK_TEMPLATE_ID

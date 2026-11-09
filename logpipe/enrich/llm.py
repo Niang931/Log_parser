@@ -245,14 +245,15 @@ class ChatAdapter(OfflineAdapter):
         ))
         return bool(parsed and parsed.same_event)
 
-def get_adapter(backend: str, *, browser: Browser = "camoufox") -> LLMAdapter:
+def get_adapter(backend: str, *, browser: Browser | None = None) -> LLMAdapter:
     """``offline`` | ``hf`` | ``llm:<provider>[:<model>]``.
 
-    ``browser`` is only read by ``llm:web:<site>``.
+    ``browser`` is only read by ``llm:web:<site>``; by default ``WEB_BROWSER``.
     """
     if backend.startswith("llm:"):
         _, provider, *model = backend.split(":", 2)
-        return ChatAdapter(provider, model[0] if model else None, browser=browser)
+        return ChatAdapter(provider, model[0] if model else None,
+                           browser=browser or get_settings().llm.web_browser)  # type: ignore[arg-type]
     adapters = {"offline": OfflineAdapter, "hf": HFDeepSeekAdapter}
     if backend not in adapters:
         raise ValueError(

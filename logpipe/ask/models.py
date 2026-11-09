@@ -11,6 +11,8 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
+from ..registry import UNK_TEMPLATE_ID
+
 
 class _Model(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -21,6 +23,11 @@ def _aware(t: datetime) -> datetime:
 
 
 Utc = Annotated[datetime, AfterValidator(_aware)]  # a time without a zone is UTC
+
+
+def template_ref(tid: int | None) -> str | None:
+    """``T12`` for a template; nothing for an unparsed line (they all share one id, so citing it says nothing)."""
+    return None if tid is None or tid == UNK_TEMPLATE_ID else f"T{tid}"
 
 
 # Rows the reads return (one model per compiled read)
@@ -174,8 +181,8 @@ class Report(_Model):
     def refs(self) -> set[str]:
         """Every ref a claim may cite: lines, and the templates of lines and candidates."""
         out = {e.ref for e in self.evidence}
-        out |= {f"T{e.template_id}" for e in self.evidence if e.template_id is not None}
-        return out | {f"T{c.template_id}" for c in self.candidates}
+        out |= {template_ref(e.template_id) for e in self.evidence}
+        return (out | {template_ref(c.template_id) for c in self.candidates}) - {None}  # type: ignore[operator]
 
 
 # The other ways a plan ends

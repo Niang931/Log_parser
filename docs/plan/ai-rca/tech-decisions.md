@@ -37,7 +37,7 @@ Made without asking, since the user was away overnight. Each one is easy to revi
 | Aggregates | `QuerySpec.aggregate` (fn, field, group_by, over_time) on the keyword intent | keeps the old Ask's "errors per service" questions working without LLM-written SQL |
 | Mongo level filter | `LEVEL_EXPR` ($switch of LEVEL_RULES) in the builder; Query page gains level on Mongo | RCA needs error/warn reads on every store |
 | Memory store queries | SQLite copy cached until the next insert | an RCA runs ~10 queries; rebuilding per query made the eval 10x slower |
-| MiniLM | used when `sentence-transformers` is installed (not added to `pyproject`/`uv.lock`) | changing the lock overnight risked CI; TF-IDF + synonyms is the default |
+| MiniLM | used when `sentence-transformers` is installed (not added to `pyproject`/`uv.lock`) | changing the lock overnight risked CI; TF-IDF + synonyms is the default. **Superseded** by the refactor below: MiniLM is a dependency, TF-IDF and the synonym table are gone |
 | Qdrant / CLI | cut by the user | `VectorIndex`-style `search`/`neighbours` stay the swap point |
 
 ## Results (`python -m logpipe.eval.rca_eval`, rules only, no LLM)
@@ -56,3 +56,36 @@ Caveats: the heuristics were tuned on these same scenarios, so this is a fit, no
 semantic search change nothing on this set; the scenarios don't need them. The LLM path is wired and
 record/replay-tested with a scripted model, but no real-model numbers exist yet
 (`--llm llm:anthropic --record eval/rca-replies.json`).
+
+
+## Refactor and groups (follow-up PR, branch `refactor/ask-groups`)
+
+| Decision | Choice | Why |
+|---|---|---|
+| Configuration | `logpipe/settings.py`: one `pydantic-settings` class per environment prefix (`CLICKHOUSE_`, `MONGO_`, `KAFKA_`, `LOGPIPE_`, `LOGPIPE_ASK_`, `LOGPIPE_RCA_`, plus the unprefixed app/LLM ones), read once through `get_settings()`; the UI's settings are a validated `RuntimeSettings` model | env lookups and tuning constants were spread over ~12 modules; every number an operator may tune now has one home and an env override |
+| What stays a constant | regex tables (level rules, shutdown pattern), prompts, column maps, allowed Mongo stages | they are part of the code's contract, not settings |
+| Store reads and builders | `logpipe/server/stores/`: `base` (interfaces `StoreReads` and `Compiler`, shared level rules and JSON shaping), `sql` (one compiler for both SQL dialects, plus `guard_sql`), `memory`, `clickhouse`, `mongo` | replaces `reads.py`, `reads_mongo.py`, `querybuild.py`, `querybuild_mongo.py` and Ask's `if engine == ...` branches; a new backend is one module implementing two interfaces |
+| Ask's data | `logpipe/ask/models.py`: pydantic models for rows read (`TemplateCount`, `Bucket`, `LogLine`, ...), the report (`Anchor`, `Candidate`, `Evidence`, `Answer`) and every result kind; field names unchanged, so stored plans and the UI keep working | `rca.py` passed dicts keyed by strings like `out["template_counts2"]`; reads are now looked up by named position (`Discover.TEMPLATES`) |
+| Text index | MiniLM (`sentence-transformers`) only; identifiers are split into words before encoding | the synonym table hand-coded what the model is for; `LOGPIPE_ASK_MODEL` swaps the model |
+| Groups | control doc `group`; a stream's `group` field (at most one group per stream); `/api/groups`; a Groups card and a group picker on Streams | e.g. mail = ldap + proxy streams; a question naming a group covers all its services |
+| Groups in Ask | `QuerySpec.groups` (fast path matches group names; the router's catalog lists groups with their services); a root-cause search reads only the named groups' services; the final prompt lists the groups of the services in the bundle and says a failure in one service of a group often shows up first in another | the LLM can't know which services belong together unless told |
+| LLM context | the final prompt gets the person's whole question (it got the router's paraphrase before) | the summary intent previously saw no question at all |
+| Ask UI | the question read back as chips, a progress bar (read, approve, run, answer), a "your turn" bar per round with a countdown, queries opened on demand; the report as a verdict plus Answer / Evidence / Ranking tabs, cites that light up and jump to their line | the flow and the report were hard to follow |
+
+### Results with a real LLM (Gemini through the browser provider, `llm:web:gemini`, Chromium)
+
+`WEB_BROWSER=chromium python -m logpipe.eval.rca_eval --llm llm:web:gemini --record artifacts/eval/rca-gemini-replies.json --variants full`
+
+| variant | evidence recall | answer correct |
+|---|---|---|
+| naive (last 200 lines) | 0.714 | - |
+| full, rules only | 1.0 | 1.0 |
+| full + Gemini | 1.0 | 1.0 |
+
+All 16 synthesizer calls came back valid; every hypothesis cited lines in the bundle (none dropped). On the hung-API
+scenario Gemini said the evidence was insufficient (it can't see a cause in lines that just stop); the scenario
+counts as correct only through the rule-based "shop-api stopped logging" lead shown next to its answer. Every eval
+question was simple enough for the rule-based router, so routing went through Gemini only in a separate check
+(an average-per-host-over-time question, and "is email ok? nobody can sign in", which it mapped to the `mail` group).
+The recorded replies can't be replayed in CI: prompts carry the times of the world the eval builds, which change
+on every run.

@@ -11,7 +11,7 @@ import re
 from functools import lru_cache
 
 from .engine import Ctx
-from .models import Answer, Dropped, Hypothesis, Report, TimelineEvent
+from .models import Answer, Dropped, Hypothesis, Report, TimelineEvent, template_ref
 from .query import Filters
 from .spec import QuerySpec
 
@@ -79,13 +79,13 @@ TASKS = {"rca": "Explain why it broke.", "summary": "Summarize what happened in 
 
 def bundle_text(report: Report, ctx: Ctx) -> tuple[str, str]:
     """The ranked templates and the lines, cut to the token budget."""
-    cands = "\n".join(f"T{c.template_id} {c.service}: {c.template[:120]} | {c.count} lines, score {c.score:.3f} ({c.why})"
+    cands = "\n".join(f"{template_ref(c.template_id) or 'unparsed'} {c.service}: {c.template[:120]} | {c.count} lines, score {c.score:.3f} ({c.why})"
                       for c in report.candidates[:ctx.rca.max_candidates])
     budget = ctx.ask.budget_tokens * ctx.ask.chars_per_token
     lines, used = [], len(cands)
     for e in report.evidence:
         line = (f"{e.ref} {e.timestamp.isoformat(timespec='milliseconds')[:23]} {e.service or '-'} "
-                f"{(e.level or '').upper()} T{e.template_id}: {e.message}")
+                f"{(e.level or '').upper()} {template_ref(e.template_id) or 'unparsed'}: {e.message}")
         if used + len(line) > budget:
             break
         lines.append(line)
@@ -130,7 +130,7 @@ def leads(report: Report, ctx: Ctx) -> list[Hypothesis]:
     strong = sorted((c for c in report.candidates if c.score >= ctx.rca.strong), key=lambda c: not c.earliest_in_chain)
     ref_of = {(e.template_id, e.service): e.ref for e in report.evidence}
     out = [Hypothesis(cause=f"{c.service}: {c.example.splitlines()[0][:200]}", confidence="ranked", reasoning=c.why,
-                      cites=[r for r in (ref_of.get((c.template_id, c.service)), f"T{c.template_id}") if r])
+                      cites=[r for r in (ref_of.get((c.template_id, c.service)), template_ref(c.template_id)) if r])
            for c in strong[:3]]
     a = report.anchor
     if a.kind == "silence":
