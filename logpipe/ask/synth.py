@@ -145,9 +145,11 @@ def leads(report: Report, ctx: Ctx) -> list[Hypothesis]:
 
 def offline_answer(report: Report, ctx: Ctx) -> Answer:
     found = leads(report, ctx)
-    timeline = sorted((TimelineEvent(at=e.timestamp.isoformat(), what=f"{e.service}: {e.message[:160]}", cites=[e.ref])
-                       for e in report.evidence if e.score is not None), key=lambda t: t.at)[:8]
-    summary = f"Anchor: {report.anchor.why}. " + (f"Top lead: {found[0].cause}." if found else "Nothing stands out against the baseline.")
+    # the lines that stand out, and the anchor's own line, in time order
+    marked = [e for e in report.evidence if (e.score or 0) >= ctx.rca.strong or e.why.startswith("the anchor")]
+    timeline = [TimelineEvent(at=e.timestamp.isoformat(), what=f"{e.service}: {e.message.splitlines()[0][:160]}", cites=[e.ref])
+                for e in sorted(marked, key=lambda e: e.timestamp)][:8]
+    summary = f"Top lead: {found[0].cause}." if found else "Nothing stands out against the baseline."
     return Answer(summary=summary, timeline=timeline, leads=found, insufficient_evidence=not found,
                   missing="" if found else "no new or spiking template near the anchor", by="rules",
                   note="No LLM configured: these are the evidence ranked by score, not a diagnosis.")
