@@ -10,6 +10,7 @@ The LLM may ask for more reads (typed moves, :mod:`moves`), each approved before
 from __future__ import annotations
 
 import re
+from datetime import UTC
 from functools import lru_cache
 
 from .engine import Ctx
@@ -24,7 +25,7 @@ def synth_schema():
     from pydantic import BaseModel, Field
 
     class Event(BaseModel):
-        at: str = Field(description="time, from the cited line")
+        at: str = Field(description="time, copied from the cited line (UTC, ending in Z)")
         what: str
         cites: list[str] = Field(description="refs like L3, T12, H1 or S2")
 
@@ -114,7 +115,7 @@ def series_text(report: Report) -> str:
 
 
 def _line(e) -> str:
-    return (f"{e.ref} {e.timestamp.isoformat(timespec='milliseconds')[:23]} {e.service or '-'} {e.host or '-'} "
+    return (f"{e.ref} {e.timestamp.astimezone(UTC).isoformat(timespec='milliseconds')[:23]}Z {e.service or '-'} {e.host or '-'} "
             f"{(e.level or '').upper()} {template_ref(e.template_id) or 'unparsed'}: {e.message}")
 
 

@@ -64,7 +64,7 @@ class Move:
         what = {"lines": self.filters.describe(), "trace": f"every line carrying {self.value!r}",
                 "rate": f"{'all' if self.all_lines else 'error/warn'} lines per minute of {', '.join(self.services)}",
                 "neighbours": "errors in any service around the anchor"}[self.kind]
-        return f"{what}, {self.start:%H:%M}-{self.end:%H:%M}"
+        return f"{what}, {self.start:%H:%M}-{self.end:%H:%M} UTC"
 
 
 def check_moves(raw: list[dict], report: Report, ctx: Ctx) -> list[Move]:
@@ -123,6 +123,18 @@ def move_round(n: int, moves: list[Move], ctx: Ctx, purpose: str) -> Round:
     return Round(n, purpose, queries)
 
 
+def varied(lines: list[LogLine], per: int = 3) -> list[LogLine]:
+    """At most ``per`` lines of each (template, service): forty copies of one error say no more than three."""
+    seen: dict[tuple, int] = {}
+    out = []
+    for line in lines:
+        key = (line.template_id, line.service)
+        seen[key] = seen.get(key, 0) + 1
+        if seen[key] <= per:
+            out.append(line)
+    return out
+
+
 def absorb(report: Report, done: Round, outputs: dict[str, list[dict]], ctx: Ctx) -> Report:
     """The bundle with what the approved follow-up reads found: lines, and rates as series."""
     from .rca import add_lines
@@ -134,7 +146,7 @@ def absorb(report: Report, done: Round, outputs: dict[str, list[dict]], ctx: Ctx
         rows, kind = outputs[q.id], q.args.get("move", "lines")
         why = f"follow-up {kind}: {q.why}"
         if q.tool == "rows":
-            report.evidence = add_lines(report.evidence, [LogLine.model_validate(r) for r in rows], ctx, why=why, cap=cap)
+            report.evidence = add_lines(report.evidence, varied([LogLine.model_validate(r) for r in rows]), ctx, why=why, cap=cap)
         elif q.tool == "template_counts":
             counts = sorted((TemplateCount.model_validate(r) for r in rows), key=lambda c: c.first)
             lines = [LogLine(log_id=c.log_id, timestamp=c.first, service=c.service, host=c.host, level=c.level,

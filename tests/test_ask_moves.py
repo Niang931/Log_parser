@@ -96,3 +96,11 @@ def test_a_strong_hint_is_a_lead_without_an_llm():
                                                       other_share=0.02, ratio=40)]})
     found = leads(report, ctx())
     assert found[0].cause == "errors concentrate on host=web-3" and found[0].cites == ["H1"]
+
+
+def test_follow_up_lines_are_varied_not_forty_copies():
+    from logpipe.ask.moves import varied
+
+    same = [LogLine(timestamp=AT + timedelta(seconds=i), service="api", template_id=7, message=f"order {i} failed") for i in range(40)]
+    other = [LogLine(timestamp=AT, service="db", template_id=8, message="lock wait")]
+    assert len(varied(same + other)) == 4
