@@ -6,10 +6,11 @@ back (``model_validate``) with the same field names the UI reads.
 """
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field
 
 from ..registry import UNK_TEMPLATE_ID
 
@@ -23,6 +24,7 @@ def _aware(t: datetime) -> datetime:
 
 
 Utc = Annotated[datetime, AfterValidator(_aware)]  # a time without a zone is UTC
+Fields = Annotated[dict, BeforeValidator(lambda v: json.loads(v) if isinstance(v, str) else v or {})]  # JSON text or a document
 
 
 def template_ref(tid: int | None) -> str | None:
@@ -61,6 +63,7 @@ class LogLine(_Model):
     level: str | None = None
     template_id: int | None = None
     message: str
+    payload: Fields = Field(default_factory=dict)  # the template's extracted fields, when the read asked for them
 
 
 class AgentSeen(_Model):
@@ -134,6 +137,28 @@ class Evidence(_Model):
     score: float | None = None
 
 
+class Hint(_Model):
+    """A value error lines carry far more often than the other lines in the window, cited as ``ref``
+    (H1 is the strongest): the host, source or extracted field the trouble concentrates on."""
+    ref: str
+    field: str  # host, source, or an extracted field (@name)
+    value: str
+    errors: int  # error/warn lines carrying it
+    error_share: float
+    other_share: float
+    ratio: float
+
+
+class Series(_Model):
+    """Error/warn (or all) lines of one service per time step, read by a follow-up, cited as ``ref`` (S1, ...)."""
+    ref: str
+    service: str | None
+    what: str
+    start: Utc
+    step_seconds: int
+    counts: list[int]
+
+
 class TimelineEvent(_Model):
     at: str = ""
     what: str
@@ -176,11 +201,13 @@ class Report(_Model):
     evidence: list[Evidence] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
     groups: dict[str, list[str]] = Field(default_factory=dict)  # group -> its services, for the services in the bundle
+    hints: list[Hint] = Field(default_factory=list)
+    series: list[Series] = Field(default_factory=list)
     answer: Answer | None = None
 
     def refs(self) -> set[str]:
-        """Every ref a claim may cite: lines, and the templates of lines and candidates."""
-        out = {e.ref for e in self.evidence}
+        """Every ref a claim may cite: lines, value hints, rates, and the templates of lines and candidates."""
+        out = {e.ref for e in self.evidence} | {h.ref for h in self.hints} | {s.ref for s in self.series}
         out |= {template_ref(e.template_id) for e in self.evidence}
         return (out | {template_ref(c.template_id) for c in self.candidates}) - {None}  # type: ignore[operator]
 

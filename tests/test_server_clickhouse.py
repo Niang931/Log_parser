@@ -113,6 +113,7 @@ def test_ask_reads_are_read_only_on_clickhouse(store, tmp_path):
     c = server.reads.compiler
     now = datetime.now(UTC)
     for compiled in (c.rows(Filters(levels=["error"]).builder(), now - timedelta(hours=1), now),
+                     c.rows([], now - timedelta(hours=1), now, payload=True),
                      c.template_counts([], now - timedelta(hours=1), now),
                      c.buckets([], now - timedelta(hours=1), now, 60)):
         assert server.reads.records(compiled, 2000) == []

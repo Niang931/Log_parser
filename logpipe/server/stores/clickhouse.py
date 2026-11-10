@@ -47,6 +47,9 @@ class ClickHouseSql(SqlCompiler):
         raw = f"JSONExtractString(toJSONString(payload), {self.quote(key)})"
         return f"toFloat64OrNull({raw})" if numeric else raw
 
+    def payload_json(self) -> str:
+        return "toJSONString(payload)"
+
     def time_col(self) -> str:
         return "timestamp"
 

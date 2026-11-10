@@ -146,7 +146,7 @@ def test_shutdown_set_is_editable(ready):
     assert client.put("/api/ask-shutdown", json={"template_id": 10**6, "shutdown": True}).status_code == 400
 
 
-def test_follow_up_searches_wait_for_approval_and_stop_at_three(ready):
+def test_follow_up_reads_wait_for_approval_and_stop_at_four(ready):
     server, client = ready
 
     class Curious:
@@ -156,7 +156,7 @@ def test_follow_up_searches_wait_for_approval_and_stop_at_three(ready):
         def ask(self, schema, prompt):
             if schema.__name__ == "RouteOut":
                 return schema(intent="rca", services=["db"], anchor_event="db down")
-            return schema(summary="need more", hypotheses=[], follow_up=[{"keywords": ["pool"], "services": ["db"]}])
+            return schema(summary="need more", hypotheses=[], follow_up=[{"kind": "lines", "keywords": ["pool"], "services": ["db"]}])
 
     server._adapter = Curious()
     plan = plan_of(client, "what is wrong with the database lately")
@@ -171,7 +171,7 @@ def test_follow_up_searches_wait_for_approval_and_stop_at_three(ready):
         run_jobs(server)
     done = client.get(f"/api/ask/{plan['id']}").json()
     follow = [x for x in purposes if x.startswith("follow-up")]
-    assert follow == ["follow-up 1 of 3", "follow-up 2 of 3", "follow-up 3 of 3"]
+    assert follow == [f"follow-up {i} of 4" for i in range(1, 5)]
     assert done["status"] == "done" and done["result"]["answer"]["insufficient_evidence"]
     q = done["rounds"][-1]["queries"][0]
     assert "'%pool%'" in q["compiled"] or "lower('pool')" in q["compiled"]

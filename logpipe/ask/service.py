@@ -65,7 +65,7 @@ class AskService:
         index = self.index_for(cat)
         return Ctx(store=s.reads, templates=cat.templates, canonical=snap.canonical_id, scorer_for=scorer_for,
                    agents=s.agents, alerts=s.reads.alerts, search_templates=index.search, neighbours=index.neighbours,
-                   shutdown=shutdown_set(s.control, cat.templates, index), groups=cat.groups,
+                   shutdown=shutdown_set(s.control, cat.templates, index), groups=cat.groups, services=cat.services,
                    adapter=adapter or s.adapter, question=question, now=now or _now(), window=s.window, **flags)
 
     def index_for(self, cat: Catalog):

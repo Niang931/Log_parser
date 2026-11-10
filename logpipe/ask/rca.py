@@ -34,6 +34,7 @@ from statistics import median
 from pydantic import BaseModel
 
 from .engine import Ctx, Outcome, Round, local, log_read, span
+from .hints import value_hints
 from .models import (
     AgentSeen,
     Alert,
@@ -66,6 +67,8 @@ class Around(IntEnum):
     BASELINE = 2
     ANCHOR_LINES = 3
     ALERTS = 4
+    ERRORS = 5
+    OTHERS = 6
 
 
 def rows_of[M: BaseModel](done: Round, outputs: dict[str, list[dict]], i: int, model: type[M]) -> list[M]:
@@ -126,6 +129,11 @@ def evidence_round(n: int, anchor: Anchor, ctx: Ctx, spec: QuerySpec, wide: bool
     if ctx.use_logbert:
         queries.append(local(n, Around.ALERTS, "alerts", "LogBERT alerts in the window", "windows the anomaly model flagged",
                              "reads.alerts(500) filtered to the window (anomaly_alerts)", **span(start, end)))
+    for i, levels, title in ((Around.ERRORS, ["error", "warn"], "Error and warning lines in the window"),
+                             (Around.OTHERS, ["info", "debug"], "The other lines in the window")):
+        queries.append(log_read(ctx, n, i, "rows", title, "with their extracted fields: which host or value the errors "
+                                "concentrate on, compared with the other lines", filters=f | {"levels": levels},
+                                limit=ctx.ask.row_cap, newest_first=True, payload=True, **span(start, end)))
     return Round(n, "read around " + ("the range" if anchor.kind == "range" else "the anchor") + (" (wider)" if wide else ""), queries)
 
 
@@ -148,32 +156,31 @@ def rca_advance(spec: QuerySpec, raw_state: dict, done: Round, outputs: dict, ct
         assert state.anchor is not None
         anchor = state.anchor
         cands, lines, notes = rank(spec, anchor, done, outputs, ctx)
+        hints = value_hints(rows_of(done, outputs, Around.ERRORS, LogLine), rows_of(done, outputs, Around.OTHERS, LogLine), ctx.rca)
         strong = [c for c in cands if c.score >= ctx.rca.strong]
         if state.phase == "evidence" and len(strong) < ctx.rca.min_strong and anchor.kind != "range":
             return Outcome(evidence_round(done.n + 1, anchor, ctx, spec, wide=True), state=_state("wide", anchor=anchor))
-        report = Report(intent=spec.intent, anchor=anchor, candidates=cands, evidence=lines, notes=notes,
+        report = Report(intent=spec.intent, anchor=anchor, candidates=cands, evidence=lines, notes=notes, hints=hints,
                         groups=ctx.groups_of({c.service for c in cands} | {e.service for e in lines}))
         return synthesize_step(spec, report, ctx, state, done.n)
     if state.phase == "follow_up":
         assert state.report is not None
-        report = state.report
-        extra = [LogLine.model_validate(r) for q in done.queries if q.id in outputs for r in outputs[q.id]]
-        report.evidence = add_lines(report.evidence, extra, ctx, why="asked for by the follow-up search")
+        from .moves import absorb
+
+        report = absorb(state.report, done, outputs, ctx)
         return synthesize_step(spec, report, ctx, state, done.n)
     raise ValueError(f"unknown phase {state.phase!r}")
 
 
 def synthesize_step(spec: QuerySpec, report: Report, ctx: Ctx, state: RcaState, last_round: int) -> Outcome:
+    from .moves import move_round
     from .synth import synthesize
 
-    answer, follow = synthesize(spec, report, ctx)
+    answer, moves = synthesize(spec, report, ctx)
     report.answer = answer
-    if follow and state.follow_ups < ctx.rca.follow_ups:
-        at, n = report.anchor.at, last_round + 1
-        queries = [log_read(ctx, n, i, "rows", f"Follow-up: {f.describe()}", "the model asked to look for this",
-                            filters=f.__dict__, limit=50, **span(at - ctx.rca.wide_before, min(at + ctx.rca.wide_after, ctx.now)))
-                   for i, f in enumerate(follow[:2], 1)]
-        return Outcome(Round(n, f"follow-up {state.follow_ups + 1} of {ctx.rca.follow_ups}", queries),
+    if moves and state.follow_ups < ctx.rca.follow_ups:
+        purpose = f"follow-up {state.follow_ups + 1} of {ctx.rca.follow_ups}"
+        return Outcome(move_round(last_round + 1, moves, ctx, purpose),
                        state=_state("follow_up", report=report, follow_ups=state.follow_ups + 1))
     return Outcome(result=report, state=_state("done"))
 
@@ -344,12 +351,14 @@ def logbert_surprise(rows: list[LogLine], anchor: Anchor, ctx: Ctx) -> dict[int,
     return {t: hit[t] / total[t] for t in total}
 
 
-def add_lines(evidence: list[Evidence], rows: list[LogLine], ctx: Ctx, why: str, score: float | None = None) -> list[Evidence]:
-    """The bundle with ``rows`` added (deduplicated, capped), in time order, refs renumbered so L1 is the earliest."""
+def add_lines(evidence: list[Evidence], rows: list[LogLine], ctx: Ctx, why: str, score: float | None = None,
+              cap: int | None = None) -> list[Evidence]:
+    """The bundle with ``rows`` added (deduplicated, at most ``cap`` lines, ``max_lines`` by default), in time
+    order, refs renumbered so L1 is the earliest."""
     out = list(evidence)
     seen = {(e.timestamp, e.message) for e in out}
     for r in rows:
-        if len(out) >= ctx.rca.max_lines:
+        if len(out) >= (cap or ctx.rca.max_lines):
             break
         message = r.message[:ctx.rca.line_chars]
         if (r.timestamp, message) in seen:

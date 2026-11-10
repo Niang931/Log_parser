@@ -20,7 +20,7 @@ T = datetime(2026, 11, 8, 10, 0, tzinfo=UTC)
 
 
 def row(sec: float, msg: str, tid: int, service: str = "api", host: str = "web-1") -> LogRow:
-    return LogRow(uuid.uuid4(), T + timedelta(seconds=sec), host, tid, Status.FINAL, 1, {}, msg,
+    return LogRow(uuid.uuid4(), T + timedelta(seconds=sec), host, tid, Status.FINAL, 1, {"upstream": "pay-1"} if tid == 4 else {}, msg,
                   service=service, source="java")
 
 
@@ -43,7 +43,9 @@ def test_rows_filters_and_order(store):
     assert "service IN ('db')" in q and "level IN ('error')" in q
     rows = run(store, q)
     assert [r["message"] for r in rows] == ["ERROR db pool exhausted"] * 2
-    assert rows[0]["timestamp"] < rows[1]["timestamp"] and rows[0]["level"] == "error"
+    assert rows[0]["timestamp"] < rows[1]["timestamp"] and rows[0]["level"] == "error" and "payload" not in rows[0]
+    with_fields = run(store, store.compiler.rows(f.builder(), T, T + timedelta(hours=1), payload=True))
+    assert json.loads(with_fields[0]["payload"]) == {"upstream": "pay-1"}  # JSON text; LogLine reads it
     newest = run(store, store.compiler.rows(Filters(keywords=["ORDER 2"]).builder(), T, T + timedelta(hours=1), newest_first=True))
     assert [r["message"] for r in newest] == [f"order {i} confirmed" for i in (29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 2)]
     # an absolute range is inclusive at both ends, to the microsecond

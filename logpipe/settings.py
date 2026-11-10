@@ -115,7 +115,7 @@ class AskSettings(BaseSettings):
     model_config = _env("LOGPIPE_ASK_")
     model: str = "sentence-transformers/all-MiniLM-L6-v2"  # text -> template embeddings
     plan_ttl_minutes: float = 15  # a plan waiting for approval expires after this
-    max_rounds: int = 6  # discovery, evidence, one widening, up to three follow-ups
+    max_rounds: int = 7  # discovery, evidence, one widening, up to four follow-ups
     default_minutes: int = 60
     max_span_days: int = 90
     max_keywords: int = 5
@@ -157,7 +157,16 @@ class RcaSettings(BaseSettings):
     max_candidates: int = 15
     max_lines: int = 40
     line_chars: int = 300
-    follow_ups: int = 3
+    follow_ups: int = 4  # rounds of reads the LLM may ask for, each approved like the rest
+    moves_per_round: int = 3
+    move_max_hours: float = 24  # how far before the anchor a follow-up read may look
+    follow_up_lines: int = 20  # lines one follow-up round may add to the bundle
+    # value hints: a host or extracted value carried by error lines far more often than by the others
+    hint_min_ratio: float = 3.0  # share among errors / share among the other lines
+    hint_min_share: float = 0.2  # of the error lines
+    hint_min_lines: int = 3
+    hint_min_others: int = 10  # fewer other lines than this: nothing to contrast with
+    max_hints: int = 5
 
     @property
     def before(self) -> timedelta:

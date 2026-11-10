@@ -62,6 +62,10 @@ class SqlCompiler(Compiler):
     def extracted(self, key: str, numeric: bool) -> str:
         """A field a template extracted (``payload``), as text or as a number."""
 
+    def payload_json(self) -> str:
+        """The extracted fields as JSON text."""
+        return "payload"
+
     @abstractmethod
     def time_col(self) -> str:
         """``timestamp`` as something that compares with ``instant``."""
@@ -148,10 +152,12 @@ class SqlCompiler(Compiler):
         return {"engine": self.engine, "table": self.table, "columns": cols, "fields": sorted(fields),
                 "payload_access": self.extracted("name", False), "measures": list(MEASURES), "ops": list(OPS)}
 
-    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False) -> str:
+    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False,
+             payload: bool = False) -> str:
         limit = max(1, min(int(limit), get_settings().ask.row_cap))
+        extra = f"{self.payload_json()} AS payload, " if payload else ""
         return (f"SELECT {self.log_id} AS log_id, timestamp, device_id AS host, service, source, template_id, "
-                f"{self.columns['level']} AS level, raw_message AS message\n"
+                f"{self.columns['level']} AS level, {extra}raw_message AS message\n"
                 f"FROM {self.source}\nWHERE {self._where(filters, start, end)}\n"
                 f"ORDER BY {self.time_col()} {'DESC' if newest_first else 'ASC'}\nLIMIT {limit}")
 

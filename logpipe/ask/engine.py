@@ -43,6 +43,7 @@ class Ctx:
     neighbours: Callable[[int, int], list[tuple[int, float]]] = lambda tid, k: []  # LogBERT vectors
     shutdown: set[int] = field(default_factory=set)
     groups: dict[str, list[str]] = field(default_factory=dict)  # group -> the services its streams cover
+    services: set[str] = field(default_factory=set)  # every service the store knows (follow-ups may name any)
     adapter: Any = None
     question: str = ""  # the person's words, for the LLM's final answer
     now: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -94,7 +95,7 @@ def log_read(ctx: Ctx, n: int, i: int, tool: str, title: str, why: str, **args) 
     f = Filters(**args.get("filters", {})).builder()
     c = ctx.store.compiler
     if tool == "rows":
-        compiled = c.rows(f, start, end, args.get("limit", 200), args.get("newest_first", False))
+        compiled = c.rows(f, start, end, args.get("limit", 200), args.get("newest_first", False), args.get("payload", False))
     elif tool == "template_counts":
         compiled = c.template_counts(f, start, end)
     elif tool == "buckets":

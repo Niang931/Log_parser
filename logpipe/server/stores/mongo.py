@@ -190,12 +190,14 @@ class MongoCompiler(Compiler):
         return {"engine": self.engine, "table": "logs", "columns": cols, "fields": sorted(fields),
                 "payload_access": "payload.name", "measures": list(MEASURES), "ops": list(OPS)}
 
-    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False) -> str:
+    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False,
+             payload: bool = False) -> str:
         limit = max(1, min(int(limit), get_settings().ask.row_cap))
         return _dump([self._match(filters, start, end), {"$sort": {"timestamp": -1 if newest_first else 1}},
                       {"$limit": limit},
                       {"$project": {"_id": 0, "log_id": "$_id", "timestamp": 1, "host": "$device_id", "service": 1,
-                                    "source": 1, "template_id": 1, "level": LEVEL_EXPR, "message": "$raw_message"}}])
+                                    "source": 1, "template_id": 1, "level": LEVEL_EXPR, "message": "$raw_message",
+                                    **({"payload": 1} if payload else {})}}])
 
     def template_counts(self, filters: list[dict], start: datetime, end: datetime) -> str:
         return _dump([self._match(filters, start, end), {"$sort": {"timestamp": 1}},

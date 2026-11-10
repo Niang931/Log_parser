@@ -183,7 +183,8 @@ class Compiler(ABC):
         """What the Query page's sidebar lists."""
 
     @abstractmethod
-    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False) -> str:
+    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False,
+             payload: bool = False) -> str:
         """Matching lines (log_id, timestamp, host, service, source, template_id, level, message)."""
 
     @abstractmethod

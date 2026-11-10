@@ -56,3 +56,14 @@ def test_build_shapes():
 def test_build_rejects_bad_specs(bad):
     with pytest.raises(ValueError):
         build(bad)
+
+
+def test_rows_bring_extracted_fields_only_when_asked():
+    from datetime import UTC, datetime, timedelta
+
+    from logpipe.server.stores.mongo import MongoCompiler
+
+    c, t = MongoCompiler(), datetime(2026, 11, 8, tzinfo=UTC)
+    assert "payload" not in json.loads(c.rows([], t, t + timedelta(hours=1)))[-1]["$project"]
+    p = json.loads(c.rows([], t, t + timedelta(hours=1), payload=True))
+    assert check(p) == p and p[-1]["$project"]["payload"] == 1
