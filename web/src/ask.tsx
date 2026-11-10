@@ -16,6 +16,12 @@ interface Cause { cause: string; confidence: string; reasoning: string; cites: s
 interface Moment { at: string; what: string; cites: string[] }
 interface Answer { summary: string; timeline: Moment[]; hypotheses: Cause[]; leads: Cause[]; insufficient_evidence: boolean; missing: string; next_steps: string[]; dropped: { section: string; text?: string | null }[]; by: "llm" | "rules"; note: string }
 interface Anchor { kind: string; at: string; service?: string | null; host?: string | null; why: string }
+interface Hint { ref: string; field: string; value: string; errors: number; error_share: number; other_share: number; ratio: number }
+interface Series { ref: string; service: string | null; what: string; start: string; step_seconds: number; counts: number[] }
+interface AiStep {
+  step: string; schema: string; status: "running" | "done" | "failed"; started_at: string; finished_at?: string; seconds?: number;
+  messages: { at: string; text: string }[]; prompt: string; reply: string | null; outcome: string;
+}
 export interface AskResult {
   kind: "general" | "clarify" | "lines" | "table" | "report";
   answer?: Answer | string; note?: string; message?: string;
@@ -23,11 +29,13 @@ export interface AskResult {
   templates?: { template_id: number; service: string | null; count: number; first: string; last: string; text: string }[];
   columns?: string[]; rows?: unknown[][]; compiled?: string;
   anchor?: Anchor; evidence?: Evidence[]; candidates?: Candidate[]; notes?: string[]; groups?: Record<string, string[]>; at?: string;
+  hints?: Hint[]; series?: Series[];
 }
 export interface AskPlan {
   id: string; question: string; via: string; notes: string[]; spec: Record<string, unknown>; require_approval: boolean;
   status: "waiting_approval" | "approved" | "running" | "done" | "failed" | "rejected" | "expired";
   created_at: string; expires_at?: string; rounds: { n: number; purpose: string; queries: AskQuery[] }[]; result: AskResult | null;
+  ai?: AiStep[];
 }
 
 const ANCHOR: Record<string, string> = {
@@ -89,14 +97,17 @@ function fmtMinutes(m: number) {
 
 /** Where the plan is: read → approve → run → answer. */
 function Steps({ plan }: { plan: AskPlan }) {
-  const at = { waiting_approval: 1, approved: 2, running: 2, done: 3, failed: 2, rejected: 1, expired: 1 }[plan.status];
+  const writing = plan.status === "running" && plan.ai?.at(-1)?.status === "running" && plan.ai.at(-1)?.schema === "AnswerOut";
+  const at = writing ? 3 : { waiting_approval: 1, approved: 2, running: 2, done: 3, failed: 2, rejected: 1, expired: 1 }[plan.status];
   const broke = ["failed", "rejected", "expired"].includes(plan.status);
   const names = ["Question read", plan.require_approval ? "Your approval" : "Approval off", "Read-only queries", "Answer"];
   return (
     <ol className="ask-steps" aria-label="Progress">
       {names.map((n, i) => {
         const state = i < at || plan.status === "done" ? "done" : i === at ? (broke ? "stopped" : "now") : "next";
-        return <li key={n} className={state} aria-current={state === "now" ? "step" : undefined}><span className="dot" />{n}</li>;
+        const busy = state === "now" && (plan.status === "running" || plan.status === "approved");
+        return <li key={n} className={state} aria-current={state === "now" ? "step" : undefined}>
+          {busy ? <span className="spin" aria-hidden="true" /> : <span className="dot" />}{n}</li>;
       })}
     </ol>
   );
@@ -146,7 +157,7 @@ function RoundView({ plan, round, waiting }: { plan: AskPlan; round: AskPlan["ro
           </div>
           <button className="btn ghost" disabled={reject.isPending} onClick={() => reject.mutate()}>Stop here</button>
           <button className="btn primary" disabled={!picked.size || approve.isPending} onClick={() => approve.mutate()}>
-            {approve.isPending ? "Starting…" : picked.size === round.queries.length ? "Run all" : `Run ${picked.size}`}</button>
+            {approve.isPending ? <><span className="spin" aria-hidden="true" />Starting…</> : picked.size === round.queries.length ? "Run all" : `Run ${picked.size}`}</button>
           {(approve.error || reject.error) && <div className="error-text small" style={{ flexBasis: "100%" }}>{(approve.error ?? reject.error)!.message}</div>}
         </div>
       )}
@@ -173,6 +184,63 @@ function Until({ iso }: { iso: string }) {
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 15_000); return () => clearInterval(t); }, []);
   const min = Math.round((Date.parse(iso) - now) / 60_000);
   return <>{min > 0 ? `Expires in ${min} min.` : "Expires in under a minute."}</>;
+}
+
+/** Seconds since ``since``, ticking: "12 s", "1 min 04 s". */
+export function Elapsed({ since }: { since: string }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const s = Math.max(0, Math.round((now - Date.parse(since)) / 1000));
+  return <span className="num">{s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")} s`}</span>;
+}
+
+/** What the LLM is doing for this plan, as it happens: each call, the adapter's own steps, the
+ *  prompt it got and what it answered. Open while a call runs; folds away once it's done. */
+function AiActivity({ steps }: { steps: AiStep[] }) {
+  const running = steps.find((s) => s.status === "running");
+  const [open, setOpen] = useState(!!running);
+  const runningSince = running?.started_at;
+  useEffect(() => { if (runningSince) setOpen(true); }, [runningSince]);  // a new call opens it again
+  const total = steps.reduce((a, s) => a + (s.seconds ?? 0), 0);
+  return (
+    <details className={`ask-ai${running ? " is-running" : ""}`} open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
+      <summary>
+        {running ? <span className="spin" aria-hidden="true" /> : <span className="ask-ai-mark" aria-hidden="true">AI</span>}
+        <span className="grow">{running ? <><strong>{running.step}…</strong> <span className="muted"><Elapsed since={running.started_at} /></span></>
+          : <>LLM activity <span className="muted">· {steps.length} call{steps.length === 1 ? "" : "s"}, {Math.round(total)} s</span></>}</span>
+        <span className="muted small">{open ? "Hide" : "Show"}</span>
+      </summary>
+      <ol className="ask-ai-steps">
+        {steps.map((s, i) => <AiStepView key={i} s={s} />)}
+      </ol>
+    </details>
+  );
+}
+
+function AiStepView({ s }: { s: AiStep }) {
+  const [show, setShow] = useState<"prompt" | "reply" | null>(null);
+  return (
+    <li className={`ai-${s.status}`}>
+      <div className="ask-ai-head">
+        {s.status === "running" ? <span className="spin" aria-hidden="true" /> : <span className={`ask-q-dot q-${s.status === "done" ? "done" : "failed"}`} aria-hidden="true" />}
+        <strong className="grow">{s.step}</strong>
+        <span className="muted small">{s.status === "running" ? <Elapsed since={s.started_at} /> : `${s.seconds ?? 0} s`}</span>
+      </div>
+      {s.outcome && <div className="small ask-ai-outcome">{s.outcome}</div>}
+      {s.messages.length > 0 && (
+        <ul className="ask-ai-log">{s.messages.map((m, i) => (
+          <li key={i}><span className="ask-time">+{Math.max(0, Math.round((Date.parse(m.at) - Date.parse(s.started_at)) / 1000))} s</span> {m.text}</li>))}
+        </ul>
+      )}
+      <div className="row" style={{ gap: 6 }}>
+        <button type="button" className="btn small ghost" aria-expanded={show === "prompt"} onClick={() => setShow(show === "prompt" ? null : "prompt")}>
+          {show === "prompt" ? "Hide prompt" : `Prompt (${Math.round(s.prompt.length / 4)} tokens)`}</button>
+        {s.reply && <button type="button" className="btn small ghost" aria-expanded={show === "reply"} onClick={() => setShow(show === "reply" ? null : "reply")}>
+          {show === "reply" ? "Hide reply" : "Reply"}</button>}
+      </div>
+      {show && <div className="ask-q-code"><CopyBlock text={show === "prompt" ? s.prompt : s.reply ?? ""} /></div>}
+    </li>
+  );
 }
 
 const QUERY_STATUS: Record<AskQuery["status"], string> = { pending: "to approve", approved: "running", rejected: "skipped", done: "done", failed: "failed" };
@@ -202,6 +270,12 @@ function SpecEditor({ plan, onClose }: { plan: AskPlan; onClose: () => void }) {
       </div>
     </form>
   );
+}
+
+/** A time the LLM copied from a line, in local time; one without a zone is UTC, like the bundle. */
+function clock(at: string) {
+  const iso = /^\d{4}-\d\d-\d\dT[\d:.]+$/.test(at) ? `${at}Z` : at;
+  return at && !Number.isNaN(Date.parse(iso)) ? new Date(iso).toLocaleTimeString() : at;
 }
 
 function LevelPill({ level }: { level?: string | null }) {
@@ -245,6 +319,8 @@ export function ReportView({ r }: { r: AskResult }) {
   const [tab, setTab] = useState<"answer" | "evidence" | "ranking">("answer");
   const [lit, setLit] = useState<string | null>(null);
   const evidence = r.evidence ?? [];
+  const hints = r.hints ?? [];
+  const series = r.series ?? [];
   const goTo = (ref: string) => {
     const line = ref.startsWith("T") ? evidence.find((e) => `T${e.template_id}` === ref)?.ref : ref;
     setTab("evidence");
@@ -271,7 +347,7 @@ export function ReportView({ r }: { r: AskResult }) {
         <div className="tabs" role="tablist">
           {(["answer", "evidence", "ranking"] as const).map((t) => (
             <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>
-              {t === "answer" ? "Answer" : t === "evidence" ? `Evidence (${evidence.length})` : `Ranking (${r.candidates?.length ?? 0})`}
+              {t === "answer" ? "Answer" : t === "evidence" ? `Evidence (${evidence.length + hints.length + series.length})` : `Ranking (${r.candidates?.length ?? 0})`}
             </button>
           ))}
         </div>
@@ -314,7 +390,7 @@ export function ReportView({ r }: { r: AskResult }) {
                 <h3>Timeline</h3>
                 <ol className="ask-timeline">
                   {a.timeline.map((t, i) => (
-                    <li key={i}><time className="ask-time">{t.at && !Number.isNaN(Date.parse(t.at)) ? new Date(t.at).toLocaleTimeString() : t.at}</time>
+                    <li key={i}><time className="ask-time">{clock(t.at)}</time>
                       <span className="grow">{t.what}</span><Cites cites={t.cites} /></li>
                   ))}
                 </ol>
@@ -327,13 +403,64 @@ export function ReportView({ r }: { r: AskResult }) {
             </p>
           </div>
         )}
-        {tab === "evidence" && (evidence.length
-          ? <><p className="muted small" style={{ margin: 0 }}>Everything the LLM saw, oldest first. L1 is the earliest line.</p>
-            <LinesList cited lines={evidence.map((e) => ({ key: e.ref, ...e }))} /></>
+        {tab === "evidence" && (evidence.length + hints.length + series.length
+          ? <>
+            {hints.length > 0 && <Hints hints={hints} />}
+            {series.length > 0 && <Rates series={series} />}
+            {evidence.length > 0 && <section className="stack" style={{ gap: 6 }}>
+              <h3 style={{ margin: 0 }}>Lines <span className="muted small">everything the LLM saw, oldest first; L1 is the earliest</span></h3>
+              <LinesList cited lines={evidence.map((e) => ({ key: e.ref, ...e }))} /></section>}
+          </>
           : <Empty title="No evidence">Nothing stood out in the window.</Empty>)}
         {tab === "ranking" && <Ranking candidates={r.candidates ?? []} />}
       </div>
     </Lit.Provider>
+  );
+}
+
+/** Where the errors concentrate: a value far more common on error lines than on the others. */
+function Hints({ hints }: { hints: Hint[] }) {
+  const { lit } = useContext(Lit);
+  return (
+    <section className="stack" style={{ gap: 6 }}>
+      <h3 style={{ margin: 0 }}>Where the errors concentrate <span className="muted small">share of error/warn lines carrying the value, against the other lines</span></h3>
+      <ul className="ask-hints">
+        {hints.map((h) => (
+          <li key={h.ref} id={`ev-${h.ref}`} className={lit === h.ref ? "lit" : ""}>
+            <span className="ask-ref">{h.ref}</span>
+            <span className="grow"><span className="mono">{h.field.replace(/^@/, "")}=<strong>{h.value}</strong></span>
+              <span className="muted small"> on {h.errors} error lines, {h.ratio}× more often than elsewhere</span></span>
+            <span className="ask-share" title={`${Math.round(h.error_share * 100)}% of error lines, ${Math.round(h.other_share * 100)}% of the others`}>
+              <span className="bar err" style={{ width: `${h.error_share * 100}%` }} /><span className="bar oth" style={{ width: `${h.other_share * 100}%` }} />
+            </span>
+            <span className="num small">{Math.round(h.error_share * 100)}% vs {Math.round(h.other_share * 100)}%</span>
+          </li>))}
+      </ul>
+    </section>
+  );
+}
+
+/** Lines per step that a follow-up read counted, as a row of bars. */
+function Rates({ series }: { series: Series[] }) {
+  const { lit } = useContext(Lit);
+  return (
+    <section className="stack" style={{ gap: 6 }}>
+      <h3 style={{ margin: 0 }}>Rates <span className="muted small">read by follow-ups</span></h3>
+      <ul className="ask-hints">
+        {series.map((s) => {
+          const max = Math.max(...s.counts, 1);
+          const w = 4;
+          return (
+            <li key={s.ref} id={`ev-${s.ref}`} className={lit === s.ref ? "lit" : ""}>
+              <span className="ask-ref">{s.ref}</span>
+              <span className="grow"><strong>{s.service ?? "–"}</strong> <span className="muted small">{s.what} per {s.step_seconds / 60} min from {time(s.start)}, peak {max}</span></span>
+              <svg className="ask-spark" width={s.counts.length * w} height={22} role="img" aria-label={`${s.what} of ${s.service}: ${s.counts.join(", ")}`}>
+                {s.counts.map((c, i) => <rect key={i} x={i * w} y={22 - Math.max(c ? 2 : 0, (c / max) * 22)} width={w - 1} height={Math.max(c ? 2 : 0, (c / max) * 22)} />)}
+              </svg>
+            </li>);
+        })}
+      </ul>
+    </section>
   );
 }
 
@@ -396,6 +523,7 @@ export function PlanView({ id }: { id: string }) {
         {plan.notes.length > 0 && <p className="muted small" style={{ margin: 0 }}>{plan.notes.join(" · ")}</p>}
         {plan.rounds.length > 0 && <Steps plan={plan} />}
       </header>
+      {!!plan.ai?.length && <AiActivity steps={plan.ai} />}
       {plan.rounds.length > 0 && (
         <div className="ask-rounds">
           {plan.rounds.map((r, i) => <RoundView key={`${r.n}-${plan.status}`} plan={plan} round={r} waiting={i === last && plan.status === "waiting_approval"} />)}
@@ -404,6 +532,23 @@ export function PlanView({ id }: { id: string }) {
       {DONE_TEXT[plan.status] && <div className="callout"><div>{DONE_TEXT[plan.status]}</div></div>}
       {plan.status === "failed" && <div className="callout bad"><div>The plan failed: see the failed query above.</div></div>}
       {plan.result && <ResultBody r={plan.result} />}
+    </article>
+  );
+}
+
+/** While the question is being read (by rules, or by the LLM, which can take a while through a
+ *  web chat): the question, a running clock and what happens next. */
+function Pending({ question, what = "Reading your question" }: { question: string; what?: string }) {
+  const [since] = useState(() => new Date().toISOString());
+  return (
+    <article className="ask-plan ask-pending" aria-busy="true" aria-live="polite">
+      <h2 className="ask-question">{question}</h2>
+      <div className="ask-ai is-running ask-ai-static">
+        <span className="spin" aria-hidden="true" />
+        <span className="grow"><strong>{what}…</strong> <span className="muted"><Elapsed since={since} /></span></span>
+      </div>
+      <p className="muted small" style={{ margin: 0 }}>Plain questions are read by rules in a moment. Anything else goes to the LLM, which can take up to a minute;
+        then you see the queries it plans before any of them runs.</p>
     </article>
   );
 }
@@ -426,7 +571,8 @@ export function AskPanel({ initialPlan }: { initialPlan?: string }) {
         <div className="ask-input">
           <input id="ask-q" type="search" value={question} onChange={(e) => setQuestion(e.target.value)} autoComplete="off"
             placeholder="Ask about your logs: why did checkout fail around 14:05?" aria-label="Question" />
-          <button className="btn primary" disabled={!question.trim() || ask.isPending}>{ask.isPending ? "Planning…" : "Ask"}</button>
+          <button className="btn primary" disabled={!question.trim() || ask.isPending} aria-busy={ask.isPending}>
+            {ask.isPending ? <><span className="spin" aria-hidden="true" />Reading…</> : "Ask"}</button>
         </div>
         <div className="spread">
           <Switch checked={serverRequires || mine} disabled={serverRequires} onChange={setMine} label="Approve each query before it runs"
@@ -435,13 +581,14 @@ export function AskPanel({ initialPlan }: { initialPlan?: string }) {
         </div>
         {ask.error && <div className="callout warn"><div>{ask.error.message}</div></div>}
       </form>
-      {!current && (
+      {ask.isPending && <Pending question={ask.variables ?? question} />}
+      {!current && !ask.isPending && (
         <div className="ask-empty">
           <p className="muted small" style={{ margin: 0 }}>Plain questions are read by rules. Anything else goes to the LLM, which only fills in a search form, never SQL. Try:</p>
           <div className="row">{EXAMPLES.map((q) => <button key={q} type="button" className="ask-example" onClick={() => submit(q)}>{q}</button>)}</div>
         </div>
       )}
-      {current && <PlanView key={current} id={current} />}
+      {current && !ask.isPending && <PlanView key={current} id={current} />}
       {!!recent?.plans.length && (
         <details className="ask-recent" open={!current}>
           <summary>Recent questions ({recent.plans.length})</summary>
@@ -462,11 +609,16 @@ export function AskPanel({ initialPlan }: { initialPlan?: string }) {
 /** The incident page's "What happened": a root-cause Ask anchored at the incident's start. */
 export function IncidentAsk({ incident, plan }: { incident: string; plan: AskPlan | null }) {
   const start = useAction(() => api<AskPlan>(`/api/incidents/${incident}/explain`, { method: "POST" }));
-  const busy = start.isPending || (plan && ["approved", "running", "waiting_approval"].includes(plan.status));
+  const working = plan && ["approved", "running"].includes(plan.status);
+  const busy = start.isPending || working || plan?.status === "waiting_approval";
+  const label = start.isPending ? "Planning…" : working ? "Investigating…" : plan?.status === "waiting_approval" ? "Waiting for your approval"
+    : plan ? "Investigate again" : "Investigate";
   return (
     <Card title="What happened" actions={
-      <button className="btn small primary" disabled={!!busy} onClick={() => start.mutate()}>{plan ? "Investigate again" : "Investigate"}</button>}>
-      {plan ? <PlanView id={plan.id} /> : (
+      <button className="btn small primary" disabled={!!busy} aria-busy={start.isPending || !!working} onClick={() => start.mutate()}>
+        {(start.isPending || working) && <span className="spin" aria-hidden="true" />}{label}</button>}>
+      {start.isPending ? <Pending question="What happened in this incident?" what="Planning the first queries" />
+        : plan ? <PlanView id={plan.id} /> : (
         <p className="muted" style={{ margin: 0 }}>Plans read-only queries around the incident's start for your approval, ranks what changed
           against the day before, and explains it citing the lines. <Link to="/query?tab=ask">Ask anything else</Link>.</p>)}
       {start.error && <div className="error-text small">{start.error.message}</div>}
