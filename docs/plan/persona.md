@@ -1,21 +1,11 @@
-# Persona
+# MCP: persona
 
 ## Context
-logpipe today only ingests synthetic IoT fleets or replayed files (`logpipe run --logs`, `logpipe demo`).
-To be a real product it needs a host-side collector that ships live logs, a backend that takes them
-in, and an operator UI. The existing stdlib demo (`logpipe/demo/server.py` + `index.html`) stays as
-the developer view at `/demo`; the new React UI is the operator view.
+Incident triage is slow: when something breaks you click through the web UI (incidents → lines → other services → metrics) to piece together what happened. Goal: an MCP endpoint so Claude (in Claude Code, for you and teammates) can pull that evidence itself and answer with a cited timeline/root cause, answer ad-hoc log questions, and pre-review new template batches. Humans keep the final say: the AI cannot apply batches or change incident status.
 
-## Persona
-**Who:** Ops/SREs running Linux servers, and IoT gateway operators (ARM, constrained). Comfortable
-with YAML, systemd and docker; not interested in ML internals.
-**Problem:** logs are scattered across hosts and formats; multiline stack traces get split into
-noise; nobody knows which host ships what. Today logpipe can't even receive live logs.
-**Cost of not solving:** template/anomaly detection only works on replayed files, so it never
-catches anything in production.
-**Solution (user-specified parts marked *):** a Go agent* with Datadog-style YAML* (agent.yaml +
-conf.d), CLI* to track files / edit config, multiline*, docker image*; a FastAPI `logpipe server`
-feeding the existing `Pipeline`; a React UI* (intuitive, operator-facing) with a fleet view and
-remote config push*.
-**Out of scope:** UI login/users (behind proxy), TLS/mTLS management, HA, Prometheus exporter,
-deb/rpm packages, Kubernetes DaemonSet, porting the demo page to React.
+## Persona (approved)
+- **Who**: you and teammate operators of a logpipe deployment. They are technical, use Claude Code, and today work through the web UI and hand-written SQL.
+- **Problem**: triage means manually connecting incidents, log lines, other services' errors and pipeline health. Template review is a tedious batch chore. The cost is slow MTTR and a growing review backlog.
+- **Solution**: a Streamable-HTTP MCP at `/mcp` on the existing FastAPI server, authed by per-person scoped API keys. The client AI does the reasoning. MCP exposes data plus a narrow set of "proposal" writes, each attributed to the key that made it.
+- **Out of scope**: applying or discarding batches, changing incident status, admin of settings/rules/keys, storing RCA reports on the server, Slack/Trello posting, autonomous bots, pagination.
+
