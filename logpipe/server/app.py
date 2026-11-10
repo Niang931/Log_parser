@@ -27,7 +27,7 @@ from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild, querybuild_mongo
 from .auth import COOKIE, SESSION_SECONDS, Auth
-from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
+from .core import MIN_DRAFT_LINES, Busy, KeyScope, Server, now_iso
 from .metrics import METRICS
 from .reads import FACETS
 
@@ -450,7 +450,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.post("/api/keys")
     def create_key(body: Annotated[dict, Body()]) -> dict:
-        doc, token = server.create_key(str(body.get("name", "")))
+        doc, token = server.create_key(str(body.get("name", "")), KeyScope(body.get("scope", KeyScope.INTAKE)))
         return {k: v for k, v in doc.items() if k != "hash"} | {"token": token}
 
     @app.delete("/api/keys/{key_id}")

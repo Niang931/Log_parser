@@ -24,6 +24,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from pathlib import Path
 
 import numpy as np
@@ -106,6 +107,11 @@ MIN_DRAFT_LINES = 50  # below this a sample can't say much about a source's temp
 JOB_KINDS = ("draft", "apply", "retrain", "reextract", "explain", "bench")
 INCIDENT_GAP = timedelta(minutes=5)  # alerts on one service closer than this are one incident
 INCIDENT_STATES = ("open", "acknowledged", "resolved", "false_positive")
+
+
+class KeyScope(StrEnum):
+    INTAKE = "intake"  # agents shipping logs
+    MCP = "mcp"  # AI assistants reading /api through /mcp
 
 
 class NotEnoughData(ValueError):
@@ -349,17 +355,17 @@ class Server:
         return self.data_dir / "models" / stream_id
 
     # --- API keys -----------------------------------------------------------------------
-    def _store_key(self, name: str, token: str) -> dict:
+    def _store_key(self, name: str, token: str, scope: KeyScope = KeyScope.INTAKE) -> dict:
         digest = hashlib.sha256(token.encode()).hexdigest()
         doc = {"id": uuid.uuid4().hex[:12], "name": name, "hash": digest, "prefix": token[:7],
-               "created_at": now_iso(), "revoked": False, "last_used_at": None}
+               "scope": scope.value, "created_at": now_iso(), "revoked": False, "last_used_at": None}
         self.control.put("key", doc["id"], doc)
         self._keys[digest] = doc
         return doc
 
-    def create_key(self, name: str) -> tuple[dict, str]:
+    def create_key(self, name: str, scope: KeyScope = KeyScope.INTAKE) -> tuple[dict, str]:
         token = "lp_" + secrets.token_urlsafe(24)
-        return self._store_key(name.strip() or "unnamed", token), token
+        return self._store_key(name.strip() or "unnamed", token, scope), token
 
     def revoke_key(self, key_id: str) -> None:
         doc = self.control.get("key", key_id)
@@ -368,11 +374,13 @@ class Server:
         self.control.update("key", key_id, revoked=True, revoked_at=now_iso())
         self._keys.pop(doc["hash"], None)
 
-    def check_key(self, token: str | None) -> dict | None:
+    def check_key(self, token: str | None, scope: KeyScope = KeyScope.INTAKE) -> dict | None:
         if not token:
             return None
         doc = self._keys.get(hashlib.sha256(token.encode()).hexdigest())
-        if doc is not None and (doc.get("last_used_at") or "")[:16] != now_iso()[:16]:
+        if doc is None or doc.get("scope", KeyScope.INTAKE) != scope:
+            return None
+        if (doc.get("last_used_at") or "")[:16] != now_iso()[:16]:
             doc["last_used_at"] = now_iso()  # minute resolution, persisted by housekeeping
             self._dirty.add(("key", doc["id"]))
         return doc
