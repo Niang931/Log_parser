@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from ..settings import get_settings
+from .activity import Recorder
 from .engine import Ctx, Outcome, Round, advance, execute, first_round
 from .models import ClarifyResult
 from .query import Query
@@ -85,12 +86,13 @@ class AskService:
             spec: dict | None = None, incident: str | None = None) -> dict:
         now = _now()
         cat = self.catalog()
+        ai: list[dict] = []  # what the LLM did for this plan, shown as it happens
         if spec is not None:
             routed_spec, via, notes = validate(spec, cat, now), "given", []
         else:
-            r = route(question, cat, self.server.adapter, now, tz_offset)
+            r = route(question, cat, Recorder(self.server.adapter, ai), now, tz_offset)
             routed_spec, via, notes = r.spec, r.via, r.notes
-        plan = {"id": uuid.uuid4().hex[:12], "question": question[:1000], "via": via, "notes": notes,
+        plan = {"id": uuid.uuid4().hex[:12], "question": question[:1000], "via": via, "notes": notes, "ai": ai,
                 "spec": routed_spec.model_dump(mode="json"), "require_approval": self.require_approval(require_approval),
                 "created_at": now.isoformat(), "incident": incident, "rounds": [], "state": {}, "result": None}
         return self._plan(plan, first_round(routed_spec, self.ctx(now, question=question)), now)
@@ -215,12 +217,17 @@ class AskService:
         outputs: dict[str, list[dict]] = json.loads(path.read_text("utf-8")) if path.exists() else {}
         plan["status"] = "running"
         self.server.control.put(KIND, plan_id, plan)
+
+        def save() -> None:
+            self.server.control.put(KIND, plan_id, plan)
+            self.server.events.notify()
+        recorder = Recorder(adapter or self.server.adapter, plan.setdefault("ai", []), save)
         rounds = 0
         while True:
             rounds += 1
             current = plan["rounds"][-1]
             queries = [Query(**q) for q in current["queries"]]
-            ctx = self.ctx(adapter=adapter, question=plan["question"])
+            ctx = self.ctx(adapter=recorder, question=plan["question"])
             for i, q in enumerate(queries):
                 if q.status != "approved":
                     continue

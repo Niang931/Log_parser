@@ -173,5 +173,8 @@ def test_follow_up_reads_wait_for_approval_and_stop_at_four(ready):
     follow = [x for x in purposes if x.startswith("follow-up")]
     assert follow == [f"follow-up {i} of 4" for i in range(1, 5)]
     assert done["status"] == "done" and done["result"]["answer"]["insufficient_evidence"]
+    steps = [(e["step"], e["status"]) for e in done["ai"]]  # the activity log the UI shows as it happens
+    assert steps[0] == ("Reading your question", "done") and steps.count(("Writing the answer from the evidence", "done")) == 5
+    assert "asked for 1 more read" in done["ai"][1]["outcome"] and done["ai"][1]["prompt"].startswith("You are helping")
     q = done["rounds"][-1]["queries"][0]
     assert "'%pool%'" in q["compiled"] or "lower('pool')" in q["compiled"]
