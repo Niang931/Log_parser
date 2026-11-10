@@ -102,6 +102,7 @@ export interface Batch {
 export interface Draft {
   id: string;
   batch: string;
+  by?: string | null;
   tokens: string[];
   keys: string[];
   count: number;
@@ -160,6 +161,7 @@ export type IncidentStatus = "open" | "acknowledged" | "resolved" | "false_posit
 export interface Incident {
   id: string;
   key: string;
+  by: string | null;
   host: string;
   service: string;
   start: string;
@@ -362,9 +364,12 @@ export interface Agent {
   remote_applied: boolean;
 }
 
+export type KeyScope = "intake" | "mcp";
+
 export interface ApiKey {
   id: string;
   name: string;
+  scope?: KeyScope;
   prefix: string;
   created_at: string;
   revoked: boolean;

@@ -773,7 +773,7 @@ class Server:
         return review.check_rule(rule, self.batch_lines(draft["batch"]),
                                  review.mined_matcher(draft, self._masks(batch)))
 
-    def update_draft(self, draft_id: str, body: dict) -> dict:
+    def update_draft(self, draft_id: str, body: dict, by: str | None = None) -> dict:
         draft = self.control.get("draft", draft_id)
         if draft is None:
             raise KeyError(draft_id)
@@ -797,9 +797,9 @@ class Server:
             if body["status"] not in ("pending", "approved", "rejected"):
                 raise ValueError("status must be pending, approved or rejected")
             changes["status"] = body["status"]
-        return self.control.update("draft", draft_id, **changes)
+        return self.control.update("draft", draft_id, **changes, by=by)
 
-    def decide_all(self, batch_id: str, status: str, ids: list[str] | None = None) -> int:
+    def decide_all(self, batch_id: str, status: str, ids: list[str] | None = None, by: str | None = None) -> int:
         """Every undecided draft, or with ``ids`` exactly those (back to "pending" too)."""
         self._open_batch(batch_id)
         if status not in ("approved", "rejected") and not (ids is not None and status == "pending"):
@@ -807,10 +807,10 @@ class Server:
         pending = [d for d in self.drafts(batch_id) if d["status"] != "merged"
                    and (d["id"] in ids if ids is not None else d["status"] == "pending")]
         for d in pending:
-            self.control.update("draft", d["id"], status=status)
+            self.control.update("draft", d["id"], status=status, by=by)
         return len(pending)
 
-    def merge_drafts(self, target_id: str, others: list[str]) -> dict:
+    def merge_drafts(self, target_id: str, others: list[str], by: str | None = None) -> dict:
         target = self.control.get("draft", target_id)
         if target is None:
             raise KeyError(target_id)
@@ -825,9 +825,9 @@ class Server:
         keys = clean_keys(target["keys"], tokens)
         checked = review.check(tokens, keys, self._masks(batch), self.batch_lines(batch["id"]))
         for d in docs:
-            self.control.update("draft", d["id"], status="merged", merged_into=target_id)
+            self.control.update("draft", d["id"], status="merged", merged_into=target_id, by=by)
         return self.control.update("draft", target_id, tokens=tokens, keys=keys, edited=True,
-                                   rule=rule_from_template(tokens, keys), rule_edited=False,
+                                   rule=rule_from_template(tokens, keys), rule_edited=False, by=by,
                                    count=checked["count"], samples=checked["samples"],
                                    status="approved" if target["status"] == "pending" else target["status"])
 
@@ -1255,7 +1255,7 @@ class Server:
             cur["windows"].append(a["template_ids"])
         for inc in out:
             state = self.control.get("incident", inc["id"]) or {}
-            inc.update(status=state.get("status", "open"), note=state.get("note", ""),
+            inc.update(status=state.get("status", "open"), note=state.get("note", ""), by=state.get("by"),
                        updated_at=state.get("updated_at"), explanation=state.get("explanation"))
         return sorted(out, key=lambda i: _when(i["end"]), reverse=True)
 
@@ -1289,14 +1289,14 @@ class Server:
                       "model_current": bool(scorer) and scorer.version == inc["model_version"],
                       "explain_job": max(jobs, key=lambda j: j["created_at"]) if jobs else None}
 
-    def set_incident(self, incident_id: str, status: str, note: str = "") -> dict:
+    def set_incident(self, incident_id: str, status: str, note: str = "", by: str | None = None) -> dict:
         if status not in INCIDENT_STATES:
             raise ValueError(f"status must be one of {', '.join(INCIDENT_STATES)}")
         inc = next((i for i in self.incidents() if i["id"] == incident_id), None)
         if inc is None:
             raise KeyError(incident_id)
         doc = (self.control.get("incident", incident_id) or {"id": incident_id}) | {
-            "status": status, "note": note[:2000], "updated_at": now_iso(), "stream": inc["stream"],
+            "status": status, "note": note[:2000], "by": by, "updated_at": now_iso(), "stream": inc["stream"],
             # what the next retrain learns as normal if this was a false positive
             "windows": inc["windows"][:200] if status == "false_positive" else []}
         self.control.put("incident", incident_id, doc)

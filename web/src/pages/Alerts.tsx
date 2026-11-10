@@ -78,6 +78,7 @@ function Decide({ inc }: { inc: IncidentDetail }) {
         {inc.status !== "open" && button("open", "Reopen", "ghost")}
       </div>
       <input placeholder="Note: what you found, what you did" aria-label="Note" value={note} onChange={(e) => setNote(e.target.value)} />
+      {inc.by && inc.note === note && <p className="muted small" style={{ margin: 0 }}>Note written by AI assistant key {inc.by}</p>}
       <p className="muted small" style={{ margin: 0 }}>
         A false positive is how this service normally behaves: its stretches are added to the training data, so the next retrain of <Link to="/streams">{inc.stream}</Link> stops flagging them.
       </p>

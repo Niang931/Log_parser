@@ -52,6 +52,11 @@ def bearer(authorization: str | None) -> str | None:
     return (authorization or "").removeprefix("Bearer ").strip() or None
 
 
+def caller(request: Request) -> str | None:
+    """The AI assistant key's name behind a write, None for a person in the web UI."""
+    return request.state.key["name"] if request.state.key else None
+
+
 def create_app(server: Server, demo: Any = None, info: dict | None = None) -> FastAPI:
     """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
     started = now_iso()
@@ -352,13 +357,14 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return {"queries": sorted(server.control.all("saved_query"), key=lambda q: q["name"].lower())}
 
     @app.post("/api/queries")
-    def save_query(body: Annotated[dict, Body()]) -> dict:
+    def save_query(request: Request, body: Annotated[dict, Body()]) -> dict:
         name, sql = str(body.get("name", "")).strip(), str(body.get("sql", "")).strip()
         if not name or not sql:
             raise ValueError("a saved query needs a name and SQL")
         qid = str(body.get("id") or uuid.uuid4().hex[:10])
         return server.control.put("saved_query", qid, {"id": qid, "name": name[:120], "sql": sql,
-                                                       "spec": body.get("spec"), "saved_at": now_iso()})
+                                                       "spec": body.get("spec"), "saved_at": now_iso(),
+                                                       "by": caller(request)})
 
     @app.delete("/api/queries/{qid}")
     def delete_query(qid: str) -> dict:
@@ -434,7 +440,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         current = (server.control.get("incident", incident_id) or {}).get("status", "open")
         if request.state.key is not None and status != current:
             raise HTTPException(403, "AI assistant keys can add notes but not change an incident's status")
-        return server.set_incident(incident_id, status, str(body.get("note") or ""))
+        return server.set_incident(incident_id, status, str(body.get("note") or ""), caller(request))
 
     @app.post("/api/incidents/{incident_id}/explain", status_code=202)
     def explain_incident(incident_id: str) -> dict:
@@ -537,10 +543,11 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return server.check_draft(batch_id, [str(t) for t in body["tokens"]], [str(k) for k in body["keys"]])
 
     @app.post("/api/review/{batch_id}/decide-all")
-    def decide_all(batch_id: str, body: Annotated[dict, Body()]) -> dict:
+    def decide_all(request: Request, batch_id: str, body: Annotated[dict, Body()]) -> dict:
         ids = body.get("ids")
         return {"changed": server.decide_all(batch_id, str(body["status"]),
-                                             [str(i) for i in ids] if isinstance(ids, list) else None)}
+                                             [str(i) for i in ids] if isinstance(ids, list) else None,
+                                             caller(request))}
 
     @app.post("/api/review/{batch_id}/apply", status_code=202)
     def apply_batch(batch_id: str) -> dict:
@@ -551,12 +558,12 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return server.discard_batch(batch_id)
 
     @app.put("/api/drafts/{draft_id}")
-    def update_draft(draft_id: str, body: Annotated[dict, Body()]) -> dict:
-        return server.update_draft(draft_id, body)
+    def update_draft(request: Request, draft_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.update_draft(draft_id, body, caller(request))
 
     @app.post("/api/drafts/{draft_id}/merge")
-    def merge_drafts(draft_id: str, body: Annotated[dict, Body()]) -> dict:
-        return server.merge_drafts(draft_id, [str(o) for o in body["others"]])
+    def merge_drafts(request: Request, draft_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.merge_drafts(draft_id, [str(o) for o in body["others"]], caller(request))
 
     @app.post("/api/drafts/{draft_id}/check")
     def check_draft_rule(draft_id: str, body: Annotated[dict, Body()]) -> dict:

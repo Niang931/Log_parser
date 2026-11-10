@@ -94,7 +94,7 @@ def test_tools_answer_from_the_logs(server, client):
 
         call_tool(client, mcp, "save_query", name="logins", sql="SELECT * FROM logs")
         saved = call_tool(client, mcp, "list_saved_queries")["queries"]
-        assert [q["name"] for q in saved] == ["logins"]
+        assert [(q["name"], q["by"]) for q in saved] == [("logins", "mcp-key")]
 
         assert call_tool(client, mcp, "get_incident", incident_id="nope")["error"].endswith("404: not found: nope")
 
