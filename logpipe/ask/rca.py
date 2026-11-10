@@ -129,11 +129,13 @@ def evidence_round(n: int, anchor: Anchor, ctx: Ctx, spec: QuerySpec, wide: bool
     if ctx.use_logbert:
         queries.append(local(n, Around.ALERTS, "alerts", "LogBERT alerts in the window", "windows the anomaly model flagged",
                              "reads.alerts(500) filtered to the window (anomaly_alerts)", **span(start, end)))
-    for i, levels, title in ((Around.ERRORS, ["error", "warn"], "Error and warning lines in the window"),
-                             (Around.OTHERS, ["info", "debug"], "The other lines in the window")):
+    # hints describe the moment it broke: a widened window would mix in older, unrelated trouble
+    near = window or (at - cfg.before, min(at + cfg.after, ctx.now))
+    for i, levels, title in ((Around.ERRORS, ["error", "warn"], "Error and warning lines near the anchor"),
+                             (Around.OTHERS, ["info", "debug"], "The other lines near the anchor")):
         queries.append(log_read(ctx, n, i, "rows", title, "with their extracted fields: which host or value the errors "
                                 "concentrate on, compared with the other lines", filters=f | {"levels": levels},
-                                limit=ctx.ask.row_cap, newest_first=True, payload=True, **span(start, end)))
+                                limit=ctx.ask.row_cap, newest_first=True, payload=True, **span(*near)))
     return Round(n, "read around " + ("the range" if anchor.kind == "range" else "the anchor") + (" (wider)" if wide else ""), queries)
 
 

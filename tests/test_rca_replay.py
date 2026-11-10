@@ -38,6 +38,7 @@ def test_every_claim_cites_the_bundle(world):
         for slot in world.slots:
             report = investigate(world, slot)
             refs = {e["ref"] for e in report.get("evidence", [])} | {f"T{c['template_id']}" for c in report.get("candidates", [])}
+            refs |= {h["ref"] for h in report.get("hints", [])} | {s["ref"] for s in report.get("series", [])}
             for lead in (report.get("answer") or {}).get("leads", []):
                 assert set(lead["cites"]) <= refs, (slot.mode, lead)
             assert len(report.get("evidence", [])) <= 40
