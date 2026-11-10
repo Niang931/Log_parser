@@ -72,6 +72,10 @@ FAULTS: dict[str, dict] = {
     "clock_skew": {"root": [("api", "ERROR", "JWT validation failed: token issued in the future, clock skew {n}12 s")],
                    "logger": "c.s.auth.TokenFilter", "repeat": 4, "truth": "clock skew"},
     "api_hang": {"root": [], "silent": ("api",), "gateway": True, "truth": "silence:shop-api"},
+    # one of the API's hosts is broken, the others serve fine: the error template says what, a value hint says where
+    "bad_host": {"root": [], "normal": True, "bad_host": "web-3", "truth": "hint:host=web-3"},
+    # orders time out; why is only in Postgres, at LOG level, tied to the failed order by its request id
+    "trace_hop": {"root": [], "normal": True, "trace": True, "truth": "row lock held by autovacuum"},
     "control_quiet": {"root": [], "normal": True, "truth": None},
     "control_busy": {"root": [("api", "INFO", "cache warmed: {n} entries")], "logger": "c.s.cache.Cache", "repeat": 9,
                      "normal": True, "truth": None},
@@ -82,6 +86,7 @@ FAULTS: dict[str, dict] = {
 class Event:
     service: str
     message: str  # may span lines (stack traces)
+    host: str | None = None  # None: the service's usual host
 
 
 class ShopGenerator:
@@ -166,8 +171,16 @@ class ShopGenerator:
                     "nginx": lambda _lvl, text: Event("nginx", f"{now.astimezone():%Y/%m/%d %H:%M:%S} {text}")}[svc](lvl, text.format(
                         pid=r.randint(200, 9999), ms=r.randint(1000, 9000), n=r.randint(1, 99)))
                    for svc, lvl, text in f["root"]]
-        if f.get("normal"):  # the fault doesn't break orders (a control, or a slow burn)
+        if f.get("normal"):  # the fault doesn't break orders (a control, a slow burn, or only some of them)
             ev += self.order(now)
+            oid = r.randint(10**5, 10**6 - 1)
+            if bad := f.get("bad_host"):
+                ev += [Event("shop-api", api("ERROR", "c.s.order.OrderService", f"order {oid} failed: upstream reset before headers").message, bad),
+                       Event("nginx", self._nginx(now, "POST", "/api/checkout", 502), bad)]
+            if f.get("trace"):
+                rid = f"req-{r.randint(16**5, 16**6 - 1):x}"
+                ev += [pg(f"LOG:  request {rid} waited 30000 ms for a row lock held by autovacuum on table orders"),
+                       api("ERROR", "c.s.order.OrderService", f"order {oid} failed: request {rid} timed out after 30000 ms")]
         else:
             nginx_status = 502 if f.get("gateway") else 504
             ev += [Event("nginx", self._nginx(now, "GET", f"/api/products/{r.randint(1, 80)}", 200)),

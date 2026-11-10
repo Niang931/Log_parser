@@ -48,6 +48,8 @@ QUESTIONS = {
     "lock_contention": "why are database statements timing out?",
     "clock_skew": "why did logins break around {at}?",
     "api_hang": "why did shop-api go down?",
+    "bad_host": "why are some orders failing in the last 30 minutes?",
+    "trace_hop": "why are orders timing out around {at}?",
     "control_quiet": "why did shop-api go down in the last 30 minutes?",
     "control_busy": "what caused the outage around {at}?",
 }
@@ -91,7 +93,7 @@ def _send(server, gen: ShopGenerator, events, when: datetime) -> None:
     from ..sources.file_replay import LogEvent
 
     for e in events:
-        server.process(LogEvent(device_id="db-1" if e.service == "postgres" else "web-1", source=FILES[e.service][1],
+        server.process(LogEvent(device_id=e.host or ("db-1" if e.service == "postgres" else "web-1"), source=FILES[e.service][1],
                                 line_no=0, line=e.message, service=e.service, time=when))
 
 
@@ -171,7 +173,12 @@ def naive_bundle(world: World, slot: Slot) -> list[str]:
 
 
 def contains_truth(lines: list[str], truth: str | None) -> bool:
-    return truth is not None and not truth.startswith("silence:") and any(truth in line for line in lines)
+    return truth is not None and not truth.startswith(("silence:", "hint:")) and any(truth in line for line in lines)
+
+
+def hint_refs(report: dict, truth: str) -> set[str]:
+    """The refs of the value hints that name ``hint:<field>=<value>``."""
+    return {h["ref"] for h in report.get("hints") or [] if f"hint:{h['field']}={h['value']}" == truth}
 
 
 def score_report(report: dict, slot: Slot) -> dict:
@@ -184,6 +191,8 @@ def score_report(report: dict, slot: Slot) -> dict:
         recall = None
     elif silence:
         recall = anchor.get("kind") == "silence" and anchor.get("service") == slot.truth.split(":", 1)[1]
+    elif slot.truth.startswith("hint:"):
+        recall = bool(hint_refs(report, slot.truth))
     else:
         recall = contains_truth(texts, slot.truth)
     answer = report.get("answer") or {}
@@ -192,6 +201,8 @@ def score_report(report: dict, slot: Slot) -> dict:
         correct = bool(answer.get("insufficient_evidence")) or report.get("kind") == "clarify"
     elif not hyps:
         correct = False
+    elif slot.truth.startswith("hint:"):  # where, not what: the value must be cited by one of the first two
+        correct = any(set(h.get("cites", [])) & hint_refs(report, slot.truth) for h in hyps[:2])
     else:
         top = hyps[0]
         cited = [lines[c]["message"] for c in top.get("cites", []) if c in lines]
@@ -206,7 +217,7 @@ def evaluate(world: World, investigate, variants: dict[str, dict], log=print) ->
     rows = []
     for slot in world.slots:
         row = {"mode": slot.mode, "question": slot.question,
-               "naive": {"recall": None if slot.truth is None or slot.truth.startswith("silence:")
+               "naive": {"recall": None if slot.truth is None or slot.truth.startswith(("silence:", "hint:"))
                          else contains_truth(naive_bundle(world, slot), slot.truth)}}
         for name, kw in variants.items():
             report = investigate(world, slot, **dict(kw))
