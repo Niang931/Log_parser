@@ -28,6 +28,7 @@ from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild, querybuild_mongo
 from .auth import COOKIE, SESSION_SECONDS, Auth
 from .core import MIN_DRAFT_LINES, Busy, KeyScope, Server, now_iso
+from .mcp_tools import mcp_may_call
 from .metrics import METRICS
 from .reads import FACETS
 
@@ -47,6 +48,10 @@ def template_sql(entry, engine: str) -> str:
             f"WHERE template_id = {entry.template_id}\nORDER BY timestamp DESC\nLIMIT 50")
 
 
+def bearer(authorization: str | None) -> str | None:
+    return (authorization or "").removeprefix("Bearer ").strip() or None
+
+
 def create_app(server: Server, demo: Any = None, info: dict | None = None) -> FastAPI:
     """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
     started = now_iso()
@@ -60,8 +65,17 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         # `logpipe server` always sets a password before serving; with none set (tests, an
         # embedded app) the API stays open. Agents' intake routes use API keys instead.
         path = request.url.path
+        key = server.check_key(bearer(request.headers.get("authorization")), KeyScope.MCP)
+        request.state.key = key
+        if path == "/mcp" or path.startswith("/mcp/"):
+            if key is None:
+                return JSONResponse({"detail": "an AI assistant (mcp) API key is required"}, 401)
+            return await call_next(request)
         guarded = (path.startswith(("/api/", "/demo/api/")) and not path.startswith("/api/auth/"))
-        if guarded and auth.configured and not auth.valid(request.cookies.get(COOKIE)):
+        if guarded and key is not None:
+            if not mcp_may_call(request.method, path):
+                return JSONResponse({"detail": "AI assistant keys can't call this route"}, 403)
+        elif guarded and auth.configured and not auth.valid(request.cookies.get(COOKIE)):
             return JSONResponse({"detail": "log in first"}, 401)
         return await call_next(request)
 
@@ -110,8 +124,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     def agent_key(x_api_key: Annotated[str | None, Header()] = None,
                   authorization: Annotated[str | None, Header()] = None) -> dict:
         # X-API-Key, or `Authorization: Bearer <key>` as OTel exporters are usually configured
-        token = x_api_key or (authorization or "").removeprefix("Bearer ").strip() or None
-        key = server.check_key(token)
+        key = server.check_key(x_api_key or bearer(authorization))
         if key is None:
             raise HTTPException(401, "missing or unknown API key")
         return key
@@ -414,8 +427,12 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return server.incident(incident_id) | {"windows": None}
 
     @app.put("/api/incidents/{incident_id}")
-    def set_incident(incident_id: str, body: Annotated[dict, Body()]) -> dict:
-        return server.set_incident(incident_id, str(body.get("status", "")), str(body.get("note") or ""))
+    def set_incident(request: Request, incident_id: str, body: Annotated[dict, Body()]) -> dict:
+        status = str(body.get("status", ""))
+        current = (server.control.get("incident", incident_id) or {}).get("status", "open")
+        if request.state.key is not None and status != current:
+            raise HTTPException(403, "AI assistant keys can add notes but not change an incident's status")
+        return server.set_incident(incident_id, status, str(body.get("note") or ""))
 
     @app.post("/api/incidents/{incident_id}/explain", status_code=202)
     def explain_incident(incident_id: str) -> dict:
