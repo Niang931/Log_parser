@@ -104,9 +104,18 @@ Compared with two papers the user read:
 | LLM progress | Each LLM call is an entry on the plan (`plan["ai"]`): status, the adapter's own steps, elapsed time, prompt and reply. Saved on every step and shown live in a collapsible section. | A web-chat LLM takes 20–60 s; the user saw only a disabled button. | Polling the job detail (it covers the job, not the plan, and misses routing) |
 | Incident memory (AetherLog's idea, made small) | Not built. | Nothing records confirmed causes yet; it needs a "confirm cause" action first. | A graph database |
 
-### Results (rules only)
+### Results (rules only, all 19 scenarios)
+
+| variant | evidence recall | answer correct |
+|---|---|---|
+| naive (last 200 lines) | 0.733 | - |
+| full | 1.0 | 0.947 (18/19) |
 
 | scenario | evidence recall | answer correct |
 |---|---|---|
-| `bad_host` (one of the API's hosts fails) | yes (hint `host=web-3`) | yes: the hint is the second lead |
+| `bad_host` (one of the API's hosts fails) | yes (hint `host=web-3` on 100% of error lines) | yes: the hint is the second lead |
 | `trace_hop` (the cause is a Postgres LOG line linked by request id) | yes (the line is in the bundle) | no: the rules lead with the API error, so this scenario needs the LLM |
+
+The first all-scenario run put `bad_host` wrong. The window had widened to 2 h and taken in the earlier `api_hang` incident's errors from another host, so `web-3` fell to 40% of the error lines. Hints now read only the lines near the anchor.
+
+With Gemini (`--llm llm:web:gemini --modes bad_host trace_hop`): both correct (`full+llm` 2/2, against 1/2 for the rules alone). On `trace_hop` the LLM cites the Postgres lock line that the rules ranked low. Through the UI on `bad_host`, Gemini asked for two follow-up `lines` reads, each approved, and cited `H1` (`host=web-3`).
