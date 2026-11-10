@@ -28,7 +28,7 @@ from ..registry import UNK_TEMPLATE_ID
 from . import otlp, querybuild, querybuild_mongo
 from .auth import COOKIE, SESSION_SECONDS, Auth
 from .core import MIN_DRAFT_LINES, Busy, KeyScope, Server, now_iso
-from .mcp_tools import mcp_may_call
+from .mcp_tools import build_mcp, mcp_may_call
 from .metrics import METRICS
 from .reads import FACETS
 
@@ -55,7 +55,9 @@ def bearer(authorization: str | None) -> str | None:
 def create_app(server: Server, demo: Any = None, info: dict | None = None) -> FastAPI:
     """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
     started = now_iso()
-    app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
+    assistant = build_mcp()
+    app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json",
+                  lifespan=lambda _app: assistant.router.lifespan_context(assistant))
     engine = {"MemoryReads": "sqlite", "MongoReads": "mongodb"}.get(server.reads.__class__.__name__, "clickhouse")
     qb = querybuild_mongo if engine == "mongodb" else querybuild
     auth = Auth(server.control)
@@ -705,6 +707,8 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                 return demo.control(action, value)
             except Exception as error:  # noqa: BLE001
                 return JSONResponse({"error": f"{type(error).__name__}: {error}"}, 400)
+
+    app.router.routes.extend(assistant.routes)
 
     # --- the React app --------------------------------------------------------------------
     @app.get("/{path:path}", include_in_schema=False)
