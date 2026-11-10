@@ -89,3 +89,24 @@ question was simple enough for the rule-based router, so routing went through Ge
 (an average-per-host-over-time question, and "is email ok? nobody can sign in", which it mapped to the `mail` group).
 The recorded replies can't be replayed in CI: prompts carry the times of the world the eval builds, which change
 on every run.
+
+## Value hints and typed follow-up moves (branch `feat/ask-moves-hints`)
+
+Compared with two papers the user read:
+- **Log-Insight** (arXiv 2607.08529) runs Drain, contrasts errors with successes, compresses and makes one LLM call. That is close to our pipeline.
+- **AetherLog** (ISSRE 2025) builds a knowledge graph of past faults and predicts a root-cause category. That needs labelled history, which a fresh install doesn't have.
+
+| Decision | Choice | Why | Rejected |
+|---|---|---|---|
+| Where errors concentrate | **Value hints**: the evidence round also reads the window's error/warn lines and the other lines, with their extracted fields. A value of `host`, `source` or an extracted field that is on ≥ 20% of the error lines and ≥ 3× more common there than among the others becomes `H1…`, which can be cited. Id-like fields (> 50 values, or > half distinct) and fields only error lines carry are skipped. A strong hint (≥ 50%, ≥ 5×) is also a rules-only lead. | Log-Insight's contrastive skew. Templates say *what* broke; a hint says *where* (one host, one upstream). | Hints over every column, which would include the error template's own slots and always "concentrate". |
+| What the LLM can ask for | **Typed moves**: `lines` (keywords and/or services, a window it picks), `trace` (an id copied from the bundle, across every service), `rate` (error or all lines per service per step, cited as `S1…`), `neighbours` (errors in any service near the anchor). Each is checked (only known services; a trace id must occur in the bundle; at most 24 h before the anchor), compiled by the store adapter and approved like any other read. Up to 3 per round, 4 follow-up rounds. | Distributed failures need you to follow a request across services, look further back, and count. The checks keep the safety we already have: read-only, approved and cited. | LLM-written SQL; untyped keyword-only follow-ups (they can't change the window or count) |
+| Bundle over budget | Keep the anchor, follow-up and top-scored lines first, then show them in time order. | Follow-up lines used to be cut first because they are often the newest. | Cutting by time |
+| LLM progress | Each LLM call is an entry on the plan (`plan["ai"]`): status, the adapter's own steps, elapsed time, prompt and reply. Saved on every step and shown live in a collapsible section. | A web-chat LLM takes 20–60 s; the user saw only a disabled button. | Polling the job detail (it covers the job, not the plan, and misses routing) |
+| Incident memory (AetherLog's idea, made small) | Not built. | Nothing records confirmed causes yet; it needs a "confirm cause" action first. | A graph database |
+
+### Results (rules only)
+
+| scenario | evidence recall | answer correct |
+|---|---|---|
+| `bad_host` (one of the API's hosts fails) | yes (hint `host=web-3`) | yes: the hint is the second lead |
+| `trace_hop` (the cause is a Postgres LOG line linked by request id) | yes (the line is in the bundle) | no: the rules lead with the API error, so this scenario needs the LLM |
