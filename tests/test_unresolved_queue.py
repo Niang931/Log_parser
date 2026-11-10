@@ -24,7 +24,6 @@ def _pending(line: str, device: str = "thermostat-TH-1") -> LogRow:
     return LogRow.from_result(result, device_id=device, timestamp=TS, raw_message=line)
 
 
-# -- codec ---------------------------------------------------------------------
 
 
 def test_row_round_trips_through_json():
@@ -53,7 +52,6 @@ def test_partition_key_modes():
         partition_key(row, "random")
 
 
-# -- memory queue --------------------------------------------------------------
 
 
 def test_memory_queue_batches_and_redelivers_until_committed():
@@ -97,7 +95,6 @@ def test_open_queue_kinds():
         open_queue("rabbitmq")
 
 
-# -- worker on the queue -------------------------------------------------------
 
 
 class FailingStore(MemoryStore):

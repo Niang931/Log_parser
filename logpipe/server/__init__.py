@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
-import os
 import threading
 from pathlib import Path
+
+from ..settings import get_settings
 
 
 class _Console(logging.Formatter):
@@ -42,7 +43,7 @@ def setup_logging(data_dir: Path) -> Path:
     data_dir.mkdir(parents=True, exist_ok=True)
     log_file = data_dir / "server.log"
     to_file = logging.handlers.RotatingFileHandler(log_file, maxBytes=10 << 20, backupCount=3)
-    to_file.setFormatter(_Json() if os.environ.get("LOGPIPE_LOG_FORMAT") == "json"
+    to_file.setFormatter(_Json() if get_settings().server.log_format == "json"
                          else logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
     console = logging.StreamHandler()
     console.setLevel(logging.WARNING)
@@ -75,10 +76,10 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
     server = Server(log_store, control, data_dir=data_dir, epochs=epochs,
                     adapter_factory=lambda: get_adapter(llm, browser=browser),  # type: ignore[arg-type]
                     queue_factory=lambda: open_queue(queue),
-                    bootstrap_key=os.environ.get("LOGPIPE_BOOTSTRAP_KEY") or None)
+                    bootstrap_key=get_settings().server.bootstrap_key or None)
     from .auth import Auth
 
-    generated = Auth(control).ensure(os.environ.get("LOGPIPE_ADMIN_PASSWORD") or None)
+    generated = Auth(control).ensure(get_settings().server.admin_password or None)
     demo_instance = None
     if demo:
         from ..demo.server import Demo

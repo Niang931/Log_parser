@@ -287,7 +287,6 @@ class Demo:
                         kinds, opened)
             self.paused = False
 
-    # --- ingest -------------------------------------------------------------
     def _event(self, kind: str, text: str, *, i: int | None = None, **extra) -> None:
         """``i`` is the line the event points at; default the line just ingested."""
         i = len(self.lines) - 1 if i is None else i
@@ -406,7 +405,6 @@ class Demo:
             self.step()
             time.sleep(1 / self.rate)
 
-    # --- controls -------------------------------------------------------------
     def control(self, action: str, value: str = "") -> dict:
         if action == "restart":  # outside the lock: it may wait for Docker
             flags = {x for x in value.split(",") if "=" not in x}
@@ -439,7 +437,6 @@ class Demo:
                 raise ValueError(f"unknown action {action!r}")
             return {"paused": self.paused, "rate": self.rate, "session": self.session}
 
-    # --- views ----------------------------------------------------------------
     def stream(self, after: int) -> dict:
         with self.lock:
             return {"lines": self.lines[after:after + 5000], "done": len(self.lines),

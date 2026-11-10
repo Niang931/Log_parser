@@ -305,7 +305,6 @@ def test_zone_less_line_times_use_the_agents_offset(env):
 def test_wait_long_poll_and_instant_presence(env, monkeypatch):
     import time
 
-    from logpipe.server import core
 
     server, client, headers = env
     client.post("/intake/v1/heartbeat", json={"hostname": "gw-9"}, headers=headers)
@@ -332,7 +331,8 @@ def test_wait_long_poll_and_instant_presence(env, monkeypatch):
     assert server.agents()[0]["online"]
     server.connected("gw-9", -1)
     assert server.agents()[0]["online"]  # within the reconnect grace
-    monkeypatch.setattr(core, "GONE_SECONDS", 0)
+    cfg = server.config
+    monkeypatch.setattr(server, "config", cfg.model_copy(update={"server": cfg.server.model_copy(update={"gone_seconds": 0})}))
     time.sleep(0.01)
     assert not server.agents()[0]["online"]
 
@@ -358,7 +358,7 @@ def test_tracebacks_go_to_the_log_file_not_the_console(tmp_path, capsys):
 
 
 def test_level_rules_agree_in_python_and_explicit_levels_win():
-    from logpipe.server.reads import level
+    from logpipe.server.stores import level
 
     assert level("2026-11-05 10:00:00 WARN  [db] slow query") == "warn"
     assert level("INFO request failed java.lang.IllegalStateException") == "info"  # declared level

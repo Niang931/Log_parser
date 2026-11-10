@@ -12,6 +12,7 @@ from logpipe.server.app import create_app
 from logpipe.server.auth import Auth, hash_password, verify_password
 from logpipe.server.control import ControlStore
 from logpipe.server.core import Server
+from logpipe.settings import get_settings
 from logpipe.storage.memory import MemoryStore
 
 
@@ -62,7 +63,7 @@ def test_forged_and_expired_sessions_are_rejected(env):
 
 def test_wrong_passwords_lock_the_address_out(env):
     _, client, _ = env
-    for _ in range(auth_mod.MAX_FAILURES):
+    for _ in range(get_settings().server.login_max_failures):
         assert client.post("/api/auth/login", json={"password": "bad"}).status_code == 401
     assert client.post("/api/auth/login", json={"password": "correct horse"}).status_code == 429
 

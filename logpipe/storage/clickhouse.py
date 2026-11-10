@@ -8,7 +8,6 @@ caller slows down instead of silently dropping logs.
 from __future__ import annotations
 
 import json
-import os
 import threading
 import time
 import uuid
@@ -19,6 +18,7 @@ from importlib import resources
 import clickhouse_connect
 
 from ..parsing.frozen_parser import Status
+from ..settings import get_settings
 from .base import AnomalyAlert, LogRow
 
 LOG_COLUMNS = [
@@ -64,16 +64,14 @@ class ClickHouseStore:
     @classmethod
     def from_env(cls, database: str | None = None, **kwargs) -> ClickHouseStore:
         """``CLICKHOUSE_*`` settings; ``database`` (created if missing) overrides ``CLICKHOUSE_DB``."""
+        cfg = get_settings().clickhouse
         client = clickhouse_connect.get_client(
-            host=os.environ.get("CLICKHOUSE_HOST", "127.0.0.1"),
-            port=int(os.environ.get("CLICKHOUSE_PORT", "8123")),
-            username=os.environ.get("CLICKHOUSE_USER", "default"),
-            password=os.environ.get("CLICKHOUSE_PASSWORD", ""),
+            host=cfg.host, port=cfg.port, username=cfg.user, password=cfg.password,
             # One client serves the ingest, job, housekeeping and request threads; ClickHouse
             # refuses concurrent queries inside one session, and nothing here needs a session.
             autogenerate_session_id=False,
         )
-        db = database or os.environ.get("CLICKHOUSE_DB", "default")
+        db = database or cfg.db
         client.command(f"CREATE DATABASE IF NOT EXISTS `{db}`")
         client.database = db
         return cls(client, **kwargs)

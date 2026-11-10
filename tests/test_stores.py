@@ -1,4 +1,4 @@
-"""Ask's LogStore reads (compiled before they run) and the read-only guarantees under them."""
+"""The store adapters' compiled reads (shown before they run) and the read-only guarantees under them."""
 from __future__ import annotations
 
 import json
@@ -7,11 +7,12 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from logpipe.ask.spec import QuerySpec
-from logpipe.ask.store import Filters, LogStore
+from logpipe.ask.query import Filters
 from logpipe.parsing.frozen_parser import Status
-from logpipe.server.querybuild_mongo import LEVEL_EXPR, check
-from logpipe.server.reads import MemoryReads, guard_sql, level
+from logpipe.server.stores.base import level
+from logpipe.server.stores.memory import MemoryReads
+from logpipe.server.stores.mongo import LEVEL_EXPR, MongoCompiler, check
+from logpipe.server.stores.sql import guard_sql
 from logpipe.storage.base import LogRow
 from logpipe.storage.memory import MemoryStore
 
@@ -29,46 +30,50 @@ def store():
     m.insert_logs([row(i * 10, f"order {i} confirmed", 3) for i in range(30)]
                   + [row(100, "ERROR db pool exhausted", 4, "db", "db-1"), row(130, "ERROR db pool exhausted", 4, "db", "db-1"),
                      row(120, "WARN slow query 900ms", 5, "db", "db-1"), row(250, "order 99 confirmed", 3, "web")])
-    return LogStore(MemoryReads(m))
+    return MemoryReads(m)
+
+
+def run(reads, text: str) -> list[dict]:
+    return reads.records(text, 2000)
 
 
 def test_rows_filters_and_order(store):
     f = Filters(services=["db"], levels=["error"])
-    q = store.rows(f, T, T + timedelta(hours=1))
+    q = store.compiler.rows(f.builder(), T, T + timedelta(hours=1), 200)
     assert "service IN ('db')" in q and "level IN ('error')" in q
-    rows = store.run(q)
+    rows = run(store, q)
     assert [r["message"] for r in rows] == ["ERROR db pool exhausted"] * 2
     assert rows[0]["timestamp"] < rows[1]["timestamp"] and rows[0]["level"] == "error"
-    newest = store.run(store.rows(Filters(keywords=["ORDER 2"]), T, T + timedelta(hours=1), newest_first=True))
+    newest = run(store, store.compiler.rows(Filters(keywords=["ORDER 2"]).builder(), T, T + timedelta(hours=1), newest_first=True))
     assert [r["message"] for r in newest] == [f"order {i} confirmed" for i in (29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 2)]
     # an absolute range is inclusive at both ends, to the microsecond
-    edge = store.run(store.rows(Filters(template_ids=[3], services=["api"]), T + timedelta(seconds=20), T + timedelta(seconds=40)))
+    edge = run(store, store.compiler.rows(Filters(template_ids=[3], services=["api"]).builder(), T + timedelta(seconds=20), T + timedelta(seconds=40)))
     assert [r["message"] for r in edge] == ["order 2 confirmed", "order 3 confirmed", "order 4 confirmed"]
 
 
 def test_template_counts_and_buckets(store):
-    counts = store.run(store.template_counts(Filters(), T, T + timedelta(hours=1)))
+    counts = run(store, store.compiler.template_counts(Filters().builder(), T, T + timedelta(hours=1)))
     by = {(c["template_id"], c["service"]): c for c in counts}
     assert by[(3, "api")]["n"] == 30 and by[(4, "db")]["n"] == 2 and by[(3, "web")]["n"] == 1
     assert by[(4, "db")]["example"] == "ERROR db pool exhausted" and by[(4, "db")]["first"].startswith("2026-11-08T10:01:40")
     assert by[(4, "db")]["level"] == "error" and by[(4, "db")]["host"] == "db-1"
     assert next(c["template_id"] for c in counts) == 3  # first seen first
-    b = store.run(store.buckets(Filters(services=["db"]), T, T + timedelta(hours=1), 60, by="service"))
+    b = run(store, store.compiler.buckets(Filters(services=["db"]).builder(), T, T + timedelta(hours=1), 60, by="service"))
     assert sorted((r["bucket"], r["n"]) for r in b) == [(1, 1), (2, 2)]  # 100s -> bucket 1; 120s, 130s -> 2
     with pytest.raises(ValueError):
-        store.buckets(Filters(), T, T + timedelta(hours=1), 60, by="raw_message")
+        store.compiler.buckets(Filters().builder(), T, T + timedelta(hours=1), 60, by="raw_message")
 
 
 def test_aggregate_through_the_builder(store):
-    spec = QuerySpec(intent="keyword", aggregate={"fn": "count", "group_by": ["service"]})
-    rows = store.run(store.aggregate(spec, T, T + timedelta(hours=1)))
+    rows = run(store, store.compiler.build({"start": T.isoformat(), "end": (T + timedelta(hours=1)).isoformat(),
+                                            "group_by": ["service"]}))
     assert {r["service"]: r["lines"] for r in rows} == {"api": 30, "db": 3, "web": 1}
 
 
 def test_values_stay_values(store):
     evil = Filters(services=["x') OR 1=1 --"], keywords=["'; DROP TABLE logs; --"])
-    assert store.run(store.rows(evil, T, T + timedelta(hours=1))) == []
-    assert len(store.run(store.rows(Filters(), T, T + timedelta(hours=1)))) == 34  # still there
+    assert run(store, store.compiler.rows(evil.builder(), T, T + timedelta(hours=1))) == []
+    assert len(run(store, store.compiler.rows(Filters().builder(), T, T + timedelta(hours=1)))) == 34  # still there
 
 
 @pytest.mark.parametrize("sql", [
@@ -83,8 +88,8 @@ def test_values_stay_values(store):
 ])
 def test_writes_and_table_functions_are_refused(store, sql):
     with pytest.raises(ValueError):
-        store.reads.query(sql)
-    assert len(store.run(store.rows(Filters(), T, T + timedelta(hours=1)))) == 34
+        store.query(sql)
+    assert len(run(store, store.compiler.rows(Filters().builder(), T, T + timedelta(hours=1)))) == 34
 
 
 @pytest.mark.parametrize("sql", [
@@ -96,23 +101,20 @@ def test_writes_and_table_functions_are_refused(store, sql):
 ])
 def test_guard_lets_reads_through(store, sql):
     assert guard_sql(sql) == sql
-    store.reads.query(sql)
+    store.query(sql)
 
 
 def test_sqlite_is_query_only_underneath(store):
     """Even past the guard (a CTE can't write), SQLite itself refuses."""
     with pytest.raises(ValueError):
-        store.reads.query("WITH x AS (SELECT 1) INSERT INTO logs (log_id) SELECT 1")
+        store.query("WITH x AS (SELECT 1) INSERT INTO logs (log_id) SELECT 1")
 
 
 def test_mongo_reads_compile_to_checked_pipelines():
-    class FakeMongoReads:
-        pass
-
-    s = LogStore(FakeMongoReads(), "mongodb")
+    s = MongoCompiler()
     f = Filters(services=["db"], levels=["error", "warn"], keywords=["pool.x"], template_ids=[4])
-    for text in (s.rows(f, T, T + timedelta(hours=1)), s.template_counts(f, T, T + timedelta(hours=1)),
-                 s.buckets(f, T, T + timedelta(hours=1), 60)):
+    for text in (s.rows(f.builder(), T, T + timedelta(hours=1), 200), s.template_counts(f.builder(), T, T + timedelta(hours=1)),
+                 s.buckets(f.builder(), T, T + timedelta(hours=1), 60)):
         p = json.loads(text)
         assert check(p) == p
         match = p[0]["$match"]["$and"]

@@ -1,40 +1,31 @@
 """The template index: one vector per template, two ways.
 
-* **text** (question -> template): a sentence-embedding model (``all-MiniLM-L6-v2``) when the
-  ``ask`` extra is installed, else TF-IDF over the template's words, its split identifiers
-  (``OutOfMemoryError`` -> out of memory error) and a small synonym table, so "out of memory"
-  finds ``OutOfMemoryError`` and "disk full" finds ``No space left on device``.
+* **text** (question -> template): a sentence-embedding model (``LOGPIPE_ASK_MODEL``, by default
+  ``all-MiniLM-L6-v2``) over each template's words, with identifiers split first
+  (``OutOfMemoryError`` -> out of memory error) so the model reads words, not one long token.
 * **LogBERT** (template -> templates that occur in the same places): each stream model's token
   embedding row for the template, averaged over the streams that know it. These are learned
   from sequences, not text, so they only serve "neighbours of the anchor event".
 
 Templates number in the hundreds, so search is a brute-force cosine over a numpy matrix, rebuilt
-when the registry version changes (``index_for``); swapping in a vector database means
+when the registry changes (``AskService.index_for``); swapping in a vector database means
 implementing ``search`` and ``neighbours``.
 
 The shutdown set (templates that say a process stopped or can't go on: OOM, SIGTERM, segfault,
-connection refused, disk full, ...) is found once per registry version from seed phrases, and a
-person can add or remove templates (control doc ``ask_shutdown``).
+connection refused, disk full, ...) is a fixed pattern plus the templates closest to a few seed
+phrases, and a person can add or remove templates (control doc ``ask_shutdown``).
 """
 from __future__ import annotations
 
-import math
-import os
 import re
-from collections import Counter
+import threading
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 import numpy as np
 
-SYNONYMS = {
-    "oom": "out of memory", "outofmemory": "out of memory", "enospc": "no space left on device disk full",
-    "sigterm": "signal terminate shutdown", "sigkill": "signal killed", "sigsegv": "segmentation fault",
-    "segfault": "segmentation fault", "econnrefused": "connection refused", "refused": "refused connection",
-    "full": "no space left", "disk": "space device", "killed": "kill terminated", "shutdown": "shutting down stop",
-    "crash": "crashed terminated fatal", "timeout": "timed out", "dns": "unknownhost name service not known",
-    "tls": "ssl certificate handshake", "cert": "certificate", "502": "bad gateway", "503": "service unavailable",
-    "memory": "heap", "heap": "memory", "restart": "starting shutdown", "down": "shutdown refused unavailable",
-}
+from ..settings import get_settings
+
 SHUTDOWN_PHRASES = ("out of memory", "killed process", "received shutdown request", "terminated by signal",
                     "segmentation fault", "connection refused", "no space left on device", "panic", "fatal error",
                     "exited with code", "shutting down", "unknown directive emerg")
@@ -42,22 +33,29 @@ SHUTDOWN_RX = re.compile(r"(?i)out ?of ?memory|oom[- ]?kill|killed process|\bsig
                          r"segmentation fault|segfault|core dumped|shut(ting)? ?down|shutdown request|\bterminat(ed|ing)\b|"
                          r"\bpanic\b|\bfatal\b|connection refused|\brefused\b|no space left|enospc|disk (is )?full|"
                          r"exit(ed)? (with )?(code|status)|\bcrash|\[emerg\]|aborting")
-SHUTDOWN_MIN_SCORE = 0.45
 
 
-def split_words(text: str) -> list[str]:
+def readable(text: str) -> str:
+    """A template as words: slots named or dropped, camelCase and dotted.identifiers split."""
     text = re.sub(r"<\*(?::(\w+))?>", lambda m: f" {m.group(1) or ''} ", text)
-    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # camelCase -> camel Case
-    return re.findall(r"[a-z]+|\d{3}", text.lower())
+    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)
+    return " ".join(re.findall(r"[A-Za-z]+|\d{3}", text))
 
 
-def expand(words: list[str]) -> list[str]:
-    out = list(words)
-    joined = "".join(words)
-    for key, more in SYNONYMS.items():
-        if key in words or (len(key) > 6 and key in joined):
-            out += more.split()
-    return out
+_LOCK = threading.Lock()
+
+
+@lru_cache(maxsize=2)
+def text_model(name: str):
+    """The sentence model, loaded once per process (a ``sentence-transformers`` dependency)."""
+    from sentence_transformers import SentenceTransformer
+
+    with _LOCK:
+        return SentenceTransformer(name)
+
+
+def _encode(model, texts: list[str]) -> np.ndarray:
+    return np.asarray(model.encode([readable(t) or t for t in texts], normalize_embeddings=True), dtype=np.float32)
 
 
 @dataclass
@@ -65,52 +63,22 @@ class TemplateIndex:
     version: int
     ids: list[int]
     texts: list[str]
-    kind: str  # "minilm" | "tfidf"
     text_vectors: np.ndarray
-    idf: dict[str, float] = field(default_factory=dict)
+    model: object
     logbert: dict[int, np.ndarray] = field(default_factory=dict)
-    _model: object = None
+    kind: str = "minilm"
 
     @classmethod
     def build(cls, templates: dict[int, str], version: int, scorers: dict | None = None, snapshot=None) -> TemplateIndex:
+        model = text_model(get_settings().ask.model)
         ids, texts = list(templates), list(templates.values())
-        model = _minilm()
-        if model is not None and ids:
-            vecs = np.asarray(model.encode(texts, normalize_embeddings=True), dtype=np.float32)
-            idx = cls(version, ids, texts, "minilm", vecs, _model=model)
-        else:
-            docs = [expand(split_words(t)) for t in texts]
-            df = Counter(w for d in docs for w in set(d))
-            idf = {w: math.log((1 + len(docs)) / (1 + n)) + 1 for w, n in df.items()}
-            idx = cls(version, ids, texts, "tfidf", np.zeros((0, 0), np.float32), idf)
-            idx.text_vectors = np.stack([idx._tfidf(d) for d in docs]) if docs else np.zeros((0, 0), np.float32)
-        idx.logbert = _logbert_vectors(scorers or {}, snapshot)
-        return idx
-
-    def _vocab(self) -> list[str]:
-        if not hasattr(self, "_words"):
-            self._words = sorted(self.idf)
-            self._pos = {w: i for i, w in enumerate(self._words)}
-        return self._words
-
-    def _tfidf(self, words: list[str]) -> np.ndarray:
-        self._vocab()
-        v = np.zeros(len(self._words), np.float32)
-        for w, n in Counter(words).items():
-            if w in self._pos:
-                v[self._pos[w]] = (1 + math.log(n)) * self.idf[w]
-        norm = float(np.linalg.norm(v))
-        return v / norm if norm else v
-
-    def embed(self, text: str) -> np.ndarray:
-        if self.kind == "minilm":
-            return np.asarray(self._model.encode([text], normalize_embeddings=True)[0], dtype=np.float32)
-        return self._tfidf(expand(split_words(text)))
+        vectors = _encode(model, texts) if ids else np.zeros((0, 0), np.float32)
+        return cls(version, ids, texts, vectors, model, _logbert_vectors(scorers or {}, snapshot))
 
     def search(self, text: str, k: int = 5) -> list[tuple[int, float]]:
         if not self.ids or not text.strip():
             return []
-        sims = self.text_vectors @ self.embed(text)
+        sims = self.text_vectors @ _encode(self.model, [text])[0]
         order = np.argsort(-sims)[:k]
         return [(self.ids[i], round(float(sims[i]), 3)) for i in order if sims[i] > 0]
 
@@ -121,23 +89,6 @@ class TemplateIndex:
         me = self.logbert[tid]
         sims = [(t, float(v @ me)) for t, v in self.logbert.items() if t != tid]
         return [(t, round(s, 3)) for t, s in sorted(sims, key=lambda x: -x[1])[:k]]
-
-
-def _minilm():
-    """The sentence model when installed (``uv sync --extra ask``) and not switched off."""
-    if os.environ.get("LOGPIPE_ASK_EMBEDDINGS", "auto") == "tfidf":
-        return None
-    try:
-        from sentence_transformers import SentenceTransformer
-    except ImportError:
-        return None
-    global _MODEL
-    if _MODEL is None:
-        _MODEL = SentenceTransformer(os.environ.get("LOGPIPE_ASK_MODEL", "sentence-transformers/all-MiniLM-L6-v2"))
-    return _MODEL
-
-
-_MODEL = None
 
 
 def _logbert_vectors(scorers: dict, snapshot) -> dict[int, np.ndarray]:
@@ -160,10 +111,11 @@ def auto_shutdown(templates: dict[int, str], index: TemplateIndex | None) -> dic
     for tid, text in templates.items():
         if m := SHUTDOWN_RX.search(text):
             found[tid] = f"says {m.group(0)!r}"
-    if index is not None and index.kind == "minilm":  # TF-IDF scores are word overlap: the regex covers them
+    if index is not None:
+        floor = get_settings().ask.shutdown_min_score
         for phrase in SHUTDOWN_PHRASES:
             for tid, score in index.search(phrase, 10):
-                if score >= SHUTDOWN_MIN_SCORE and tid not in found:
+                if score >= floor and tid not in found:
                     found[tid] = f"close to {phrase!r} ({score:.2f})"
     return found
 

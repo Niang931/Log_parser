@@ -164,7 +164,6 @@ def _calibrate(server, client) -> None:
     run_jobs()
 
 
-# --- metrics ------------------------------------------------------------------------------
 def naive_bundle(world: World, slot: Slot) -> list[str]:
     """The baseline: the last 200 lines before the question, whatever they are."""
     rows = world.server.reads.between(slot.now - timedelta(hours=2), slot.now, 100_000)
@@ -244,14 +243,15 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--llm", help="llm:<provider>[:<model>] for the router and the synthesizer (default: none, rules only)")
     ap.add_argument("--record", type=Path, help="with --llm: save every reply here")
     ap.add_argument("--replay", type=Path, help="answer from replies saved by --record, no model needed")
+    ap.add_argument("--variants", nargs="*", choices=list(VARIANTS), help="which to run (default: all)")
     args = ap.parse_args(argv)
-    variants = dict(VARIANTS)
+    variants = {k: v for k, v in VARIANTS.items() if not args.variants or k in args.variants}
     if args.llm or args.replay:
         from ..enrich.llm import get_adapter
 
         inner = get_adapter(args.llm) if args.llm else None
         llm = Recorded(args.replay or args.record, None if args.replay else inner) if (args.replay or args.record) else inner
-        variants = {f"{k}+llm": v | {"adapter": llm} for k, v in VARIANTS.items()} | variants
+        variants = {f"{k}+llm": v | {"adapter": llm} for k, v in variants.items()} | variants
     with utc_clock():
         world = build_world(args.modes, epochs=args.epochs)
         print(f"world built in {world.seconds:.0f} s")

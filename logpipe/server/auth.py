@@ -12,10 +12,9 @@ import secrets
 import threading
 import time
 
+from ..settings import get_settings
+
 COOKIE = "logpipe_session"
-SESSION_SECONDS = 7 * 24 * 3600
-MIN_LENGTH = 8
-MAX_FAILURES, FAILURE_WINDOW = 5, 15 * 60  # per client address
 _N, _R, _P = 2**14, 8, 1
 
 
@@ -49,8 +48,8 @@ class Auth:
         return bool(self._doc.get("hash"))
 
     def set_password(self, password: str) -> None:
-        if len(password) < MIN_LENGTH:
-            raise ValueError(f"the password needs at least {MIN_LENGTH} characters")
+        if len(password) < (n := get_settings().server.min_password_length):
+            raise ValueError(f"the password needs at least {n} characters")
         self.control.put("auth", "admin", {"hash": hash_password(password),
                                            "secret": secrets.token_hex(32), "changed_at": time.time()})
 
@@ -68,14 +67,15 @@ class Auth:
         self.set_password(generated)
         return generated
 
-    # --- login throttling ------------------------------------------------------------------
     def blocked_for(self, client: str) -> float:
         """Seconds until ``client`` may try again (0 when it may)."""
         now = time.monotonic()
         with self._lock:
-            recent = [t for t in self._failures.get(client, []) if now - t < FAILURE_WINDOW]
+            cfg = get_settings().server
+            window = cfg.login_failure_window_minutes * 60
+            recent = [t for t in self._failures.get(client, []) if now - t < window]
             self._failures[client] = recent
-            return FAILURE_WINDOW - (now - recent[0]) if len(recent) >= MAX_FAILURES else 0
+            return window - (now - recent[0]) if len(recent) >= cfg.login_max_failures else 0
 
     def login(self, client: str, password: str) -> str | None:
         """A session token, or None for a wrong password (counted against ``client``)."""
@@ -83,12 +83,11 @@ class Auth:
         if doc.get("hash") and verify_password(password, doc["hash"]):
             with self._lock:
                 self._failures.pop(client, None)
-            return self._sign(doc, int(time.time()) + SESSION_SECONDS)
+            return self._sign(doc, int(time.time()) + get_settings().server.session_seconds)
         with self._lock:
             self._failures.setdefault(client, []).append(time.monotonic())
         return None
 
-    # --- sessions ----------------------------------------------------------------------------
     @staticmethod
     def _sig(doc: dict, expires: int) -> str:
         key = (doc["secret"] + doc["hash"]).encode()

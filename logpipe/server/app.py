@@ -24,34 +24,22 @@ from fastapi.responses import (
 
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
-from . import otlp, querybuild, querybuild_mongo
-from .auth import COOKIE, SESSION_SECONDS, Auth
-from .core import MIN_DRAFT_LINES, Busy, Server, now_iso
+from . import otlp
+from .auth import COOKIE, Auth
+from .core import Busy, Server, now_iso
 from .metrics import METRICS
-from .reads import FACETS
+from .stores import FACETS
 
 STATIC = Path(__file__).with_name("static")
 DEMO_INDEX = Path(__file__).parent.parent / "demo" / "index.html"
-MAX_BODY = 64 << 20  # decompressed intake batch
-
-
-def template_sql(entry, engine: str) -> str:
-    keys = [k for k in entry.keys if k not in ("timestamp", "device_id")]
-    if engine == "clickhouse":
-        cols = "".join(f",\n  payload.`{k}` AS `{k}`" for k in keys)
-        return (f"SELECT timestamp, device_id AS host, service{cols}\nFROM iot_logs FINAL\n"
-                f"WHERE template_id = {entry.template_id}\nORDER BY timestamp DESC\nLIMIT 50")
-    cols = "".join(f",\n  json_extract(payload, '$.\"{k}\"') AS \"{k}\"" for k in keys)
-    return (f"SELECT timestamp, device_id AS host, service{cols}\nFROM logs\n"
-            f"WHERE template_id = {entry.template_id}\nORDER BY timestamp DESC\nLIMIT 50")
 
 
 def create_app(server: Server, demo: Any = None, info: dict | None = None) -> FastAPI:
     """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
     started = now_iso()
     app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
-    engine = {"MemoryReads": "sqlite", "MongoReads": "mongodb"}.get(server.reads.__class__.__name__, "clickhouse")
-    qb = querybuild_mongo if engine == "mongodb" else querybuild
+    engine = server.reads.engine
+    compiler = server.reads.compiler
     auth = Auth(server.control)
 
     @app.middleware("http")
@@ -81,7 +69,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         if token is None:
             raise HTTPException(401, "wrong password")
         res = JSONResponse({"ok": True})
-        res.set_cookie(COOKIE, token, max_age=SESSION_SECONDS, httponly=True, samesite="strict",
+        res.set_cookie(COOKIE, token, max_age=server.config.server.session_seconds, httponly=True, samesite="strict",
                        secure=request.url.scheme == "https")
         return res
 
@@ -102,7 +90,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
             raise HTTPException(403, "the current password is wrong")
         auth.set_password(str(body.get("new") or ""))  # ValueError -> 400 when too short
         res = JSONResponse({"ok": True})  # the old sessions are void now; this one is renewed
-        res.set_cookie(COOKIE, auth.login(client, str(body["new"])) or "", max_age=SESSION_SECONDS,
+        res.set_cookie(COOKIE, auth.login(client, str(body["new"])) or "", max_age=server.config.server.session_seconds,
                        httponly=True, samesite="strict", secure=request.url.scheme == "https")
         return res
 
@@ -123,7 +111,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     async def bad_request(_request, exc: ValueError):
         return JSONResponse({"detail": str(exc)}, 400)
 
-    # --- intake ---------------------------------------------------------------------
     @app.get("/intake/v1/ping")
     def ping(key: Annotated[dict, Depends(agent_key)]) -> dict:
         return {"ok": True, "key": key["name"]}
@@ -133,7 +120,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         if request.headers.get("content-encoding") == "gzip":
             try:
                 d = zlib.decompressobj(16 + zlib.MAX_WBITS)
-                raw = d.decompress(raw, MAX_BODY)
+                raw = d.decompress(raw, server.config.server.max_body_mb << 20)
                 if d.unconsumed_tail:
                     raise HTTPException(413, "batch too large")
             except zlib.error as error:
@@ -211,7 +198,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return StreamingResponse(stream(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
-    # --- overview, logs, templates, stats --------------------------------------------
     @app.get("/api/overview")
     def overview() -> dict:
         agents = server.agents()
@@ -227,7 +213,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
             "warnings": dict(Counter(w["kind"] for w in warnings)),
             "review": len(server.batches()),
             "streams": len(server.control.all("stream")), "models": len(server.scorers),
-            "settings": server.settings, "jobs": jobs,
+            "settings": server.settings.model_dump(), "jobs": jobs,
             "recent_alerts": server.reads.alerts(5),
         }
 
@@ -262,7 +248,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.get("/api/templates")
     def templates() -> dict:
         snap = server.registry.current
-        calibrated_at = server.settings.get("calibrated_at") or ""
+        calibrated_at = server.settings.calibrated_at or ""
         vocabs = {sid: s.vocab for sid, s in server.scorers.items()}
         out = []
         links: dict[int, list[int]] = {}
@@ -282,22 +268,19 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                 "first_seen": meta.get("first_seen"), "last_seen": meta.get("last_seen"),
                 "seen_by": seen_by,
                 "candidate": not seen_by and (meta.get("first_seen") or "") > calibrated_at,
-                "sql": template_sql(t, engine)})
+                "sql": compiler.template_sample(t.template_id, [k for k in t.keys if k not in ("timestamp", "device_id")])})
         return {"version": snap.version, "masks": [m.to_dict() for m in snap.masks],
                 "templates": out, "engine": engine,
                 "pending": server.store.count_by_status().get("PENDING", 0)}
 
     @app.post("/api/query")
     def query(body: Annotated[dict, Body()]) -> dict:
-        sql = str(body.get("sql", "")).strip().rstrip(";")
-        if engine != "mongodb" and not sql.lower().startswith(("select", "with")):
-            raise HTTPException(400, "only SELECT / WITH queries")
-        return server.reads.query(sql)
+        return server.reads.query(str(body.get("sql", "")))
 
     def query_schema() -> dict:
         snap = server.registry.current
         fields = set(snap.key_vocab) | {k for t in snap.templates.values() for k in t.keys}
-        return qb.schema(engine, sorted(fields))
+        return compiler.schema(sorted(fields))
 
     @app.get("/api/query/schema")
     def get_query_schema() -> dict:
@@ -305,10 +288,10 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.post("/api/query/build")
     def build_query(body: Annotated[dict, Body()]) -> dict:
-        sql = qb.build(body, engine)
+        sql = compiler.build(body)
         return {"sql": sql, "result": server.reads.query(sql)}
 
-    # --- Ask: question -> plan of read-only queries -> approval -> answer (logpipe.ask) ---
+    # Ask: question -> plan of read-only queries -> approval -> answer (logpipe.ask)
     def ask_flag(body: dict) -> bool | None:
         v = body.get("require_approval")
         if v is not None and not isinstance(v, bool):
@@ -328,7 +311,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.get("/api/ask")
     def asked(limit: int = 20) -> dict:
         return {"plans": server.ask.recent(max(1, min(limit, 100))),
-                "require_approval": bool(server.settings.get("ask_require_approval", True))}
+                "require_approval": server.settings.ask_require_approval}
 
     @app.get("/api/ask/{plan_id}")
     def ask_plan(plan_id: str) -> dict:
@@ -448,7 +431,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     def explain_incident(incident_id: str, body: Annotated[dict | None, Body()] = None) -> dict:
         return server.explain_incident(incident_id, ask_flag(body or {}))
 
-    # --- agents, keys -------------------------------------------------------------------
     @app.get("/api/agents")
     def agents() -> dict:
         return {"agents": server.agents()}
@@ -485,7 +467,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         server.revoke_key(key_id)
         return {"ok": True}
 
-    # --- learning lifecycle -------------------------------------------------------------
     @app.get("/api/sources")
     def sources() -> dict:
         return {"sources": sorted(({**s, "streams": [x["id"] for x in server.streams_for(s["id"])]}
@@ -500,10 +481,10 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                        for a in server.agents()],
             "sources": [{**s, "streams": [x["id"] for x in server.streams_for(s["id"])]}
                         for s in server.sources.values()],
-            "settings": server.settings,
+            "settings": server.settings.model_dump(),
             "streams": server.control.all("stream"),
             "jobs": sorted(server.control.all("job"), key=lambda j: j["created_at"])[-5:],
-            "min_lines": MIN_DRAFT_LINES,
+            "min_lines": server.config.server.min_draft_lines,
             "review": next((b for b in server.batches() if b["initial"]), None),
         }
 
@@ -518,13 +499,12 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.get("/api/settings")
     def get_settings() -> dict:
-        return server.settings
+        return server.settings.model_dump()
 
     @app.put("/api/settings")
     def update_settings(body: Annotated[dict, Body()]) -> dict:
         return server.update_settings(body)
 
-    # --- template review -----------------------------------------------------------------
     @app.post("/api/review/generate", status_code=202)
     def generate_drafts(body: Annotated[dict | None, Body()] = None) -> dict:
         return server.generate_drafts((body or {}).get("sample_cap"))
@@ -614,6 +594,23 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         server.delete_stream(stream_id)
         return {"ok": True}
 
+    @app.get("/api/groups")
+    def groups() -> dict:
+        return {"groups": server.groups.list()}
+
+    @app.post("/api/groups")
+    def create_group(body: Annotated[dict, Body()]) -> dict:
+        return server.groups.save(body)
+
+    @app.put("/api/groups/{group_id}")
+    def update_group(group_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.groups.save(body, group_id)
+
+    @app.delete("/api/groups/{group_id}")
+    def delete_group(group_id: str) -> dict:
+        server.groups.delete(group_id)
+        return {"ok": True}
+
     @app.post("/api/streams/{stream_id}/train", status_code=202)
     def train_stream(stream_id: str) -> dict:
         if server.control.get("stream", stream_id) is None:
@@ -671,7 +668,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     def retry_job(job_id: str) -> dict:
         return server.retry_job(job_id)
 
-    # --- demo ---------------------------------------------------------------------------
     @app.get("/demo", include_in_schema=False)
     def demo_redirect():
         return RedirectResponse("/demo/")
@@ -716,7 +712,6 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
             except Exception as error:  # noqa: BLE001
                 return JSONResponse({"error": f"{type(error).__name__}: {error}"}, 400)
 
-    # --- the React app --------------------------------------------------------------------
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str):
         if path.startswith(("api/", "intake/")):

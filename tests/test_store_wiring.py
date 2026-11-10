@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 
 from logpipe.cli import main
-from logpipe.server.reads import reads_for
+from logpipe.server.stores import reads_for
 
 
 @pytest.mark.parametrize("cmd", ["run", "worker", "demo", "server", "bench"])

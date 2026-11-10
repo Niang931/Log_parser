@@ -22,6 +22,7 @@ import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 
+from ..settings import get_settings
 from .generator import FILES, ShopGenerator
 
 ROOT = Path("artifacts/showcase")
@@ -212,14 +213,15 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
     port = int(a["server_port"])
     if services:
         docker_up(services)
-    password = os.environ.get("LOGPIPE_ADMIN_PASSWORD") or secrets.token_urlsafe(9)
+    settings = get_settings()
+    password = settings.server.admin_password or secrets.token_urlsafe(9)
+    # The server runs as a child process: its settings travel as environment variables.
     env = os.environ | {"CLICKHOUSE_DB": "logpipe_showcase", "LOGPIPE_ADMIN_PASSWORD": password}
     if a["store"] == "clickhouse":  # a fresh database every run
         import clickhouse_connect
-        clickhouse_connect.get_client(
-            host=env.get("CLICKHOUSE_HOST", "127.0.0.1"), port=int(env.get("CLICKHOUSE_PORT", "8123")),
-            username=env.get("CLICKHOUSE_USER", "default"), password=env.get("CLICKHOUSE_PASSWORD", ""),
-        ).command("DROP DATABASE IF EXISTS logpipe_showcase")
+        ch = settings.clickhouse
+        clickhouse_connect.get_client(host=ch.host, port=ch.port, username=ch.user, password=ch.password,
+                                      ).command("DROP DATABASE IF EXISTS logpipe_showcase")
     shutil.rmtree(ROOT, ignore_errors=True)
     ROOT.mkdir(parents=True)
     agent_bin = find_agent(ROOT / "bin" / "logpipe-agent")
@@ -379,7 +381,9 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
            live=lambda: f"outage: {max(0, round(gen.incident_until - time.monotonic()))}s left")
     t.pause()
 
-    t.act(7, "A firmware update: the same events, slightly different lines", [
+    _ask_act(t, api)
+
+    t.act(8, "A firmware update: the same events, slightly different lines", [
         "shop-api ships v2.1. Checkout lines now carry the customer's currency (EUR, USD or GBP) instead",
         "of always EUR, and 'payment … authorized' now reads 'payment … approved'.",
         "The parser can't match the changed lines, so the online learner (every 30 s) mines templates for",
@@ -420,7 +424,7 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
     t.say("Linked lines count as the old event: the shop-api model needs no retrain and raises no alert for the change.", D, 2, wrap=True)
     t.pause()
 
-    t.act(8, "A new service appears", [
+    t.act(9, "A new service appears", [
         "The shop starts an inventory service with its own log file, and I track it on the agent.",
         f"In {B}Maintenance{R} it first shows as 'collecting lines'; at 200 lines its templates are",
         "drafted on their own and wait for your review there. Approve them and click Add."])
@@ -455,10 +459,62 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
     t.wait("inventory templates reviewed and added", inv_done, do_inv, live=inv_reviewed,
            steps=_job_steps(api, "apply", "retrain"))
 
-    t.act(9, "That's the tour", [
+    t.act(10, "That's the tour", [
         "Everything keeps running: new lines, the agent, the models. Try more in the UI:",
         "  write a rule on another template, link two templates, save a query, push a source to the",
-        "  agent from its page, or start another incident.",
+        "  agent from its page, or start another incident and ask Ask why it happened.",
         f"Files: {ROOT}. Server output: {ROOT / 'server.out'}. Press {B}Ctrl+C{R} to stop everything."])
     while True:
         time.sleep(3600)
+
+
+ASK_QUESTION = "why did the shop break in the last 15 minutes?"
+
+
+def _ask_act(t: Tour, api: Api) -> None:
+    """Group the shop's streams, then ask why the incident happened: every round of read-only
+    queries waits for approval, and the answer cites the lines it rests on."""
+    t.act(7, "Ask why it broke", [
+        f"First a {B}group{R}: on {B}Streams & models{R}, the shop's three streams (nginx, shop-api, postgres)",
+        f"become one group, {B}shop{R}, so a question can name all of them at once. I'll make it now.",
+        f"Then {B}Query → Ask{R} (or press {B}g k{R}) and ask: {B}{ASK_QUESTION}{R}",
+        "Nothing runs on its own: each round lists its read-only queries (open one to see the exact SQL)",
+        f"and waits for {B}Run all{R}. It first looks for when things broke, then reads around that moment and",
+        "ranks what changed against the day before. The answer cites the lines it rests on (L3, T12);",
+        "without an LLM it shows the top of that ranking as leads instead of a diagnosis."])
+    if not any(g["name"] == "shop" for g in api("/api/groups")["groups"]):
+        streams = [s["id"] for s in api("/api/streams")["streams"]]
+        api("/api/groups", {"name": "shop", "description": "nginx, the Java API and Postgres", "streams": streams})
+        t.say("made the group 'shop' with every stream")
+    before = {p["id"] for p in api("/api/ask")["plans"]}
+
+    def answered() -> dict | None:
+        return next((p for p in api("/api/ask")["plans"] if p["id"] not in before and p["status"] == "done"
+                     and p["intent"] in ("rca", "summary")), None)
+
+    def ask() -> None:
+        plan = api("/api/ask", {"question": ASK_QUESTION})
+        t.say(f"read as: {plan['spec']['intent']}" + (f", groups {plan['spec']['groups']}" if plan["spec"].get("groups") else ""))
+        for _ in range(300):
+            plan = api(f"/api/ask/{plan['id']}")
+            if plan["status"] == "waiting_approval":
+                r = plan["rounds"][-1]
+                t.say(f"round {r['n']}: {r['purpose']} ({len(r['queries'])} read-only queries), approved")
+                api(f"/api/ask/{plan['id']}/approve", {})
+            elif plan["status"] in ("done", "failed", "rejected", "expired"):
+                return
+            time.sleep(1)
+
+    t.wait("an answer to a 'why' question", lambda: answered() is not None, ask, timeout=600,
+           give_up="no answer yet: open Query → Ask and approve its rounds, or ask again.")
+    if done := answered():
+        result = api(f"/api/ask/{done['id']}")["result"] or {}
+        answer = result.get("answer") or {}
+        anchor = result.get("anchor") or {}
+        if anchor:
+            t.say(f"broke at {anchor.get('at', '')[11:19]} UTC: {anchor.get('why', '')}", G, 2, wrap=True)
+        for i, h in enumerate((answer.get("hypotheses") or answer.get("leads") or [])[:3], 1):
+            t.say(f"{i}. {h['cause']}  [{', '.join(h['cites'])}]", G, 4, wrap=True)
+        if answer.get("insufficient_evidence"):
+            t.say(f"not enough evidence: {answer.get('missing', '')}", Y, 2, wrap=True)
+    t.pause()

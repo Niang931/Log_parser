@@ -11,10 +11,7 @@ from ..parsing.frozen_parser import FrozenParser, Status
 from ..parsing.grok import compile_rule, rule_from_template
 from ..parsing.kv import SLOT_RE, slot_labels
 from ..registry import FIRST_TEMPLATE_ID, NewTemplate, RegistrySnapshot, SchemaRegistry
-
-SAMPLES = 5
-# shortcut: an edit is re-checked against at most this many sample lines; enough for a live count.
-CHECK_LINES = 20_000
+from ..settings import get_settings
 
 
 def _parser(templates: Sequence[NewTemplate], masks: Sequence[Mask]) -> FrozenParser:
@@ -33,7 +30,7 @@ def draft_docs(batch_id: str, templates: Sequence[NewTemplate], masks: Sequence[
         if result.status == Status.FINAL:
             i = result.template_id - FIRST_TEMPLATE_ID
             counts[i] += 1
-            if len(samples[i]) < SAMPLES:
+            if len(samples[i]) < get_settings().server.review_samples:
                 samples[i].append(line)
     return [{"id": f"{batch_id}-{i}", "batch": batch_id, "tokens": list(t.tokens),
              "keys": list(t.keys), "count": counts[i], "samples": samples[i], "status": "pending",
@@ -65,12 +62,12 @@ def check(tokens: Sequence[str], keys: Sequence[str], masks: Sequence[Mask],
     validate(tokens, keys)
     parser = _parser([NewTemplate(tuple(tokens), tuple(keys))], masks)
     matched, samples = 0, []
-    for line in lines[:CHECK_LINES]:
+    for line in lines[:get_settings().server.review_check_lines]:
         if parser.parse(line).status == Status.FINAL:
             matched += 1
-            if len(samples) < SAMPLES:
+            if len(samples) < get_settings().server.review_samples:
                 samples.append(line)
-    return {"count": matched, "samples": samples, "checked": min(len(lines), CHECK_LINES)}
+    return {"count": matched, "samples": samples, "checked": min(len(lines), get_settings().server.review_check_lines)}
 
 
 def merge_tokens(a: Sequence[str], b: Sequence[str]) -> list[str]:
@@ -88,7 +85,7 @@ def check_rule(text: str, lines: Sequence[str], own=None) -> dict:
     have matched."""
     rule = compile_rule(text)
     matched, rows, misses = 0, [], []
-    for line in lines[:CHECK_LINES]:
+    for line in lines[:get_settings().server.review_check_lines]:
         fields = rule.extract(line)
         if fields is not None:
             matched += 1
@@ -96,9 +93,9 @@ def check_rule(text: str, lines: Sequence[str], own=None) -> dict:
                 rows.append({"line": line, "fields": fields})
         elif own is not None and len(misses) < 10 and own(line):
             misses.append({"line": line, "fields": None})
-    return {"count": matched, "checked": min(len(lines), CHECK_LINES), "keys": list(rule.keys),
+    return {"count": matched, "checked": min(len(lines), get_settings().server.review_check_lines), "keys": list(rule.keys),
             "tokens": list(rule.tokens), "rows": rows + misses, "missed": len(misses),
-            "samples": [r["line"] for r in rows[:SAMPLES]]}
+            "samples": [r["line"] for r in rows[:get_settings().server.review_samples]]}
 
 
 def mined_matcher(draft: dict, masks: Sequence[Mask]):

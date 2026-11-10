@@ -14,8 +14,9 @@ from pymongo.errors import PyMongoError
 from logpipe.parsing.frozen_parser import ParseResult, Status
 from logpipe.server.control import ControlStore
 from logpipe.server.metrics import MemorySeries, MongoSeries
-from logpipe.server.reads import MemoryReads
-from logpipe.server.reads_mongo import MongoReads
+from logpipe.server.stores.memory import MemoryReads
+from logpipe.server.stores.mongo import MongoReads
+from logpipe.settings import get_settings
 from logpipe.storage.base import AnomalyAlert, LogRow
 from logpipe.storage.memory import MemoryStore
 from logpipe.storage.mongo import MongoDocs, MongoStore
@@ -119,7 +120,7 @@ def test_control_docs_survive_restart(db):
     assert again.all("agents") == [{"name": "uno"}]
 
 
-# --- UI reads: MongoReads must give the same answers as MemoryReads on the same rows -------------
+# UI reads: MongoReads must give the same answers as MemoryReads on the same rows
 
 LINES = ["ERROR [db] lost connection", "WARN disk 91% full", "INFO started", "DEBUG cache miss",
          'GET /a HTTP/1.1" 503 12', 'GET /b HTTP/1.1" 404 7', "Exception in thread main", "job done"]
@@ -189,6 +190,7 @@ def test_free_form_pipelines_use_the_read_only_uri(db, monkeypatch):
     _, mongo = both(db)
     assert mongo.query_logs is mongo.logs  # no MONGO_READONLY_URI: the main connection
     monkeypatch.setenv("MONGO_READONLY_URI", os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017"))
+    get_settings.cache_clear()  # settings are read once; this test changed them
     ro = MongoReads(MongoStore(db))
     assert ro.query_logs.database.client is not ro.logs.database.client  # its own client
     assert ro.query('[{"$group": {"_id": null, "n": {"$sum": 1}}}]')["rows"] == [[None, 40]]

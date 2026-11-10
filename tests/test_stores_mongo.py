@@ -5,7 +5,9 @@ import json
 
 import pytest
 
-from logpipe.server.querybuild_mongo import build, check
+from logpipe.server.stores.mongo import MongoCompiler, check
+
+build = MongoCompiler().build
 
 
 @pytest.mark.parametrize("stage", [
