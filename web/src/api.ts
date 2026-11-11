@@ -1,6 +1,7 @@
 // Thin typed client for `logpipe server`'s /api.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import type { AskPlan, AskResult } from "./ask";
 
 export class ApiError extends Error {}
 
@@ -59,12 +60,13 @@ export interface Settings {
   setup_done: boolean;
   draft_lines: number;
   draft_after_minutes: number;
+  ask_require_approval: boolean;
 }
 
 export interface Job {
   id: string;
-  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate" | "explain" | "bench";
-  params: { sources?: string[]; streams?: string[]; batch?: string; incident?: string; store?: string };
+  kind: "draft" | "apply" | "retrain" | "calibrate" | "recalibrate" | "explain" | "bench" | "ask";
+  params: { sources?: string[]; streams?: string[]; batch?: string; incident?: string; store?: string; plan?: string; round?: number };
   status: "queued" | "running" | "done" | "failed" | "cancelled";
   progress: number;
   message: string;
@@ -171,7 +173,8 @@ export interface Incident {
   status: IncidentStatus;
   note: string;
   updated_at?: string | null;
-  explanation?: { summary: string; likely_cause: string; next_steps: string[]; at: string; note?: string } | null;
+  /** the last root-cause Ask's result (logpipe.ask), with when and which plan */
+  explanation?: (AskResult & { at: string; plan: string }) | null;
 }
 
 export interface IncidentEvent {
@@ -192,7 +195,7 @@ export interface IncidentDetail extends Incident {
   events: IncidentEvent[];
   around: { timestamp: string; host: string; service: string; message: string; level: string }[];
   model_current: boolean;
-  explain_job: Job | null;
+  ask_plan: AskPlan | null;
 }
 
 export interface Overview {
@@ -295,6 +298,18 @@ export interface Stream {
   sources: string[];
   has_model: boolean;
   vocab: number;
+  /** the group it is in (a group's id), if any */
+  group?: string | null;
+}
+
+/** Several streams managed together (e.g. mail: ldap + proxy). A stream is in at most one group. */
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  streams: { id: string; name: string }[];
+  /** services of its streams' sources */
+  services: string[];
 }
 
 export interface Warning {

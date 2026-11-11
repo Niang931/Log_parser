@@ -1,5 +1,6 @@
 """The showcase's web shop: its logs, and that its incident is what LogBERT flags (and normal
 traffic isn't)."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
@@ -27,8 +28,13 @@ def test_generator_writes_files_with_multiline_traces(tmp_path):
 
 
 def test_the_incident_alerts_and_normal_traffic_does_not(tmp_path):
-    server = Server(MemoryStore(), ControlStore(), data_dir=tmp_path,
-                    adapter_factory=lambda: get_adapter("offline"), start_threads=False)
+    server = Server(
+        MemoryStore(),
+        ControlStore(),
+        data_dir=tmp_path,
+        adapter_factory=lambda: get_adapter("offline"),
+        start_threads=False,
+    )
     client = TestClient(create_app(server))
     headers = {"X-API-Key": client.post("/api/keys", json={"name": "t"}).json()["token"]}
     g, t0 = ShopGenerator(tmp_path / "out"), datetime.now(UTC) - timedelta(minutes=30)
@@ -37,9 +43,19 @@ def test_the_incident_alerts_and_normal_traffic_does_not(tmp_path):
         evs = []
         for i in range(n):
             now = t0 + timedelta(seconds=(start + i) / 3)
-            evs += [{"ts": now.isoformat(), "host": "shop", "service": e.service,
-                     "source": FILES[e.service][1], "message": e.message} for e in g.order(now, incident)]
-        assert client.post("/intake/v1/logs", json={"events": evs}, headers=headers).status_code == 202
+            evs += [
+                {
+                    "ts": now.isoformat(),
+                    "host": "shop",
+                    "service": e.service,
+                    "source": FILES[e.service][1],
+                    "message": e.message,
+                }
+                for e in g.order(now, incident)
+            ]
+        assert (
+            client.post("/intake/v1/logs", json={"events": evs}, headers=headers).status_code == 202
+        )
         while not server.inbox.empty():
             server.process(server.inbox.get_nowait())
 

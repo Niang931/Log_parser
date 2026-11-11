@@ -1,4 +1,3 @@
-
 """
 SQL security policy for Logpipe.
 
@@ -247,10 +246,7 @@ def _is_tautology(node: exp.Expression) -> bool:
 
 def _check_tautologies(tree: exp.Expression) -> None:
     for node in tree.find_all(exp.Or):
-        if (
-            _is_tautology(node.this)
-            or _is_tautology(node.expression)
-        ):
+        if _is_tautology(node.this) or _is_tautology(node.expression):
             _reject("always-true OR conditions are not permitted")
 
 
@@ -262,11 +258,7 @@ def _check_columns(
     aliases = _get_table_aliases(tree)
 
     # Aliases can legitimately be referenced in ORDER BY or GROUP BY.
-    selected_aliases = {
-        node.alias.lower()
-        for node in tree.find_all(exp.Alias)
-        if node.alias
-    }
+    selected_aliases = {node.alias.lower() for node in tree.find_all(exp.Alias) if node.alias}
 
     # CTE output aliases can also be referenced by the outer query.
     cte_columns = set()

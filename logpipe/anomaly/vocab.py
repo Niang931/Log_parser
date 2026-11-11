@@ -6,6 +6,7 @@ behind LogBERT's special tokens.  Template ids not seen in training
 ``[UNK]``.  ``[UNK]`` is a real token that appears during training, so it
 is not ``[MASK]``, which the model is trained to *predict*.
 """
+
 from __future__ import annotations
 
 from collections import Counter

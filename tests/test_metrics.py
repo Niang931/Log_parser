@@ -1,5 +1,6 @@
 """Built-in metrics: the hot path's counters become rates, percentiles and process load; the
 System API serves them as series."""
+
 from __future__ import annotations
 
 import time
@@ -40,7 +41,8 @@ def test_memory_series_buckets_and_windows():
     s.write(now - 30, {"x": 1})
     s.write(now - 20, {"x": 3})
     out = s.query(minutes=60, step=3600)
-    assert [v for _, v in out["x"]] in ([2.0], [1.0, 3.0])  # one bucket, unless they straddle an hour
+    # one bucket, unless they straddle an hour
+    assert [v for _, v in out["x"]] in ([2.0], [1.0, 3.0])
 
 
 def test_counted_adapter_times_calls_and_forwards_attributes():

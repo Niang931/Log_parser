@@ -20,8 +20,25 @@ def test_saved_answers_become_the_defaults(tmp_path, monkeypatch):
     _answers(monkeypatch, "1", "kafka", "", "", "", "3", "0.5", "", "y")
     wizard.start(run=lambda cmd, check: ran.append(cmd), launch=launched.append)
     assert ran == [["docker", "compose", "up", "-d", "--wait", "kafka"]]
-    assert launched == [["--browser", "camoufox", "demo", "--llm", "offline", "--queue", "kafka",
-                         "--store", "memory", "--devices", "3", "--test-hours", "0.5", "--port", "8000"]]
+    assert launched == [
+        [
+            "--browser",
+            "camoufox",
+            "demo",
+            "--llm",
+            "offline",
+            "--queue",
+            "kafka",
+            "--store",
+            "memory",
+            "--devices",
+            "3",
+            "--test-hours",
+            "0.5",
+            "--port",
+            "8000",
+        ]
+    ]
     assert json.loads(wizard.SAVED.read_text())["queue"] == "kafka"
 
     # Second run: Enter keeps every saved answer, but each question is still asked.
@@ -36,9 +53,16 @@ def test_saved_answers_become_the_defaults(tmp_path, monkeypatch):
 
 
 def test_pipeline_plan_calibrates_and_trains_only_when_missing(tmp_path):
-    a = {"mode": "pipeline", "queue": "memory", "llm_kind": "api", "provider": "anthropic",
-         "logs": "logs", "registry": str(tmp_path / "reg.json"), "model": str(tmp_path / "m"),
-         "store": "clickhouse"}
+    a = {
+        "mode": "pipeline",
+        "queue": "memory",
+        "llm_kind": "api",
+        "provider": "anthropic",
+        "logs": "logs",
+        "registry": str(tmp_path / "reg.json"),
+        "model": str(tmp_path / "m"),
+        "store": "clickhouse",
+    }
     services, commands = wizard.plan(a)
     assert services == ["clickhouse"]
     assert [c[2] for c in commands[:1]] == ["calibrate"] and commands[1][0] == "train-logbert"
@@ -91,9 +115,27 @@ def test_server_plan(monkeypatch, tmp_path):
     _answers(monkeypatch, "", "clickhouse", "", "9090", "", "y", "n")
     wizard.start(launch=launched.append, mode="server")
     saved = json.loads(wizard.SAVED.read_text())
-    assert wizard.plan(saved) == (["clickhouse"], [[
-        "--browser", "camoufox", "server", "--llm", "offline", "--queue", "memory",
-        "--store", "clickhouse", "--port", "9090", "--data-dir", "artifacts/server", "--demo"]])
+    assert wizard.plan(saved) == (
+        ["clickhouse"],
+        [
+            [
+                "--browser",
+                "camoufox",
+                "server",
+                "--llm",
+                "offline",
+                "--queue",
+                "memory",
+                "--store",
+                "clickhouse",
+                "--port",
+                "9090",
+                "--data-dir",
+                "artifacts/server",
+                "--demo",
+            ]
+        ],
+    )
 
 
 def test_free_port_ignores_time_wait_and_names_the_listener():
@@ -128,7 +170,14 @@ def test_server_start_asks_the_admin_password_without_saving_it(monkeypatch, tmp
 
 
 def test_mongodb_store_starts_the_mongo_service(tmp_path):
-    a = {"mode": "server", "queue": "memory", "llm_kind": "offline", "store": "mongodb",
-         "server_port": 8080, "data_dir": str(tmp_path), "with_demo": False}
+    a = {
+        "mode": "server",
+        "queue": "memory",
+        "llm_kind": "offline",
+        "store": "mongodb",
+        "server_port": 8080,
+        "data_dir": str(tmp_path),
+        "with_demo": False,
+    }
     services, commands = wizard.plan(a)
     assert services == ["mongo"] and commands[0][commands[0].index("--store") + 1] == "mongodb"

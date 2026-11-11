@@ -9,6 +9,7 @@ _CAMEL_RE = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 _GENERIC_KEY_RE = re.compile(r"^var(_\d+)?$")
 _INLINE_KV_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_.\-]*)=(.*)$", re.DOTALL)
 
+
 def slot_labels(tokens: Sequence[str]) -> list[str | None]:
     """Return one entry per variable slot: the mask label, or ``None`` for ``<*>``."""
     return [m.group(1) for tok in tokens for m in SLOT_RE.finditer(tok)]
@@ -56,7 +57,7 @@ def compile_extractor(tokens: Sequence[str]) -> re.Pattern[str]:
         piece: list[str] = []
         last = 0
         for match in SLOT_RE.finditer(tok):
-            piece.append(re.escape(tok[last: match.start()]))
+            piece.append(re.escape(tok[last : match.start()]))
             piece.append(r"(.+?)" if match.group(1) else r"(\S+?)")
             last = match.end()
         piece.append(re.escape(tok[last:]))
@@ -83,13 +84,8 @@ def extract(pattern: re.Pattern[str], keys: Sequence[str], line: str) -> dict[st
         return None
 
     # Reject invalid or duplicate field names
-    if (
-        len(set(keys)) != len(keys)
-        or not all(
-            isinstance(key, str)
-            and re.fullmatch(r"[a-z][a-z0-9_]{0,63}", key)
-            for key in keys
-        )
+    if len(set(keys)) != len(keys) or not all(
+        isinstance(key, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,63}", key) for key in keys
     ):
         return None
 
@@ -97,20 +93,13 @@ def extract(pattern: re.Pattern[str], keys: Sequence[str], line: str) -> dict[st
 
     for key, value in zip(keys, values):
         # Only recover inline keys for generic variables
-        inline = (
-            _INLINE_KV_RE.fullmatch(value)
-            if _GENERIC_KEY_RE.fullmatch(key)
-            else None
-        )
+        inline = _INLINE_KV_RE.fullmatch(value) if _GENERIC_KEY_RE.fullmatch(key) else None
 
         if inline:
             candidate = _snake(inline.group(1))
 
             # Never overwrite existing fields or accept unsafe names
-            if (
-                re.fullmatch(r"[a-z][a-z0-9_]{0,63}", candidate)
-                and candidate not in payload
-            ):
+            if re.fullmatch(r"[a-z][a-z0-9_]{0,63}", candidate) and candidate not in payload:
                 key = candidate
                 value = inline.group(2)
 

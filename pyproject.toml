@@ -16,6 +16,8 @@ dependencies = [
     "opentelemetry-proto>=1.45.2",
     "sqlglot>=30.30.0",
     "pymongo>=4.19.0",
+    "pydantic-settings>=2.6",
+    "sentence-transformers>=3.0",
 ]
 
 [project.scripts]

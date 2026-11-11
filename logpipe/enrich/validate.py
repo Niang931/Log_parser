@@ -3,6 +3,7 @@
 LLM output and device-produced log text are both untrusted, so a proposed
 template, key list or mask is accepted only if it passes these checks.
 """
+
 from __future__ import annotations
 
 import re
@@ -49,8 +50,7 @@ def template_problem(
     if literals == 0 or literals / len(tokens) < min_literal_ratio:
         return f"over-general: only {literals}/{len(tokens)} literal tokens"
 
-    if any(not isinstance(tok, str) or len(tok) > MAX_TOKEN_LENGTH
-           for tok in tokens):
+    if any(not isinstance(tok, str) or len(tok) > MAX_TOKEN_LENGTH for tok in tokens):
         return "template contains an invalid or excessively long token"
 
     try:

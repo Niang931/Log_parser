@@ -69,8 +69,8 @@ def partition_key(row: LogRow, key_by: str = "shape") -> bytes:
     """``shape`` (default) groups by candidate template, ``device`` by device id."""
     if key_by == "device":
         return row.device_id.encode("utf-8")
-    
+
     if key_by == "shape":
         return shape_key(row.raw_message)
-    
+
     raise ValueError(f"unknown key_by {key_by!r}; expected 'shape' or 'device'")

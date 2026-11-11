@@ -202,14 +202,16 @@ def test_dead_letter_carries_reason_and_attempts():
     assert queue.stats().dead_lettered == 1
 
 
-def test_from_env_reads_kafka_settings():
-    env = {
+def test_from_env_reads_kafka_settings(monkeypatch):
+    for k, v in {
         "KAFKA_BOOTSTRAP": "k:9092",
         "KAFKA_TOPIC": "u",
         "KAFKA_GROUP": "w",
         "KAFKA_KEY_BY": "device",
-    }
-    queue = KafkaQueue.from_env(env)
+    }.items():
+        monkeypatch.setenv(k, v)
+    monkeypatch.delenv("KAFKA_DLQ_TOPIC", raising=False)
+    queue = KafkaQueue.from_env()
     assert (queue.bootstrap, queue.topic, queue.group, queue.dlq_topic, queue.key_by) == (
         "k:9092",
         "u",

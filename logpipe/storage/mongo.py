@@ -4,9 +4,9 @@ Time-series collections reject upsert and unique indexes, so they cannot turn a 
 into its FINAL version. A plain collection with a version-guarded replace gives the same
 "highest version wins, then last insert" rule as ReplacingMergeTree, with no ``FINAL`` on reads.
 """
+
 from __future__ import annotations
 
-import os
 import uuid
 from collections.abc import Sequence
 
@@ -15,6 +15,7 @@ from pymongo.database import Database
 from pymongo.errors import BulkWriteError
 
 from ..parsing.frozen_parser import Status
+from ..settings import get_settings
 from .base import AnomalyAlert, LogRow
 
 DUPLICATE_KEY = 11000
@@ -22,16 +23,16 @@ DUPLICATE_KEY = 11000
 
 def _doc(r: LogRow) -> dict:
     return {
-        "_id": str(r.log_id), 
-        "timestamp": r.timestamp, 
+        "_id": str(r.log_id),
+        "timestamp": r.timestamp,
         "device_id": r.device_id,
-        "template_id": r.template_id, 
+        "template_id": r.template_id,
         "status": str(r.status),
-        "registry_version": r.registry_version, 
-        "version": r.version, 
+        "registry_version": r.registry_version,
+        "version": r.version,
         "payload": r.payload,
-        "raw_message": r.raw_message, 
-        "service": r.service, 
+        "raw_message": r.raw_message,
+        "service": r.service,
         "source": r.source,
         "tags": list(r.tags),
     }
@@ -39,16 +40,18 @@ def _doc(r: LogRow) -> dict:
 
 def _row(d: dict) -> LogRow:
     return LogRow(
-        log_id=uuid.UUID(d["_id"]), 
-        timestamp=d["timestamp"], 
+        log_id=uuid.UUID(d["_id"]),
+        timestamp=d["timestamp"],
         device_id=d["device_id"],
-        template_id=d["template_id"], 
+        template_id=d["template_id"],
         status=Status(d["status"]),
-        registry_version=d["registry_version"], 
+        registry_version=d["registry_version"],
         payload=d["payload"],
-        raw_message=d["raw_message"], 
-        version=d["version"], service=d["service"],
-        source=d["source"], tags=tuple(d["tags"]),
+        raw_message=d["raw_message"],
+        version=d["version"],
+        service=d["service"],
+        source=d["source"],
+        tags=tuple(d["tags"]),
     )
 
 
@@ -61,22 +64,31 @@ class MongoStore:
         # UI reads: time-range scans, and the per-source tail. (timestamp, device_id) rather than
         # `timestamp` alone, because the TTL index below owns the plain `timestamp` key.
         self.logs.create_index([("timestamp", ASCENDING), ("device_id", ASCENDING)])
-        self.logs.create_index([("device_id", ASCENDING), ("service", ASCENDING),
-                                ("source", ASCENDING), ("timestamp", ASCENDING)])
+        self.logs.create_index(
+            [
+                ("device_id", ASCENDING),
+                ("service", ASCENDING),
+                ("source", ASCENDING),
+                ("timestamp", ASCENDING),
+            ]
+        )
         if retention_days:
             self.logs.create_index("timestamp", expireAfterSeconds=retention_days * 86_400)
 
     @classmethod
     def from_env(cls, database: str | None = None, **kwargs) -> MongoStore:
         """``MONGO_URI`` / ``MONGO_DB`` settings; ``database`` overrides ``MONGO_DB``."""
-        client = MongoClient(os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017"), tz_aware=True)
-        return cls(client[database or os.environ.get("MONGO_DB", "logpipe")], **kwargs)
+        cfg = get_settings().mongo
+        client = MongoClient(cfg.uri, tz_aware=True)
+        return cls(client[database or cfg.db], **kwargs)
 
     def insert_logs(self, rows: Sequence[LogRow]) -> None:
         if not rows:
             return
-        ops = [ReplaceOne({"_id": str(r.log_id), "version": {"$lte": r.version}}, _doc(r), upsert=True)
-               for r in rows]
+        ops = [
+            ReplaceOne({"_id": str(r.log_id), "version": {"$lte": r.version}}, _doc(r), upsert=True)
+            for r in rows
+        ]
         try:
             self.logs.bulk_write(ops, ordered=False)
         except BulkWriteError as e:
@@ -87,23 +99,38 @@ class MongoStore:
     def insert_alerts(self, alerts: Sequence[AnomalyAlert]) -> None:
         if not alerts:
             return
-        self.alerts.insert_many([
-            {"_id": str(a.alert_id), "device_id": a.device_id, "window_start": a.window_start,
-             "window_end": a.window_end, "template_ids": list(a.template_ids),
-             "miss_ratio": a.miss_ratio, "novelty_ratio": a.novelty_ratio, "distance": a.distance,
-             "reasons": list(a.reasons), "had_unknowns": a.had_unknowns,
-             "registry_version": a.registry_version, "model_version": a.model_version}
-            for a in alerts
-        ])
+        self.alerts.insert_many(
+            [
+                {
+                    "_id": str(a.alert_id),
+                    "device_id": a.device_id,
+                    "window_start": a.window_start,
+                    "window_end": a.window_end,
+                    "template_ids": list(a.template_ids),
+                    "miss_ratio": a.miss_ratio,
+                    "novelty_ratio": a.novelty_ratio,
+                    "distance": a.distance,
+                    "reasons": list(a.reasons),
+                    "had_unknowns": a.had_unknowns,
+                    "registry_version": a.registry_version,
+                    "model_version": a.model_version,
+                }
+                for a in alerts
+            ]
+        )
 
     def fetch_pending(self, limit: int = 10_000, template_id: int | None = None) -> list[LogRow]:
         """PENDING rows, or with ``template_id`` that template's rows (to re-extract them)."""
-        where = {"status": str(Status.PENDING)} if template_id is None else {"template_id": template_id}
+        where = (
+            {"status": str(Status.PENDING)} if template_id is None else {"template_id": template_id}
+        )
         return [_row(d) for d in self.logs.find(where).sort("timestamp", ASCENDING).limit(limit)]
 
     def count_by_status(self) -> dict[str, int]:
-        return {d["_id"]: d["n"] for d in self.logs.aggregate(
-            [{"$group": {"_id": "$status", "n": {"$sum": 1}}}])}
+        return {
+            d["_id"]: d["n"]
+            for d in self.logs.aggregate([{"$group": {"_id": "$status", "n": {"$sum": 1}}}])
+        }
 
     def flush(self) -> None:
         pass

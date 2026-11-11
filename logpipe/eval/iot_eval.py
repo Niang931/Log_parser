@@ -15,6 +15,7 @@ Each test variant is an ablation of one design decision from the review:
 * ``mask_unknowns``: the original blueprint's [MASK] for unknown logs, no novelty.
 * ``no_enrichment``: unknown lines stay PENDING (no closing of the loop).
 """
+
 from __future__ import annotations
 
 import bisect
@@ -106,8 +107,12 @@ class _Labels:
         return set(self.kinds[window.device_id][lo:hi])
 
 
-def _metrics(windows: list[ScoredWindow], labels: _Labels, vocab: TemplateVocab | None = None,
-             registry: SchemaRegistry | None = None) -> dict:
+def _metrics(
+    windows: list[ScoredWindow],
+    labels: _Labels,
+    vocab: TemplateVocab | None = None,
+    registry: SchemaRegistry | None = None,
+) -> dict:
     tp = fp = tn = fn = 0
     by_kind: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     by_reason: Counter[str] = Counter()
@@ -162,33 +167,52 @@ def _device_sequences(parser: FrozenParser, events: list[SynthEvent]) -> dict[st
 
 
 def _detector_config(variant: Variant, cfg: IoTEvalConfig) -> DetectorConfig:
-    return DetectorConfig(window=cfg.window, stride=cfg.stride,
-                          fleet_min_devices=variant.fleet_min_devices, record_windows=True)
+    return DetectorConfig(
+        window=cfg.window,
+        stride=cfg.stride,
+        fleet_min_devices=variant.fleet_min_devices,
+        record_windows=True,
+    )
 
 
-def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
-                 out_dir: Path | None = None, log=write) -> dict:
+def run_iot_eval(
+    adapter: LLMAdapter, cfg: IoTEvalConfig | None = None, out_dir: Path | None = None, log=write
+) -> dict:
     cfg = cfg or IoTEvalConfig()
-    fleet = generate(cfg.devices_per_kind, cfg.history_hours, cfg.validation_hours,
-                     cfg.test_hours, cfg.anomaly_rate, seed=cfg.seed)
+    fleet = generate(
+        cfg.devices_per_kind,
+        cfg.history_hours,
+        cfg.validation_hours,
+        cfg.test_hours,
+        cfg.anomaly_rate,
+        seed=cfg.seed,
+    )
     if out_dir is not None:
         fleet.write(out_dir / "fleet")
-    log(f"[iot] events: history={len(fleet.history)} validation={len(fleet.validation)} "
-        f"test={len(fleet.test)} (anomalous test events: {sum(1 for e in fleet.test if e.anomaly)})")
+    log(
+        f"[iot] events: history={len(fleet.history)} validation={len(fleet.validation)} "
+        f"test={len(fleet.test)} (anomalous test events: {sum(1 for e in fleet.test if e.anomaly)})"
+    )
 
     cal = calibrate([e.line for e in fleet.history], adapter)
-    log(f"[iot] calibration: {cal.report.templates} templates, "
-        f"holdout coverage {cal.report.holdout_coverage}")
+    log(
+        f"[iot] calibration: {cal.report.templates} templates, "
+        f"holdout coverage {cal.report.holdout_coverage}"
+    )
     parser = FrozenParser(cal.snapshot)
 
-    windows = [w for seq in _device_sequences(parser, fleet.history).values()
-               for w in sliding_windows(seq, cfg.window, cfg.stride)]
+    windows = [
+        w
+        for seq in _device_sequences(parser, fleet.history).values()
+        for w in sliding_windows(seq, cfg.window, cfg.stride)
+    ]
     vocab = TemplateVocab.build(windows)
     encoded = [vocab.encode(w) for w in windows]
     random.Random(cfg.seed).shuffle(encoded)
     n_valid = max(1, len(encoded) // 10)
     trained = train_logbert(
-        encoded[n_valid:], encoded[:n_valid],
+        encoded[n_valid:],
+        encoded[:n_valid],
         LogBERTConfig(len(vocab), cfg.hidden, cfg.layers, cfg.attn_heads, max_len=cfg.window + 1),
         cfg.train or TrainConfig(epochs=40, patience=6),
         log=lambda m: log(f"[iot] {m}"),
@@ -198,7 +222,9 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
     results = {}
     for variant in progress(VARIANTS, "iot variants", unit="variant"):
         scorer = LogBERTScorer.from_training(
-            trained, vocab, settings=ScorerSettings(unknown_mode=variant.unknown_mode),
+            trained,
+            vocab,
+            settings=ScorerSettings(unknown_mode=variant.unknown_mode),
             version="logbert-iot",
         )
         # Tune top-g and thresholds on validation windows (labels from the injected
@@ -208,8 +234,12 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
         for g in progress(cfg.candidate_grid, "tuning top-g", unit="g"):
             scorer.settings.num_candidates = g
             # Detector only: enrichment here would mutate the registry between g values.
-            val = Pipeline.assemble(SchemaRegistry(cal.snapshot), MemoryStore(), scorer=scorer,
-                                    detector_config=_detector_config(variant, cfg))
+            val = Pipeline.assemble(
+                SchemaRegistry(cal.snapshot),
+                MemoryStore(),
+                scorer=scorer,
+                detector_config=_detector_config(variant, cfg),
+            )
             val.run(as_log_events(fleet.validation), total=len(fleet.validation))
             assert val.detector is not None
             val_windows = val.detector.scored
@@ -225,8 +255,12 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
         registry = SchemaRegistry(cal.snapshot)
         store = MemoryStore()
         pipeline = Pipeline.assemble(
-            registry, store, adapter=adapter if variant.enrichment else None, scorer=scorer,
-            detector_config=_detector_config(variant, cfg), enrich_every=cfg.enrich_every,
+            registry,
+            store,
+            adapter=adapter if variant.enrichment else None,
+            scorer=scorer,
+            detector_config=_detector_config(variant, cfg),
+            enrich_every=cfg.enrich_every,
         )
         handle, detector = pipeline.handle, pipeline.detector
         assert detector is not None
@@ -244,30 +278,40 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
                 "cycles": len(stats.cycles),
                 "final_rows": counts.get("FINAL", 0),
                 "pending_rows_at_end": counts.get("PENDING", 0),
-                "pending_share_at_end": round(counts.get("PENDING", 0) / max(1, sum(counts.values())), 5),
+                "pending_share_at_end": round(
+                    counts.get("PENDING", 0) / max(1, sum(counts.values())), 5
+                ),
                 "resolve_lag_s": (
                     {f"p{q}": round(float(np.percentile(lags, q)), 1) for q in (50, 90, 99)}
-                    if lags else {}
+                    if lags
+                    else {}
                 ),
                 "registry_version": handle.version,
                 "rejected": {k: v for c in stats.cycles for k, v in c.rejected.items()},
                 "learned_templates": [
                     " ".join(registry.current.templates[i].tokens)
-                    for c in stats.cycles for i in c.published
+                    for c in stats.cycles
+                    for i in c.published
                 ],
                 "aliases": {str(k): v for c in stats.cycles for k, v in c.aliased.items()},
             },
         }
         t = results[variant.name]["test"]
-        log(f"[iot] {variant.name} (g={scorer.settings.num_candidates}): test F1={t['F1']} "
+        log(
+            f"[iot] {variant.name} (g={scorer.settings.num_candidates}): test F1={t['F1']} "
             f"P={t['P']} R={t['R']} flags={t['flags_by_reason']} "
             f"FP reasons={t['false_positive_reasons']} | pending at end="
-            f"{results[variant.name]['enrichment']['pending_rows_at_end']}")
+            f"{results[variant.name]['enrichment']['pending_rows_at_end']}"
+        )
 
     summary = {
-        "config": asdict(replace(cfg, train=None)) | {"train": asdict(cfg.train or TrainConfig(epochs=40, patience=6))},
-        "events": {"history": len(fleet.history), "validation": len(fleet.validation),
-                   "test": len(fleet.test)},
+        "config": asdict(replace(cfg, train=None))
+        | {"train": asdict(cfg.train or TrainConfig(epochs=40, patience=6))},
+        "events": {
+            "history": len(fleet.history),
+            "validation": len(fleet.validation),
+            "test": len(fleet.test),
+        },
         "calibration": cal.report.to_json(),
         "vocab_size": len(vocab),
         "train": {"epochs": len(trained.history), "history": trained.history},
@@ -275,9 +319,17 @@ def run_iot_eval(adapter: LLMAdapter, cfg: IoTEvalConfig | None = None,
     }
     if out_dir is not None:
         out_dir.mkdir(parents=True, exist_ok=True)
-        (out_dir / "results.json").write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
-        tuned = LogBERTScorer.from_training(trained, vocab, settings=ScorerSettings(
-            num_candidates=results["full"]["num_candidates"],
-            thresholds=Thresholds(**results["full"]["thresholds"])), version="logbert-iot")
+        (out_dir / "results.json").write_text(
+            json.dumps(summary, indent=2, default=str), encoding="utf-8"
+        )
+        tuned = LogBERTScorer.from_training(
+            trained,
+            vocab,
+            settings=ScorerSettings(
+                num_candidates=results["full"]["num_candidates"],
+                thresholds=Thresholds(**results["full"]["thresholds"]),
+            ),
+            version="logbert-iot",
+        )
         tuned.save(out_dir / "model")
     return summary

@@ -14,21 +14,18 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import time
 from collections import deque
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from typing import Any
 
+from ..settings import get_settings
 from ..storage.base import LogRow
 from .base import Message, QueueStats
 from .codec import decode_row, encode_row, partition_key
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_BOOTSTRAP = "127.0.0.1:9092"
-DEFAULT_TOPIC = "logpipe.unresolved"
-DEFAULT_GROUP = "logpipe-workers"
 ATTEMPTS_HEADER = "attempts"
 REASON_HEADER = "reason"
 
@@ -46,9 +43,9 @@ def _attempts(headers: list[tuple[str, bytes | None]] | None) -> int:
 class KafkaQueue:
     def __init__(
         self,
-        bootstrap: str = DEFAULT_BOOTSTRAP,
-        topic: str = DEFAULT_TOPIC,
-        group: str = DEFAULT_GROUP,
+        bootstrap: str | None = None,
+        topic: str | None = None,
+        group: str | None = None,
         *,
         dlq_topic: str | None = None,
         key_by: str = "shape",
@@ -60,10 +57,11 @@ class KafkaQueue:
         producer_factory: Callable[[dict], Any] | None = None,
         consumer_factory: Callable[[dict], Any] | None = None,
     ):
-        self.bootstrap = bootstrap
-        self.topic = topic
-        self.group = group
-        self.dlq_topic = dlq_topic or f"{topic}.dlq"
+        cfg = get_settings().kafka
+        self.bootstrap = bootstrap or cfg.bootstrap
+        self.topic = topic or cfg.topic
+        self.group = group or cfg.group
+        self.dlq_topic = dlq_topic or f"{self.topic}.dlq"
         self.key_by = key_by
         self.client_id = client_id
         self.spill_size = spill_size
@@ -82,20 +80,22 @@ class KafkaQueue:
         self._stats = QueueStats(kind="kafka")
 
     @classmethod
-    def from_env(cls, env: Mapping[str, str] = os.environ, **overrides) -> KafkaQueue:
-        """``KAFKA_BOOTSTRAP``, ``KAFKA_TOPIC``, ``KAFKA_GROUP``, ``KAFKA_DLQ_TOPIC``, ``KAFKA_KEY_BY``."""
-        options = {
-            "bootstrap": env.get("KAFKA_BOOTSTRAP", DEFAULT_BOOTSTRAP),
-            "topic": env.get("KAFKA_TOPIC", DEFAULT_TOPIC),
-            "group": env.get("KAFKA_GROUP", DEFAULT_GROUP),
-            "dlq_topic": env.get("KAFKA_DLQ_TOPIC") or None,
-            "key_by": env.get("KAFKA_KEY_BY", "shape"),
-        }
-        options.update(overrides)
+    def from_env(cls, **overrides) -> KafkaQueue:
+        """``KAFKA_*`` settings (``logpipe.settings.KafkaSettings``); keyword arguments win."""
+        cfg = get_settings().kafka
+        return cls(
+            **(
+                {
+                    "bootstrap": cfg.bootstrap,
+                    "topic": cfg.topic,
+                    "group": cfg.group,
+                    "dlq_topic": cfg.dlq_topic,
+                    "key_by": cfg.key_by,
+                }
+                | overrides
+            )
+        )
 
-        return cls(**options)
-
-    # __clients_____________________
     @property
     def producer(self):
         if self._producer is None:
@@ -137,7 +137,6 @@ class KafkaQueue:
             self._consumer.subscribe([self.topic])
         return self._consumer
 
-    # __producer_____________________
     def publish(self, row: LogRow, *, attempts: int = 0) -> None:
         headers = [(ATTEMPTS_HEADER, str(attempts).encode())]
         self._produce(self.topic, partition_key(row, self.key_by), encode_row(row), headers)
@@ -146,11 +145,15 @@ class KafkaQueue:
         self._drain_spill()
         self.producer.poll(0)  # serve delivery callbacks; never blocks
 
-    def _produce(self, topic: str, key: bytes, value: bytes, headers: list[tuple[str, bytes]]) -> bool:
+    def _produce(
+        self, topic: str, key: bytes, value: bytes, headers: list[tuple[str, bytes]]
+    ) -> bool:
         try:
-            self.producer.produce(topic, value, key=key, headers=headers, on_delivery=self._delivered)
+            self.producer.produce(
+                topic, value, key=key, headers=headers, on_delivery=self._delivered
+            )
             return True
-        
+
         except BufferError:  # Buffer full: the broker is slow or gone
             self._spill(topic, key, value, headers, "local send buffer full")
         except Exception as error:  # noqa: BLE001 - any failed send is parked, never lost
@@ -162,7 +165,7 @@ class KafkaQueue:
             headers = [(k, v) for k, v in (message.headers() or []) if v is not None]
             self._spill(message.topic(), message.key(), message.value(), headers, str(error))
             return
-        
+
         if self._broker_down:
             self._broker_down = False
             LOGGER.info("kafka: deliveries to %s succeed again", self.bootstrap)
@@ -174,7 +177,7 @@ class KafkaQueue:
 
         self._parked.append((topic, key, value, headers))
         self._retry_at = time.monotonic() + self.retry_after
-        
+
         if not self._broker_down:
             self._broker_down = True
             self._alert(f"Kafka: Can't deliver to {self.bootstrap} ({reason}); buffering locally")
@@ -187,7 +190,7 @@ class KafkaQueue:
     def _drain_spill(self, limit: int = 1_000) -> int:
         if not self._parked or time.monotonic() < self._retry_at:
             return 0
-        
+
         sent = 0
         while self._parked and sent < limit:
             topic, key, value, headers = self._parked.popleft()
@@ -217,7 +220,7 @@ class KafkaQueue:
     def flush(self, timeout: float = 10.0) -> None:
         if self._producer is None:
             return
-        
+
         deadline = time.monotonic() + timeout
         self._retry_at = 0.0
         self._drain_spill(limit=self.spill_size)
@@ -226,13 +229,17 @@ class KafkaQueue:
             if remaining == 0 and not self._parked:
                 return
             if time.monotonic() >= deadline:
-                LOGGER.warning("Kafka: %d messages still undelivered after %.0fs (%d spilled)", remaining, timeout, len(self._parked))
+                LOGGER.warning(
+                    "Kafka: %d messages still undelivered after %.0fs (%d spilled)",
+                    remaining,
+                    timeout,
+                    len(self._parked),
+                )
                 return
-            
+
             self._retry_at = 0.0
             self._drain_spill(limit=self.spill_size)
 
-    # __consumers_____________________
     def consume(self, max_messages: int, timeout: float = 1.0) -> list[Message]:
         raw = self.consumer.consume(num_messages=max(1, max_messages), timeout=timeout)
         batch: list[Message] = []
@@ -262,7 +269,7 @@ class KafkaQueue:
                 self._uncommitted += 1
                 continue
             batch.append(Message(row, attempts))
-        
+
         self._uncommitted += len(batch)
         self._stats.consumed += len(batch)
         return batch
@@ -290,7 +297,6 @@ class KafkaQueue:
             LOGGER.debug("kafka: lag unavailable: %s", error)
             return None
 
-    # __common_____________________
     def stats(self) -> QueueStats:
         snapshot = QueueStats(**self._stats.to_json())
         snapshot.spilled = len(self._parked)

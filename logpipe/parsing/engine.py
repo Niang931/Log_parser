@@ -1,5 +1,6 @@
 """The one place logpipe builds Drain engines, so calibration, the frozen hot-path
 tree and the enrichment worker's shadow tree always bucket lines identically."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence

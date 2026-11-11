@@ -10,6 +10,7 @@
 * ``demo``: browser UI running a live synthetic IoT fleet through every stage.
 * ``start`` (also plain ``logpipe``): ask what to run, start Docker services, run it.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -23,10 +24,10 @@ from pathlib import Path
 from deepparse.ai_scraper.session import BROWSERS
 
 from .calibrate import GroundTruth, calibrate
-from .config import Settings
 from .enrich.llm import get_adapter
 from .parsing.frozen_parser import FrozenParser, ParserHandle
 from .registry import SchemaRegistry
+from .settings import get_settings
 from .sources.file_replay import replay
 
 
@@ -37,17 +38,26 @@ def _calibrate(args: argparse.Namespace) -> None:
     else:
         lines = [event.line for event in replay(args.logs)]
     result = calibrate(
-        lines, get_adapter(args.llm, browser=args.browser), sample_size=args.sample, ground_truth=truth, tune=args.tune,
-        depth=args.depth, similarity_threshold=args.similarity,
+        lines,
+        get_adapter(args.llm, browser=args.browser),
+        sample_size=args.sample,
+        ground_truth=truth,
+        tune=args.tune,
+        depth=args.depth,
+        similarity_threshold=args.similarity,
     )
     SchemaRegistry(result.snapshot).save(args.registry)
     report_path = args.registry.with_suffix(".report.json")
     report_path.write_text(json.dumps(result.report.to_json(), indent=2), encoding="utf-8")
     r = result.report
-    print(f"registry v{result.snapshot.version}: {r.templates} templates, {len(r.masks)} masks "
-          f"from {r.lines} lines -> {args.registry}")
-    print(f"holdout coverage {r.holdout_coverage:.1%} (extraction {r.holdout_extraction_rate:.1%}) "
-          f"on {r.holdout_lines} held-out lines; depth={r.depth} similarity={r.similarity_threshold}")
+    print(
+        f"registry v{result.snapshot.version}: {r.templates} templates, {len(r.masks)} masks "
+        f"from {r.lines} lines -> {args.registry}"
+    )
+    print(
+        f"holdout coverage {r.holdout_coverage:.1%} (extraction {r.holdout_extraction_rate:.1%}) "
+        f"on {r.holdout_lines} held-out lines; depth={r.depth} similarity={r.similarity_threshold}"
+    )
     if r.ga is not None:
         print(f"GA={r.ga} PA={r.pa} (DeepParse baseline GA={r.baseline_ga} PA={r.baseline_pa})")
     print(f"report -> {report_path}")
@@ -60,12 +70,16 @@ def _replay(args: argparse.Namespace) -> None:
         result = handle.parse(event.line)
         statuses[result.status] += 1
         if not args.quiet:
-            print(json.dumps({
-                "device_id": event.device_id,
-                "template_id": result.template_id,
-                "status": result.status,
-                "payload": result.payload,
-            }))
+            print(
+                json.dumps(
+                    {
+                        "device_id": event.device_id,
+                        "template_id": result.template_id,
+                        "status": result.status,
+                        "payload": result.payload,
+                    }
+                )
+            )
     total = sum(statuses.values()) or 1
     print(
         f"parsed {total} lines with registry v{handle.version}: "
@@ -85,7 +99,8 @@ def _run(args: argparse.Namespace) -> None:
     queue = open_queue(args.queue)
     has_model = args.model and (args.model / "config.json").exists()
     pipeline = Pipeline.assemble(
-        SchemaRegistry.load(args.registry), store,
+        SchemaRegistry.load(args.registry),
+        store,
         adapter=None if args.no_enrich else get_adapter(args.llm, browser=args.browser),
         scorer=LogBERTScorer.load(args.model) if has_model else None,
         detector_config=DetectorConfig(window=args.window, stride=args.stride),
@@ -100,9 +115,11 @@ def _run(args: argparse.Namespace) -> None:
     store.close()
     print(json.dumps(stats.summary(), indent=2, default=str))
     for alert in stats.alerts[: args.show_alerts]:
-        print(f"ALERT {alert.device_id} {alert.window_start:%H:%M:%S}-{alert.window_end:%H:%M:%S} "
-              f"reasons={','.join(alert.reasons)} miss={alert.miss_ratio:.2f} "
-              f"novelty={alert.novelty_ratio:.2f}")
+        print(
+            f"ALERT {alert.device_id} {alert.window_start:%H:%M:%S}-{alert.window_end:%H:%M:%S} "
+            f"reasons={','.join(alert.reasons)} miss={alert.miss_ratio:.2f} "
+            f"novelty={alert.novelty_ratio:.2f}"
+        )
 
 
 def _worker(args: argparse.Namespace) -> None:
@@ -118,9 +135,15 @@ def _worker(args: argparse.Namespace) -> None:
     store = open_store(args.store)
     queue = open_queue(args.queue)
     worker = EnrichmentWorker(
-        registry, handle, store, get_adapter(args.llm, browser=args.browser),
-        registry_path=args.registry, queue=queue, max_buffer=args.batch,
-        max_attempts=args.max_attempts, consume_timeout=args.poll,
+        registry,
+        handle,
+        store,
+        get_adapter(args.llm, browser=args.browser),
+        registry_path=args.registry,
+        queue=queue,
+        max_buffer=args.batch,
+        max_attempts=args.max_attempts,
+        consume_timeout=args.poll,
     )
     print(f"worker: registry v{handle.version}, queue {args.queue}, store {args.store}")
 
@@ -130,17 +153,28 @@ def _worker(args: argparse.Namespace) -> None:
             report = worker.run_cycle()
             cycles += 1
             if report.buffered:
-                print(json.dumps({
-                    "cycle": cycles, "buffered": report.buffered, "clusters": report.clusters,
-                    "published": report.published, "aliased": report.aliased,
-                    "rejected": len(report.rejected), "resolved": report.resolved,
-                    "still_pending": report.still_pending, "dead_lettered": report.dead_lettered,
-                    "registry_version": report.registry_version, "queue_lag": report.queue_lag,
-                    "llm_calls": report.llm_calls, "seconds": round(report.seconds, 2),
-                }))
+                print(
+                    json.dumps(
+                        {
+                            "cycle": cycles,
+                            "buffered": report.buffered,
+                            "clusters": report.clusters,
+                            "published": report.published,
+                            "aliased": report.aliased,
+                            "rejected": len(report.rejected),
+                            "resolved": report.resolved,
+                            "still_pending": report.still_pending,
+                            "dead_lettered": report.dead_lettered,
+                            "registry_version": report.registry_version,
+                            "queue_lag": report.queue_lag,
+                            "llm_calls": report.llm_calls,
+                            "seconds": round(report.seconds, 2),
+                        }
+                    )
+                )
             elif args.interval:
                 time.sleep(args.interval)
-    
+
     except KeyboardInterrupt:
         print("worker: stopping")
     finally:
@@ -159,7 +193,9 @@ def _train_logbert(args: argparse.Namespace) -> None:
     per_device: dict[str, list[int]] = defaultdict(list)
     for event in replay(args.logs):
         per_device[event.device_id].append(int(parser.parse(event.line).template_id))
-    windows = [w for seq in per_device.values() for w in sliding_windows(seq, args.window, args.stride)]
+    windows = [
+        w for seq in per_device.values() for w in sliding_windows(seq, args.window, args.stride)
+    ]
     if not windows:
         raise SystemExit("no windows to train on")
     vocab = TemplateVocab.build(windows)
@@ -167,22 +203,29 @@ def _train_logbert(args: argparse.Namespace) -> None:
     random.Random(0).shuffle(encoded)
     n_valid = max(1, len(encoded) // 10)
     trained = train_logbert(
-        encoded[n_valid:], encoded[:n_valid],
+        encoded[n_valid:],
+        encoded[:n_valid],
         LogBERTConfig(len(vocab), args.hidden, args.layers, args.heads, max_len=args.window + 1),
         TrainConfig(epochs=args.epochs),
     )
     scorer = LogBERTScorer.from_training(trained, vocab, version=args.out.name)
     scorer.save(args.out)
-    print(f"trained on {len(windows)} windows from {len(per_device)} devices, "
-          f"vocab {len(vocab)} -> {args.out}")
+    print(
+        f"trained on {len(windows)} windows from {len(per_device)} devices, "
+        f"vocab {len(vocab)} -> {args.out}"
+    )
     print("thresholds are defaults; tune them with labelled data (see `logpipe eval iot`)")
 
 
 def _gen_iot(args: argparse.Namespace) -> None:
     from .eval.synth_iot import generate
 
-    fleet = generate(devices_per_kind=args.devices, history_hours=args.history_hours,
-                     test_hours=args.test_hours, seed=args.seed)
+    fleet = generate(
+        devices_per_kind=args.devices,
+        history_hours=args.history_hours,
+        test_hours=args.test_hours,
+        seed=args.seed,
+    )
     fleet.write(args.out)
     print(f"wrote history/validation/test logs and labels.tsv to {args.out}")
 
@@ -196,13 +239,28 @@ def _demo(args: argparse.Namespace) -> None:
         return start(mode="demo")
 
     if args.save_registry:
-        save_registry(args.save_registry, devices=args.devices, history_hours=args.history_hours,
-                      llm=args.llm, browser=args.browser)
+        save_registry(
+            args.save_registry,
+            devices=args.devices,
+            history_hours=args.history_hours,
+            llm=args.llm,
+            browser=args.browser,
+        )
         return
-    demo = Demo(devices=args.devices, history_hours=args.history_hours,
-                test_hours=args.test_hours, epochs=args.epochs, enrich_every=args.enrich_every,
-                llm=args.llm, queue=args.queue, store=args.store, registry_path=args.registry,
-                browser=args.browser, cache_dir=Path("artifacts/demo"), recalibrate=args.recalibrate)
+    demo = Demo(
+        devices=args.devices,
+        history_hours=args.history_hours,
+        test_hours=args.test_hours,
+        epochs=args.epochs,
+        enrich_every=args.enrich_every,
+        llm=args.llm,
+        queue=args.queue,
+        store=args.store,
+        registry_path=args.registry,
+        browser=args.browser,
+        cache_dir=Path("artifacts/demo"),
+        recalibrate=args.recalibrate,
+    )
     serve(demo, args.host, args.port, args.rate)
 
 
@@ -217,8 +275,12 @@ def _bench(args: argparse.Namespace) -> None:
 
     from .bench import main
 
-    main(args.store, args.max_rate, args.step_seconds,
-         args.out or Path("artifacts/bench") / f"{datetime.now(UTC):%Y%m%dT%H%M%S}.json")
+    main(
+        args.store,
+        args.max_rate,
+        args.step_seconds,
+        args.out or Path("artifacts/bench") / f"{datetime.now(UTC):%Y%m%dT%H%M%S}.json",
+    )
 
 
 def _server(args: argparse.Namespace) -> None:
@@ -228,8 +290,17 @@ def _server(args: argparse.Namespace) -> None:
         return start(mode="server")
     from .server import run
 
-    run(host=args.host, port=args.port, store=args.store, queue=args.queue, llm=args.llm,
-        browser=args.browser, data_dir=args.data_dir, epochs=args.epochs, demo=args.demo)
+    run(
+        host=args.host,
+        port=args.port,
+        store=args.store,
+        queue=args.queue,
+        llm=args.llm,
+        browser=args.browser,
+        data_dir=args.data_dir,
+        epochs=args.epochs,
+        demo=args.demo,
+    )
 
 
 def _start(args: argparse.Namespace) -> None:
@@ -252,8 +323,11 @@ def _eval(args: argparse.Namespace) -> None:
         from .eval.gate import collect, run_gate, write_baseline
 
         if args.write_baseline:
-            path = write_baseline(collect(out), args.baseline,
-                                  params={"parsing": "--no-tune", "iot": "--epochs 3 --devices 3 --test-hours 2"})
+            path = write_baseline(
+                collect(out),
+                args.baseline,
+                params={"parsing": "--no-tune", "iot": "--epochs 3 --devices 3 --test-hours 2"},
+            )
             print(f"[gate] baseline written -> {path}")
             return
         raise SystemExit(run_gate(out, args.baseline))
@@ -273,8 +347,10 @@ def _eval(args: argparse.Namespace) -> None:
         out.mkdir(parents=True, exist_ok=True)
         (out / "alias.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
         for name, r in result["deciders"].items():
-            print(f"[alias] {name}: precision={r['precision']} recall={r['recall']} "
-                  f"(TP={r['TP']} FP={r['FP']} FN={r['FN']})")
+            print(
+                f"[alias] {name}: precision={r['precision']} recall={r['recall']} "
+                f"(TP={r['TP']} FP={r['FP']} FN={r['FN']})"
+            )
     elif args.benchmark == "logbert":
         from .anomaly.logbert import TrainConfig
         from .eval.datasets import load_bgl, load_hdfs
@@ -291,17 +367,26 @@ def _eval(args: argparse.Namespace) -> None:
         from .anomaly.logbert import TrainConfig
         from .eval.iot_eval import IoTEvalConfig, run_iot_eval
 
-        run_iot_eval(adapter, IoTEvalConfig(
-            devices_per_kind=args.devices, test_hours=args.test_hours,
-            train=TrainConfig(epochs=args.epochs, threads=args.threads, patience=6),
-        ), out_dir=out / "iot")
+        run_iot_eval(
+            adapter,
+            IoTEvalConfig(
+                devices_per_kind=args.devices,
+                test_hours=args.test_hours,
+                train=TrainConfig(epochs=args.epochs, threads=args.threads, patience=6),
+            ),
+            out_dir=out / "iot",
+        )
 
 
 def main(argv: list[str] | None = None) -> None:
-    settings = Settings.from_env()
+    settings = get_settings()
     parser = argparse.ArgumentParser(prog="logpipe")
-    parser.add_argument("--browser", choices=BROWSERS, default=settings.web_browser,
-                        help="browser for LLM backend llm:web:<site>")
+    parser.add_argument(
+        "--browser",
+        choices=BROWSERS,
+        default=settings.llm.web_browser,
+        help="browser for LLM backend llm:web:<site>",
+    )
     parser.set_defaults(func=_start)
     sub = parser.add_subparsers(dest="command")
 
@@ -309,31 +394,46 @@ def main(argv: list[str] | None = None) -> None:
     st.set_defaults(func=_start)
 
     cal = sub.add_parser("calibrate", help="build registry v1 from historical logs")
-    cal.add_argument("--logs", type=Path, default=settings.logs_path)
-    cal.add_argument("--dataset", type=Path, help="DeepParse dataset dir (raw.log + templates.json)")
-    cal.add_argument("--registry", type=Path, default=settings.registry_path)
-    cal.add_argument("--llm", default=settings.llm_backend)
+    cal.add_argument("--logs", type=Path, default=settings.app.logs_path)
+    cal.add_argument(
+        "--dataset", type=Path, help="DeepParse dataset dir (raw.log + templates.json)"
+    )
+    cal.add_argument("--registry", type=Path, default=settings.app.registry_path)
+    cal.add_argument("--llm", default=settings.llm.llm_backend)
     cal.add_argument("--sample", type=int, default=200)
     cal.add_argument("--depth", type=int, default=5)
     cal.add_argument("--similarity", type=float, default=0.4)
-    cal.add_argument("--tune", action="store_true", help="grid-search Drain params (needs --dataset)")
+    cal.add_argument(
+        "--tune", action="store_true", help="grid-search Drain params (needs --dataset)"
+    )
     cal.set_defaults(func=_calibrate)
 
     rep = sub.add_parser("replay", help="parse log files with the frozen registry")
-    rep.add_argument("--logs", type=Path, default=settings.logs_path)
-    rep.add_argument("--registry", type=Path, default=settings.registry_path)
+    rep.add_argument("--logs", type=Path, default=settings.app.logs_path)
+    rep.add_argument("--registry", type=Path, default=settings.app.registry_path)
     rep.add_argument("--quiet", action="store_true", help="print only the summary")
     rep.set_defaults(func=_replay)
 
     run = sub.add_parser("run", help="full pipeline: parse, store, enrich, detect")
-    run.add_argument("--logs", type=Path, default=settings.logs_path)
-    run.add_argument("--registry", type=Path, default=settings.registry_path)
-    run.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
-    run.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue, help="unresolved queue; kafka + --no-enrich is the publish-only fast path")
-    run.add_argument("--llm", default=settings.llm_backend)
-    run.add_argument("--model", type=Path, default=settings.model_path)
+    run.add_argument("--logs", type=Path, default=settings.app.logs_path)
+    run.add_argument("--registry", type=Path, default=settings.app.registry_path)
+    run.add_argument(
+        "--store", choices=["memory", "clickhouse", "mongodb"], default=settings.app.store
+    )
+    run.add_argument(
+        "--queue",
+        choices=["memory", "kafka"],
+        default=settings.app.queue,
+        help="unresolved queue; kafka + --no-enrich is the publish-only fast path",
+    )
+    run.add_argument("--llm", default=settings.llm.llm_backend)
+    run.add_argument("--model", type=Path, default=settings.app.model_path)
     run.add_argument("--enrich-every", type=int, default=5_000)
-    run.add_argument("--no-enrich", action="store_true", help="no learning in this process (use `logpipe worker`)")
+    run.add_argument(
+        "--no-enrich",
+        action="store_true",
+        help="no learning in this process (use `logpipe worker`)",
+    )
     run.add_argument("--rehydrate", action="store_true", help="reload PENDING rows from the store")
     run.add_argument("--window", type=int, default=20)
     run.add_argument("--stride", type=int, default=5)
@@ -341,21 +441,30 @@ def main(argv: list[str] | None = None) -> None:
     run.set_defaults(func=_run)
 
     wk = sub.add_parser("worker", help="learning worker: consume the unresolved queue")
-    wk.add_argument("--registry", type=Path, default=settings.registry_path)
-    wk.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
+    wk.add_argument("--registry", type=Path, default=settings.app.registry_path)
+    wk.add_argument(
+        "--store", choices=["memory", "clickhouse", "mongodb"], default=settings.app.store
+    )
     wk.add_argument("--queue", choices=["memory", "kafka"], default="kafka")
-    wk.add_argument("--llm", default=settings.llm_backend)
+    wk.add_argument("--llm", default=settings.llm.llm_backend)
     wk.add_argument("--batch", type=int, default=10_000, help="rows per cycle")
     wk.add_argument("--poll", type=float, default=1.0, help="seconds to wait for a batch")
     wk.add_argument("--interval", type=float, default=2.0, help="sleep after an empty cycle")
-    wk.add_argument("--max-attempts", type=int, default=3, help="failed validations before a row goes to the dead-letter topic")
-    wk.add_argument("--max-cycles", type=int, default=None, help="stop after N cycles (default: run forever)")
+    wk.add_argument(
+        "--max-attempts",
+        type=int,
+        default=3,
+        help="failed validations before a row goes to the dead-letter topic",
+    )
+    wk.add_argument(
+        "--max-cycles", type=int, default=None, help="stop after N cycles (default: run forever)"
+    )
     wk.set_defaults(func=_worker)
 
     tl = sub.add_parser("train-logbert", help="train LogBERT on per-device windows")
-    tl.add_argument("--logs", type=Path, default=settings.logs_path)
-    tl.add_argument("--registry", type=Path, default=settings.registry_path)
-    tl.add_argument("--out", type=Path, default=settings.model_path)
+    tl.add_argument("--logs", type=Path, default=settings.app.logs_path)
+    tl.add_argument("--registry", type=Path, default=settings.app.registry_path)
+    tl.add_argument("--out", type=Path, default=settings.app.model_path)
     tl.add_argument("--window", type=int, default=20)
     tl.add_argument("--stride", type=int, default=5)
     tl.add_argument("--hidden", type=int, default=64)
@@ -381,59 +490,115 @@ def main(argv: list[str] | None = None) -> None:
     dm.add_argument("--test-hours", type=float, default=1)
     dm.add_argument("--epochs", type=int, default=8)
     dm.add_argument("--enrich-every", type=int, default=300)
-    dm.add_argument("--llm", default="offline",
-                    help="key naming + alias check (and masks when calibrating), e.g. llm:web:gemini")
-    dm.add_argument("--queue", choices=["memory", "kafka"], default="memory",
-                    help="unresolved queue; kafka is started in Docker if needed")
-    dm.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default="memory",
-                    help="clickhouse also writes every row there (started in Docker if needed)")
-    dm.add_argument("--registry", type=Path,
-                    help="load a saved registry (e.g. fine-tuned masks from Colab) instead of calibrating")
-    dm.add_argument("--recalibrate", action="store_true",
-                    help="redo the calibration cached in artifacts/demo/ (kept per mask backend and fleet size)")
-    dm.add_argument("--save-registry", type=Path, metavar="PATH",
-                    help="calibrate the demo history with --llm, save the registry and exit (Colab: --llm hf)")
+    dm.add_argument(
+        "--llm",
+        default="offline",
+        help="key naming + alias check (and masks when calibrating), e.g. llm:web:gemini",
+    )
+    dm.add_argument(
+        "--queue",
+        choices=["memory", "kafka"],
+        default="memory",
+        help="unresolved queue; kafka is started in Docker if needed",
+    )
+    dm.add_argument(
+        "--store",
+        choices=["memory", "clickhouse", "mongodb"],
+        default="memory",
+        help="clickhouse also writes every row there (started in Docker if needed)",
+    )
+    dm.add_argument(
+        "--registry",
+        type=Path,
+        help="load a saved registry (e.g. fine-tuned masks from Colab) instead of calibrating",
+    )
+    dm.add_argument(
+        "--recalibrate",
+        action="store_true",
+        help="redo the calibration cached in artifacts/demo/ (kept per mask backend and fleet size)",
+    )
+    dm.add_argument(
+        "--save-registry",
+        type=Path,
+        metavar="PATH",
+        help="calibrate the demo history with --llm, save the registry and exit (Colab: --llm hf)",
+    )
     dm.set_defaults(func=_demo)
 
     sv = sub.add_parser("server", help="agent intake + operator UI (React) + learning lifecycle")
     sv.add_argument("--host", default="0.0.0.0")
     sv.add_argument("--port", type=int, default=8080)
-    sv.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default=settings.store)
-    sv.add_argument("--queue", choices=["memory", "kafka"], default=settings.queue)
-    sv.add_argument("--llm", default=settings.llm_backend, help="masks, key names and alias checks")
-    sv.add_argument("--data-dir", type=Path, default=Path("artifacts/server"),
-                    help="registry and per-stream LogBERT models")
+    sv.add_argument(
+        "--store", choices=["memory", "clickhouse", "mongodb"], default=settings.app.store
+    )
+    sv.add_argument("--queue", choices=["memory", "kafka"], default=settings.app.queue)
+    sv.add_argument(
+        "--llm", default=settings.llm.llm_backend, help="masks, key names and alias checks"
+    )
+    sv.add_argument(
+        "--data-dir",
+        type=Path,
+        default=Path("artifacts/server"),
+        help="registry and per-stream LogBERT models",
+    )
     sv.add_argument("--epochs", type=int, default=8, help="LogBERT epochs per stream")
     sv.add_argument("--demo", action="store_true", help="also run the developer demo at /demo/")
     sv.set_defaults(func=_server)
 
-    sc = sub.add_parser("showcase", help="guided tour: server, a web shop's logs, an agent, every feature")
+    sc = sub.add_parser(
+        "showcase", help="guided tour: server, a web shop's logs, an agent, every feature"
+    )
     sc.add_argument("--port", type=int, default=8080)
     sc.add_argument("--no-ask", action="store_true", help="memory store, offline LLM, no questions")
-    sc.add_argument("--auto", action="store_true", help="do every act without waiting for you (implies --no-ask)")
+    sc.add_argument(
+        "--auto",
+        action="store_true",
+        help="do every act without waiting for you (implies --no-ask)",
+    )
     sc.set_defaults(func=_showcase)
 
-    bn = sub.add_parser("bench", help="how many lines/s one server keeps up with, its CPU and memory")
-    bn.add_argument("--store", choices=["memory", "clickhouse", "mongodb"], default="memory",
-                    help="clickhouse uses a throwaway database, dropped afterwards")
-    bn.add_argument("--max-rate", type=int, default=None, help="highest step in lines/s (default 100k)")
+    bn = sub.add_parser(
+        "bench", help="how many lines/s one server keeps up with, its CPU and memory"
+    )
+    bn.add_argument(
+        "--store",
+        choices=["memory", "clickhouse", "mongodb"],
+        default="memory",
+        help="clickhouse uses a throwaway database, dropped afterwards",
+    )
+    bn.add_argument(
+        "--max-rate", type=int, default=None, help="highest step in lines/s (default 100k)"
+    )
     bn.add_argument("--step-seconds", type=float, default=10)
-    bn.add_argument("--out", type=Path, default=None, help="result JSON (default artifacts/bench/<time>.json)")
+    bn.add_argument(
+        "--out", type=Path, default=None, help="result JSON (default artifacts/bench/<time>.json)"
+    )
     bn.set_defaults(func=_bench)
 
     fd = sub.add_parser("fetch-data", help="download the evaluation datasets up front")
-    fd.add_argument("datasets", nargs="*", choices=["loghub2k", "HDFS", "BGL"],
-                    default=["loghub2k", "HDFS", "BGL"])
+    fd.add_argument(
+        "datasets",
+        nargs="*",
+        choices=["loghub2k", "HDFS", "BGL"],
+        default=["loghub2k", "HDFS", "BGL"],
+    )
     fd.set_defaults(func=_fetch_data)
 
     ev = sub.add_parser("eval", help="run a benchmark")
     ev.add_argument("benchmark", choices=["parsing", "logbert", "iot", "alias", "report", "gate"])
     ev.add_argument("--out", type=Path, default=Path("artifacts/eval"))
-    ev.add_argument("--baseline", type=Path, default=Path("eval/baseline.json"),
-                    help="gate: committed numbers to compare against")
-    ev.add_argument("--write-baseline", action="store_true",
-                    help="gate: record the current results as the new baseline instead of checking")
-    ev.add_argument("--llm", default=settings.llm_backend)
+    ev.add_argument(
+        "--baseline",
+        type=Path,
+        default=Path("eval/baseline.json"),
+        help="gate: committed numbers to compare against",
+    )
+    ev.add_argument(
+        "--write-baseline",
+        action="store_true",
+        help="gate: record the current results as the new baseline instead of checking",
+    )
+    ev.add_argument("--llm", default=settings.llm.llm_backend)
     ev.add_argument("--no-tune", action="store_true")
     ev.add_argument("--dataset", choices=["HDFS", "BGL"], default="HDFS")
     ev.add_argument("--normal", type=int, default=20_000)

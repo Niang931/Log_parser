@@ -6,6 +6,7 @@ Each step reports what it was offered and what it processed, parse latency, CPU 
 first step it can't keep up with ends the ramp. A last *flood* step offers as much as the intake
 takes, which is the raw ceiling. The load generator runs in the same process, so its CPU counts.
 """
+
 from __future__ import annotations
 
 import json
@@ -48,8 +49,13 @@ def _pcts(values: list[int], scale: float = 1.0) -> dict[str, float]:
 
 def _commit() -> str:
     try:
-        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], check=False, capture_output=True, text=True,
-                              timeout=5).stdout.strip()
+        return subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return ""
 
@@ -83,6 +89,7 @@ class _Recorder:
                 return fn(*args, **kwargs)
             finally:
                 self.add(time.perf_counter_ns() - start)
+
         return timed
 
 
@@ -95,16 +102,33 @@ def _setup(store: str, data_dir: Path, say: Callable[[str], None]):
     from .server.core import Server, now_iso, source_id
 
     say("generating the synthetic IoT fleet")
-    fleet = generate(devices_per_kind=3, history_hours=2, validation_hours=0.01, test_hours=3, seed=11)
+    fleet = generate(
+        devices_per_kind=3, history_hours=2, validation_hours=0.01, test_hours=3, seed=11
+    )
     say(f"calibrating on {len(fleet.history)} history lines")
     SchemaRegistry(calibrate([e.line for e in fleet.history], OfflineAdapter()).snapshot).save(
-        data_dir / "registry.json")
+        data_dir / "registry.json"
+    )
     control = ControlStore()
-    control.put("settings", "server", {"calibrated": True, "setup_done": True, "calibrated_at": now_iso()})
+    control.put(
+        "settings", "server", {"calibrated": True, "setup_done": True, "calibrated_at": now_iso()}
+    )
     for d in fleet.devices:  # sources known and reviewed, as on a server past its setup
         sid = source_id(d.id, "firmware", "synth")
-        control.put("source", sid, {"id": sid, "host": d.id, "service": "firmware", "source": "synth",
-                                    "first_seen": now_iso(), "count": 0, "calibrated": True, "alias_of": None})
+        control.put(
+            "source",
+            sid,
+            {
+                "id": sid,
+                "host": d.id,
+                "service": "firmware",
+                "source": "synth",
+                "first_seen": now_iso(),
+                "count": 0,
+                "calibrated": True,
+                "alias_of": None,
+            },
+        )
     db = None
     if store == "clickhouse":
         from .storage.clickhouse import ClickHouseStore
@@ -120,16 +144,28 @@ def _setup(store: str, data_dir: Path, say: Callable[[str], None]):
         from .storage.memory import MemoryStore
 
         log_store = MemoryStore()
-    server = Server(log_store, control, data_dir=data_dir, adapter_factory=lambda: get_adapter("offline"),
-                    schedule_every_s=10**9)
-    events = [{"host": e.device_id, "service": "firmware", "source": "synth", "message": e.line}
-              for e in fleet.test]
+    server = Server(
+        log_store,
+        control,
+        data_dir=data_dir,
+        adapter_factory=lambda: get_adapter("offline"),
+        schedule_every_s=10**9,
+    )
+    events = [
+        {"host": e.device_id, "service": "firmware", "source": "synth", "message": e.line}
+        for e in fleet.test
+    ]
     return server, log_store, db, events
 
 
-def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seconds: float = 10,
-        max_rate: int | None = None, flood: bool = True,
-        say: Callable[[str], None] = lambda m: print(m, flush=True)) -> dict:
+def run(
+    store: str = "memory",
+    rates: tuple[int, ...] = DEFAULT_RATES,
+    step_seconds: float = 10,
+    max_rate: int | None = None,
+    flood: bool = True,
+    say: Callable[[str], None] = lambda m: print(m, flush=True),
+) -> dict:
     """The benchmark; returns its result (see the module docstring)."""
     from .server.core import Busy
 
@@ -164,7 +200,8 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
             tick = 0.05
             while time.monotonic() - t0 < step_seconds:
                 if rate is None and server.inbox.qsize() > 20_000:
-                    time.sleep(0.01)  # flood keeps the buffer full without starving the server of the GIL
+                    # flood keeps the buffer full without starving the server of the GIL
+                    time.sleep(0.01)
                     continue
                 n = 2000 if rate is None else max(1, round(rate * tick))
                 try:
@@ -184,13 +221,23 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
             backlog = server.inbox.qsize()
             ins = inserts.take()
             res = {
-                "target": rate, "offered_per_s": round(offered / dt), "processed_per_s": round(processed / dt),
-                "rejected": rejected, "backlog": backlog, "cpu_pct": round(cpu, 1),
-                "rss_mb": round(peak, 1), "parse_us": _pcts(parse.take(), 1000),
-                "inserts": len(ins), "insert_ms": _pcts(ins, 1e6),
+                "target": rate,
+                "offered_per_s": round(offered / dt),
+                "processed_per_s": round(processed / dt),
+                "rejected": rejected,
+                "backlog": backlog,
+                "cpu_pct": round(cpu, 1),
+                "rss_mb": round(peak, 1),
+                "parse_us": _pcts(parse.take(), 1000),
+                "inserts": len(ins),
+                "insert_ms": _pcts(ins, 1e6),
             }
-            res["kept_up"] = bool(rate is not None and not rejected and processed >= KEEP_UP * offered
-                                  and backlog <= max(rate * 0.5, 100))
+            res["kept_up"] = bool(
+                rate is not None
+                and not rejected
+                and processed >= KEEP_UP * offered
+                and backlog <= max(rate * 0.5, 100)
+            )
             # let the backlog drain so the next step starts clean
             deadline = time.monotonic() + 30
             while server.inbox.qsize() and time.monotonic() < deadline:
@@ -208,8 +255,11 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
                 say(f"step {len(steps) + 1}: {rate:,} lines/s for {step_seconds:g} s")
                 steps.append(step(rate))
                 s = steps[-1]
-                say(f"  processed {s['processed_per_s']:,}/s, CPU {s['cpu_pct']}%, "
-                    f"parse p99 {s['parse_us'].get('p99', 0)} µs" + ("" if s["kept_up"] else " (fell behind)"))
+                say(
+                    f"  processed {s['processed_per_s']:,}/s, CPU {s['cpu_pct']}%, "
+                    f"parse p99 {s['parse_us'].get('p99', 0)} µs"
+                    + ("" if s["kept_up"] else " (fell behind)")
+                )
                 if not s["kept_up"]:
                     break
             if flood:
@@ -218,13 +268,17 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
                 say(f"  processed {steps[-1]['processed_per_s']:,}/s, CPU {steps[-1]['cpu_pct']}%")
         finally:
             server.close()
-            if store == "mongodb":  # bytes on disk for the rows written, measured before the database goes
+            # bytes on disk for the rows written, measured before the database goes
+            if store == "mongodb":
                 from .storage.mongo import MongoStore
 
                 again = MongoStore.from_env(database=db)  # server.close() closed the first client
                 st = again.db.command("dbStats")
-                disk = {"lines": again.db["logs"].count_documents({}),
-                        "data_bytes": st["storageSize"], "index_bytes": st["indexSize"]}
+                disk = {
+                    "lines": again.db["logs"].count_documents({}),
+                    "data_bytes": st["storageSize"],
+                    "index_bytes": st["indexSize"],
+                }
                 again.db.client.drop_database(db)
                 again.close()
             elif db:
@@ -232,31 +286,53 @@ def run(store: str = "memory", rates: tuple[int, ...] = DEFAULT_RATES, step_seco
     kept = [s for s in steps if s["kept_up"]]
     behind = next((s for s in steps if s["target"] and not s["kept_up"]), None)
     return {
-        "id": uuid.uuid4().hex[:12], "started_at": started.isoformat(timespec="seconds"),
-        "finished_at": datetime.now(UTC).isoformat(timespec="seconds"), "store": store,
+        "id": uuid.uuid4().hex[:12],
+        "started_at": started.isoformat(timespec="seconds"),
+        "finished_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "store": store,
         "step_seconds": step_seconds,
-        "host": {"cpus": os.cpu_count(), "machine": platform.machine(), "system": platform.system(),
-                 "python": platform.python_version(), "commit": _commit(), "hostname": platform.node()},
+        "host": {
+            "cpus": os.cpu_count(),
+            "machine": platform.machine(),
+            "system": platform.system(),
+            "python": platform.python_version(),
+            "commit": _commit(),
+            "hostname": platform.node(),
+        },
         "max_sustained_per_s": max((s["processed_per_s"] for s in kept), default=0),
         "falls_behind_at": behind["target"] if behind else None,
-        "flood_per_s": steps[-1]["processed_per_s"] if flood and steps and steps[-1]["target"] is None else None,
+        "flood_per_s": steps[-1]["processed_per_s"]
+        if flood and steps and steps[-1]["target"] is None
+        else None,
         "peak_rss_mb": max((s["rss_mb"] for s in steps), default=0),
         "steps": steps,
     } | ({"disk": disk} if disk else {})
 
 
 def table(result: dict) -> str:
-    rows = [(f"{'target/s':>10} {'offered/s':>10} {'processed/s':>12} {'CPU %':>7} {'RSS MB':>7} "
-             f"{'p50 µs':>8} {'p99 µs':>8} {'insert p99 ms':>13}  ok")]
+    rows = [
+        (
+            f"{'target/s':>10} {'offered/s':>10} {'processed/s':>12} {'CPU %':>7} {'RSS MB':>7} "
+            f"{'p50 µs':>8} {'p99 µs':>8} {'insert p99 ms':>13}  ok"
+        )
+    ]
     for s in result["steps"]:
-        rows.append(f"{s['target'] or 'flood':>10} {s['offered_per_s']:>10,} {s['processed_per_s']:>12,} "
-                    f"{s['cpu_pct']:>7} {s['rss_mb']:>7} {s['parse_us'].get('p50', '-'):>8} "
-                    f"{s['parse_us'].get('p99', '-'):>8} {s['insert_ms'].get('p99', '-'):>13}  "
-                    f"{'yes' if s['kept_up'] else ('-' if s['target'] is None else 'NO')}")
-    rows.append(f"\nmax sustained: {result['max_sustained_per_s']:,} lines/s"
-                + (f"; falls behind at {result['falls_behind_at']:,}/s" if result["falls_behind_at"] else "")
-                + (f"; flood ceiling {result['flood_per_s']:,}/s" if result["flood_per_s"] else "")
-                + f"; peak RSS {result['peak_rss_mb']} MB; {result['host']['cpus']} CPUs; store {result['store']}")
+        rows.append(
+            f"{s['target'] or 'flood':>10} {s['offered_per_s']:>10,} {s['processed_per_s']:>12,} "
+            f"{s['cpu_pct']:>7} {s['rss_mb']:>7} {s['parse_us'].get('p50', '-'):>8} "
+            f"{s['parse_us'].get('p99', '-'):>8} {s['insert_ms'].get('p99', '-'):>13}  "
+            f"{'yes' if s['kept_up'] else ('-' if s['target'] is None else 'NO')}"
+        )
+    rows.append(
+        f"\nmax sustained: {result['max_sustained_per_s']:,} lines/s"
+        + (
+            f"; falls behind at {result['falls_behind_at']:,}/s"
+            if result["falls_behind_at"]
+            else ""
+        )
+        + (f"; flood ceiling {result['flood_per_s']:,}/s" if result["flood_per_s"] else "")
+        + f"; peak RSS {result['peak_rss_mb']} MB; {result['host']['cpus']} CPUs; store {result['store']}"
+    )
     return "\n".join(rows)
 
 
