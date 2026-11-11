@@ -1,4 +1,5 @@
 """The /mcp endpoint and the mcp-scoped API keys that guard it, on the memory store."""
+
 from __future__ import annotations
 
 import json
@@ -17,8 +18,13 @@ from logpipe.storage.memory import MemoryStore
 
 @pytest.fixture
 def server(tmp_path):
-    return Server(MemoryStore(), ControlStore(), data_dir=tmp_path,
-                  adapter_factory=lambda: get_adapter("offline"), start_threads=False)
+    return Server(
+        MemoryStore(),
+        ControlStore(),
+        data_dir=tmp_path,
+        adapter_factory=lambda: get_adapter("offline"),
+        start_threads=False,
+    )
 
 
 @pytest.fixture
@@ -67,7 +73,9 @@ def test_mcp_endpoint_needs_an_mcp_key(client):
 
 def rpc(client: TestClient, headers: dict, method: str, params: dict | None = None) -> dict:
     body = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}}
-    response = client.post("/mcp", headers=headers | {"Accept": "application/json, text/event-stream"}, json=body)
+    response = client.post(
+        "/mcp", headers=headers | {"Accept": "application/json, text/event-stream"}, json=body
+    )
     assert response.status_code == 200, response.text
     return response.json()["result"]
 
@@ -79,8 +87,18 @@ def call_tool(client: TestClient, headers: dict, tool: str, **arguments) -> dict
 
 
 def test_tools_answer_from_the_logs(server, client):
-    server.ingest([{"ts": datetime.now(UTC).isoformat(), "host": "web-1", "service": "api",
-                    "source": "python", "message": f"user {i} logged in"} for i in range(5)])
+    server.ingest(
+        [
+            {
+                "ts": datetime.now(UTC).isoformat(),
+                "host": "web-1",
+                "service": "api",
+                "source": "python",
+                "message": f"user {i} logged in",
+            }
+            for i in range(5)
+        ]
+    )
     while not server.inbox.empty():
         server.process(server.inbox.get_nowait())
     with client:
@@ -96,10 +114,14 @@ def test_tools_answer_from_the_logs(server, client):
         saved = call_tool(client, mcp, "list_saved_queries")["queries"]
         assert [(q["name"], q["by"]) for q in saved] == [("logins", "mcp-key")]
 
-        assert call_tool(client, mcp, "get_incident", incident_id="nope")["error"].endswith("404: not found: nope")
+        assert call_tool(client, mcp, "get_incident", incident_id="nope")["error"].endswith(
+            "404: not found: nope"
+        )
 
 
 def test_prompts_are_listed(client):
     with client:
-        prompts = {p["name"] for p in rpc(client, new_key(client, "mcp"), "prompts/list")["prompts"]}
+        prompts = {
+            p["name"] for p in rpc(client, new_key(client, "mcp"), "prompts/list")["prompts"]
+        }
     assert prompts == {"investigate_incident", "review_batch"}

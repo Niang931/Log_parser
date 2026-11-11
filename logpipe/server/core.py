@@ -1017,7 +1017,9 @@ class Server:
             changes["status"] = body["status"]
         return self.control.update("draft", draft_id, **changes, by=by)
 
-    def decide_all(self, batch_id: str, status: str, ids: list[str] | None = None, by: str | None = None) -> int:
+    def decide_all(
+        self, batch_id: str, status: str, ids: list[str] | None = None, by: str | None = None
+    ) -> int:
         """Every undecided draft, or with ``ids`` exactly those (back to "pending" too)."""
         self._open_batch(batch_id)
         if status not in ("approved", "rejected") and not (ids is not None and status == "pending"):
@@ -1643,7 +1645,7 @@ class Server:
                 note=state.get("note", ""),
                 updated_at=state.get("updated_at"),
                 explanation=state.get("explanation"),
-                by=state.get("by")
+                by=state.get("by"),
             )
         return sorted(out, key=lambda i: _when(i["end"]), reverse=True)
 
@@ -1714,7 +1716,9 @@ class Server:
             "ask_plan": plan,
         }
 
-    def set_incident(self, incident_id: str, status: str, note: str = "", by: str | None = None) -> dict:
+    def set_incident(
+        self, incident_id: str, status: str, note: str = "", by: str | None = None
+    ) -> dict:
         if status not in INCIDENT_STATES:
             raise ValueError(f"status must be one of {', '.join(INCIDENT_STATES)}")
         inc = next((i for i in self.incidents() if i["id"] == incident_id), None)
@@ -1725,7 +1729,7 @@ class Server:
             "note": note[:2000],
             "updated_at": now_iso(),
             "stream": inc["stream"],
-            "by": by
+            "by": by,
             # what the next retrain learns as normal if this was a false positive
             "windows": inc["windows"][:200] if status == "false_positive" else [],
         }

@@ -25,9 +25,9 @@ from fastapi.responses import (
 from ..enrich.sql_guard import validate_sql
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
-from . import otlp, querybuild, querybuild_mongo
-from .auth import COOKIE, SESSION_SECONDS, Auth
-from .core import MIN_DRAFT_LINES, Busy, KeyScope, Server, now_iso
+from . import otlp
+from .auth import COOKIE, Auth
+from .core import Busy, KeyScope, Server, now_iso
 from .mcp_tools import build_mcp, mcp_may_call
 from .metrics import METRICS
 from .stores import FACETS
@@ -49,8 +49,12 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
     started = now_iso()
     assistant = build_mcp()
-    app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json",
-                  lifespan=lambda _app: assistant.router.lifespan_context(assistant))
+    app = FastAPI(
+        title="logpipe",
+        docs_url="/api/docs",
+        openapi_url="/api/openapi.json",
+        lifespan=lambda _app: assistant.router.lifespan_context(assistant),
+    )
     engine = server.reads.engine
     compiler = server.reads.compiler
     auth = Auth(server.control)
@@ -66,7 +70,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
             if key is None:
                 return JSONResponse({"detail": "an AI assistant (mcp) API key is required"}, 401)
             return await call_next(request)
-        guarded = (path.startswith(("/api/", "/demo/api/")) and not path.startswith("/api/auth/"))
+        guarded = path.startswith(("/api/", "/demo/api/")) and not path.startswith("/api/auth/")
         if guarded and key is not None:
             if not mcp_may_call(request.method, path):
                 return JSONResponse({"detail": "AI assistant keys can't call this route"}, 403)
@@ -485,7 +489,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                 "sql": sql,
                 "spec": body.get("spec"),
                 "saved_at": now_iso(),
-                "by": caller(request)
+                "by": caller(request),
             },
         )
 
@@ -579,8 +583,12 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         status = str(body.get("status", ""))
         current = (server.control.get("incident", incident_id) or {}).get("status", "open")
         if request.state.key is not None and status != current:
-            raise HTTPException(403, "AI assistant keys can add notes but not change an incident's status")
-        return server.set_incident(incident_id, status, str(body.get("note") or ""), caller(request))
+            raise HTTPException(
+                403, "AI assistant keys can add notes but not change an incident's status"
+            )
+        return server.set_incident(
+            incident_id, status, str(body.get("note") or ""), caller(request)
+        )
 
     @app.post("/api/incidents/{incident_id}/explain", status_code=202)
     def explain_incident(incident_id: str, body: Annotated[dict | None, Body()] = None) -> dict:
@@ -618,7 +626,9 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.post("/api/keys")
     def create_key(body: Annotated[dict, Body()]) -> dict:
-        doc, token = server.create_key(str(body.get("name", "")), KeyScope(body.get("scope", KeyScope.INTAKE)))
+        doc, token = server.create_key(
+            str(body.get("name", "")), KeyScope(body.get("scope", KeyScope.INTAKE))
+        )
         return {k: v for k, v in doc.items() if k != "hash"} | {"token": token}
 
     @app.delete("/api/keys/{key_id}")
@@ -714,7 +724,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                 batch_id,
                 str(body["status"]),
                 [str(i) for i in ids] if isinstance(ids, list) else None,
-                caller(request)
+                caller(request),
             )
         }
 
