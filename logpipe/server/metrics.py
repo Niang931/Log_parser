@@ -5,6 +5,7 @@ one value per metric (rates, latency percentiles, process and host load, gauges 
 passes in) and writes the sample to a :class:`MemorySeries` (memory store) or to ClickHouse's
 ``server_metrics`` table (kept 30 days). The System page charts :meth:`Metrics.series`.
 """
+
 from __future__ import annotations
 
 import os
@@ -14,6 +15,8 @@ import time
 from collections import deque
 
 import numpy as np
+
+from ..settings import get_settings
 
 # name -> (label, unit, group); the UI draws one chart per metric, grouped.
 METRICS: dict[str, tuple[str, str, str]] = {
@@ -41,7 +44,6 @@ METRICS: dict[str, tuple[str, str, str]] = {
     "store_mb": ("Log store on disk", "MB", "Storage"),
     "disk_used_pct": ("Store disk used", "%", "Storage"),
 }
-LATENCY_CAP = 20_000  # latencies kept per sample (a uniform reservoir beyond that)
 
 
 def _host_cpu() -> tuple[float, float] | None:
@@ -94,8 +96,10 @@ class MemorySeries:
             b = ts // step * step
             for name, v in values.items():
                 buckets.setdefault(name, {}).setdefault(b, []).append(v)
-        return {name: [[b, round(sum(vs) / len(vs), 3)] for b, vs in sorted(by.items())]
-                for name, by in buckets.items()}
+        return {
+            name: [[b, round(sum(vs) / len(vs), 3)] for b, vs in sorted(by.items())]
+            for name, by in buckets.items()
+        }
 
 
 class ClickHouseSeries:
@@ -106,20 +110,26 @@ class ClickHouseSeries:
         self.client.command(
             "CREATE TABLE IF NOT EXISTS server_metrics (ts DateTime64(3, 'UTC'), "
             "name LowCardinality(String), value Float64) ENGINE = MergeTree ORDER BY (name, ts) "
-            "TTL toDateTime(ts) + INTERVAL 30 DAY")
+            "TTL toDateTime(ts) + INTERVAL 30 DAY"
+        )
 
     def write(self, ts: float, values: dict[str, float]) -> None:
         from datetime import UTC, datetime
 
         when = datetime.fromtimestamp(ts, UTC)
-        self.client.insert("server_metrics", [[when, k, float(v)] for k, v in values.items()],
-                           column_names=["ts", "name", "value"])
+        self.client.insert(
+            "server_metrics",
+            [[when, k, float(v)] for k, v in values.items()],
+            column_names=["ts", "name", "value"],
+        )
 
     def query(self, minutes: int, step: int) -> dict[str, list[list[float]]]:
         rows = self.client.query(
             "SELECT name, toUnixTimestamp(toStartOfInterval(ts, toIntervalSecond({step:UInt32}))) AS b, "
             "round(avg(value), 3) FROM server_metrics WHERE ts >= now() - toIntervalMinute({m:UInt32}) "
-            "GROUP BY name, b ORDER BY name, b", parameters={"step": step, "m": minutes}).result_rows
+            "GROUP BY name, b ORDER BY name, b",
+            parameters={"step": step, "m": minutes},
+        ).result_rows
         out: dict[str, list[list[float]]] = {}
         for name, b, v in rows:
             out.setdefault(name, []).append([float(b), v])
@@ -133,25 +143,40 @@ class MongoSeries:
 
     def __init__(self, db):
         if "server_metrics" not in db.list_collection_names():
-            db.create_collection("server_metrics", expireAfterSeconds=self.TTL_SECONDS,
-                                 timeseries={"timeField": "ts", "metaField": "name", "granularity": "seconds"})
+            db.create_collection(
+                "server_metrics",
+                expireAfterSeconds=self.TTL_SECONDS,
+                timeseries={"timeField": "ts", "metaField": "name", "granularity": "seconds"},
+            )
         self.col = db["server_metrics"]
 
     def write(self, ts: float, values: dict[str, float]) -> None:
         from datetime import UTC, datetime
 
         when = datetime.fromtimestamp(ts, UTC)
-        self.col.insert_many([{"ts": when, "name": k, "value": float(v)} for k, v in values.items()])
+        self.col.insert_many(
+            [{"ts": when, "name": k, "value": float(v)} for k, v in values.items()]
+        )
 
     def query(self, minutes: int, step: int) -> dict[str, list[list[float]]]:
         from datetime import UTC, datetime, timedelta
 
         ms = {"$toLong": "$ts"}
-        rows = self.col.aggregate([
-            {"$match": {"ts": {"$gte": datetime.now(UTC) - timedelta(minutes=minutes)}}},
-            {"$group": {"_id": {"name": "$name", "b": {"$subtract": [ms, {"$mod": [ms, step * 1000]}]}},
-                        "v": {"$avg": "$value"}}},
-            {"$sort": {"_id.name": 1, "_id.b": 1}}])
+        rows = self.col.aggregate(
+            [
+                {"$match": {"ts": {"$gte": datetime.now(UTC) - timedelta(minutes=minutes)}}},
+                {
+                    "$group": {
+                        "_id": {
+                            "name": "$name",
+                            "b": {"$subtract": [ms, {"$mod": [ms, step * 1000]}]},
+                        },
+                        "v": {"$avg": "$value"},
+                    }
+                },
+                {"$sort": {"_id.name": 1, "_id.b": 1}},
+            ]
+        )
         out: dict[str, list[list[float]]] = {}
         for r in rows:
             out.setdefault(r["_id"]["name"], []).append([r["_id"]["b"] / 1000, round(r["v"], 3)])
@@ -159,16 +184,25 @@ class MongoSeries:
 
 
 class Metrics:
-    def __init__(self, sink: MemorySeries | ClickHouseSeries | MongoSeries | None = None, every: float = 10):
+    def __init__(
+        self, sink: MemorySeries | ClickHouseSeries | MongoSeries | None = None, every: float = 10
+    ):
         self.sink = sink or MemorySeries()
         self.every = every
         self._lock = threading.Lock()
         self._rng = random.Random(0)
-        self._counts = {"lines": 0, "unknown": 0, "errors": 0, "alerts": 0,
-                        "llm_calls": 0, "llm_errors": 0}
+        self._counts = {
+            "lines": 0,
+            "unknown": 0,
+            "errors": 0,
+            "alerts": 0,
+            "llm_calls": 0,
+            "llm_errors": 0,
+        }
         self._llm_seconds = 0.0
         self._lat: list[int] = []
         self._seen = 0  # latencies offered this sample (for the reservoir)
+        self._cap = get_settings().server.metrics_latency_cap
         self._at = time.monotonic()
         self._cpu = sum(os.times()[:2])
         self._host = _host_cpu()
@@ -181,9 +215,9 @@ class Metrics:
             self._counts["unknown"] += unknown
             self._counts["alerts"] += alerts
             self._seen += 1
-            if len(self._lat) < LATENCY_CAP:
+            if len(self._lat) < self._cap:
                 self._lat.append(ns)
-            elif (j := self._rng.randrange(self._seen)) < LATENCY_CAP:
+            elif (j := self._rng.randrange(self._seen)) < self._cap:
                 self._lat[j] = ns
 
     def count(self, name: str, n: int = 1) -> None:
@@ -277,7 +311,14 @@ DEFAULT_RULES = (
     ("lines_per_s", "<", 0.1, 15, False, "No logs arriving"),
     ("score_psi_max", ">", 0.25, 30, True, "Anomaly model drifting: retrain it"),
     ("alert_window_pct", ">", 5, 30, True, "Unusually many windows alerted"),
-    ("new_templates_per_hour", ">", 50, 30, True, "Log formats changing fast: consider recalibrating"),
+    (
+        "new_templates_per_hour",
+        ">",
+        50,
+        30,
+        True,
+        "Log formats changing fast: consider recalibrating",
+    ),
 )
 OPS = {">": lambda v, t: v > t, "<": lambda v, t: v < t}
 
@@ -293,8 +334,17 @@ class MetricRules:
         seeded = set((control.get("meta", "metric_rules_seeded") or {}).get("ids", ()))
         for metric, op, threshold, minutes, enabled, label in DEFAULT_RULES:
             if (rid := f"default-{metric}") not in seeded:
-                self.save({"metric": metric, "op": op, "threshold": threshold, "for_minutes": minutes,
-                           "enabled": enabled, "label": label}, rule_id=rid)
+                self.save(
+                    {
+                        "metric": metric,
+                        "op": op,
+                        "threshold": threshold,
+                        "for_minutes": minutes,
+                        "enabled": enabled,
+                        "label": label,
+                    },
+                    rule_id=rid,
+                )
                 seeded.add(rid)
         control.put("meta", "metric_rules_seeded", {"ids": sorted(seeded)})
 
@@ -311,7 +361,9 @@ class MetricRules:
         rule["threshold"] = float(rule["threshold"])
         rule["for_minutes"] = min(max(float(rule.get("for_minutes", 5)), 0), 24 * 60)
         rule["enabled"] = bool(rule.get("enabled", True))
-        rule["label"] = str(rule.get("label") or f"{METRICS[rule['metric']][0]} {rule['op']} {rule['threshold']:g}")[:120]
+        rule["label"] = str(
+            rule.get("label") or f"{METRICS[rule['metric']][0]} {rule['op']} {rule['threshold']:g}"
+        )[:120]
         rule["id"] = rule_id or os.urandom(6).hex()
         self._since.pop(rule["id"], None)
         return self.control.put("metric_rule", rule["id"], rule)
@@ -333,10 +385,15 @@ class MetricRules:
         if (doc := self._firing(rule_id)) is not None:
             self.control.delete("metric_alert", doc["id"])
             done_id = f"{rule_id}:{int(doc['started_at'])}"
-            self.control.put("metric_alert", done_id, {**doc, "id": done_id, "status": "resolved",
-                                                       "resolved_at": now, "resolution": why})
-            old = sorted((a for a in self.control.all("metric_alert") if a["status"] == "resolved"),
-                         key=lambda a: a["resolved_at"])
+            self.control.put(
+                "metric_alert",
+                done_id,
+                {**doc, "id": done_id, "status": "resolved", "resolved_at": now, "resolution": why},
+            )
+            old = sorted(
+                (a for a in self.control.all("metric_alert") if a["status"] == "resolved"),
+                key=lambda a: a["resolved_at"],
+            )
             for a in old[:-200]:  # keep the last 200 resolved
                 self.control.delete("metric_alert", a["id"])
 
@@ -354,12 +411,27 @@ class MetricRules:
             since = self._since.setdefault(rid, now)
             doc = self._firing(rid)
             if doc is not None:
-                self.control.update("metric_alert", doc["id"], value=v, peak=max(doc["peak"], v)
-                                    if rule["op"] == ">" else min(doc["peak"], v), last_at=now)
+                self.control.update(
+                    "metric_alert",
+                    doc["id"],
+                    value=v,
+                    peak=max(doc["peak"], v) if rule["op"] == ">" else min(doc["peak"], v),
+                    last_at=now,
+                )
             elif now - since >= rule["for_minutes"] * 60:
-                doc = {"id": f"{rid}:firing", "rule": rid, "label": rule["label"], "metric": rule["metric"],
-                       "op": rule["op"], "threshold": rule["threshold"], "value": v, "peak": v,
-                       "started_at": since, "last_at": now, "status": "firing"}
+                doc = {
+                    "id": f"{rid}:firing",
+                    "rule": rid,
+                    "label": rule["label"],
+                    "metric": rule["metric"],
+                    "op": rule["op"],
+                    "threshold": rule["threshold"],
+                    "value": v,
+                    "peak": v,
+                    "started_at": since,
+                    "last_at": now,
+                    "status": "firing",
+                }
                 self.control.put("metric_alert", doc["id"], doc)
                 fired.append(doc)
         return fired

@@ -70,6 +70,7 @@ export const JOB_NAMES: Record<Job["kind"], string> = {
   calibrate: "Calibration",
   recalibrate: "Recalibration",
   explain: "Explain incident",
+  ask: "Ask",
   bench: "Benchmark",
 };
 

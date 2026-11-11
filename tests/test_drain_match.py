@@ -83,7 +83,8 @@ def test_routing_wildcards_composite_placeholders():
 def test_match_fallback_only_visits_wildcard_buckets():
     engine = DrainEngine(depth=2)
     for i in range(500):
-        engine.add_log(f"literal{'x' * (i % 50)}{'y' * (i // 50)} event happened")  # digit-free: stays literal
+        # digit-free: stays literal
+        engine.add_log(f"literal{'x' * (i % 50)}{'y' * (i // 50)} event happened")
     engine.add_template(9_999, ["Heater", WILDCARD, "switched"])
     assert sum(len(b) for b in engine._wild.values()) == 1
     match = engine.match("Heater relay switched")
@@ -99,7 +100,10 @@ def test_merge_keeps_shared_static_text():
     assert _merge_token("(uid=0)", "(uid=42)") == "(uid=<*>)"
     assert _merge_token("succeeded", "failed") == WILDCARD
     assert _merge_token("<VAR:IP>,", "<VAR:HEX>,") == "<*>,"
-    assert _merge_token("a.example.com:<VAR:NUMBER>", "b.example.org:<VAR:NUMBER>") == "<*>:<VAR:NUMBER>"
+    assert (
+        _merge_token("a.example.com:<VAR:NUMBER>", "b.example.org:<VAR:NUMBER>")
+        == "<*>:<VAR:NUMBER>"
+    )
     assert _merge_token("<*>,", "x,") == "<*>,"
     assert _merge_token("<VAR:PATH>", "<VAR:PATH>?a=1") == WILDCARD
 

@@ -1,4 +1,5 @@
 """Rows, alerts and the storage interface shared by every backend."""
+
 from __future__ import annotations
 
 import uuid
@@ -30,8 +31,15 @@ class LogRow:
 
     @classmethod
     def from_result(
-        cls, result: ParseResult, *, device_id: str, timestamp: datetime, raw_message: str,
-        service: str = "", source: str = "", tags: tuple[str, ...] = (),
+        cls,
+        result: ParseResult,
+        *,
+        device_id: str,
+        timestamp: datetime,
+        raw_message: str,
+        service: str = "",
+        source: str = "",
+        tags: tuple[str, ...] = (),
     ) -> LogRow:
         return cls(
             log_id=uuid.uuid4(),

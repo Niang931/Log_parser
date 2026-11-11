@@ -6,6 +6,7 @@ evaluation uses.  HDFS and BGL come from the Loghub Zenodo record, the
 same archives LogBERT's ``scripts/download_*.sh`` fetch.  They are sampled
 down to CPU-sized subsets with a fixed seed.
 """
+
 from __future__ import annotations
 
 import csv
@@ -44,8 +45,9 @@ def fetch_archive(name: str, root: Path = DATA_DIR) -> Path:
     target.mkdir(parents=True, exist_ok=True)
     archive = target / ARCHIVES[name]
     if not archive.exists():
-        request = urllib.request.Request(ZENODO.format(name=ARCHIVES[name]),
-                                         headers={"User-Agent": "logpipe-eval/1.0"})
+        request = urllib.request.Request(
+            ZENODO.format(name=ARCHIVES[name]), headers={"User-Agent": "logpipe-eval/1.0"}
+        )
         partial = archive.with_suffix(".part")
         with urllib.request.urlopen(request, timeout=120) as resp, partial.open("wb") as fh:
             size = int(resp.headers.get("Content-Length") or 0) or None
@@ -81,8 +83,9 @@ class Sessions:
         return [k for k, v in self.labels.items() if v == 1 and k in self.lines]
 
 
-def load_hdfs(n_normal: int = 20_000, n_abnormal: int = 2_000, seed: int = 42,
-              root: Path = DATA_DIR) -> Sessions:
+def load_hdfs(
+    n_normal: int = 20_000, n_abnormal: int = 2_000, seed: int = 42, root: Path = DATA_DIR
+) -> Sessions:
     """Sample block sessions from HDFS_v1, keeping the log content per block (as LogBERT)."""
     base = fetch_archive("HDFS", root)
     labels_all: dict[str, int] = {}
@@ -119,8 +122,9 @@ def _bgl_records(path: Path, max_lines: int) -> Iterator[tuple[int, int, str]]:
             yield int(parts[1]), int(parts[0] != "-"), parts[9]
 
 
-def load_bgl(max_lines: int = 1_000_000, window_s: int = 300, step_s: int = 60,
-             root: Path = DATA_DIR) -> Sessions:
+def load_bgl(
+    max_lines: int = 1_000_000, window_s: int = 300, step_s: int = 60, root: Path = DATA_DIR
+) -> Sessions:
     """Sliding time windows over BGL (LogBERT's 5-minute window, 1-minute step)."""
     base = fetch_archive("BGL", root)
     records = sorted(_bgl_records(_find(base, "BGL.log"), max_lines), key=lambda r: r[0])

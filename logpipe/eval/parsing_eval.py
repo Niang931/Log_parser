@@ -7,6 +7,7 @@ the IoT ``MEASURE`` mask, Drain depth 5 / similarity 0.4), i.e. what
 DeepParse's own ``EvaluationRunner`` reports for the offline stub.
 ``sample_size=50`` matches DeepParse's default ``k``.
 """
+
 from __future__ import annotations
 
 import csv
@@ -21,8 +22,13 @@ from ..progress import progress, write
 from .datasets import fetch_loghub2k
 
 
-def run_parsing_eval(adapter: LLMAdapter, systems=DEFAULT_SYSTEMS, tune: bool = True,
-                     out_dir: Path | None = None, log=write) -> list[dict]:
+def run_parsing_eval(
+    adapter: LLMAdapter,
+    systems=DEFAULT_SYSTEMS,
+    tune: bool = True,
+    out_dir: Path | None = None,
+    log=write,
+) -> list[dict]:
     root = fetch_loghub2k(systems)
     rows = []
     for system in progress(systems, "parsing eval", unit="system"):
@@ -33,19 +39,30 @@ def run_parsing_eval(adapter: LLMAdapter, systems=DEFAULT_SYSTEMS, tune: bool = 
         lines, truth = GroundTruth.from_deepparse_dir(path)
         result = calibrate(lines, adapter, sample_size=50, ground_truth=truth, tune=tune)
         r = result.report
-        rows.append({
-            "system": system, "GA": r.ga, "PA": r.pa,
-            "baseline_GA": r.baseline_ga, "baseline_PA": r.baseline_pa,
-            "depth": r.depth, "similarity_threshold": r.similarity_threshold,
-            "templates": r.templates, "gold_templates": len(set(truth.cluster_ids)),
-            "holdout_coverage": r.holdout_coverage,
-        })
-        log(f"[parsing] {system}: GA={r.ga} PA={r.pa} (DeepParse baseline GA={r.baseline_ga} "
+        rows.append(
+            {
+                "system": system,
+                "GA": r.ga,
+                "PA": r.pa,
+                "baseline_GA": r.baseline_ga,
+                "baseline_PA": r.baseline_pa,
+                "depth": r.depth,
+                "similarity_threshold": r.similarity_threshold,
+                "templates": r.templates,
+                "gold_templates": len(set(truth.cluster_ids)),
+                "holdout_coverage": r.holdout_coverage,
+            }
+        )
+        log(
+            f"[parsing] {system}: GA={r.ga} PA={r.pa} (DeepParse baseline GA={r.baseline_ga} "
             f"PA={r.baseline_pa}) depth={r.depth} sim={r.similarity_threshold} "
-            f"coverage={r.holdout_coverage}")
+            f"coverage={r.holdout_coverage}"
+        )
     if rows:
-        avg = {k: round(sum(row[k] for row in rows) / len(rows), 4)
-               for k in ("GA", "PA", "baseline_GA", "baseline_PA", "holdout_coverage")}
+        avg = {
+            k: round(sum(row[k] for row in rows) / len(rows), 4)
+            for k in ("GA", "PA", "baseline_GA", "baseline_PA", "holdout_coverage")
+        }
         rows.append({"system": "MacroAvg", **avg})
     if out_dir is not None:
         out_dir.mkdir(parents=True, exist_ok=True)

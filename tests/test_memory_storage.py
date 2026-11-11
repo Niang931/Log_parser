@@ -16,7 +16,11 @@ def _pending(line="x") -> LogRow:
 def test_resolved_row_keeps_identity_and_sort_key_with_higher_version():
     row = _pending()
     final = row.resolved(ParseResult(7, Status.FINAL, {"k": "v"}, registry_version=4))
-    assert (final.log_id, final.device_id, final.timestamp) == (row.log_id, row.device_id, row.timestamp)
+    assert (final.log_id, final.device_id, final.timestamp) == (
+        row.log_id,
+        row.device_id,
+        row.timestamp,
+    )
     assert final.version > row.version and final.status == Status.FINAL
 
 

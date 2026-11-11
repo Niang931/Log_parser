@@ -1,4 +1,5 @@
 """Threshold alerts on the built-in metrics: fire after the breach lasts, resolve when back."""
+
 from __future__ import annotations
 
 import pytest
@@ -13,7 +14,8 @@ def test_defaults_are_seeded_once():
     rules = MetricRules(control)
     assert len(rules.rules()) == len(DEFAULT_RULES)
     rules.delete("default-cpu_pct")
-    assert len(MetricRules(control).rules()) == len(DEFAULT_RULES) - 1  # a restart doesn't re-add it
+    # a restart doesn't re-add it
+    assert len(MetricRules(control).rules()) == len(DEFAULT_RULES) - 1
 
 
 def test_breach_must_last_then_resolves():
@@ -51,12 +53,16 @@ def test_rules_api_and_server_sampling(env):  # noqa: F811
     server, client, _ = env
     body = client.get("/api/system/alerts").json()
     assert len(body["rules"]) == len(DEFAULT_RULES) and body["alerts"] == []
-    rid = client.post("/api/system/rules", json={"metric": "threads", "op": ">", "threshold": 0,
-                                                 "for_minutes": 0}).json()["id"]
+    rid = client.post(
+        "/api/system/rules", json={"metric": "threads", "op": ">", "threshold": 0, "for_minutes": 0}
+    ).json()["id"]
     server.sample_metrics()
     alerts = client.get("/api/system/alerts").json()["alerts"]
     assert alerts[0]["rule"] == rid and alerts[0]["status"] == "firing"
-    assert client.put(f"/api/system/rules/{rid}", json={"threshold": 10_000}).json()["threshold"] == 10_000
+    assert (
+        client.put(f"/api/system/rules/{rid}", json={"threshold": 10_000}).json()["threshold"]
+        == 10_000
+    )
     server.sample_metrics()
     assert client.get("/api/system/alerts").json()["alerts"][0]["status"] == "resolved"
     assert client.put("/api/system/rules/missing", json={}).status_code == 404
