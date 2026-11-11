@@ -67,8 +67,24 @@ _SUMMARY = re.compile(
 _ERRORS = re.compile(r"\b(errors?|fatal|failures?|exceptions?|critical)\b", re.IGNORECASE)
 _WARNS = re.compile(r"\b(warn(?:ing)?s?)\b", re.IGNORECASE)
 _COUNT = re.compile(r"\b(how many|count|number of)\b", re.IGNORECASE)
+# the word a person types after "per"/"by" -> the field it groups by
+_GROUP_WORDS = {
+    "service": "service",
+    "app": "service",
+    "application": "service",
+    "host": "host",
+    "server": "host",
+    "machine": "host",
+    "node": "host",
+    "level": "level",
+    "severity": "level",
+    "source": "source",
+    "file": "source",
+    "template": "template_id",
+    "pattern": "template_id",
+}
 _PER = re.compile(
-    r"\b(?:per|by|for each|grouped by)\s+(service|host|level|source|template)s?\b", re.IGNORECASE
+    rf"\b(?:per|by|for each|grouped by)\s+({'|'.join(_GROUP_WORDS)})s?\b", re.IGNORECASE
 )
 _OVER_TIME = re.compile(r"\b(over time|per minute|per hour|trend|timeline of)\b", re.IGNORECASE)
 _HARD = re.compile(
@@ -141,11 +157,12 @@ def fast_path(
         return spec
     if _HARD.search(q):
         return None  # measures beyond a count: the LLM's job
+    # route() keeps the first 2 groupings and notes any it drops
     if _COUNT.search(q) or _PER.search(q) or _OVER_TIME.search(q):
-        groups = [g.lower() for g in dict.fromkeys(m.group(1) for m in _PER.finditer(q))]
+        groups = dict.fromkeys(_GROUP_WORDS[m.group(1).lower()] for m in _PER.finditer(q))
         spec["aggregate"] = {
             "fn": "count",
-            "group_by": [{"template": "template_id"}.get(g, g) for g in groups][:2],
+            "group_by": list(groups),
             "over_time": bool(_OVER_TIME.search(q)),
         }
     if not (
@@ -274,6 +291,12 @@ def route(
     notes: list[str] = []
     fast = fast_path(question, catalog, now, tz_offset)
     if fast is not None:
+        group_by = (fast.get("aggregate") or {}).get("group_by", [])
+        if len(group_by) > 2:
+            notes.append(
+                f"grouped by {' and '.join(group_by[:2])} only; dropped {', '.join(group_by[2:])}"
+            )
+            del group_by[2:]
         try:
             return Routed(validate(fast, catalog, now), "fast", notes)
         except ValueError as error:  # e.g. a word that looked like a host; let the model read it

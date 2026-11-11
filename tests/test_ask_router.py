@@ -73,6 +73,14 @@ def test_fast_path_reads_simple_questions(question, intent, fields):
         assert getattr(r.spec, k) == v, (k, r.spec)
 
 
+def test_fast_path_group_words():
+    r = route("count lines by server and per pattern", CAT, OfflineAdapter(), NOW)
+    assert r.spec.aggregate.group_by == ["host", "template_id"] and not r.notes
+    r = route("count lines by app, by host and by severity", CAT, OfflineAdapter(), NOW)
+    assert r.spec.aggregate.group_by == ["service", "host"]
+    assert r.notes == ["grouped by service and host only; dropped level"]
+
+
 def test_fast_path_details():
     s = route("how many errors per service in the last hour", CAT, OfflineAdapter(), NOW).spec
     assert (
