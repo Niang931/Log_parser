@@ -9,6 +9,7 @@ _CAMEL_RE = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 _GENERIC_KEY_RE = re.compile(r"^var(_\d+)?$")
 _INLINE_KV_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_.\-]*)=(.*)$", re.DOTALL)
 
+
 def slot_labels(tokens: Sequence[str]) -> list[str | None]:
     """Return one entry per variable slot: the mask label, or ``None`` for ``<*>``."""
     return [m.group(1) for tok in tokens for m in SLOT_RE.finditer(tok)]

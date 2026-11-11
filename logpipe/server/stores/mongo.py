@@ -5,6 +5,7 @@ Every pipeline passes ``check``: only the stages in ``STAGES``, and none of the 
 code or write (``$where``, ``$function``, ``$accumulator``, ``$out``, ``$merge``) at any depth. With
 ``MONGO_READONLY_URI`` set, free-form pipelines also run as a read-only user.
 """
+
 from __future__ import annotations
 
 import json
@@ -44,23 +45,72 @@ from .base import (
     zero_fill,
 )
 
-PATHS = {"host": "device_id", "service": "service", "source": "source", "status": "status",
-         "template_id": "template_id", "message": "raw_message"}  # `level` is computed: LEVEL_EXPR
-STAGES = {"$match", "$group", "$project", "$sort", "$limit", "$skip", "$unwind", "$addFields", "$set",
-          "$unset", "$count", "$sortByCount", "$replaceRoot", "$replaceWith", "$bucket", "$bucketAuto"}
+# `level` is computed: LEVEL_EXPR
+PATHS = {
+    "host": "device_id",
+    "service": "service",
+    "source": "source",
+    "status": "status",
+    "template_id": "template_id",
+    "message": "raw_message",
+}
+STAGES = {
+    "$match",
+    "$group",
+    "$project",
+    "$sort",
+    "$limit",
+    "$skip",
+    "$unwind",
+    "$addFields",
+    "$set",
+    "$unset",
+    "$count",
+    "$sortByCount",
+    "$replaceRoot",
+    "$replaceWith",
+    "$bucket",
+    "$bucketAuto",
+}
 BANNED = {"$where", "$function", "$accumulator", "$out", "$merge"}
 # level() as an aggregation expression: a stated severity tag, then LEVEL_RULES in order.
-LEVEL_EXPR = {"$switch": {"branches": [
-    *({"case": {"$in": [f"severity:{lvl}", {"$ifNull": ["$tags", []]}]}, "then": lvl} for lvl in LEVELS),
-    *({"case": {"$regexMatch": {"input": {"$substrCP": ["$raw_message", 0, HEAD]} if head else "$raw_message",
-                                "regex": rx}}, "then": lvl} for lvl, rx, head in LEVEL_RULES)],
-    "default": "info"}}
+LEVEL_EXPR = {
+    "$switch": {
+        "branches": [
+            *(
+                {"case": {"$in": [f"severity:{lvl}", {"$ifNull": ["$tags", []]}]}, "then": lvl}
+                for lvl in LEVELS
+            ),
+            *(
+                {
+                    "case": {
+                        "$regexMatch": {
+                            "input": {"$substrCP": ["$raw_message", 0, HEAD]}
+                            if head
+                            else "$raw_message",
+                            "regex": rx,
+                        }
+                    },
+                    "then": lvl,
+                }
+                for lvl, rx, head in LEVEL_RULES
+            ),
+        ],
+        "default": "info",
+    }
+}
 
 
 def check(pipeline) -> list[dict]:
     """The pipeline if it is read-only; ValueError otherwise."""
-    if not isinstance(pipeline, list) or not pipeline or not all(isinstance(s, dict) and len(s) == 1 for s in pipeline):
-        raise ValueError("a pipeline is a JSON list of single-stage objects, e.g. [{\"$match\": {...}}]")
+    if (
+        not isinstance(pipeline, list)
+        or not pipeline
+        or not all(isinstance(s, dict) and len(s) == 1 for s in pipeline)
+    ):
+        raise ValueError(
+            'a pipeline is a JSON list of single-stage objects, e.g. [{"$match": {...}}]'
+        )
     for stage in pipeline:
         name = next(iter(stage))
         if name not in STAGES:
@@ -115,7 +165,13 @@ class MongoCompiler(Compiler):
     def time_match(self, spec: dict) -> list[dict]:
         if rng := absolute_range(spec):
             return [{"timestamp": {"$gte": mongo_date(rng[0]), "$lte": mongo_date(rng[1])}}]
-        since = {"$dateSubtract": {"startDate": "$$NOW", "unit": "minute", "amount": relative_minutes(spec)}}
+        since = {
+            "$dateSubtract": {
+                "startDate": "$$NOW",
+                "unit": "minute",
+                "amount": relative_minutes(spec),
+            }
+        }
         return [{"$expr": {"$gte": ["$timestamp", since]}}]
 
     def filter_match(self, filters: list[dict] | None) -> list[dict]:
@@ -142,7 +198,9 @@ class MongoCompiler(Compiler):
                 except ValueError:
                     raise ValueError(f"{name} {op} needs a number, got {value!r}") from None
                 cmp = "$gt" if op == ">" else "$lt"
-                match.append({"$expr": {"$and": [{"$ne": [_num(path), None]}, {cmp: [_num(path), number]}]}})
+                match.append(
+                    {"$expr": {"$and": [{"$ne": [_num(path), None]}, {cmp: [_num(path), number]}]}}
+                )
             else:
                 v = _value(name, value)
                 match.append({path: v if op == "=" else {"$ne": v}})
@@ -160,7 +218,8 @@ class MongoCompiler(Compiler):
             acc: dict = {"$sum": 1}
         else:
             path = _path(target or "")
-            if fn == "count_distinct":  # shortcut: $addToSet holds every distinct value in memory per group
+            # shortcut: $addToSet holds every distinct value in memory per group
+            if fn == "count_distinct":
                 acc, after = {"$addToSet": "$" + path}, {label: {"$size": "$" + label}}
             elif fn == "p95":
                 acc = {"$percentile": {"input": _num(path), "p": [0.95], "method": "approximate"}}
@@ -170,63 +229,168 @@ class MongoCompiler(Compiler):
         ids, cols = {}, []
         if spec.get("over_time"):
             ms = step_for(span_minutes(spec)) * 1000
-            ids["time"] = {"$toDate": {"$subtract": [{"$toLong": "$timestamp"}, {"$mod": [{"$toLong": "$timestamp"}, ms]}]}}
+            ids["time"] = {
+                "$toDate": {
+                    "$subtract": [
+                        {"$toLong": "$timestamp"},
+                        {"$mod": [{"$toLong": "$timestamp"}, ms]},
+                    ]
+                }
+            }
             cols.append("time")
         for i, g in enumerate((spec.get("group_by") or [])[:2]):
             ids[alias(str(g), i)] = LEVEL_EXPR if g == "level" else "$" + _path(str(g))
             cols.append(alias(str(g), i))
-        pipeline: list[dict] = [{"$match": {"$and": match}}, {"$group": {"_id": ids or None, label: acc}}]
+        pipeline: list[dict] = [
+            {"$match": {"$and": match}},
+            {"$group": {"_id": ids or None, label: acc}},
+        ]
         if after:
             pipeline.append({"$set": after})
-        project = {"_id": 0} | {c: "$_id." + c for c in cols} | {label: "$" + label}  # all computed: keeps column order
-        pipeline += [{"$project": project}, {"$sort": {"time": 1} if spec.get("over_time") else {label: -1}},
-                     {"$limit": min(int(spec.get("limit") or 100), get_settings().server.max_builder_rows)}]
+        # all computed: keeps column order
+        project = {"_id": 0} | {c: "$_id." + c for c in cols} | {label: "$" + label}
+        pipeline += [
+            {"$project": project},
+            {"$sort": {"time": 1} if spec.get("over_time") else {label: -1}},
+            {"$limit": min(int(spec.get("limit") or 100), get_settings().server.max_builder_rows)},
+        ]
         return _dump(pipeline)
 
     def schema(self, fields: list[str]) -> dict:
         cols = [{"name": "timestamp", "about": "when the line was logged"}] + [
-            {"name": PATHS.get(k, "level (computed)"), "builder": k, "about": about} for k, about in FIELDS.items()]
-        cols.append({"name": "payload", "about": "fields extracted by the line's template (a sub-document)"})
-        return {"engine": self.engine, "table": "logs", "columns": cols, "fields": sorted(fields),
-                "payload_access": "payload.name", "measures": list(MEASURES), "ops": list(OPS)}
+            {"name": PATHS.get(k, "level (computed)"), "builder": k, "about": about}
+            for k, about in FIELDS.items()
+        ]
+        cols.append(
+            {"name": "payload", "about": "fields extracted by the line's template (a sub-document)"}
+        )
+        return {
+            "engine": self.engine,
+            "table": "logs",
+            "columns": cols,
+            "fields": sorted(fields),
+            "payload_access": "payload.name",
+            "measures": list(MEASURES),
+            "ops": list(OPS),
+        }
 
-    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False,
-             payload: bool = False) -> str:
+    def rows(
+        self,
+        filters: list[dict],
+        start: datetime,
+        end: datetime,
+        limit: int = 200,
+        newest_first: bool = False,
+        payload: bool = False,
+    ) -> str:
         limit = max(1, min(int(limit), get_settings().ask.row_cap))
-        return _dump([self._match(filters, start, end), {"$sort": {"timestamp": -1 if newest_first else 1}},
-                      {"$limit": limit},
-                      {"$project": {"_id": 0, "log_id": "$_id", "timestamp": 1, "host": "$device_id", "service": 1,
-                                    "source": 1, "template_id": 1, "level": LEVEL_EXPR, "message": "$raw_message",
-                                    **({"payload": 1} if payload else {})}}])
+        return _dump(
+            [
+                self._match(filters, start, end),
+                {"$sort": {"timestamp": -1 if newest_first else 1}},
+                {"$limit": limit},
+                {
+                    "$project": {
+                        "_id": 0,
+                        "log_id": "$_id",
+                        "timestamp": 1,
+                        "host": "$device_id",
+                        "service": 1,
+                        "source": 1,
+                        "template_id": 1,
+                        "level": LEVEL_EXPR,
+                        "message": "$raw_message",
+                        **({"payload": 1} if payload else {}),
+                    }
+                },
+            ]
+        )
 
     def template_counts(self, filters: list[dict], start: datetime, end: datetime) -> str:
-        return _dump([self._match(filters, start, end), {"$sort": {"timestamp": 1}},
-                      {"$group": {"_id": {"t": "$template_id", "s": "$service"}, "n": {"$sum": 1},
-                                  "first": {"$first": "$timestamp"}, "last": {"$last": "$timestamp"},
-                                  "example": {"$first": "$raw_message"}, "log_id": {"$first": "$_id"},
-                                  "host": {"$first": "$device_id"}, "tags": {"$first": "$tags"}}},
-                      {"$project": {"_id": 0, "template_id": "$_id.t", "service": "$_id.s", "n": 1, "first": 1,
-                                    "last": 1, "example": 1, "log_id": 1, "host": 1, "tags": 1}},
-                      {"$sort": {"first": 1}}, {"$limit": get_settings().ask.agg_cap}])
+        return _dump(
+            [
+                self._match(filters, start, end),
+                {"$sort": {"timestamp": 1}},
+                {
+                    "$group": {
+                        "_id": {"t": "$template_id", "s": "$service"},
+                        "n": {"$sum": 1},
+                        "first": {"$first": "$timestamp"},
+                        "last": {"$last": "$timestamp"},
+                        "example": {"$first": "$raw_message"},
+                        "log_id": {"$first": "$_id"},
+                        "host": {"$first": "$device_id"},
+                        "tags": {"$first": "$tags"},
+                    }
+                },
+                {
+                    "$project": {
+                        "_id": 0,
+                        "template_id": "$_id.t",
+                        "service": "$_id.s",
+                        "n": 1,
+                        "first": 1,
+                        "last": 1,
+                        "example": 1,
+                        "log_id": 1,
+                        "host": 1,
+                        "tags": 1,
+                    }
+                },
+                {"$sort": {"first": 1}},
+                {"$limit": get_settings().ask.agg_cap},
+            ]
+        )
 
-    def buckets(self, filters: list[dict], start: datetime, end: datetime, step: int, by: str = "template_id") -> str:
+    def buckets(
+        self,
+        filters: list[dict],
+        start: datetime,
+        end: datetime,
+        step: int,
+        by: str = "template_id",
+    ) -> str:
         if by not in ("template_id", "service"):
             raise ValueError("buckets are by template_id or service")
         step, origin = max(1, int(step)), int(start.timestamp())
-        idx = {"$floor": {"$divide": [{"$subtract": [{"$toLong": "$timestamp"}, origin * 1000]}, step * 1000]}}
-        return _dump([self._match(filters, start, end), {"$group": {"_id": {"k": f"${by}", "b": idx}, "n": {"$sum": 1}}},
-                      {"$project": {"_id": 0, "key": "$_id.k", "bucket": "$_id.b", "n": 1}},
-                      {"$sort": {"bucket": 1}}, {"$limit": get_settings().ask.agg_cap}])
+        idx = {
+            "$floor": {
+                "$divide": [{"$subtract": [{"$toLong": "$timestamp"}, origin * 1000]}, step * 1000]
+            }
+        }
+        return _dump(
+            [
+                self._match(filters, start, end),
+                {"$group": {"_id": {"k": f"${by}", "b": idx}, "n": {"$sum": 1}}},
+                {"$project": {"_id": 0, "key": "$_id.k", "bucket": "$_id.b", "n": 1}},
+                {"$sort": {"bucket": 1}},
+                {"$limit": get_settings().ask.agg_cap},
+            ]
+        )
 
     def template_sample(self, template_id: int, keys: list[str]) -> str:
-        return _dump([{"$match": {"template_id": int(template_id)}}, {"$sort": {"timestamp": -1}}, {"$limit": 50},
-                      {"$project": {"_id": 0, "timestamp": 1, "host": "$device_id", "service": 1,
-                                    **{k: f"$payload.{k}" for k in keys}}}])
+        return _dump(
+            [
+                {"$match": {"template_id": int(template_id)}},
+                {"$sort": {"timestamp": -1}},
+                {"$limit": 50},
+                {
+                    "$project": {
+                        "_id": 0,
+                        "timestamp": 1,
+                        "host": "$device_id",
+                        "service": 1,
+                        **{k: f"$payload.{k}" for k in keys},
+                    }
+                },
+            ]
+        )
 
 
 class MongoReads(StoreReads):
     """``level`` is not stored: the UI reads that filter or group by it compute it in Python
     (streamed, three fields only); compiled queries use LEVEL_EXPR."""
+
     _LEVEL_FIELDS: ClassVar[dict[str, int]] = {"timestamp": 1, "raw_message": 1, "tags": 1}
 
     def __init__(self, store: MongoStore):
@@ -254,26 +418,40 @@ class MongoReads(StoreReads):
             where["timestamp"] = {"$gte": datetime.now(UTC) - timedelta(minutes=minutes)}
         return where
 
-    def recent(self, filters: dict, limit: int, text: str = "", minutes: int | None = None) -> list[dict]:
+    def recent(
+        self, filters: dict, limit: int, text: str = "", minutes: int | None = None
+    ) -> list[dict]:
         cur = self.logs.find(self._where(filters, text, minutes)).sort("timestamp", DESCENDING)
         if "level" not in filters:
             return [row_json(_row(d)) for d in cur.limit(limit)]
         rows = (row_json(_row(d)) for d in cur)  # stops reading once `limit` rows matched
         return list(islice((j for j in rows if j["level"] == str(filters["level"])), limit))
 
-    def between(self, start: datetime, end: datetime, limit: int, host: str | None = None,
-                service: str | None = None) -> list[dict]:
+    def between(
+        self,
+        start: datetime,
+        end: datetime,
+        limit: int,
+        host: str | None = None,
+        service: str | None = None,
+    ) -> list[dict]:
         where: dict = {"timestamp": {"$gte": start, "$lte": end}}
         if host is not None:
             where["device_id"] = host
         if service is not None:
             where["service"] = service
-        return [row_json(_row(d)) for d in self.logs.find(where).sort("timestamp", ASCENDING).limit(limit)]
+        return [
+            row_json(_row(d))
+            for d in self.logs.find(where).sort("timestamp", ASCENDING).limit(limit)
+        ]
 
     def _level_docs(self, filters: dict, text: str, minutes: int | None):
         """(document, level) for the Python path, level filter applied."""
         want = str(filters["level"]) if "level" in filters else None
-        for d in self.logs.find(self._where(filters, text, minutes), {**self._LEVEL_FIELDS, **{f: 1 for f in PATHS.values()}}):
+        for d in self.logs.find(
+            self._where(filters, text, minutes),
+            {**self._LEVEL_FIELDS, **{f: 1 for f in PATHS.values()}},
+        ):
             lv = level(d["raw_message"], d["tags"])
             if want is None or lv == want:
                 yield d, lv
@@ -284,9 +462,18 @@ class MongoReads(StoreReads):
         counts: dict[int, Counter] = {}
         if by != "level" and "level" not in filters:
             ms = {"$toLong": "$timestamp"}
-            pipeline = [{"$match": self._where(filters, text, minutes)},
-                        {"$group": {"_id": {"t": {"$subtract": [ms, {"$mod": [ms, step * 1000]}]}, "k": "$status"},
-                                    "n": {"$sum": 1}}}]
+            pipeline = [
+                {"$match": self._where(filters, text, minutes)},
+                {
+                    "$group": {
+                        "_id": {
+                            "t": {"$subtract": [ms, {"$mod": [ms, step * 1000]}]},
+                            "k": "$status",
+                        },
+                        "n": {"$sum": 1},
+                    }
+                },
+            ]
             for g in self.logs.aggregate(pipeline):
                 counts.setdefault(g["_id"]["t"] // 1000, Counter())[g["_id"]["k"]] = g["n"]
         else:
@@ -295,25 +482,37 @@ class MongoReads(StoreReads):
                 counts.setdefault(t, Counter())[lv if by == "level" else d["status"]] += 1
         return {"step": step, "points": zero_fill(minutes, step, counts, histogram_keys(by))}
 
-    def top(self, field: str, minutes: int, limit: int, filters: dict | None = None, text: str = "") -> list[tuple]:
+    def top(
+        self, field: str, minutes: int, limit: int, filters: dict | None = None, text: str = ""
+    ) -> list[tuple]:
         filters = filters or {}
         if field != "level" and "level" not in filters:
-            pipeline = [{"$match": self._where(filters, text, minutes)},
-                        {"$group": {"_id": f"${PATHS[field]}", "n": {"$sum": 1}}}, {"$sort": {"n": -1}}, {"$limit": limit}]
+            pipeline = [
+                {"$match": self._where(filters, text, minutes)},
+                {"$group": {"_id": f"${PATHS[field]}", "n": {"$sum": 1}}},
+                {"$sort": {"n": -1}},
+                {"$limit": limit},
+            ]
             return [(g["_id"], g["n"]) for g in self.logs.aggregate(pipeline)]
-        return Counter(lv if field == "level" else d[PATHS[field]]
-                       for d, lv in self._level_docs(filters, text, minutes)).most_common(limit)
+        return Counter(
+            lv if field == "level" else d[PATHS[field]]
+            for d, lv in self._level_docs(filters, text, minutes)
+        ).most_common(limit)
 
     def _source(self, host: str, service: str, source: str, limit: int, fields: dict) -> list[dict]:
         cur = self.logs.find({"device_id": host, "service": service, "source": source}, fields)
         return list(cur.sort("timestamp", DESCENDING).limit(limit))[::-1]  # oldest first
 
     def source_lines(self, host: str, service: str, source: str, limit: int) -> list[str]:
-        return [d["raw_message"] for d in self._source(host, service, source, limit, {"raw_message": 1})]
+        return [
+            d["raw_message"] for d in self._source(host, service, source, limit, {"raw_message": 1})
+        ]
 
     def source_rows(self, host: str, service: str, source: str, limit: int) -> list[tuple]:
-        return [(d["timestamp"], d["template_id"])
-                for d in self._source(host, service, source, limit, {"timestamp": 1, "template_id": 1})]
+        return [
+            (d["timestamp"], d["template_id"])
+            for d in self._source(host, service, source, limit, {"timestamp": 1, "template_id": 1})
+        ]
 
     def alerts(self, limit: int) -> list[dict]:
         cur = self.alerts_col.find().sort("window_end", DESCENDING).limit(limit)
@@ -325,11 +524,22 @@ class MongoReads(StoreReads):
         try:
             pipeline = json_util.loads(text)
         except ValueError:
-            raise ValueError("raw SQL is not supported on MongoDB; send a JSON aggregation pipeline") from None
+            raise ValueError(
+                "raw SQL is not supported on MongoDB; send a JSON aggregation pipeline"
+            ) from None
         try:
-            docs = list(islice(self.query_logs.aggregate(check(pipeline), maxTimeMS=10_000),
-                               max_rows or get_settings().server.max_query_rows))
+            docs = list(
+                islice(
+                    self.query_logs.aggregate(check(pipeline), maxTimeMS=10_000),
+                    max_rows or get_settings().server.max_query_rows,
+                )
+            )
         except PyMongoError as error:
             raise ValueError(str(error).splitlines()[0]) from error
         columns = list(dict.fromkeys(k for d in docs for k in d))
-        return {"columns": columns, "rows": [[d.get(c) for c in columns] for d in docs], "engine": "mongodb", "table": "logs"}
+        return {
+            "columns": columns,
+            "rows": [[d.get(c) for c in columns] for d in docs],
+            "engine": "mongodb",
+            "table": "logs",
+        }

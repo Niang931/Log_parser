@@ -7,6 +7,7 @@ candidates (and a strong value hint) as *leads*, labelled as a ranking, not a di
 
 The LLM may ask for more reads (typed moves, :mod:`moves`), each approved before it runs.
 """
+
 from __future__ import annotations
 
 import re
@@ -38,11 +39,15 @@ def synth_schema():
     class AnswerOut(BaseModel):
         summary: str
         timeline: list[Event] = Field(default_factory=list)
-        hypotheses: list[Cause] = Field(default_factory=list, description="most likely first, at most 4")
+        hypotheses: list[Cause] = Field(
+            default_factory=list, description="most likely first, at most 4"
+        )
         insufficient_evidence: bool = False
         missing: str = Field("", description="what would settle it, if the evidence is thin")
         next_steps: list[str] = Field(default_factory=list)
-        follow_up: list[move_schema()] = Field(default_factory=list, description="at most 3 more reads, only if needed")  # type: ignore[valid-type]
+        follow_up: list[move_schema()] = Field(
+            default_factory=list, description="at most 3 more reads, only if needed"
+        )  # type: ignore[valid-type]
 
     return AnswerOut
 
@@ -81,17 +86,26 @@ Value hints (share of error/warn lines vs the other lines in the window):
 Lines (chronological):
 {lines}"""
 
-TASKS = {"rca": "Explain why it broke.", "summary": "Summarize what happened in this range and what stands out."}
+TASKS = {
+    "rca": "Explain why it broke.",
+    "summary": "Summarize what happened in this range and what stands out.",
+}
 
 
 def bundle_text(report: Report, ctx: Ctx) -> tuple[str, str]:
     """The ranked templates and the lines, cut to the token budget."""
-    cands = "\n".join(f"{template_ref(c.template_id) or 'unparsed'} {c.service}: {c.template[:120]} | {c.count} lines, score {c.score:.3f} ({c.why})"
-                      for c in report.candidates[:ctx.rca.max_candidates])
+    cands = "\n".join(
+        f"{template_ref(c.template_id) or 'unparsed'} {c.service}: {c.template[:120]} | {c.count} lines, score {c.score:.3f} ({c.why})"
+        for c in report.candidates[: ctx.rca.max_candidates]
+    )
     budget = ctx.ask.budget_tokens * ctx.ask.chars_per_token
-    first = sorted(report.evidence, key=lambda e: (not e.why.startswith(("the anchor", "follow-up")), -(e.score or 0)))
+    first = sorted(
+        report.evidence,
+        key=lambda e: (not e.why.startswith(("the anchor", "follow-up")), -(e.score or 0)),
+    )
     kept, used = set(), len(cands)
-    for e in first:  # over budget, the context lines go before the anchor, follow-ups and the top-scored
+    # over budget, the context lines go before the anchor, follow-ups and the top-scored
+    for e in first:
         line = _line(e)
         if used + len(line) > budget:
             break
@@ -102,21 +116,32 @@ def bundle_text(report: Report, ctx: Ctx) -> tuple[str, str]:
 
 
 def hints_text(report: Report) -> str:
-    return "\n".join(f"{h.ref} {h.field}={h.value}: {h.error_share:.0%} of error/warn lines ({h.errors}), "
-                     f"{h.other_share:.0%} of the others (x{h.ratio:g})" for h in report.hints) or "(none)"
+    return (
+        "\n".join(
+            f"{h.ref} {h.field}={h.value}: {h.error_share:.0%} of error/warn lines ({h.errors}), "
+            f"{h.other_share:.0%} of the others (x{h.ratio:g})"
+            for h in report.hints
+        )
+        or "(none)"
+    )
 
 
 def series_text(report: Report) -> str:
     if not report.series:
         return ""
-    rows = [f"{s.ref} {s.service or '-'} {s.what} per {s.step_seconds // 60} min from {s.start:%H:%M}: "
-            + " ".join(map(str, s.counts)) for s in report.series]
+    rows = [
+        f"{s.ref} {s.service or '-'} {s.what} per {s.step_seconds // 60} min from {s.start:%H:%M}: "
+        + " ".join(map(str, s.counts))
+        for s in report.series
+    ]
     return "\nRates (follow-up reads):\n" + "\n".join(rows) + "\n"
 
 
 def _line(e) -> str:
-    return (f"{e.ref} {e.timestamp.astimezone(UTC).isoformat(timespec='milliseconds')[:23]}Z {e.service or '-'} {e.host or '-'} "
-            f"{(e.level or '').upper()} {template_ref(e.template_id) or 'unparsed'}: {e.message}")
+    return (
+        f"{e.ref} {e.timestamp.astimezone(UTC).isoformat(timespec='milliseconds')[:23]}Z {e.service or '-'} {e.host or '-'} "
+        f"{(e.level or '').upper()} {template_ref(e.template_id) or 'unparsed'}: {e.message}"
+    )
 
 
 REF = re.compile(r"^([LTHS]\d+)$")
@@ -136,15 +161,26 @@ def check_citations(raw: dict, report: Report) -> Answer:
         if good := _valid(item.get("cites") or [], refs):
             timeline.append(TimelineEvent.model_validate(item | {"cites": good}))
         else:
-            dropped.append(Dropped(section="timeline", text=item.get("what"), cites=item.get("cites") or []))
+            dropped.append(
+                Dropped(section="timeline", text=item.get("what"), cites=item.get("cites") or [])
+            )
     for item in raw.get("hypotheses") or []:
         if good := _valid(item.get("cites") or [], refs):
             hypotheses.append(Hypothesis.model_validate(item | {"cites": good}))
         else:
-            dropped.append(Dropped(section="hypotheses", text=item.get("cause"), cites=item.get("cites") or []))
-    answer = Answer(summary=raw.get("summary") or "", timeline=timeline, hypotheses=hypotheses[:4], dropped=dropped,
-                    insufficient_evidence=bool(raw.get("insufficient_evidence")), missing=raw.get("missing") or "",
-                    next_steps=list(raw.get("next_steps") or []), by="llm")
+            dropped.append(
+                Dropped(section="hypotheses", text=item.get("cause"), cites=item.get("cites") or [])
+            )
+    answer = Answer(
+        summary=raw.get("summary") or "",
+        timeline=timeline,
+        hypotheses=hypotheses[:4],
+        dropped=dropped,
+        insufficient_evidence=bool(raw.get("insufficient_evidence")),
+        missing=raw.get("missing") or "",
+        next_steps=list(raw.get("next_steps") or []),
+        by="llm",
+    )
     if not answer.hypotheses:
         answer.insufficient_evidence = True
         answer.missing = answer.missing or "no hypothesis was backed by a line in the evidence"
@@ -154,36 +190,77 @@ def check_citations(raw: dict, report: Report) -> Answer:
 def leads(report: Report, ctx: Ctx) -> list[Hypothesis]:
     """The ranking as up to three leads (plus a dead service, when the anchor is a silence, and the
     value the errors concentrate on, when one stands out)."""
-    strong = sorted((c for c in report.candidates if c.score >= ctx.rca.strong), key=lambda c: not c.earliest_in_chain)
+    strong = sorted(
+        (c for c in report.candidates if c.score >= ctx.rca.strong),
+        key=lambda c: not c.earliest_in_chain,
+    )
     ref_of = {(e.template_id, e.service): e.ref for e in report.evidence}
-    out = [Hypothesis(cause=f"{c.service}: {c.example.splitlines()[0][:200]}", confidence="ranked", reasoning=c.why,
-                      cites=[r for r in (ref_of.get((c.template_id, c.service)), template_ref(c.template_id)) if r])
-           for c in strong[:3]]
+    out = [
+        Hypothesis(
+            cause=f"{c.service}: {c.example.splitlines()[0][:200]}",
+            confidence="ranked",
+            reasoning=c.why,
+            cites=[
+                r
+                for r in (ref_of.get((c.template_id, c.service)), template_ref(c.template_id))
+                if r
+            ],
+        )
+        for c in strong[:3]
+    ]
     a = report.anchor
     if a.kind == "silence":
         who = a.service or a.host
-        last = [e.ref for e in report.evidence if who in (e.service, e.host) and e.timestamp <= a.at]
-        silent = Hypothesis(cause=f"{who} stopped logging", confidence="ranked", reasoning=a.why, cites=last[-1:])
+        last = [
+            e.ref for e in report.evidence if who in (e.service, e.host) and e.timestamp <= a.at
+        ]
+        silent = Hypothesis(
+            cause=f"{who} stopped logging", confidence="ranked", reasoning=a.why, cites=last[-1:]
+        )
         # first when nothing it logged explains it; else its last words already lead, and the silence follows
         own = any(c.service == who for c in strong[:1])
         out.insert(1 if own or (out and not a.loud) else 0, silent)
     if report.hints and (h := report.hints[0]).error_share >= 0.5 and h.ratio >= 5:
-        out.insert(min(1, len(out)), Hypothesis(
-            cause=f"errors concentrate on {h.field.lstrip('@')}={h.value}", confidence="ranked", cites=[h.ref],
-            reasoning=f"{h.error_share:.0%} of the error/warn lines carry it, {h.other_share:.0%} of the others"))
+        out.insert(
+            min(1, len(out)),
+            Hypothesis(
+                cause=f"errors concentrate on {h.field.lstrip('@')}={h.value}",
+                confidence="ranked",
+                cites=[h.ref],
+                reasoning=f"{h.error_share:.0%} of the error/warn lines carry it, {h.other_share:.0%} of the others",
+            ),
+        )
     return out
 
 
 def offline_answer(report: Report, ctx: Ctx) -> Answer:
     found = leads(report, ctx)
     # the lines that stand out, and the anchor's own line, in time order
-    marked = [e for e in report.evidence if (e.score or 0) >= ctx.rca.strong or e.why.startswith("the anchor")]
-    timeline = [TimelineEvent(at=e.timestamp.isoformat(), what=f"{e.service}: {e.message.splitlines()[0][:160]}", cites=[e.ref])
-                for e in sorted(marked, key=lambda e: e.timestamp)][:8]
-    summary = f"Top lead: {found[0].cause}." if found else "Nothing stands out against the baseline."
-    return Answer(summary=summary, timeline=timeline, leads=found, insufficient_evidence=not found,
-                  missing="" if found else "no new or spiking template near the anchor", by="rules",
-                  note="No LLM configured: these are the evidence ranked by score, not a diagnosis.")
+    marked = [
+        e
+        for e in report.evidence
+        if (e.score or 0) >= ctx.rca.strong or e.why.startswith("the anchor")
+    ]
+    timeline = [
+        TimelineEvent(
+            at=e.timestamp.isoformat(),
+            what=f"{e.service}: {e.message.splitlines()[0][:160]}",
+            cites=[e.ref],
+        )
+        for e in sorted(marked, key=lambda e: e.timestamp)
+    ][:8]
+    summary = (
+        f"Top lead: {found[0].cause}." if found else "Nothing stands out against the baseline."
+    )
+    return Answer(
+        summary=summary,
+        timeline=timeline,
+        leads=found,
+        insufficient_evidence=not found,
+        missing="" if found else "no new or spiking template near the anchor",
+        by="rules",
+        note="No LLM configured: these are the evidence ranked by score, not a diagnosis.",
+    )
 
 
 def synthesize(spec: QuerySpec, report: Report, ctx: Ctx) -> tuple[Answer, list[Move]]:
@@ -192,13 +269,25 @@ def synthesize(spec: QuerySpec, report: Report, ctx: Ctx) -> tuple[Answer, list[
         return offline_answer(report, ctx), []
     cands, lines = bundle_text(report, ctx)
     a = report.anchor
-    groups = "\n".join(f"  {g}: {', '.join(svcs)}" for g, svcs in sorted(report.groups.items())) or "  (none)"
-    prompt = PROMPT.format(task=TASKS.get(spec.intent, TASKS["rca"]), question=(ctx.question or spec.anchor_event or spec.intent)[:500],
-                           anchor=f"{a.kind} at {a.at.isoformat()}: {a.why}", groups=groups, candidates=cands, lines=lines,
-                           hints=hints_text(report), series=series_text(report))
+    groups = (
+        "\n".join(f"  {g}: {', '.join(svcs)}" for g, svcs in sorted(report.groups.items()))
+        or "  (none)"
+    )
+    prompt = PROMPT.format(
+        task=TASKS.get(spec.intent, TASKS["rca"]),
+        question=(ctx.question or spec.anchor_event or spec.intent)[:500],
+        anchor=f"{a.kind} at {a.at.isoformat()}: {a.why}",
+        groups=groups,
+        candidates=cands,
+        lines=lines,
+        hints=hints_text(report),
+        series=series_text(report),
+    )
     out = ctx.adapter.ask(synth_schema(), prompt)
     if out is None:
-        return offline_answer(report, ctx).model_copy(update={"note": "The LLM gave no usable answer; showing the ranked evidence."}), []
+        return offline_answer(report, ctx).model_copy(
+            update={"note": "The LLM gave no usable answer; showing the ranked evidence."}
+        ), []
     raw = out.model_dump()
     answer = check_citations(raw, report)
     answer.leads = leads(report, ctx)

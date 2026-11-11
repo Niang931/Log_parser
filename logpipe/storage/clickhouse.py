@@ -5,6 +5,7 @@ A failed insert keeps the batch and retries with backoff; past
 ``max_buffer`` rows the writer raises :class:`BackpressureError` so the
 caller slows down instead of silently dropping logs.
 """
+
 from __future__ import annotations
 
 import json
@@ -22,12 +23,32 @@ from ..settings import get_settings
 from .base import AnomalyAlert, LogRow
 
 LOG_COLUMNS = [
-    "log_id", "timestamp", "device_id", "template_id", "log_status",
-    "registry_version", "version", "payload", "raw_message", "service", "source", "tags",
+    "log_id",
+    "timestamp",
+    "device_id",
+    "template_id",
+    "log_status",
+    "registry_version",
+    "version",
+    "payload",
+    "raw_message",
+    "service",
+    "source",
+    "tags",
 ]
 ALERT_COLUMNS = [
-    "alert_id", "device_id", "window_start", "window_end", "template_ids", "miss_ratio",
-    "novelty_ratio", "distance", "reasons", "had_unknowns", "registry_version", "model_version",
+    "alert_id",
+    "device_id",
+    "window_start",
+    "window_end",
+    "template_ids",
+    "miss_ratio",
+    "novelty_ratio",
+    "distance",
+    "reasons",
+    "had_unknowns",
+    "registry_version",
+    "model_version",
 ]
 
 
@@ -66,7 +87,10 @@ class ClickHouseStore:
         """``CLICKHOUSE_*`` settings; ``database`` (created if missing) overrides ``CLICKHOUSE_DB``."""
         cfg = get_settings().clickhouse
         client = clickhouse_connect.get_client(
-            host=cfg.host, port=cfg.port, username=cfg.user, password=cfg.password,
+            host=cfg.host,
+            port=cfg.port,
+            username=cfg.user,
+            password=cfg.password,
             # One client serves the ingest, job, housekeeping and request threads; ClickHouse
             # refuses concurrent queries inside one session, and nothing here needs a session.
             autogenerate_session_id=False,
@@ -95,9 +119,18 @@ class ClickHouseStore:
             return
         data = [
             [
-                r.log_id, r.timestamp, r.device_id, r.template_id, str(r.status),
-                r.registry_version, r.version, json.dumps(r.payload), r.raw_message,
-                r.service, r.source, list(r.tags),
+                r.log_id,
+                r.timestamp,
+                r.device_id,
+                r.template_id,
+                str(r.status),
+                r.registry_version,
+                r.version,
+                json.dumps(r.payload),
+                r.raw_message,
+                r.service,
+                r.source,
+                list(r.tags),
             ]
             for r in self._buffer
         ]
@@ -119,9 +152,18 @@ class ClickHouseStore:
             return
         data = [
             [
-                a.alert_id, a.device_id, a.window_start, a.window_end, list(a.template_ids),
-                a.miss_ratio, a.novelty_ratio, a.distance, list(a.reasons), int(a.had_unknowns),
-                a.registry_version, a.model_version,
+                a.alert_id,
+                a.device_id,
+                a.window_start,
+                a.window_end,
+                list(a.template_ids),
+                a.miss_ratio,
+                a.novelty_ratio,
+                a.distance,
+                list(a.reasons),
+                int(a.had_unknowns),
+                a.registry_version,
+                a.model_version,
             ]
             for a in alerts
         ]
@@ -152,8 +194,7 @@ class ClickHouseStore:
                 source=source,
                 tags=tuple(tags),
             )
-            for log_id, ts, device_id, template_id, registry_version, version, raw, service,
-            source, tags in result.result_rows
+            for log_id, ts, device_id, template_id, registry_version, version, raw, service, source, tags in result.result_rows
         ]
 
     def count_by_status(self) -> dict[str, int]:

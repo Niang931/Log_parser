@@ -18,12 +18,44 @@ def test_calibrate_then_replay(tmp_path, capsys):
 def test_train_then_run_full_pipeline(tmp_path, capsys):
     registry, model = tmp_path / "registry.json", tmp_path / "model"
     main(["calibrate", "--logs", str(FIXTURES), "--registry", str(registry)])
-    main(["train-logbert", "--logs", str(FIXTURES), "--registry", str(registry), "--out", str(model),
-          "--window", "4", "--stride", "2", "--epochs", "1", "--hidden", "16"])
+    main(
+        [
+            "train-logbert",
+            "--logs",
+            str(FIXTURES),
+            "--registry",
+            str(registry),
+            "--out",
+            str(model),
+            "--window",
+            "4",
+            "--stride",
+            "2",
+            "--epochs",
+            "1",
+            "--hidden",
+            "16",
+        ]
+    )
     assert (model / "config.json").exists() and (model / "model.pt").exists()
     capsys.readouterr()
-    main(["run", "--logs", str(FIXTURES), "--registry", str(registry), "--model", str(model),
-          "--store", "memory", "--window", "4", "--stride", "2"])
+    main(
+        [
+            "run",
+            "--logs",
+            str(FIXTURES),
+            "--registry",
+            str(registry),
+            "--model",
+            str(model),
+            "--store",
+            "memory",
+            "--window",
+            "4",
+            "--stride",
+            "2",
+        ]
+    )
     out = capsys.readouterr().out
     summary = json.loads(out[: out.rindex("}") + 1])
     assert summary["lines"] == 17 and summary["pending_at_ingest"] == 0

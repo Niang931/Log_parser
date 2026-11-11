@@ -1,5 +1,6 @@
 """Log store adapters: each backend's UI reads and query compiler behind one interface
 (:class:`~.base.StoreReads`, :class:`~.base.Compiler`)."""
+
 from __future__ import annotations
 
 from .base import FACETS, Compiler, StoreReads, level

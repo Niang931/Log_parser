@@ -1,7 +1,13 @@
 from logpipe.parsing.kv import compile_extractor, default_keys, extract, slot_labels
 
-TEMPLATE = ["<VAR:TIMESTAMP>", "[<VAR:LOGLEVEL>]", "SN:TH-<VAR:NUMBER>", "temp=<VAR:MEASURE>",
-            "<*>", "<*>"]
+TEMPLATE = [
+    "<VAR:TIMESTAMP>",
+    "[<VAR:LOGLEVEL>]",
+    "SN:TH-<VAR:NUMBER>",
+    "temp=<VAR:MEASURE>",
+    "<*>",
+    "<*>",
+]
 
 
 def test_slot_labels_and_default_keys():

@@ -6,6 +6,7 @@ when things broke, then reads around that moment).
 The engine itself never calls the LLM except through ``ctx.adapter`` in :mod:`synth` (the final
 explanation) and never reads anything that isn't one of the approved queries.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -33,6 +34,7 @@ from .spec import QuerySpec, time_range
 class Ctx:
     """Everything a plan reads from besides the approved queries: the server's catalog, models
     and settings, frozen at the moment the round is planned or run."""
+
     store: StoreReads
     templates: dict[int, str]  # id -> text, canonical ids only
     canonical: Callable[[int], int] = lambda t: t
@@ -42,8 +44,10 @@ class Ctx:
     search_templates: Callable[[str, int], list[tuple[int, float]]] = lambda text, k: []
     neighbours: Callable[[int, int], list[tuple[int, float]]] = lambda tid, k: []  # LogBERT vectors
     shutdown: set[int] = field(default_factory=set)
-    groups: dict[str, list[str]] = field(default_factory=dict)  # group -> the services its streams cover
-    services: set[str] = field(default_factory=set)  # every service the store knows (follow-ups may name any)
+    # group -> the services its streams cover
+    groups: dict[str, list[str]] = field(default_factory=dict)
+    # every service the store knows (follow-ups may name any)
+    services: set[str] = field(default_factory=set)
     adapter: Any = None
     question: str = ""  # the person's words, for the LLM's final answer
     now: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -76,13 +80,18 @@ class Round:
 @dataclass
 class Outcome:
     """What ``advance`` returns: the next round, or the finished result."""
+
     round: Round | None = None
     result: Result | None = None
     state: dict = field(default_factory=dict)  # JSON, stored with the plan between rounds
 
 
-def _q(n: int, i: int, tool: str, title: str, why: str, compiled: str, engine: str, **args) -> Query:
-    return Query(id=f"r{n}q{i}", tool=tool, title=title, why=why, args=args, compiled=compiled, engine=engine)
+def _q(
+    n: int, i: int, tool: str, title: str, why: str, compiled: str, engine: str, **args
+) -> Query:
+    return Query(
+        id=f"r{n}q{i}", tool=tool, title=title, why=why, args=args, compiled=compiled, engine=engine
+    )
 
 
 def local(n: int, i: int, tool: str, title: str, why: str, describe: str, **args) -> Query:
@@ -95,7 +104,14 @@ def log_read(ctx: Ctx, n: int, i: int, tool: str, title: str, why: str, **args) 
     f = Filters(**args.get("filters", {})).builder()
     c = ctx.store.compiler
     if tool == "rows":
-        compiled = c.rows(f, start, end, args.get("limit", 200), args.get("newest_first", False), args.get("payload", False))
+        compiled = c.rows(
+            f,
+            start,
+            end,
+            args.get("limit", 200),
+            args.get("newest_first", False),
+            args.get("payload", False),
+        )
     elif tool == "template_counts":
         compiled = c.template_counts(f, start, end)
     elif tool == "buckets":
@@ -103,9 +119,16 @@ def log_read(ctx: Ctx, n: int, i: int, tool: str, title: str, why: str, **args) 
     elif tool == "aggregate":
         spec = QuerySpec.model_validate(args["spec"])
         assert spec.aggregate is not None
-        compiled = c.build({**span(start, end), "filters": Filters.of(spec, ctx.groups).builder(),
-                            "group_by": spec.aggregate.group_by, "measure": {"fn": spec.aggregate.fn, "field": spec.aggregate.field},
-                            "over_time": spec.aggregate.over_time, "limit": spec.limit})
+        compiled = c.build(
+            {
+                **span(start, end),
+                "filters": Filters.of(spec, ctx.groups).builder(),
+                "group_by": spec.aggregate.group_by,
+                "measure": {"fn": spec.aggregate.fn, "field": spec.aggregate.field},
+                "over_time": spec.aggregate.over_time,
+                "limit": spec.limit,
+            }
+        )
     else:
         raise ValueError(f"unknown read {tool}")
     return _q(n, i, tool, title, why, compiled, c.engine, **args)
@@ -120,10 +143,14 @@ def execute(q: Query, ctx: Ctx) -> list[dict]:
     if q.status != "approved":
         raise PermissionError(f"query {q.id} is {q.status}, not approved")
     if q.engine != "local":
-        return ctx.store.records(q.compiled, ctx.ask.row_cap if q.tool == "rows" else ctx.ask.agg_cap)
+        return ctx.store.records(
+            q.compiled, ctx.ask.row_cap if q.tool == "rows" else ctx.ask.agg_cap
+        )
     if q.tool == "agents":
-        return [{"host": a.get("hostname"), "last_seen": a.get("last_seen"), "online": a.get("online")}
-                for a in ctx.agents()]
+        return [
+            {"host": a.get("hostname"), "last_seen": a.get("last_seen"), "online": a.get("online")}
+            for a in ctx.agents()
+        ]
     if q.tool == "alerts":
         start, end = q.args["start"], q.args["end"]
         return [a for a in ctx.alerts(500) if a["window_end"] >= start and a["window_start"] <= end]
@@ -141,7 +168,9 @@ def lookup_templates(spec: QuerySpec, ctx: Ctx) -> tuple[list[int], str]:
         return [ctx.canonical(t) for t in spec.template_ids], "templates named in the question"
     text = spec.semantic_query or spec.anchor_event or " ".join(spec.keywords)
     found = [(t, s) for t, s in ctx.search_templates(text, 5) if s > 0] if ctx.use_semantic else []
-    return [t for t, _ in found], f"closest templates to {text!r}: {describe_templates(found, ctx.templates) or 'none'}"
+    return [
+        t for t, _ in found
+    ], f"closest templates to {text!r}: {describe_templates(found, ctx.templates) or 'none'}"
 
 
 def first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
@@ -157,29 +186,72 @@ def first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
 
         return summary_round(spec, ctx, start, end)
     if spec.aggregate:
-        return Outcome(Round(1, "count", [log_read(ctx, 1, 1, "aggregate", "Count",
-                                                    f"{spec.aggregate.fn} per {', '.join(spec.aggregate.group_by) or 'range'}",
-                                                    spec=spec.model_dump(mode="json"), **span(start, end))]))
+        return Outcome(
+            Round(
+                1,
+                "count",
+                [
+                    log_read(
+                        ctx,
+                        1,
+                        1,
+                        "aggregate",
+                        "Count",
+                        f"{spec.aggregate.fn} per {', '.join(spec.aggregate.group_by) or 'range'}",
+                        spec=spec.model_dump(mode="json"),
+                        **span(start, end),
+                    )
+                ],
+            )
+        )
     f = Filters.of(spec, ctx.groups)
     note = ""
     if spec.intent in ("event", "semantic"):
         tids, note = lookup_templates(spec, ctx)
         if not tids and not spec.keywords:
-            return Outcome(result=ClarifyResult(message="No template looks like that event. Name it with words the lines "
-                                                        "contain (in quotes), or pick a template on the Templates page.", note=note))
+            return Outcome(
+                result=ClarifyResult(
+                    message="No template looks like that event. Name it with words the lines "
+                    "contain (in quotes), or pick a template on the Templates page.",
+                    note=note,
+                )
+            )
         if tids:
             f.template_ids = sorted(set(f.template_ids) | set(tids))
             f.keywords = []  # the templates are the match; the words described them
-    queries = [log_read(ctx, 1, 1, "rows", "Matching lines", "the newest lines that match: " + f.describe(),
-                        filters=asdict(f), limit=spec.limit, newest_first=True, **span(start, end))]
+    queries = [
+        log_read(
+            ctx,
+            1,
+            1,
+            "rows",
+            "Matching lines",
+            "the newest lines that match: " + f.describe(),
+            filters=asdict(f),
+            limit=spec.limit,
+            newest_first=True,
+            **span(start, end),
+        )
+    ]
     if spec.intent in ("event", "semantic"):
-        queries.append(log_read(ctx, 1, 2, "template_counts", "When each template occurred",
-                                "first and last time per template, to say when the event happened",
-                                filters=asdict(f), **span(start, end)))
+        queries.append(
+            log_read(
+                ctx,
+                1,
+                2,
+                "template_counts",
+                "When each template occurred",
+                "first and last time per template, to say when the event happened",
+                filters=asdict(f),
+                **span(start, end),
+            )
+        )
     return Outcome(Round(1, "search", queries), state={"note": note})
 
 
-def advance(spec: QuerySpec, state: dict, done: Round, outputs: dict[str, list[dict]], ctx: Ctx) -> Outcome:
+def advance(
+    spec: QuerySpec, state: dict, done: Round, outputs: dict[str, list[dict]], ctx: Ctx
+) -> Outcome:
     """The next round, or the result, from what the approved reads of ``done`` returned."""
     if spec.intent in ("rca", "summary"):
         from .rca import rca_advance
@@ -187,11 +259,19 @@ def advance(spec: QuerySpec, state: dict, done: Round, outputs: dict[str, list[d
         return rca_advance(spec, state, done, outputs, ctx)
     q = done.queries[0]
     if q.id not in outputs:
-        return Outcome(result=ClarifyResult(message="The search was not approved, so there is nothing to show."))
+        return Outcome(
+            result=ClarifyResult(
+                message="The search was not approved, so there is nothing to show."
+            )
+        )
     rows = outputs[q.id]
     if q.tool == "aggregate":
         cols = list(rows[0]) if rows else []
-        return Outcome(result=TableResult(columns=cols, rows=[[r[c] for c in cols] for r in rows], compiled=q.compiled))
+        return Outcome(
+            result=TableResult(
+                columns=cols, rows=[[r[c] for c in cols] for r in rows], compiled=q.compiled
+            )
+        )
     lines = [LogLine.model_validate(r) for r in rows]
     for line in lines:
         line.template_id = ctx.canonical(int(line.template_id or 0))
@@ -199,8 +279,16 @@ def advance(spec: QuerySpec, state: dict, done: Round, outputs: dict[str, list[d
     if len(done.queries) > 1 and done.queries[1].id in outputs:
         for c in (TemplateCount.model_validate(r) for r in outputs[done.queries[1].id]):
             tid = ctx.canonical(c.template_id)
-            seen.append(TemplateSeen(template_id=tid, service=c.service, count=c.n, first=c.first, last=c.last,
-                                     text=ctx.templates.get(tid, "")))
+            seen.append(
+                TemplateSeen(
+                    template_id=tid,
+                    service=c.service,
+                    count=c.n,
+                    first=c.first,
+                    last=c.last,
+                    text=ctx.templates.get(tid, ""),
+                )
+            )
     return Outcome(result=LinesResult(lines=lines, templates=seen, note=state.get("note", "")))
 
 
@@ -221,4 +309,8 @@ def run_unattended(spec: QuerySpec, ctx: Ctx) -> dict:
         out = advance(spec, state, r, outputs, ctx)
     result = out.result or ClarifyResult(message="too many rounds")
     return result.model_dump(mode="json") | {
-        "rounds": [{"n": r.n, "purpose": r.purpose, "queries": [asdict(q) for q in r.queries]} for r in rounds]}
+        "rounds": [
+            {"n": r.n, "purpose": r.purpose, "queries": [asdict(q) for q in r.queries]}
+            for r in rounds
+        ]
+    }

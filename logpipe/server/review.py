@@ -1,5 +1,6 @@
 """Template review: templates mined from a sample wait here as drafts until a person approves,
 edits, merges or rejects them. Only approved drafts reach the parser."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -19,8 +20,9 @@ def _parser(templates: Sequence[NewTemplate], masks: Sequence[Mask]) -> FrozenPa
     return FrozenParser(snapshot)
 
 
-def draft_docs(batch_id: str, templates: Sequence[NewTemplate], masks: Sequence[Mask],
-               lines: Sequence[str]) -> list[dict]:
+def draft_docs(
+    batch_id: str, templates: Sequence[NewTemplate], masks: Sequence[Mask], lines: Sequence[str]
+) -> list[dict]:
     """One draft per template, with how many sample lines it matches and a few of them."""
     parser = _parser(templates, masks)
     counts = [0] * len(templates)
@@ -32,11 +34,21 @@ def draft_docs(batch_id: str, templates: Sequence[NewTemplate], masks: Sequence[
             counts[i] += 1
             if len(samples[i]) < get_settings().server.review_samples:
                 samples[i].append(line)
-    return [{"id": f"{batch_id}-{i}", "batch": batch_id, "tokens": list(t.tokens),
-             "keys": list(t.keys), "count": counts[i], "samples": samples[i], "status": "pending",
-             "rule": rule_from_template(t.tokens, t.keys), "rule_edited": False,
-             "mined": {"tokens": list(t.tokens), "keys": list(t.keys)}}
-            for i, t in enumerate(templates)]
+    return [
+        {
+            "id": f"{batch_id}-{i}",
+            "batch": batch_id,
+            "tokens": list(t.tokens),
+            "keys": list(t.keys),
+            "count": counts[i],
+            "samples": samples[i],
+            "status": "pending",
+            "rule": rule_from_template(t.tokens, t.keys),
+            "rule_edited": False,
+            "mined": {"tokens": list(t.tokens), "keys": list(t.keys)},
+        }
+        for i, t in enumerate(templates)
+    ]
 
 
 def validate(tokens: Sequence[str], keys: Sequence[str]) -> None:
@@ -56,27 +68,36 @@ def validate(tokens: Sequence[str], keys: Sequence[str]) -> None:
         raise ValueError("field names must be unique")
 
 
-def check(tokens: Sequence[str], keys: Sequence[str], masks: Sequence[Mask],
-          lines: Sequence[str]) -> dict:
+def check(
+    tokens: Sequence[str], keys: Sequence[str], masks: Sequence[Mask], lines: Sequence[str]
+) -> dict:
     """How many sample lines this template alone matches, and a few of them."""
     validate(tokens, keys)
     parser = _parser([NewTemplate(tuple(tokens), tuple(keys))], masks)
     matched, samples = 0, []
-    for line in lines[:get_settings().server.review_check_lines]:
+    for line in lines[: get_settings().server.review_check_lines]:
         if parser.parse(line).status == Status.FINAL:
             matched += 1
             if len(samples) < get_settings().server.review_samples:
                 samples.append(line)
-    return {"count": matched, "samples": samples, "checked": min(len(lines), get_settings().server.review_check_lines)}
+    return {
+        "count": matched,
+        "samples": samples,
+        "checked": min(len(lines), get_settings().server.review_check_lines),
+    }
 
 
 def merge_tokens(a: Sequence[str], b: Sequence[str]) -> list[str]:
     """One template covering both: positions that differ become variables."""
     if len(a) != len(b):
-        raise ValueError(f"only templates with the same number of words can be merged "
-                         f"({len(a)} vs {len(b)}); edit one first")
-    return [x if x == y else x if SLOT_RE.fullmatch(x) else y if SLOT_RE.fullmatch(y) else "<*>"
-            for x, y in zip(a, b)]
+        raise ValueError(
+            f"only templates with the same number of words can be merged "
+            f"({len(a)} vs {len(b)}); edit one first"
+        )
+    return [
+        x if x == y else x if SLOT_RE.fullmatch(x) else y if SLOT_RE.fullmatch(y) else "<*>"
+        for x, y in zip(a, b)
+    ]
 
 
 def check_rule(text: str, lines: Sequence[str], own=None) -> dict:
@@ -85,7 +106,7 @@ def check_rule(text: str, lines: Sequence[str], own=None) -> dict:
     have matched."""
     rule = compile_rule(text)
     matched, rows, misses = 0, [], []
-    for line in lines[:get_settings().server.review_check_lines]:
+    for line in lines[: get_settings().server.review_check_lines]:
         fields = rule.extract(line)
         if fields is not None:
             matched += 1
@@ -93,9 +114,15 @@ def check_rule(text: str, lines: Sequence[str], own=None) -> dict:
                 rows.append({"line": line, "fields": fields})
         elif own is not None and len(misses) < 10 and own(line):
             misses.append({"line": line, "fields": None})
-    return {"count": matched, "checked": min(len(lines), get_settings().server.review_check_lines), "keys": list(rule.keys),
-            "tokens": list(rule.tokens), "rows": rows + misses, "missed": len(misses),
-            "samples": [r["line"] for r in rows[:get_settings().server.review_samples]]}
+    return {
+        "count": matched,
+        "checked": min(len(lines), get_settings().server.review_check_lines),
+        "keys": list(rule.keys),
+        "tokens": list(rule.tokens),
+        "rows": rows + misses,
+        "missed": len(misses),
+        "samples": [r["line"] for r in rows[: get_settings().server.review_samples]],
+    }
 
 
 def mined_matcher(draft: dict, masks: Sequence[Mask]):

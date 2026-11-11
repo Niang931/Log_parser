@@ -4,6 +4,7 @@ settings, kept as one JSON document per ``(kind, id)``.
 The in-memory copy is the source of truth while the server runs; every write also goes to
 ClickHouse's ``control_docs`` (newest version wins) so a restart picks up where it left off.
 """
+
 from __future__ import annotations
 
 import json
@@ -65,7 +66,8 @@ class ClickHouseDocs:
 
     def load(self) -> list[tuple[str, str, dict]]:
         rows = self.client.query(
-            "SELECT kind, id, doc FROM control_docs FINAL WHERE deleted = 0").result_rows
+            "SELECT kind, id, doc FROM control_docs FINAL WHERE deleted = 0"
+        ).result_rows
         return [(kind, doc_id, json.loads(doc)) for kind, doc_id, doc in rows]
 
     def write(self, kind: str, doc_id: str, doc: dict | None) -> None:

@@ -1,5 +1,6 @@
 """``logpipe server`` on a live ClickHouse: the agent columns migration, the control docs
 surviving a restart, and the UI reads (``pytest -m integration``)."""
+
 from __future__ import annotations
 
 import uuid
@@ -19,7 +20,8 @@ pytestmark = pytest.mark.integration
 def store(monkeypatch):
     from logpipe.storage.clickhouse import ClickHouseStore
 
-    monkeypatch.delenv("CLICKHOUSE_READONLY_USER", raising=False)  # .env may leak in (load_env); that user exists only in compose
+    # .env may leak in (load_env); that user exists only in compose
+    monkeypatch.delenv("CLICKHOUSE_READONLY_USER", raising=False)
 
     db = f"logpipe_server_test_{uuid.uuid4().hex[:8]}"
     st = ClickHouseStore.from_env(database=db, batch_size=10)
@@ -29,8 +31,14 @@ def store(monkeypatch):
 
 
 def make(store, tmp_path):
-    server = Server(store, ControlStore(ClickHouseDocs(store.client)), data_dir=tmp_path,
-                    adapter_factory=lambda: get_adapter("offline"), epochs=1, start_threads=False)
+    server = Server(
+        store,
+        ControlStore(ClickHouseDocs(store.client)),
+        data_dir=tmp_path,
+        adapter_factory=lambda: get_adapter("offline"),
+        epochs=1,
+        start_threads=False,
+    )
     return server, TestClient(create_app(server))
 
 
@@ -39,10 +47,20 @@ def test_server_on_clickhouse(store, tmp_path):
     token = client.post("/api/keys", json={"name": "ci"}).json()["token"]
     headers = {"X-API-Key": token}
     lines = [f"job {i} finished in {i % 50} ms on worker {i % 4}" for i in range(57)] + [
-        "ERROR [db] lost connection", "WARN disk 91% full",
-        '10.0.0.1 - - [x] "GET /a HTTP/1.1" 503 12']
-    r = client.post("/intake/v1/logs", headers=headers, json={"events": [
-        {"host": "h1", "service": "jobs", "source": "go", "tags": ["env:ci"], "message": m} for m in lines]})
+        "ERROR [db] lost connection",
+        "WARN disk 91% full",
+        '10.0.0.1 - - [x] "GET /a HTTP/1.1" 503 12',
+    ]
+    r = client.post(
+        "/intake/v1/logs",
+        headers=headers,
+        json={
+            "events": [
+                {"host": "h1", "service": "jobs", "source": "go", "tags": ["env:ci"], "message": m}
+                for m in lines
+            ]
+        },
+    )
     assert r.status_code == 202
     while not server.inbox.empty():
         server.process(server.inbox.get_nowait())
@@ -50,9 +68,13 @@ def test_server_on_clickhouse(store, tmp_path):
 
     logs = client.get("/api/logs", params={"service": "jobs", "limit": 3}).json()["logs"]
     assert len(logs) == 3 and logs[0]["host"] == "h1" and logs[0]["tags"] == ["env:ci"]
-    q = client.post("/api/query", json={"sql": "SELECT service, count() FROM iot_logs GROUP BY service"}).json()
+    q = client.post(
+        "/api/query", json={"sql": "SELECT service, count() FROM iot_logs GROUP BY service"}
+    ).json()
     assert q["rows"] == [["jobs", 60]]
-    assert client.post("/api/query", json={"sql": "SELECT 1; DROP TABLE iot_logs"}).status_code == 400
+    assert (
+        client.post("/api/query", json={"sql": "SELECT 1; DROP TABLE iot_logs"}).status_code == 400
+    )
     assert client.get("/api/stats").json()["services"] == [["jobs", 60]]
     # Level is SQL here and Python for the rows: both must agree.
     facets = client.get("/api/logs/facets", params={"minutes": 60}).json()
@@ -63,12 +85,27 @@ def test_server_on_clickhouse(store, tmp_path):
     assert sum(p["error"] for p in hist["points"]) == 2 and len(hist["points"]) == 90
 
     # The Query page's builder writes ClickHouse SQL that runs.
-    built = client.post("/api/query/build", json={"minutes": 60, "group_by": ["level"], "over_time": True}).json()
-    assert sum(r[-1] for r in built["result"]["rows"]) == 60 and {r[1] for r in built["result"]["rows"]} == {"info", "error", "warn"}
-    errors = client.post("/api/query/build", json={"minutes": 60, "filters": [
-        {"field": "level", "value": "error"}, {"field": "host", "value": "h1' OR 1=1 --"}]}).json()
+    built = client.post(
+        "/api/query/build", json={"minutes": 60, "group_by": ["level"], "over_time": True}
+    ).json()
+    assert sum(r[-1] for r in built["result"]["rows"]) == 60 and {
+        r[1] for r in built["result"]["rows"]
+    } == {"info", "error", "warn"}
+    errors = client.post(
+        "/api/query/build",
+        json={
+            "minutes": 60,
+            "filters": [
+                {"field": "level", "value": "error"},
+                {"field": "host", "value": "h1' OR 1=1 --"},
+            ],
+        },
+    ).json()
     assert errors["result"]["rows"] == [[0]]
-    p95 = client.post("/api/query/build", json={"minutes": 60, "measure": {"fn": "count_distinct", "field": "host"}}).json()
+    p95 = client.post(
+        "/api/query/build",
+        json={"minutes": 60, "measure": {"fn": "count_distinct", "field": "host"}},
+    ).json()
     assert p95["result"]["rows"] == [[1]]
 
     # A restart reads keys, sources and streams back from control_docs.
@@ -88,7 +125,8 @@ def test_one_client_serves_concurrent_threads(store):
         return store.client.query("SELECT sleep(0.05), count() FROM control_docs").result_rows
 
     with ThreadPoolExecutor(8) as pool:
-        list(pool.map(work, range(32)))  # used to raise "concurrent queries within the same session"
+        # used to raise "concurrent queries within the same session"
+        list(pool.map(work, range(32)))
     assert len(docs.load()) == 32
 
 
@@ -112,13 +150,19 @@ def test_ask_reads_are_read_only_on_clickhouse(store, tmp_path):
     server, _ = make(store, tmp_path)
     c = server.reads.compiler
     now = datetime.now(UTC)
-    for compiled in (c.rows(Filters(levels=["error"]).builder(), now - timedelta(hours=1), now),
-                     c.rows([], now - timedelta(hours=1), now, payload=True),
-                     c.template_counts([], now - timedelta(hours=1), now),
-                     c.buckets([], now - timedelta(hours=1), now, 60)):
+    for compiled in (
+        c.rows(Filters(levels=["error"]).builder(), now - timedelta(hours=1), now),
+        c.rows([], now - timedelta(hours=1), now, payload=True),
+        c.template_counts([], now - timedelta(hours=1), now),
+        c.buckets([], now - timedelta(hours=1), now, 60),
+    ):
         assert server.reads.records(compiled, 2000) == []
-    for sql in ("SELECT * FROM url('http://127.0.0.1:8123/?query=SELECT+1', CSV)", "SELECT * FROM system.users",
-                "SELECT 1; DROP TABLE iot_logs", "INSERT INTO iot_logs (raw_message) VALUES ('x')"):
+    for sql in (
+        "SELECT * FROM url('http://127.0.0.1:8123/?query=SELECT+1', CSV)",
+        "SELECT * FROM system.users",
+        "SELECT 1; DROP TABLE iot_logs",
+        "INSERT INTO iot_logs (raw_message) VALUES ('x')",
+    ):
         with pytest.raises(ValueError):
             server.reads.query(sql)
     # past the guard, the server itself refuses: readonly=2 (or the read-only user)

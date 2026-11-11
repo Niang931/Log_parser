@@ -82,7 +82,7 @@ def collect(out_dir: Path) -> dict:
             "P": round(float(full["P"]), 4),
             "R": round(float(full["R"]), 4),
         }
-    
+
     return result
 
 
@@ -104,13 +104,7 @@ def compare(current: dict, baseline: dict) -> list[Check]:
         )
     elif base:
         checks.append(
-            Check(
-                "parsing mean GA",
-                base["mean_GA"],
-                None,
-                False,
-                "parsing.json missing",
-            )
+            Check("parsing mean GA", base["mean_GA"], None, False, "parsing.json missing")
         )
 
     base, cur = baseline.get("alias"), current.get("alias")
@@ -150,15 +144,9 @@ def compare(current: dict, baseline: dict) -> list[Check]:
         )
     elif base:
         checks.append(
-            Check(
-                "IoT fleet F1 (full)",
-                base["F1"],
-                None,
-                False,
-                "iot/results.json missing",
-            )
+            Check("IoT fleet F1 (full)", base["F1"], None, False, "iot/results.json missing")
         )
-    
+
     return checks
 
 
@@ -178,16 +166,16 @@ def run_gate(out_dir: Path, baseline_path: Path = DEFAULT_BASELINE) -> int:
     if not baseline:
         print(f"[gate] no baseline at {baseline_path}; run with --write-baseline first")
         return 2
-    
+
     checks = compare(collect(out_dir), baseline)
     if not checks:
         print(f"[gate] nothing to compare under {out_dir}")
         return 2
-    
+
     for check in checks:
         print(check.line())
-    
+
     failed = [c for c in checks if not c.ok]
     print(f"[gate] {len(checks) - len(failed)}/{len(checks)} checks passed")
-    
+
     return 1 if failed else 0

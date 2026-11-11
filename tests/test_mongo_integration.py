@@ -1,4 +1,5 @@
 """MongoStore / MongoDocs on a live MongoDB (``pytest -m integration``; ``MONGO_URI``)."""
+
 from __future__ import annotations
 
 import os
@@ -28,15 +29,23 @@ T0 = datetime(2026, 1, 1, tzinfo=UTC)
 
 @pytest.fixture
 def db(monkeypatch):
-    monkeypatch.delenv("MONGO_READONLY_URI", raising=False)  # .env may leak in (load_env); tests set it themselves
-    client = MongoClient(os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017"),
-                         tz_aware=True, serverSelectionTimeoutMS=2000)
+    # .env may leak in (load_env); tests set it themselves
+    monkeypatch.delenv("MONGO_READONLY_URI", raising=False)
+    client = MongoClient(
+        os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017"),
+        tz_aware=True,
+        serverSelectionTimeoutMS=2000,
+    )
     try:
         client.admin.command("ping")
         name = f"logpipe_test_{uuid.uuid4().hex[:8]}"
-        client[name].list_collection_names()  # ping works without auth; this needs rights on a new db
+        client[
+            name
+        ].list_collection_names()  # ping works without auth; this needs rights on a new db
     except PyMongoError:
-        pytest.skip("no MongoDB reachable or not allowed to use it (set MONGO_URI with a user that can create databases)")
+        pytest.skip(
+            "no MongoDB reachable or not allowed to use it (set MONGO_URI with a user that can create databases)"
+        )
     yield client[name]
     client.drop_database(name)
     client.close()
@@ -44,8 +53,15 @@ def db(monkeypatch):
 
 def pending(i: int = 0, version: int = 1) -> LogRow:
     result = ParseResult(1, Status.PENDING, {}, version)
-    return LogRow.from_result(result, device_id="h1", timestamp=T0 + timedelta(seconds=i),
-                              raw_message=f"line {i}", service="svc", source="a.log", tags=("t",))
+    return LogRow.from_result(
+        result,
+        device_id="h1",
+        timestamp=T0 + timedelta(seconds=i),
+        raw_message=f"line {i}",
+        service="svc",
+        source="a.log",
+        tags=("t",),
+    )
 
 
 def final(row: LogRow, version: int, template_id: int = 7) -> LogRow:
@@ -105,8 +121,11 @@ def test_ttl_index_only_with_retention(db):
     MongoStore(db)
     assert all("expireAfterSeconds" not in i for i in db["logs"].index_information().values())
     MongoStore(db, retention_days=2)
-    ttl = [i["expireAfterSeconds"] for i in db["logs"].index_information().values()
-           if "expireAfterSeconds" in i]
+    ttl = [
+        i["expireAfterSeconds"]
+        for i in db["logs"].index_information().values()
+        if "expireAfterSeconds" in i
+    ]
     assert ttl == [2 * 86_400]
 
 
@@ -122,8 +141,16 @@ def test_control_docs_survive_restart(db):
 
 # UI reads: MongoReads must give the same answers as MemoryReads on the same rows
 
-LINES = ["ERROR [db] lost connection", "WARN disk 91% full", "INFO started", "DEBUG cache miss",
-         'GET /a HTTP/1.1" 503 12', 'GET /b HTTP/1.1" 404 7', "Exception in thread main", "job done"]
+LINES = [
+    "ERROR [db] lost connection",
+    "WARN disk 91% full",
+    "INFO started",
+    "DEBUG cache miss",
+    'GET /a HTTP/1.1" 503 12',
+    'GET /b HTTP/1.1" 404 7',
+    "Exception in thread main",
+    "job done",
+]
 
 
 def both(db):
@@ -132,15 +159,36 @@ def both(db):
     rows = []
     for i in range(40):
         r = LogRow.from_result(
-            ParseResult(i % 3, Status.FINAL if i % 2 else Status.PENDING, {}, 1), device_id=f"h{i % 2}",
-            timestamp=now - timedelta(seconds=30 * (i + 2)), raw_message=LINES[i % len(LINES)],
-            service=f"s{i % 3}", source=f"f{i % 2}.log", tags=("severity:warn",) if i % 7 == 0 else ())
+            ParseResult(i % 3, Status.FINAL if i % 2 else Status.PENDING, {}, 1),
+            device_id=f"h{i % 2}",
+            timestamp=now - timedelta(seconds=30 * (i + 2)),
+            raw_message=LINES[i % len(LINES)],
+            service=f"s{i % 3}",
+            source=f"f{i % 2}.log",
+            tags=("severity:warn",) if i % 7 == 0 else (),
+        )
         rows.append(r)
-    alerts = [AnomalyAlert("h0", now - timedelta(minutes=k + 1), now - timedelta(minutes=k), (1, 2), 0.5, 0.1,
-                           None, ("novel",), False, 1, "m1") for k in (2, 1, 0)]  # inserted oldest first
+    # inserted oldest first
+    alerts = [
+        AnomalyAlert(
+            "h0",
+            now - timedelta(minutes=k + 1),
+            now - timedelta(minutes=k),
+            (1, 2),
+            0.5,
+            0.1,
+            None,
+            ("novel",),
+            False,
+            1,
+            "m1",
+        )
+        for k in (2, 1, 0)
+    ]
     mem, mongo = MemoryStore(), MongoStore(db)
     for st in (mem, mongo):
-        st.insert_logs(rows[::-1])  # oldest first, like real ingest (MemoryReads.source_* keep insert order)
+        # oldest first, like real ingest (MemoryReads.source_* keep insert order)
+        st.insert_logs(rows[::-1])
         st.insert_alerts(alerts)
     return MemoryReads(mem), MongoReads(mongo)
 
@@ -148,19 +196,31 @@ def both(db):
 def test_reads_match_memory_store(db):
     mem, mongo = both(db)
     now = datetime.now(UTC)
-    for filters, text in [({}, ""), ({"level": "error"}, ""), ({"level": "warn"}, ""),
-                          ({"host": "h1", "status": "FINAL"}, "disk"), ({"template_id": "2"}, ""),
-                          ({"template_id": "x"}, ""), ({"service": "s1", "level": "info"}, "")]:
+    for filters, text in [
+        ({}, ""),
+        ({"level": "error"}, ""),
+        ({"level": "warn"}, ""),
+        ({"host": "h1", "status": "FINAL"}, "disk"),
+        ({"template_id": "2"}, ""),
+        ({"template_id": "x"}, ""),
+        ({"service": "s1", "level": "info"}, ""),
+    ]:
         assert mongo.recent(filters, 100, text, 30) == mem.recent(filters, 100, text, 30), filters
     assert mongo.recent({}, 5) == mem.recent({}, 5)
-    assert mongo.between(now - timedelta(minutes=5), now, 100, "h0") == mem.between(now - timedelta(minutes=5), now, 100, "h0")
-    assert mongo.between(now - timedelta(minutes=30), now, 7, None, "s2") == mem.between(now - timedelta(minutes=30), now, 7, None, "s2")
+    assert mongo.between(now - timedelta(minutes=5), now, 100, "h0") == mem.between(
+        now - timedelta(minutes=5), now, 100, "h0"
+    )
+    assert mongo.between(now - timedelta(minutes=30), now, 7, None, "s2") == mem.between(
+        now - timedelta(minutes=30), now, 7, None, "s2"
+    )
     for by in ("level", "status"):
         for filters in ({}, {"host": "h0"}, {"level": "error"}):
             assert mongo.histogram(30, by, filters) == mem.histogram(30, by, filters), (by, filters)
     for field in ("host", "service", "source", "status", "template_id", "level"):
         for filters in ({}, {"level": "error"}, {"host": "h0"}):
-            assert dict(mongo.top(field, 30, 50, filters)) == dict(mem.top(field, 30, 50, filters)), (field, filters)
+            assert dict(mongo.top(field, 30, 50, filters)) == dict(
+                mem.top(field, 30, 50, filters)
+            ), (field, filters)
     assert len(mongo.top("host", 30, 1)) == 1
     assert mongo.source_lines("h0", "s0", "f0.log", 3) == mem.source_lines("h0", "s0", "f0.log", 3)
     assert mongo.source_rows("h0", "s0", "f0.log", 3) == mem.source_rows("h0", "s0", "f0.log", 3)
@@ -181,7 +241,9 @@ def test_series_match_memory_and_have_ttl(db):
             series.write(base + i * 10, {"lines": float(i), "cpu": i * 1.5})
     assert mongo.query(30, 60) == mem.query(30, 60)
     MongoSeries(db)  # a restart finds the collection and does not fail
-    opts = db.command("listCollections", filter={"name": "server_metrics"})["cursor"]["firstBatch"][0]["options"]
+    opts = db.command("listCollections", filter={"name": "server_metrics"})["cursor"]["firstBatch"][
+        0
+    ]["options"]
     assert opts["expireAfterSeconds"] == 30 * 86_400
     assert opts["timeseries"]["timeField"] == "ts"
 
@@ -189,17 +251,29 @@ def test_series_match_memory_and_have_ttl(db):
 def test_free_form_pipelines_use_the_read_only_uri(db, monkeypatch):
     _, mongo = both(db)
     assert mongo.query_logs is mongo.logs  # no MONGO_READONLY_URI: the main connection
-    monkeypatch.setenv("MONGO_READONLY_URI", os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017"))
+    monkeypatch.setenv(
+        "MONGO_READONLY_URI", os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017")
+    )
     get_settings.cache_clear()  # settings are read once; this test changed them
     ro = MongoReads(MongoStore(db))
     assert ro.query_logs.database.client is not ro.logs.database.client  # its own client
     assert ro.query('[{"$group": {"_id": null, "n": {"$sum": 1}}}]')["rows"] == [[None, 40]]
 
 
-def test_bench_on_mongodb(db):  # `db` only skips when MongoDB is unreachable; the bench makes its own database
+# `db` only skips when MongoDB is unreachable; the bench makes its own database
+def test_bench_on_mongodb(db):
     from logpipe.bench import run
 
     result = run("mongodb", rates=(500,), step_seconds=2, flood=False, say=lambda m: None)
     paced = result["steps"][0]
-    assert result["store"] == "mongodb" and paced["kept_up"] and paced["inserts"] > 0 and paced["insert_ms"]["p99"] > 0
-    assert result["disk"]["lines"] > 0 and result["disk"]["data_bytes"] > 0 and result["disk"]["index_bytes"] > 0
+    assert (
+        result["store"] == "mongodb"
+        and paced["kept_up"]
+        and paced["inserts"] > 0
+        and paced["insert_ms"]["p99"] > 0
+    )
+    assert (
+        result["disk"]["lines"] > 0
+        and result["disk"]["data_bytes"] > 0
+        and result["disk"]["index_bytes"] > 0
+    )

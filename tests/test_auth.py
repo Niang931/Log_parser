@@ -1,4 +1,5 @@
 """The admin password: the UI's /api needs a session once a password is set; agents don't."""
+
 from __future__ import annotations
 
 import time
@@ -19,10 +20,16 @@ from logpipe.storage.memory import MemoryStore
 @pytest.fixture
 def env(tmp_path):
     control = ControlStore()
-    server = Server(MemoryStore(), control, data_dir=tmp_path, adapter_factory=lambda: get_adapter("offline"),
-                    start_threads=False)
+    server = Server(
+        MemoryStore(),
+        control,
+        data_dir=tmp_path,
+        adapter_factory=lambda: get_adapter("offline"),
+        start_threads=False,
+    )
     open_client = TestClient(create_app(server))
-    key = open_client.post("/api/keys", json={"name": "a"}).json()["token"]  # before a password exists
+    # before a password exists
+    key = open_client.post("/api/keys", json={"name": "a"}).json()["token"]
     Auth(control).set_password("correct horse")
     return control, TestClient(create_app(server)), {"X-API-Key": key}
 
@@ -72,9 +79,22 @@ def test_changing_the_password_signs_other_sessions_out(env):
     control, client, _ = env
     other = Auth(control).login("elsewhere", "correct horse")
     client.post("/api/auth/login", json={"password": "correct horse"})
-    assert client.post("/api/auth/password", json={"current": "wrong", "new": "x" * 9}).status_code == 403
-    assert client.post("/api/auth/password", json={"current": "correct horse", "new": "short"}).status_code == 400
-    assert client.post("/api/auth/password", json={"current": "correct horse", "new": "battery staple"}).status_code == 200
+    assert (
+        client.post("/api/auth/password", json={"current": "wrong", "new": "x" * 9}).status_code
+        == 403
+    )
+    assert (
+        client.post(
+            "/api/auth/password", json={"current": "correct horse", "new": "short"}
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            "/api/auth/password", json={"current": "correct horse", "new": "battery staple"}
+        ).status_code
+        == 200
+    )
     assert client.get("/api/overview").status_code == 200  # this session was renewed
     assert not Auth(control).valid(other)
 

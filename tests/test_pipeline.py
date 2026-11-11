@@ -29,7 +29,8 @@ def test_pipeline_closes_the_loop(snapshot):
     store = MemoryStore()
     worker = EnrichmentWorker(registry, handle, store, OfflineAdapter())
     detector = StreamingDetector(
-        FakeScorer(), DetectorConfig(window=5, stride=5, min_len=2, lateness=timedelta(0)),
+        FakeScorer(),
+        DetectorConfig(window=5, stride=5, min_len=2, lateness=timedelta(0)),
         resolver=lambda line: handle.parse(line).template_id,
     )
     pipeline = Pipeline(handle, store, worker=worker, detector=detector, enrich_every=1_000)

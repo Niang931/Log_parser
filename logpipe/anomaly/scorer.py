@@ -112,8 +112,7 @@ class LogBERTScorer:
     def save(self, directory: Path) -> None:
         directory.mkdir(parents=True, exist_ok=True)
         torch.save(
-            {"state_dict": self.model.state_dict(), "center": self.center},
-            directory / "model.pt",
+            {"state_dict": self.model.state_dict(), "center": self.center}, directory / "model.pt"
         )
         settings = asdict(self.settings)
         (directory / "config.json").write_text(
@@ -240,7 +239,7 @@ class LogBERTScorer:
         known = [i for i, tok in enumerate(encoded) if tok != UNK]
         top: dict[int, list[int]] = {}
         if known:
-            rows = torch.tensor([[SOS, *encoded[:i], MASK, *encoded[i + 1:]] for i in known])
+            rows = torch.tensor([[SOS, *encoded[:i], MASK, *encoded[i + 1 :]] for i in known])
             logprobs, _ = self.model(rows)
             k = min(self.settings.num_candidates, len(self.vocab))
             for row, i in enumerate(known):
@@ -251,8 +250,13 @@ class LogBERTScorer:
                 out.append({"template_id": int(window[i]), "status": "unseen", "expected": []})
                 continue
             expected = [self.vocab.template_ids[t - FIRST_KEY] for t in top[i] if t >= FIRST_KEY]
-            out.append({"template_id": int(window[i]), "status": "expected" if tok in top[i] else "unexpected",
-                        "expected": [t for t in expected if t != window[i]][:3]})
+            out.append(
+                {
+                    "template_id": int(window[i]),
+                    "status": "expected" if tok in top[i] else "unexpected",
+                    "expected": [t for t in expected if t != window[i]][:3],
+                }
+            )
         return out
 
     def reasons(self, score: WindowScore, thresholds: Thresholds | None = None) -> tuple[str, ...]:

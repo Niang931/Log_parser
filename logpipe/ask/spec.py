@@ -1,6 +1,7 @@
 """The structured form of a question. Whatever produced it (the deterministic fast path, the LLM,
 or a person editing it before approval), it is validated here against what actually exists, and
 anything it can't vouch for is refused (fail closed)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -23,6 +24,7 @@ GROUP_FIELDS = ("host", "service", "source", "level", "status", "template_id")
 
 class Aggregate(BaseModel):
     """A number instead of lines: ``fn`` of ``field`` per ``group_by`` (and per time bucket)."""
+
     model_config = ConfigDict(extra="forbid")
     fn: Literal["count", "count_distinct", "avg", "min", "max", "sum", "p95"] = "count"
     field: str | None = None
@@ -34,13 +36,20 @@ class Aggregate(BaseModel):
     def _groups(cls, v: list[str]) -> list[str]:
         for g in v:
             if g not in GROUP_FIELDS and not (g.startswith("@") and KEY_RE.match(g[1:])):
-                raise ValueError(f"can't group by {g!r}; use {', '.join(GROUP_FIELDS)} or @extracted_field")
+                raise ValueError(
+                    f"can't group by {g!r}; use {', '.join(GROUP_FIELDS)} or @extracted_field"
+                )
         return v
 
     @field_validator("field")
     @classmethod
     def _field(cls, v: str | None) -> str | None:
-        if v is not None and v not in GROUP_FIELDS and v != "message" and not (v.startswith("@") and KEY_RE.match(v[1:])):
+        if (
+            v is not None
+            and v not in GROUP_FIELDS
+            and v != "message"
+            and not (v.startswith("@") and KEY_RE.match(v[1:]))
+        ):
             raise ValueError(f"unknown field {v!r}")
         return v
 
@@ -53,7 +62,8 @@ class QuerySpec(BaseModel):
     end: datetime | None = None
     services: list[str] = Field(default_factory=list, max_length=20)
     hosts: list[str] = Field(default_factory=list, max_length=20)
-    groups: list[str] = Field(default_factory=list, max_length=10)  # stream groups: their services, together
+    # stream groups: their services, together
+    groups: list[str] = Field(default_factory=list, max_length=10)
     min_level: Literal["debug", "info", "warn", "error"] | None = None
     keywords: list[str] = Field(default_factory=list, max_length=MAX_KEYWORDS)
     template_ids: list[int] = Field(default_factory=list, max_length=50)
@@ -81,21 +91,34 @@ class QuerySpec(BaseModel):
 @dataclass
 class Catalog:
     """What a spec may name: services, hosts, stream groups and templates that exist."""
+
     services: set[str] = field(default_factory=set)
     hosts: set[str] = field(default_factory=set)
     templates: dict[int, str] = field(default_factory=dict)  # id -> text
-    groups: dict[str, list[str]] = field(default_factory=dict)  # group name -> the services of its streams
+    # group name -> the services of its streams
+    groups: dict[str, list[str]] = field(default_factory=dict)
 
     def describe(self, max_templates: int = 60) -> str:
         shown = list(self.templates.items())[:max_templates]
-        grouped = [f"  {g}: {', '.join(svcs) or '(no services yet)'}" for g, svcs in sorted(self.groups.items())]
-        return "\n".join([
-            f"services: {', '.join(sorted(self.services)) or '(none)'}",
-            f"hosts: {', '.join(sorted(self.hosts)) or '(none)'}",
-            "groups (a group is several services managed together; name it to cover all of them):",
-            *(grouped or ["  (none)"]),
-            "templates (id: text):", *(f"  {i}: {t[:120]}" for i, t in shown),
-            *([f"  ... and {len(self.templates) - len(shown)} more"] if len(self.templates) > len(shown) else [])])
+        grouped = [
+            f"  {g}: {', '.join(svcs) or '(no services yet)'}"
+            for g, svcs in sorted(self.groups.items())
+        ]
+        return "\n".join(
+            [
+                f"services: {', '.join(sorted(self.services)) or '(none)'}",
+                f"hosts: {', '.join(sorted(self.hosts)) or '(none)'}",
+                "groups (a group is several services managed together; name it to cover all of them):",
+                *(grouped or ["  (none)"]),
+                "templates (id: text):",
+                *(f"  {i}: {t[:120]}" for i, t in shown),
+                *(
+                    [f"  ... and {len(self.templates) - len(shown)} more"]
+                    if len(self.templates) > len(shown)
+                    else []
+                ),
+            ]
+        )
 
 
 def _pick(names: list[str], known: set[str], what: str) -> list[str]:
@@ -105,7 +128,9 @@ def _pick(names: list[str], known: set[str], what: str) -> list[str]:
     for n in names:
         hit = lower.get(n.strip().lower())
         if hit is None:
-            raise ValueError(f"unknown {what} {n!r}; known: {', '.join(sorted(known)) or 'none yet'}")
+            raise ValueError(
+                f"unknown {what} {n!r}; known: {', '.join(sorted(known)) or 'none yet'}"
+            )
         out.append(hit)
     return list(dict.fromkeys(out))
 
@@ -124,7 +149,9 @@ def validate(raw: dict | QuerySpec, catalog: Catalog, now: datetime | None = Non
     spec.hosts = _pick(spec.hosts, catalog.hosts, "host")
     spec.groups = _pick(spec.groups, set(catalog.groups), "group")
     if empty := [g for g in spec.groups if not catalog.groups[g]]:
-        raise ValueError(f"group {empty[0]!r} has no services yet: add streams that have sources to it")
+        raise ValueError(
+            f"group {empty[0]!r} has no services yet: add streams that have sources to it"
+        )
     if unknown := [t for t in spec.template_ids if t not in catalog.templates]:
         raise ValueError(f"unknown template id {unknown[0]}")
     if spec.start or spec.end:
@@ -136,7 +163,9 @@ def validate(raw: dict | QuerySpec, catalog: Catalog, now: datetime | None = Non
         spec.minutes = None
     if spec.anchor_time and spec.anchor_time > now + timedelta(minutes=1):
         raise ValueError("the anchor time is in the future")
-    if spec.intent == "semantic" and not (spec.semantic_query or spec.anchor_event or spec.keywords):
+    if spec.intent == "semantic" and not (
+        spec.semantic_query or spec.anchor_event or spec.keywords
+    ):
         raise ValueError("a semantic search needs something to search for")
     if spec.intent == "event" and not (spec.template_ids or spec.anchor_event or spec.keywords):
         raise ValueError("an event search needs a template, an event description or keywords")
@@ -154,9 +183,11 @@ def time_range(spec: QuerySpec, now: datetime | None = None) -> tuple[datetime, 
     if spec.start and spec.end:
         return spec.start, spec.end
     if spec.anchor_time and not spec.minutes:
-        return spec.anchor_time - timedelta(minutes=30), min(spec.anchor_time + timedelta(minutes=2), now)
+        return spec.anchor_time - timedelta(minutes=30), min(
+            spec.anchor_time + timedelta(minutes=2), now
+        )
     return now - timedelta(minutes=spec.minutes or DEFAULT_MINUTES), now
 
 
 def levels_at_least(level: str | None) -> list[str]:
-    return list(LEVELS[LEVELS.index(level):]) if level else []
+    return list(LEVELS[LEVELS.index(level) :]) if level else []

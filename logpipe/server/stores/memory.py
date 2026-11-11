@@ -1,5 +1,6 @@
 """The memory store: UI reads in Python over its rows, and queries on a read-only SQLite copy of
 them (``logs``), rebuilt only after new inserts."""
+
 from __future__ import annotations
 
 import json
@@ -19,8 +20,15 @@ from .sql import SqlCompiler, guard_sql
 
 class SqliteSql(SqlCompiler):
     engine, table, source = "sqlite", "logs", "logs"
-    columns: ClassVar[dict[str, str]] = {"host": "device_id", "service": "service", "source": "source", "level": "level",
-               "status": "status", "template_id": "template_id", "message": "raw_message"}
+    columns: ClassVar[dict[str, str]] = {
+        "host": "device_id",
+        "service": "service",
+        "source": "source",
+        "level": "level",
+        "status": "status",
+        "template_id": "template_id",
+        "message": "raw_message",
+    }
 
     def quote(self, value: str) -> str:
         return "'" + value.replace("'", "''") + "'"
@@ -53,18 +61,22 @@ class SqliteSql(SqlCompiler):
         return f"count(DISTINCT {col})" if fn == "count_distinct" else f"{fn}({col})"
 
     def template_counts(self, filters: list[dict], start: datetime, end: datetime) -> str:
-        return ("SELECT template_id, service, n, timestamp AS first, last, raw_message AS example, log_id,\n"
-                "  device_id AS host, level\nFROM (SELECT *, ROW_NUMBER() OVER w AS rn, COUNT(*) OVER p AS n,\n"
-                "    MAX(timestamp) OVER p AS last\n"
-                f"  FROM logs WHERE {self._where(filters, start, end)}\n"
-                "  WINDOW p AS (PARTITION BY template_id, service),\n"
-                "    w AS (PARTITION BY template_id, service ORDER BY julianday(timestamp)))\n"
-                f"WHERE rn = 1\nORDER BY julianday(first)\nLIMIT {get_settings().ask.agg_cap}")
+        return (
+            "SELECT template_id, service, n, timestamp AS first, last, raw_message AS example, log_id,\n"
+            "  device_id AS host, level\nFROM (SELECT *, ROW_NUMBER() OVER w AS rn, COUNT(*) OVER p AS n,\n"
+            "    MAX(timestamp) OVER p AS last\n"
+            f"  FROM logs WHERE {self._where(filters, start, end)}\n"
+            "  WINDOW p AS (PARTITION BY template_id, service),\n"
+            "    w AS (PARTITION BY template_id, service ORDER BY julianday(timestamp)))\n"
+            f"WHERE rn = 1\nORDER BY julianday(first)\nLIMIT {get_settings().ask.agg_cap}"
+        )
 
     def template_sample(self, template_id: int, keys: list[str]) -> str:
-        cols = "".join(f",\n  json_extract(payload, '$.\"{k}\"') AS \"{k}\"" for k in keys)
-        return (f"SELECT timestamp, device_id AS host, service{cols}\nFROM logs\n"
-                f"WHERE template_id = {int(template_id)}\nORDER BY timestamp DESC\nLIMIT 50")
+        cols = "".join(f',\n  json_extract(payload, \'$."{k}"\') AS "{k}"' for k in keys)
+        return (
+            f"SELECT timestamp, device_id AS host, service{cols}\nFROM logs\n"
+            f"WHERE template_id = {int(template_id)}\nORDER BY timestamp DESC\nLIMIT 50"
+        )
 
 
 class MemoryReads(StoreReads):
@@ -91,14 +103,31 @@ class MemoryReads(StoreReads):
                 out.append(j)
         return out
 
-    def recent(self, filters: dict, limit: int, text: str = "", minutes: int | None = None) -> list[dict]:
-        return sorted(self._match(filters, text, minutes), key=lambda j: j["timestamp"], reverse=True)[:limit]
+    def recent(
+        self, filters: dict, limit: int, text: str = "", minutes: int | None = None
+    ) -> list[dict]:
+        return sorted(
+            self._match(filters, text, minutes), key=lambda j: j["timestamp"], reverse=True
+        )[:limit]
 
-    def between(self, start: datetime, end: datetime, limit: int, host: str | None = None,
-                service: str | None = None) -> list[dict]:
-        rows = sorted((r for r in self._rows() if start <= r.timestamp <= end
-                       and host in (None, r.device_id) and service in (None, r.service)),
-                      key=lambda r: r.timestamp)
+    def between(
+        self,
+        start: datetime,
+        end: datetime,
+        limit: int,
+        host: str | None = None,
+        service: str | None = None,
+    ) -> list[dict]:
+        rows = sorted(
+            (
+                r
+                for r in self._rows()
+                if start <= r.timestamp <= end
+                and host in (None, r.device_id)
+                and service in (None, r.service)
+            ),
+            key=lambda r: r.timestamp,
+        )
         return [row_json(r) for r in rows[:limit]]
 
     def histogram(self, minutes: int, by: str, filters: dict | None = None, text: str = "") -> dict:
@@ -109,16 +138,28 @@ class MemoryReads(StoreReads):
             counts.setdefault(t, Counter())[j[key]] += 1
         return {"step": step, "points": zero_fill(minutes, step, counts, histogram_keys(by))}
 
-    def top(self, field: str, minutes: int, limit: int, filters: dict | None = None, text: str = "") -> list[tuple]:
-        return Counter(j[field] for j in self._match(filters or {}, text, minutes)).most_common(limit)
+    def top(
+        self, field: str, minutes: int, limit: int, filters: dict | None = None, text: str = ""
+    ) -> list[tuple]:
+        return Counter(j[field] for j in self._match(filters or {}, text, minutes)).most_common(
+            limit
+        )
 
     def source_lines(self, host: str, service: str, source: str, limit: int) -> list[str]:
-        return [r.raw_message for r in self._rows() if (r.device_id, r.service, r.source) == (host, service, source)][-limit:]
+        return [
+            r.raw_message
+            for r in self._rows()
+            if (r.device_id, r.service, r.source) == (host, service, source)
+        ][-limit:]
 
     def source_rows(self, host: str, service: str, source: str, limit: int) -> list[tuple]:
-        rows = [(r.timestamp, r.template_id) for r in self._rows()
-                if (r.device_id, r.service, r.source) == (host, service, source)]
-        return sorted(rows, key=lambda r: r[0])[-limit:]  # stable: same-millisecond lines keep arrival order
+        rows = [
+            (r.timestamp, r.template_id)
+            for r in self._rows()
+            if (r.device_id, r.service, r.source) == (host, service, source)
+        ]
+        # stable: same-millisecond lines keep arrival order
+        return sorted(rows, key=lambda r: r[0])[-limit:]
 
     def alerts(self, limit: int) -> list[dict]:
         with self.store._lock:
@@ -129,12 +170,28 @@ class MemoryReads(StoreReads):
         if self._db is None or self._db[0] != self.store.inserts:
             rows, inserts = self._rows(), self.store.inserts
             db = sqlite3.connect(":memory:", check_same_thread=False)
-            db.execute("CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, service TEXT, "
-                       "source TEXT, template_id INTEGER, status TEXT, payload TEXT, raw_message TEXT, level TEXT)")
-            db.executemany("INSERT INTO logs VALUES (?,?,?,?,?,?,?,?,?,?)", [
-                (str(r.log_id), r.timestamp.astimezone(UTC).isoformat(), r.device_id, r.service, r.source,
-                 r.template_id, str(r.status), json.dumps(r.payload), r.raw_message, level(r.raw_message, r.tags))
-                for r in rows])
+            db.execute(
+                "CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, service TEXT, "
+                "source TEXT, template_id INTEGER, status TEXT, payload TEXT, raw_message TEXT, level TEXT)"
+            )
+            db.executemany(
+                "INSERT INTO logs VALUES (?,?,?,?,?,?,?,?,?,?)",
+                [
+                    (
+                        str(r.log_id),
+                        r.timestamp.astimezone(UTC).isoformat(),
+                        r.device_id,
+                        r.service,
+                        r.source,
+                        r.template_id,
+                        str(r.status),
+                        json.dumps(r.payload),
+                        r.raw_message,
+                        level(r.raw_message, r.tags),
+                    )
+                    for r in rows
+                ],
+            )
             db.commit()
             db.execute("PRAGMA query_only = ON")
             self._db = (inserts, db)
@@ -146,6 +203,11 @@ class MemoryReads(StoreReads):
             try:
                 cur = self._sqlite().execute(sql)
                 rows = cur.fetchmany(max_rows or get_settings().server.max_query_rows)
-                return {"columns": [d[0] for d in cur.description or ()], "rows": rows, "engine": "sqlite", "table": "logs"}
+                return {
+                    "columns": [d[0] for d in cur.description or ()],
+                    "rows": rows,
+                    "engine": "sqlite",
+                    "table": "logs",
+                }
             except sqlite3.Error as error:
                 raise ValueError(str(error)) from error

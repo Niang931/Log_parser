@@ -11,8 +11,15 @@ from logpipe.demo.server import Demo, make_handler, save_registry
 
 
 def _demo(**kw) -> Demo:
-    return Demo(devices=1, history_hours=0.5, validation_hours=0.25, test_hours=0.5, epochs=1,
-                enrich_every=50, **{"log": lambda _: None} | kw)
+    return Demo(
+        devices=1,
+        history_hours=0.5,
+        validation_hours=0.25,
+        test_hours=0.5,
+        epochs=1,
+        enrich_every=50,
+        **{"log": lambda _: None} | kw,
+    )
 
 
 def test_demo_endpoints_controls_and_timeline():
@@ -43,7 +50,9 @@ def test_demo_endpoints_controls_and_timeline():
         stream = get("/api/stream?after=0")
         assert stream["finished"] and stream["done"] == len(stream["lines"])
         assert {"raw", "status", "template_id", "payload", "firmware"} <= stream["lines"][0].keys()
-        assert any(line["anomaly"] == "stuck" and line["device_id"] == plug for line in stream["lines"])
+        assert any(
+            line["anomaly"] == "stuck" and line["device_id"] == plug for line in stream["lines"]
+        )
 
         kinds = {e["kind"] for e in get("/api/events?after=0")["events"]}
         # The rollout changes wording, so enrichment must learn or re-associate templates.
@@ -52,7 +61,9 @@ def test_demo_endpoints_controls_and_timeline():
 
         system = get("/api/system")
         assert system["hit"] + system["miss"] == system["lines"] == stream["done"]
-        assert system["queue"]["kind"] == "memory" and system["queue"]["published"] == system["miss"]
+        assert (
+            system["queue"]["kind"] == "memory" and system["queue"]["published"] == system["miss"]
+        )
         assert system["published"] >= 1 and system["mask_backend"] == "offline"
 
         pending = next(line["i"] for line in stream["lines"] if line["status"] == "PENDING")

@@ -4,6 +4,7 @@ Adapted from ``bert_pytorch/model`` in https://github.com/HelenGuohx/logbert
 (MIT, Copyright (c) 2023 Helennnnn), itself derived from
 https://github.com/codertimo/BERT-pytorch (Apache-2.0).
 """
+
 from __future__ import annotations
 
 import math
@@ -78,7 +79,12 @@ class MultiHeadedAttention(nn.Module):
         scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(self.d_k)
         scores = scores.masked_fill(~mask, -1e9)
         attn = self.dropout(torch.softmax(scores, dim=-1))
-        out = torch.matmul(attn, value).transpose(1, 2).contiguous().view(batch, -1, self.h * self.d_k)
+        out = (
+            torch.matmul(attn, value)
+            .transpose(1, 2)
+            .contiguous()
+            .view(batch, -1, self.h * self.d_k)
+        )
         return self.output_linear(out)
 
 
@@ -115,13 +121,17 @@ class LogBERT(nn.Module):
     def __init__(self, config: LogBERTConfig):
         super().__init__()
         self.config = config
-        self.embedding = BERTEmbedding(config.vocab_size, config.hidden, config.max_len, config.dropout)
+        self.embedding = BERTEmbedding(
+            config.vocab_size, config.hidden, config.max_len, config.dropout
+        )
         # TODO: should i do hidden * 2 or * 4 like with original BERT, eval later
         self.blocks = nn.ModuleList(
             TransformerBlock(config.hidden, config.attn_heads, config.hidden * 2, config.dropout)
             for _ in range(config.layers)
         )
-        self.mask_lm = nn.Sequential(nn.Linear(config.hidden, config.vocab_size), nn.LogSoftmax(dim=-1))
+        self.mask_lm = nn.Sequential(
+            nn.Linear(config.hidden, config.vocab_size), nn.LogSoftmax(dim=-1)
+        )
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         mask = (x > 0)[:, None, None, :]
