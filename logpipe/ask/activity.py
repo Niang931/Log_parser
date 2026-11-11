@@ -10,6 +10,7 @@ import json
 import threading
 import time
 from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Literal, cast, get_args
 
 from ..enrich import llm
@@ -21,6 +22,14 @@ STEPS: dict[Schema, str] = {
     "RouteOut": "Reading your question",
     "AnswerOut": "Writing the answer from the evidence",
 }
+
+
+class StepStatus(StrEnum):
+    RUNNING = "running"
+    DONE = "done"
+    FAILED = "failed"
+
+
 KEEP = 20_000  # characters of a prompt or reply kept for the UI
 
 
@@ -68,7 +77,7 @@ class Recorder:
         entry = {
             "step": STEPS[name],
             "schema": name,
-            "status": "running",
+            "status": StepStatus.RUNNING,
             "started_at": _now(),
             "timeout_seconds": self.timeout,
             "messages": [],
@@ -82,13 +91,13 @@ class Recorder:
 
         def listen(message: str, record: dict | None) -> None:
             # a call cut off by the deadline may still talk: it no longer belongs to this entry
-            if entry["status"] != "running" or message.startswith("answer:"):
+            if entry["status"] != StepStatus.RUNNING or message.startswith("answer:"):
                 return
             said = {"at": _now(), "text": message[:300]}
             entry["messages"] = [*entry["messages"], said][-20:]
             self._save()
 
-        def finish(status: str, outcome_text: str, reply: str | None = None) -> None:
+        def finish(status: StepStatus, outcome_text: str, reply: str | None = None) -> None:
             seconds = round(time.monotonic() - started, 1)
             entry.update(
                 status=status,
@@ -114,15 +123,15 @@ class Recorder:
         worker.start()
         worker.join(self.timeout)
         if worker.is_alive():
-            finish("failed", f"no answer after {self.timeout:g} s: stopped waiting")
+            finish(StepStatus.FAILED, f"no answer after {self.timeout:g} s: stopped waiting")
             raise LLMFailed(f"no answer after {self.timeout:g} s")
         if "error" in result:
             error = result["error"]
-            finish("failed", f"failed: {error}"[:300])
+            finish(StepStatus.FAILED, f"failed: {error}"[:300])
             raise LLMFailed(str(error)[:300]) from error
         out = result.get("out")
         reply = None if out is None else json.dumps(out.model_dump(), indent=1)[:KEEP]
-        finish("done" if out is not None else "failed", outcome(name, out), reply)
+        finish(StepStatus.DONE if out is not None else StepStatus.FAILED, outcome(name, out), reply)
         return out
 
     def __getattr__(self, name: str):

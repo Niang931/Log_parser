@@ -6,6 +6,7 @@ approval, with the exact text that will run). Reads are compiled by the store ad
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from enum import StrEnum
 from typing import Literal
 
 from .spec import QuerySpec, levels_at_least
@@ -73,6 +74,14 @@ LocalTool = Literal["agents", "alerts"]
 Tool = LogTool | LocalTool
 
 
+class QueryStatus(StrEnum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    DONE = "done"
+    FAILED = "failed"
+
+
 @dataclass
 class Query:
     """One read, as shown for approval: what it is for, and the exact text that will run."""
@@ -84,6 +93,10 @@ class Query:
     args: dict
     compiled: str
     engine: str  # the store's engine, or "local" for reads that touch no log data
-    status: str = "pending"  # pending | approved | rejected | done | failed
+    status: QueryStatus = QueryStatus.PENDING
     error: str | None = None
     result_summary: str | None = None
+
+    def __post_init__(self) -> None:
+        # a query read back from a stored plan carries its status as text
+        self.status = QueryStatus(self.status)

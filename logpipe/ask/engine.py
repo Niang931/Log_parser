@@ -26,7 +26,7 @@ from .models import (
     TemplateCount,
     TemplateSeen,
 )
-from .query import Filters, LocalTool, LogTool, Query, Tool
+from .query import Filters, LocalTool, LogTool, Query, QueryStatus, Tool
 from .spec import QuerySpec, time_range
 
 
@@ -176,7 +176,7 @@ def span(start: datetime, end: datetime) -> dict:
 
 def execute(q: Query, ctx: Ctx) -> list[dict]:
     """Run one approved read. Log reads run the compiled text exactly as it was shown."""
-    if q.status != "approved":
+    if q.status != QueryStatus.APPROVED:
         raise PermissionError(f"query {q.id} is {q.status}, not approved")
     if q.engine != "local":
         return ctx.store.records(
@@ -338,9 +338,9 @@ def run_unattended(spec: QuerySpec, ctx: Ctx) -> dict:
         assert r is not None
         outputs = {}
         for q in r.queries:
-            q.status = "approved"
+            q.status = QueryStatus.APPROVED
             outputs[q.id] = execute(q, ctx)
-            q.status = "done"
+            q.status = QueryStatus.DONE
         rounds.append(r)
         out = advance(spec, state, r, outputs, ctx)
     result = out.result or ClarifyResult(message="too many rounds")
