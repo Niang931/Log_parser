@@ -179,9 +179,8 @@ class AskService:
                     q["status"] = QueryStatus.APPROVED
                 plan["status"] = PlanStatus.APPROVED
         self._put(plan)
-        if (
-            plan["status"] == PlanStatus.APPROVED and enqueue
-        ):  # the job runs auto-approved rounds itself
+        # inside a job, the job runs auto-approved rounds itself (enqueue=False)
+        if plan["status"] == PlanStatus.APPROVED and enqueue:
             self.server.enqueue("ask", plan=plan["id"], round=plan["rounds"][-1]["n"])
         self.server.events.notify()
         return plan

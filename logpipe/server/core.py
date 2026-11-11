@@ -299,7 +299,7 @@ class Server:
         self.data_dir = data_dir
         self.registry_path = data_dir / "registry.json"
         self.adapter_factory, self.queue_factory = adapter_factory, queue_factory
-        self._adapter: LLMAdapter | None = None
+        self._adapter: CountedAdapter | None = None
         self.epochs, self.window, self.stride = epochs, window, stride
         self.min_train_steps = min_train_steps or self.config.server.min_train_steps
         self.enrich_every_s, self.schedule_every_s = enrich_every_s, schedule_every_s
@@ -367,7 +367,7 @@ class Server:
                 threading.Thread(target=target, daemon=True, name=target.__name__).start()
 
     @property
-    def adapter(self) -> LLMAdapter:
+    def adapter(self) -> CountedAdapter:
         if self._adapter is None:
             self._adapter = CountedAdapter(self.adapter_factory(), self.metrics)
         return self._adapter
@@ -376,6 +376,7 @@ class Server:
         """Before calibration: store everything as PENDING, learn nothing (the setup guide
         decides when calibration starts). After: online enrichment + per-stream detectors."""
         with self.lock:
+            # TODO: fix the type misalignment problem later
             if self.settings.calibrated:
                 self.pipeline = Pipeline.assemble(
                     self.registry,
