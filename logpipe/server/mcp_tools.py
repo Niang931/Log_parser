@@ -95,7 +95,6 @@ async def call(ctx: Context, method: str, path: str, *, params: dict | None = No
     return response.json()
 
 
-# --- logs ---------------------------------------------------------------------------------
 async def search_logs(ctx: Context, where: LogFilter, limit: int = 100) -> Capped:
     """Newest log lines matching the filter."""
     params = where.params() | {"limit": min(max(limit, 1), MAX_ROWS) + 1}
@@ -123,7 +122,6 @@ async def run_query(ctx: Context, sql: str, limit: int = 100) -> QueryResult:
     return QueryResult(columns=result["columns"], **cap(result["rows"], limit).model_dump())
 
 
-# --- incidents ----------------------------------------------------------------------------
 async def list_incidents(ctx: Context, status: str = "", limit: int = 50) -> Capped:
     """Anomaly incidents, newest first; status is open, acknowledged, resolved or false_positive."""
     return cap((await call(ctx, "GET", "/api/incidents", params={"status": status}))["incidents"], limit)
@@ -146,7 +144,6 @@ async def add_incident_note(ctx: Context, incident_id: str, note: str) -> dict:
     return await call(ctx, "PUT", f"/api/incidents/{incident_id}", json={"status": status, "note": note})
 
 
-# --- templates and review -----------------------------------------------------------------
 async def list_templates(ctx: Context, candidates_only: bool = False, limit: int = 100) -> Capped:
     """Known templates with counts and rules; candidates are ones first seen after calibration."""
     templates = (await call(ctx, "GET", "/api/templates"))["templates"]
@@ -190,7 +187,6 @@ async def generate_review_batch(ctx: Context, sample_cap: int | None = None) -> 
     return await call(ctx, "POST", "/api/review/generate", json={"sample_cap": sample_cap})
 
 
-# --- health -------------------------------------------------------------------------------
 async def overview(ctx: Context) -> dict:
     """Ingest volume, parse rate and top services at a glance."""
     return await call(ctx, "GET", "/api/overview")
@@ -222,7 +218,6 @@ async def warnings(ctx: Context) -> dict:
     return await call(ctx, "GET", "/api/warnings")
 
 
-# --- saved queries ------------------------------------------------------------------------
 async def list_saved_queries(ctx: Context) -> dict:
     """Named queries saved in the web UI."""
     return await call(ctx, "GET", "/api/queries")
@@ -241,7 +236,6 @@ TOOLS = [search_logs, log_histogram, log_facets, query_schema, run_query,
          list_saved_queries, save_query]
 
 
-# --- prompts ------------------------------------------------------------------------------
 def investigate_incident(incident_id: str) -> str:
     """Find the root cause of an incident, with evidence."""
     return (f"Investigate logpipe incident {incident_id}.\n"

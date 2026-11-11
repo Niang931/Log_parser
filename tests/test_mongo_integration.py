@@ -119,7 +119,7 @@ def test_control_docs_survive_restart(db):
     assert again.all("agents") == [{"name": "uno"}]
 
 
-# --- UI reads: MongoReads must give the same answers as MemoryReads on the same rows -------------
+# UI reads: MongoReads must give the same answers as MemoryReads on the same rows
 
 LINES = ["ERROR [db] lost connection", "WARN disk 91% full", "INFO started", "DEBUG cache miss",
          'GET /a HTTP/1.1" 503 12', 'GET /b HTTP/1.1" 404 7', "Exception in thread main", "job done"]

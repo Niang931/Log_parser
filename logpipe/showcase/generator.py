@@ -45,7 +45,6 @@ class ShopGenerator:
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
 
-    # --- what happens -----------------------------------------------------------------
     # Like real services: the API logs the host's local wall clock without a zone, nginx its
     # local time with the offset, Postgres and inventory say UTC.
     def _api(self, now: datetime, level: str, thread: int, logger: str, text: str) -> str:
@@ -101,7 +100,6 @@ class ShopGenerator:
                 ev.append(Event("inventory", f'time={now.astimezone(UTC):%Y-%m-%dT%H:%M:%SZ} level=warn msg="stock level low" sku={sku} left={r.randint(0, 9)}'))
         return ev
 
-    # --- running ----------------------------------------------------------------------
     def incident(self, seconds: float = 60) -> None:
         self.incident_until = time.monotonic() + seconds
 

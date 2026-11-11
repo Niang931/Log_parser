@@ -315,7 +315,6 @@ class Server:
             for target in (self._ingest_loop, self._job_loop, self._housekeeping_loop):
                 threading.Thread(target=target, daemon=True, name=target.__name__).start()
 
-    # --- pipeline -----------------------------------------------------------------------
     @property
     def adapter(self) -> LLMAdapter:
         if self._adapter is None:
@@ -354,7 +353,6 @@ class Server:
     def _model_dir(self, stream_id: str) -> Path:
         return self.data_dir / "models" / stream_id
 
-    # --- API keys -----------------------------------------------------------------------
     def _store_key(self, name: str, token: str, scope: KeyScope = KeyScope.INTAKE) -> dict:
         digest = hashlib.sha256(token.encode()).hexdigest()
         doc = {"id": uuid.uuid4().hex[:12], "name": name, "hash": digest, "prefix": token[:7],
@@ -385,7 +383,6 @@ class Server:
             self._dirty.add(("key", doc["id"]))
         return doc
 
-    # --- intake -------------------------------------------------------------------------
     def ingest(self, events: list[dict]) -> int:
         if self.inbox.qsize() + len(events) > self.inbox.maxsize:
             raise Busy(f"{self.inbox.qsize()} events waiting")
@@ -509,7 +506,6 @@ class Server:
             if stream["id"] not in homes and not stream.get("selectors"):
                 self.delete_stream(stream["id"])
 
-    # --- warnings -----------------------------------------------------------------------
     def _warn(self, kind: str, subject: str, title: str, detail: str, streams: list[str]) -> dict:
         wid = f"{kind}:{subject}"
         doc = self.control.get("warning", wid)
@@ -583,7 +579,6 @@ class Server:
             return self.enqueue("draft", sources=[w["subject"]])
         return self.train(w["streams"])
 
-    # --- jobs ---------------------------------------------------------------------------
     def enqueue(self, kind: str, **params) -> dict:
         if kind not in JOB_KINDS:
             raise ValueError(f"unknown job kind {kind!r}")
@@ -665,7 +660,6 @@ class Server:
             progress(start + (end - start) * (i + 1) / len(sids), f"sampled {src['service'] or sid}")
         return lines, pool
 
-    # --- template review ----------------------------------------------------------------
     def _lines_path(self, batch_id: str) -> Path:
         return self.data_dir / "review" / f"{batch_id}.json"
 
@@ -1011,7 +1005,6 @@ class Server:
         self.store.flush()
         return f"{len(out)} of {len(rows)} stored lines re-extracted with the new rule"
 
-    # --- training -----------------------------------------------------------------------
     def train(self, streams: list[str]) -> dict:
         """Retrain now if there is enough data; otherwise the stream waits and trains by itself."""
         ready, waiting = [], []
@@ -1165,7 +1158,6 @@ class Server:
                     self.resolve_warning(w["id"], f"learned by {version}")
         progress(1.0, f"{stream['name']}: model {version} ready")
 
-    # --- settings -----------------------------------------------------------------------
     def update_settings(self, body: dict) -> dict:
         limits = {"sample_cap": (100, 200_000, int), "retrain_days": (0.01, 3650, float),
                   "draft_lines": (MIN_DRAFT_LINES, 200_000, int), "draft_after_minutes": (1, 100_000, float)}
@@ -1180,7 +1172,6 @@ class Server:
         self.control.put("settings", "server", self.settings)
         return self.settings
 
-    # --- maintenance --------------------------------------------------------------------
     def due_drafts(self) -> list[str]:
         """New sources that collected enough lines (or waited long enough) for a template sample."""
         if not self.settings["calibrated"]:
@@ -1233,7 +1224,6 @@ class Server:
             "warnings": warnings,
         }
 
-    # --- incidents ----------------------------------------------------------------------
     def incidents(self, limit: int = 2000) -> list[dict]:
         """Alerts grouped: one service's alerts less than INCIDENT_GAP apart are one incident,
         named by its first alert, newest first, with what a person decided about it."""
@@ -1360,7 +1350,6 @@ class Server:
         self.events.notify()
         return result["summary"]
 
-    # --- streams ------------------------------------------------------------------------
     def save_stream(self, doc: dict, stream_id: str | None = None) -> dict:
         name = str(doc.get("name", "")).strip()
         if not name:
@@ -1397,7 +1386,6 @@ class Server:
         shutil.rmtree(self._model_dir(stream_id), ignore_errors=True)  # a later stream may reuse the id
         self.events.notify()
 
-    # --- agents -------------------------------------------------------------------------
     def heartbeat(self, status: dict, key: dict) -> dict:
         host = str(status.get("hostname") or "unknown")[:200]
         prev = self.control.get("agent", host) or {"first_seen": now_iso()}
@@ -1447,7 +1435,6 @@ class Server:
                             "remote_applied": st.get("remote_hash", "") == remote.get("hash", "")})
         return sorted(out, key=lambda a: a["hostname"])
 
-    # --- housekeeping -------------------------------------------------------------------
     def rate(self) -> float:
         """Lines per second over the last minute."""
         now = time.monotonic()

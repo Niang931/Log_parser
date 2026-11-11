@@ -82,7 +82,7 @@ services:
       retries: 10
       start_period: 15s
 
-  # --- the agent platform: `docker compose --profile platform up --build` ---------------
+  # the agent platform: `docker compose --profile platform up --build`
   # logpipe server (UI on http://localhost:8080), storing in the clickhouse service above.
   server:
     profiles: [platform]
