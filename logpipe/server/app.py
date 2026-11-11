@@ -27,7 +27,8 @@ from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp
 from .auth import COOKIE, Auth
-from .core import Busy, Server, now_iso
+from .core import Busy, KeyScope, Server, now_iso
+from .mcp_tools import build_mcp, mcp_may_call
 from .metrics import METRICS
 from .stores import FACETS
 
@@ -35,10 +36,25 @@ STATIC = Path(__file__).with_name("static")
 DEMO_INDEX = Path(__file__).parent.parent / "demo" / "index.html"
 
 
+def bearer(authorization: str | None) -> str | None:
+    return (authorization or "").removeprefix("Bearer ").strip() or None
+
+
+def caller(request: Request) -> str | None:
+    """The AI assistant key's name behind a write, None for a person in the web UI."""
+    return request.state.key["name"] if request.state.key else None
+
+
 def create_app(server: Server, demo: Any = None, info: dict | None = None) -> FastAPI:
     """``info``: how ``logpipe server`` was started (store, queue, LLM backend), shown on Settings."""
     started = now_iso()
-    app = FastAPI(title="logpipe", docs_url="/api/docs", openapi_url="/api/openapi.json")
+    assistant = build_mcp()
+    app = FastAPI(
+        title="logpipe",
+        docs_url="/api/docs",
+        openapi_url="/api/openapi.json",
+        lifespan=lambda _app: assistant.router.lifespan_context(assistant),
+    )
     engine = server.reads.engine
     compiler = server.reads.compiler
     auth = Auth(server.control)
@@ -48,8 +64,17 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         # `logpipe server` always sets a password before serving; with none set (tests, an
         # embedded app) the API stays open. Agents' intake routes use API keys instead.
         path = request.url.path
+        key = server.check_key(bearer(request.headers.get("authorization")), KeyScope.MCP)
+        request.state.key = key
+        if path == "/mcp" or path.startswith("/mcp/"):
+            if key is None:
+                return JSONResponse({"detail": "an AI assistant (mcp) API key is required"}, 401)
+            return await call_next(request)
         guarded = path.startswith(("/api/", "/demo/api/")) and not path.startswith("/api/auth/")
-        if guarded and auth.configured and not auth.valid(request.cookies.get(COOKIE)):
+        if guarded and key is not None:
+            if not mcp_may_call(request.method, path):
+                return JSONResponse({"detail": "AI assistant keys can't call this route"}, 403)
+        elif guarded and auth.configured and not auth.valid(request.cookies.get(COOKIE)):
             return JSONResponse({"detail": "log in first"}, 401)
         return await call_next(request)
 
@@ -118,8 +143,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         authorization: Annotated[str | None, Header()] = None,
     ) -> dict:
         # X-API-Key, or `Authorization: Bearer <key>` as OTel exporters are usually configured
-        token = x_api_key or (authorization or "").removeprefix("Bearer ").strip() or None
-        key = server.check_key(token)
+        key = server.check_key(x_api_key or bearer(authorization))
         if key is None:
             raise HTTPException(401, "missing or unknown API key")
         return key
@@ -451,7 +475,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         }
 
     @app.post("/api/queries")
-    def save_query(body: Annotated[dict, Body()]) -> dict:
+    def save_query(request: Request, body: Annotated[dict, Body()]) -> dict:
         name, sql = str(body.get("name", "")).strip(), str(body.get("sql", "")).strip()
         if not name or not sql:
             raise ValueError("a saved query needs a name and SQL")
@@ -465,6 +489,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                 "sql": sql,
                 "spec": body.get("spec"),
                 "saved_at": now_iso(),
+                "by": caller(request),
             },
         )
 
@@ -554,9 +579,15 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return server.incident(incident_id) | {"windows": None}
 
     @app.put("/api/incidents/{incident_id}")
-    def set_incident(incident_id: str, body: Annotated[dict, Body()]) -> dict:
+    def set_incident(request: Request, incident_id: str, body: Annotated[dict, Body()]) -> dict:
+        status = str(body.get("status", ""))
+        current = (server.control.get("incident", incident_id) or {}).get("status", "open")
+        if request.state.key is not None and status != current:
+            raise HTTPException(
+                403, "AI assistant keys can add notes but not change an incident's status"
+            )
         return server.set_incident(
-            incident_id, str(body.get("status", "")), str(body.get("note") or "")
+            incident_id, status, str(body.get("note") or ""), caller(request)
         )
 
     @app.post("/api/incidents/{incident_id}/explain", status_code=202)
@@ -595,7 +626,9 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.post("/api/keys")
     def create_key(body: Annotated[dict, Body()]) -> dict:
-        doc, token = server.create_key(str(body.get("name", "")))
+        doc, token = server.create_key(
+            str(body.get("name", "")), KeyScope(body.get("scope", KeyScope.INTAKE))
+        )
         return {k: v for k, v in doc.items() if k != "hash"} | {"token": token}
 
     @app.delete("/api/keys/{key_id}")
@@ -684,13 +717,14 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         )
 
     @app.post("/api/review/{batch_id}/decide-all")
-    def decide_all(batch_id: str, body: Annotated[dict, Body()]) -> dict:
+    def decide_all(request: Request, batch_id: str, body: Annotated[dict, Body()]) -> dict:
         ids = body.get("ids")
         return {
             "changed": server.decide_all(
                 batch_id,
                 str(body["status"]),
                 [str(i) for i in ids] if isinstance(ids, list) else None,
+                caller(request),
             )
         }
 
@@ -703,12 +737,12 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return server.discard_batch(batch_id)
 
     @app.put("/api/drafts/{draft_id}")
-    def update_draft(draft_id: str, body: Annotated[dict, Body()]) -> dict:
-        return server.update_draft(draft_id, body)
+    def update_draft(request: Request, draft_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.update_draft(draft_id, body, caller(request))
 
     @app.post("/api/drafts/{draft_id}/merge")
-    def merge_drafts(draft_id: str, body: Annotated[dict, Body()]) -> dict:
-        return server.merge_drafts(draft_id, [str(o) for o in body["others"]])
+    def merge_drafts(request: Request, draft_id: str, body: Annotated[dict, Body()]) -> dict:
+        return server.merge_drafts(draft_id, [str(o) for o in body["others"]], caller(request))
 
     @app.post("/api/drafts/{draft_id}/check")
     def check_draft_rule(draft_id: str, body: Annotated[dict, Body()]) -> dict:
@@ -899,6 +933,8 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
                 return demo.control(action, value)
             except Exception as error:  # noqa: BLE001
                 return JSONResponse({"error": f"{type(error).__name__}: {error}"}, 400)
+
+    app.router.routes.extend(assistant.routes)
 
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str):

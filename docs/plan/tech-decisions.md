@@ -1,35 +1,72 @@
-# Technical decisions
+# MCP: technical decisions
 
 ## Technical decisions
 | Decision | Choice | Why | Rejected |
 |---|---|---|---|
-| Agent language | Go module `agent/`, deps: `gopkg.in/yaml.v3`, `github.com/spf13/cobra`, `github.com/fsnotify/fsnotify`; docker via Engine HTTP API over the unix socket (stdlib, no docker SDK); journald via `journalctl -o json -f` subprocess | static binary, ARM gateways, tiny image | Python (runtime on hosts), Rust (slow iteration) |
-| Config | `/etc/logpipe-agent/agent.yaml` + `conf.d/*.yaml` (`logs:` list), `${ENV}` expansion; server-managed sources only in `conf.d/remote.yaml` | Datadog shape, config-mgmt friendly, no merge fights | single file |
-| Multiline | per-source `multi_line` rule (start-pattern regex) + `auto_multi_line_detection` (score first lines against a fixed set of timestamp regexes, pick best); flush on next start line or 1s timeout; max 256KB event | Java traces stay one event | — |
-| Offsets | JSON registry `run/positions.json` keyed by path+inode; rotation = inode change or size < offset | restart-safe, no dupes | — |
-| Transport | `POST /intake/v1/logs` gzip JSON `{events:[{ts,host,service,source,tags,message}]}`, `X-API-Key`; batch 500 lines / 1s; retry exp. backoff; disk buffer `buffer/` capped (default 100MB, drop oldest) | proxy-friendly, survives outages | OTLP/gRPC, raw syslog |
-| Heartbeat / remote config | every 15s `POST /intake/v1/heartbeat` with version, uptime, effective sources, per-source stats; response carries remote-config hash; agent `GET /intake/v1/config` on change → writes `remote.yaml` → hot reload | one round-trip, no push socket | websockets |
-| Server | `logpipe/server/` FastAPI + uvicorn, `logpipe server` subcommand; intake → `LogEvent` (gains host/service/source/tags, `device_id`=host) → existing `Pipeline.process` on one ingest thread fed by a bounded queue (backpressure → 429) | reuse whole parsing/learning stack | extending stdlib demo server |
-| Storage | ClickHouse only: ALTER `iot_logs` add `host, service, source, tags`; new tables `agents`, `agent_remote_configs`, `api_keys` (sha256), `streams`, `warnings`, `jobs`, `templates_meta` (count, first_seen, seen_by_model per stream); `MemoryStore` mirrors for tests | per earlier infra decision | Postgres/SQLite |
-| Jobs | in-server background thread, one job at a time, progress written to `jobs`; UI polls | single-VM deployment | Celery/separate worker |
-| Calibration | sample per source via `deepparse.utils` `entropy_greedy_sample` up to cap → `calibrate()`; recalibration = FrozenParser on new sample, mine only unmatched lines, `SchemaRegistry.publish` (append) → backfill | stable IDs, no overwrite | full re-mine |
-| LogBERT | per stream: `train_logbert` + `tune_thresholds` on that stream's capped windows, saved `artifacts/models/<stream>/`; `StreamingDetector` per stream; scheduler thread checks hourly for streams due (N days + pending unseen templates) | per user spec | auto-train always |
-| Web | Vite + React + TS + TanStack Query (poll 2s) + Recharts + react-router; hand-written CSS tokens, light/dark; build → copied into `logpipe/server/static` | small, no SSR | Next.js, shadcn |
-| Routes | `/` React (Setup, Overview, Live logs, Templates, Query, Stats, Alerts, Warnings, Streams, Agents, Agent detail, API keys, Jobs), `/demo` existing `index.html` + its `/api/*` stays on `logpipe demo` (server links to it) | demo untouched | port demo |
-| Query | read-only: only `SELECT`/`WITH`, ClickHouse `readonly=1` setting, row limit | safe SQL console | — |
-| Docker | agent: multi-stage → `gcr.io/distroless/static`, multi-arch; server: Python image + built web; compose adds `server` + `agent` (tails `examples/logs`); GH Actions: Go test + vet, web build, push both to GHCR on main/tag | per CI/CD decision | — |
-| Git | `feat/agent-platform` off `feat/interactive-setup`; sub-branches `feat/agent-collector`, `feat/agent-server`, `feat/agent-web`, `feat/agent-docker` merged back; commit per working step; no Claude attribution | user | — |
+| Depth | Production-grade, lean | teammates will use it over the internet | prototype |
+| SDK | official `mcp` package (FastMCP), `stateless_http=True`, `json_response=True`, `streamable_http_path="/"`, mounted at `/mcp`; FastAPI `lifespan` runs `mcp.session_manager.run()` | standard; stateless works with any worker count | hand-rolled JSON-RPC |
+| Where | new `logpipe/server/mcp.py` with `build_mcp(app) -> FastMCP`, mounted in `create_app` (`logpipe/server/app.py:50`) | one deploy, same URL and TLS as the UI | separate service or stdio |
+| Tool implementation | each tool calls the app's own `/api` route through `httpx.AsyncClient(transport=ASGITransport(app))` and forwards the caller's `Authorization` header | reuses all route glue (`validate_sql`, template listing, query validation) and works on all three stores for free | calling `Server` directly, which would duplicate the closures in app.py |
+| Auth | extend the `require_login` middleware (`app.py:58`). `/mcp*` always needs a valid `mcp` key. On `/api/*` a valid `mcp` Bearer key is accepted, instead of the cookie, only when `(method, path)` matches `MCP_ROUTES`, a module-level regex allowlist. The key is stored on `request.state.key`. | one enforcement point, so even curl with an MCP key cannot apply a batch | per-tool checks |
+| Keys | `Server._store_key` / `create_key` take `scope` (`core.py:342/360`). `POST /api/keys` accepts `scope`. `agent_key` (`app.py:111`) rejects scope `mcp`. `Keys.tsx` gets a select and a badge. | reuses the key store, hashing and revocation | new token system |
+| Note-only on incidents | the PUT `/api/incidents/{id}` route: if the caller is an `mcp` key and `status` differs from the current one, return 403. The tool sends the current status itself. | the allowlist can't see the request body | separate route |
+| Attribution | optional `by` param on `set_incident`, `update_draft`, `decide_all`, `merge_drafts` (`core.py:1284/768/794/805`). The routes pass `request.state.key["name"]` when present, and `save_query` stores `by`. The web UI shows "by X" next to incident notes and drafts. | small change, visible to the team | audit log collection |
+| Output caps | tools default `limit=100` and clamp to 500. List-style results are cut to the cap and carry `truncated: true` plus a hint ("narrow filters or use log_histogram/log_facets"). | protects the AI's context | cursors |
+| Tests | `tests/test_mcp.py` against the memory store with `TestClient(create_app(server))`, following the fixture pattern in `tests/test_server.py:54` | matches repo | — |
+
+### Tool → route map (all on the `MCP_ROUTES` allowlist)
+- **Logs**
+  - `search_logs` → GET `/api/logs`
+  - `log_histogram` → GET `/api/logs/histogram`
+  - `log_facets` → GET `/api/logs/facets`
+  - `query_schema` → GET `/api/query/schema`
+  - `run_query` → POST `/api/query`. This is already read-only: `validate_sql` on SQL stores, and the read-only Mongo user when `MONGO_READONLY_URI` is set.
+- **Incidents**
+  - `list_incidents` → GET `/api/incidents`
+  - `get_incident` → GET `/api/incidents/{id}`
+  - `list_alerts` → GET `/api/alerts`
+  - `add_incident_note` → GET the incident, then PUT with the same status
+- **Templates**
+  - `list_templates` → GET `/api/templates`
+  - `list_review_batches` → GET `/api/review`
+  - `get_review_batch` → GET `/api/review/{id}`
+  - `check_draft_rule` → POST `/api/drafts/{id}/check`
+  - `update_draft` → PUT `/api/drafts/{id}`
+  - `merge_drafts` → POST `/api/drafts/{id}/merge`
+  - `decide_drafts` → POST `/api/review/{id}/decide-all`
+  - `generate_review_batch` → POST `/api/review/generate`
+- **Health**
+  - `overview` → GET `/api/overview`
+  - `stats` → GET `/api/stats`
+  - `system` → GET `/api/system` and GET `/api/system/alerts`
+  - `agents` → GET `/api/agents`
+- **Drift and warnings**
+  - `drift` → GET `/api/drift`
+  - `warnings` → GET `/api/warnings`
+- **Saved queries**
+  - `list_saved_queries` → GET `/api/queries`
+  - `save_query` → POST `/api/queries`
+- **Never allowlisted**: apply, discard, settings, keys, rules, password, agents remote-config, and query ask/build.
+
+### Prompts
+- `investigate_incident(id)`: call `get_incident`, then `system`/`agents` to rule out a pipeline fault, then `log_histogram` and `search_logs` around the window on related services. Answer with a timeline and a root-cause hypothesis that cites line timestamps and template IDs. Offer `add_incident_note`.
+- `review_batch(id)`: call `get_review_batch`, then for each draft check its rule and naming, merge duplicates, and approve or reject with a reason. End by reminding the human to click Apply in the UI.
 
 ## Implementation order
-1. Branch; write `docs/plan/{persona,features,tech-decisions}.md`; commit.
-2. Agent: config + CLI (track/untrack/list, config get/set/edit, check) → file tailer + offsets → rules (multiline, auto, include/exclude, mask) → shipper + buffer → heartbeat/remote config → journald, docker, syslog → `status`. Go tests per step (`go test ./...`), commit each.
-3. Server: schema migrations + memory mirrors → API keys → intake + heartbeat + config endpoints → `/api` read endpoints → streams/warnings/jobs/calibration/recalibration/retraining scheduler. pytest per step.
-4. Web: shell + nav + warning badge → Setup guide → Overview/Live/Templates → Query/Stats/Alerts → Agents/detail/remote-config editor/API keys → Streams/Warnings/Jobs.
-5. Docker + compose + CI workflow + agent README.
-6. End-to-end check; merge sub-branches into umbrella; Trello cards (green infra: agent/docker/CI; yellow: server/UI; orange: calibration/streams; blue: LogBERT per stream) → Done with branch/commit comments.
+Commit after each step once its tests pass. Branch: `worktree-feat-mcp`. No Claude attribution lines. Open the PR against Niang931.
+0. Write `docs/plan/persona.md`, `features.md` and `tech-decisions.md` from this file.
+1. `uv add mcp`. Add the key scope in core, the intake check and the keys route, with tests.
+2. Middleware allowlist, `request.state.key` and the incident status guard, with tests: an mcp key can GET logs, gets 403 on apply, and gets 403 on a status change.
+3. `mcp.py`: tools, caps, prompts, the mount and the lifespan, with a test that lists tools and calls `search_logs` plus one write through the MCP endpoint.
+4. Attribution `by` in core and routes, plus the web display.
+5. Keys.tsx scope select and badge.
+6. README section.
 
 ## Verification
-- `cd agent && go test ./...` (multiline, rotation, offsets, rules, config round-trip, CLI edits).
-- `uv run pytest -m "not integration"` (intake, auth, API, calibration append, warnings, scheduler) + `-m integration` with ClickHouse.
-- `docker compose up` → open `http://localhost:8080`, run the setup guide with the compose agent, append a Java stack trace to `examples/logs/app.log` → appears as one event in Live logs; add a new tracked file via `logpipe-agent track` → warning appears; push remote config from the UI → agent writes `remote.yaml` and status shows the new source; `/demo` link opens the existing demo.
-- `npm run build && npm run lint` in `web/`.
+- `uv run pytest tests/test_mcp.py tests/test_server.py tests/test_auth.py` and `uv run ruff check`.
+- Manual run: start `logpipe server` (memory store) and create an mcp key in the Keys page. Then run `claude mcp add --transport http logpipe http://localhost:8080/mcp --header "Authorization: Bearer lp_..."` and in Claude Code ask it to "investigate the latest incident" and to "review the open batch". Check the note and drafts show "by <key>" in the UI and that Apply is still a human click.
+- Negative checks: curl `/api/review/x/apply` with the mcp key returns 403. `/intake/v1/ping` with the mcp key returns 401. `/mcp` with no key returns 401.
+
+## Risks
+- `run_query` on ClickHouse relies on `validate_sql`. Mongo is fully read-only only when `MONGO_READONLY_URI` is set, so the README tells deployers to set it.
+- Prompt injection: log lines are attacker-controlled text that the client AI reads. Writes are limited to proposals, so the worst case is a bad note or a wrong draft decision, which a human still reviews before Apply.

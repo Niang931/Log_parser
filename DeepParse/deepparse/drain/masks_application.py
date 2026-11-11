@@ -26,8 +26,6 @@ def _strip_named_groups(pattern: str) -> str:
     return re.sub(r"\(\?P<[^>]+>", "(", pattern)
 
 
-# ---- Mask safety and normalisation -----------------------------------------
-
 # Patterns that are too broad: they match static key names or arbitrary words,
 # collapsing all structure and producing wildcard-only templates.
 _FORBIDDEN_PATTERNS: frozenset[str] = frozenset({
@@ -62,8 +60,6 @@ def _normalise_pattern(pattern: str) -> str | None:
     return pattern
 
 
-# ---- Priority for span-based conflict resolution ---------------------------
-
 # Higher value = more specific = wins when two masks match overlapping spans.
 # For example IPV4 (``192.168.1.1``) must beat NUMBER (``192``) on the same
 # region; HEX (``0xCC06``) must beat NUMBER (``0``).
@@ -90,8 +86,6 @@ def _mask_priority(label: str) -> int:
             return prio
     return _DEFAULT_PRIORITY
 
-
-# ---- MaskApplier -----------------------------------------------------------
 
 class MaskApplier:
     """Apply regex masks to log lines before Drain clustering.

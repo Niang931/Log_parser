@@ -20,6 +20,7 @@ function DraftRow({ d, total, selected, onSelect }: {
         <button type="button" className="draft-text" onClick={() => setOpen(!open)} aria-expanded={open}>
           <TemplateText tokens={d.tokens} keys={d.keys} />
           {d.edited && <span className="badge" style={{ marginLeft: 6 }}>edited</span>}
+          {d.by && <span className="badge" style={{ marginLeft: 6 }} title="Last changed by an AI assistant key">by {d.by}</span>}
         </button>
         <span className="draft-count num" title={`${d.count} of ${total} recent lines`}>
           {fmt(d.count)}<span className="muted small"> · {total ? ((d.count / total) * 100).toFixed(1) : 0}%</span>

@@ -25,6 +25,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from pathlib import Path
 
 import numpy as np
@@ -101,6 +102,11 @@ SOURCE_TYPES = {"file", "journald", "docker", "tcp", "udp"}
 RULE_TYPES = {"multi_line", "exclude_at_match", "include_at_match", "mask_sequences"}
 JOB_KINDS = ("draft", "apply", "retrain", "reextract", "bench", "ask")
 INCIDENT_STATES = ("open", "acknowledged", "resolved", "false_positive")
+
+
+class KeyScope(StrEnum):
+    INTAKE = "intake"  # agents shipping logs
+    MCP = "mcp"  # AI assistants reading /api through /mcp
 
 
 class NotEnoughData(ValueError):
@@ -414,13 +420,14 @@ class Server:
     def _model_dir(self, stream_id: str) -> Path:
         return self.data_dir / "models" / stream_id
 
-    def _store_key(self, name: str, token: str) -> dict:
+    def _store_key(self, name: str, token: str, scope: KeyScope = KeyScope.INTAKE) -> dict:
         digest = hashlib.sha256(token.encode()).hexdigest()
         doc = {
             "id": uuid.uuid4().hex[:12],
             "name": name,
             "hash": digest,
             "prefix": token[:7],
+            "scope": scope.value,
             "created_at": now_iso(),
             "revoked": False,
             "last_used_at": None,
@@ -429,9 +436,9 @@ class Server:
         self._keys[digest] = doc
         return doc
 
-    def create_key(self, name: str) -> tuple[dict, str]:
+    def create_key(self, name: str, scope: KeyScope = KeyScope.INTAKE) -> tuple[dict, str]:
         token = "lp_" + secrets.token_urlsafe(24)
-        return self._store_key(name.strip() or "unnamed", token), token
+        return self._store_key(name.strip() or "unnamed", token, scope), token
 
     def revoke_key(self, key_id: str) -> None:
         doc = self.control.get("key", key_id)
@@ -440,11 +447,13 @@ class Server:
         self.control.update("key", key_id, revoked=True, revoked_at=now_iso())
         self._keys.pop(doc["hash"], None)
 
-    def check_key(self, token: str | None) -> dict | None:
+    def check_key(self, token: str | None, scope: KeyScope = KeyScope.INTAKE) -> dict | None:
         if not token:
             return None
         doc = self._keys.get(hashlib.sha256(token.encode()).hexdigest())
-        if doc is not None and (doc.get("last_used_at") or "")[:16] != now_iso()[:16]:
+        if doc is None or doc.get("scope", KeyScope.INTAKE) != scope:
+            return None
+        if (doc.get("last_used_at") or "")[:16] != now_iso()[:16]:
             doc["last_used_at"] = now_iso()  # minute resolution, persisted by housekeeping
             self._dirty.add(("key", doc["id"]))
         return doc
@@ -971,7 +980,7 @@ class Server:
             rule, self.batch_lines(draft["batch"]), review.mined_matcher(draft, self._masks(batch))
         )
 
-    def update_draft(self, draft_id: str, body: dict) -> dict:
+    def update_draft(self, draft_id: str, body: dict, by: str | None = None) -> dict:
         draft = self.control.get("draft", draft_id)
         if draft is None:
             raise KeyError(draft_id)
@@ -1006,9 +1015,11 @@ class Server:
             if body["status"] not in ("pending", "approved", "rejected"):
                 raise ValueError("status must be pending, approved or rejected")
             changes["status"] = body["status"]
-        return self.control.update("draft", draft_id, **changes)
+        return self.control.update("draft", draft_id, **changes, by=by)
 
-    def decide_all(self, batch_id: str, status: str, ids: list[str] | None = None) -> int:
+    def decide_all(
+        self, batch_id: str, status: str, ids: list[str] | None = None, by: str | None = None
+    ) -> int:
         """Every undecided draft, or with ``ids`` exactly those (back to "pending" too)."""
         self._open_batch(batch_id)
         if status not in ("approved", "rejected") and not (ids is not None and status == "pending"):
@@ -1020,10 +1031,10 @@ class Server:
             and (d["id"] in ids if ids is not None else d["status"] == "pending")
         ]
         for d in pending:
-            self.control.update("draft", d["id"], status=status)
+            self.control.update("draft", d["id"], status=status, by=by)
         return len(pending)
 
-    def merge_drafts(self, target_id: str, others: list[str]) -> dict:
+    def merge_drafts(self, target_id: str, others: list[str], by: str | None = None) -> dict:
         target = self.control.get("draft", target_id)
         if target is None:
             raise KeyError(target_id)
@@ -1041,14 +1052,17 @@ class Server:
             tokens = review.merge_tokens(tokens, d["tokens"])
         keys = clean_keys(target["keys"], tokens)
         checked = review.check(tokens, keys, self._masks(batch), self.batch_lines(batch["id"]))
+
         for d in docs:
-            self.control.update("draft", d["id"], status="merged", merged_into=target_id)
+            self.control.update("draft", d["id"], status="merged", merged_into=target_id, by=by)
+
         return self.control.update(
             "draft",
             target_id,
             tokens=tokens,
             keys=keys,
             edited=True,
+            by=by,
             rule=rule_from_template(tokens, keys),
             rule_edited=False,
             count=checked["count"],
@@ -1631,6 +1645,7 @@ class Server:
                 note=state.get("note", ""),
                 updated_at=state.get("updated_at"),
                 explanation=state.get("explanation"),
+                by=state.get("by"),
             )
         return sorted(out, key=lambda i: _when(i["end"]), reverse=True)
 
@@ -1701,7 +1716,9 @@ class Server:
             "ask_plan": plan,
         }
 
-    def set_incident(self, incident_id: str, status: str, note: str = "") -> dict:
+    def set_incident(
+        self, incident_id: str, status: str, note: str = "", by: str | None = None
+    ) -> dict:
         if status not in INCIDENT_STATES:
             raise ValueError(f"status must be one of {', '.join(INCIDENT_STATES)}")
         inc = next((i for i in self.incidents() if i["id"] == incident_id), None)
@@ -1712,6 +1729,7 @@ class Server:
             "note": note[:2000],
             "updated_at": now_iso(),
             "stream": inc["stream"],
+            "by": by,
             # what the next retrain learns as normal if this was a false positive
             "windows": inc["windows"][:200] if status == "false_positive" else [],
         }
