@@ -7,6 +7,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -18,7 +19,7 @@ from .spec import Catalog, Intent, Level, Measure, QuerySpec, validate
 @dataclass
 class Routed:
     spec: QuerySpec
-    via: str  # "fast" | "llm"
+    via: Literal["fast", "llm"]
     notes: list[str]
 
 
