@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from ..server.stores import StoreReads
+from ..server.stores import Compiler, StoreReads
 from ..settings import AskSettings, RcaSettings, get_settings
 from .models import (
     ClarifyResult,
@@ -124,40 +124,69 @@ def local(
     )
 
 
+# How each log read turns into the store's query text: (compiler, filters, start, end, args, ctx).
+type CompileRead = Callable[[Compiler, list[dict], datetime, datetime, dict, Ctx], str]
+
+
+def _rows(c: Compiler, f: list[dict], start: datetime, end: datetime, args: dict, ctx: Ctx) -> str:
+    return c.rows(
+        f,
+        start,
+        end,
+        args.get("limit", 200),
+        args.get("newest_first", False),
+        args.get("payload", False),
+    )
+
+
+def _template_counts(
+    c: Compiler, f: list[dict], start: datetime, end: datetime, args: dict, ctx: Ctx
+) -> str:
+    return c.template_counts(f, start, end)
+
+
+def _buckets(
+    c: Compiler, f: list[dict], start: datetime, end: datetime, args: dict, ctx: Ctx
+) -> str:
+    return c.buckets(f, start, end, args["step"], args.get("by", "template_id"))
+
+
+def _aggregate(
+    c: Compiler, f: list[dict], start: datetime, end: datetime, args: dict, ctx: Ctx
+) -> str:
+    # filters come from the spec (it names groups), not from args
+    spec = QuerySpec.model_validate(args["spec"])
+    assert spec.aggregate is not None
+    return c.build(
+        {
+            **span(start, end),
+            "filters": Filters.of(spec, ctx.groups).builder(),
+            "group_by": spec.aggregate.group_by,
+            "measure": {"fn": spec.aggregate.fn, "field": spec.aggregate.field},
+            "over_time": spec.aggregate.over_time,
+            "limit": spec.limit,
+        }
+    )
+
+
+LOG_READS: dict[LogTool, CompileRead] = {
+    "rows": _rows,
+    "template_counts": _template_counts,
+    "buckets": _buckets,
+    "aggregate": _aggregate,
+}
+
+
 def log_read(
     ctx: Ctx, *, round_no: int, query_no: int, tool: LogTool, title: str, why: str, **args
 ) -> Query:
+    compile_read = LOG_READS.get(tool)
+    if compile_read is None:
+        raise ValueError(f"unknown read {tool}")
     start, end = (datetime.fromisoformat(args[k]) for k in ("start", "end"))
     f = Filters(**args.get("filters", {})).builder()
     c = ctx.store.compiler
-    if tool == "rows":
-        compiled = c.rows(
-            f,
-            start,
-            end,
-            args.get("limit", 200),
-            args.get("newest_first", False),
-            args.get("payload", False),
-        )
-    elif tool == "template_counts":
-        compiled = c.template_counts(f, start, end)
-    elif tool == "buckets":
-        compiled = c.buckets(f, start, end, args["step"], args.get("by", "template_id"))
-    elif tool == "aggregate":
-        spec = QuerySpec.model_validate(args["spec"])
-        assert spec.aggregate is not None
-        compiled = c.build(
-            {
-                **span(start, end),
-                "filters": Filters.of(spec, ctx.groups).builder(),
-                "group_by": spec.aggregate.group_by,
-                "measure": {"fn": spec.aggregate.fn, "field": spec.aggregate.field},
-                "over_time": spec.aggregate.over_time,
-                "limit": spec.limit,
-            }
-        )
-    else:
-        raise ValueError(f"unknown read {tool}")
+    compiled = compile_read(c, f, start, end, args, ctx)
     return _q(
         round_no=round_no,
         query_no=query_no,

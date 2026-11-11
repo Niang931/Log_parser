@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import get_args
 
 import pytest
 from pydantic import ValidationError
 
-from logpipe.ask.engine import Ctx, Round
+from logpipe.ask.engine import LOG_READS, Ctx, Round
 from logpipe.ask.hints import value_hints
 from logpipe.ask.models import Anchor, Evidence, LogLine, Report
 from logpipe.ask.moves import MoveKind, MoveRequest, absorb, check_moves, move_round
+from logpipe.ask.query import LogTool
 from logpipe.ask.synth import check_citations, leads
 from logpipe.server.stores.memory import MemoryReads
 from logpipe.settings import get_settings
@@ -204,3 +206,7 @@ def test_follow_up_lines_are_varied_not_forty_copies():
     ]
     other = [LogLine(timestamp=AT, service="db", template_id=8, message="lock wait")]
     assert len(varied(same + other)) == 4
+
+
+def test_every_log_read_has_a_compiler():
+    assert set(LOG_READS) == set(get_args(LogTool))
