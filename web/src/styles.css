@@ -740,3 +740,5 @@ kbd { display: inline-block; min-width: 18px; padding: 0 5px; border: 1px solid 
 .ask-spark { flex: none; max-width: 45%; }
 .ask-spark rect { fill: var(--accent); }
 @media (max-width: 640px) { .ask-hints li { flex-wrap: wrap; } .ask-hints .grow { flex-basis: calc(100% - 40px); } .ask-spark { max-width: 100%; } }
+.ask-slow { color: var(--warn-ink, var(--ink-2)); }
+.ask-ai.is-running:has(.ask-slow) { border-color: var(--warn); }

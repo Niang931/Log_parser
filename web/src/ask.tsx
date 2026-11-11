@@ -14,13 +14,13 @@ interface Evidence { ref: string; timestamp: string; service?: string | null; ho
 interface Candidate { template_id: number; service: string | null; count: number; first: string; template: string; example: string; score: number; anomaly: number; rarity: number; proximity: number; why: string; new: boolean; earliest_in_chain?: boolean }
 interface Cause { cause: string; confidence: string; reasoning: string; cites: string[] }
 interface Moment { at: string; what: string; cites: string[] }
-interface Answer { summary: string; timeline: Moment[]; hypotheses: Cause[]; leads: Cause[]; insufficient_evidence: boolean; missing: string; next_steps: string[]; dropped: { section: string; text?: string | null }[]; by: "llm" | "rules"; note: string }
+interface Answer { summary: string; timeline: Moment[]; hypotheses: Cause[]; leads: Cause[]; insufficient_evidence: boolean; missing: string; next_steps: string[]; dropped: { section: string; text?: string | null }[]; by: "llm" | "rules"; note: string; llm_error?: string }
 interface Anchor { kind: string; at: string; service?: string | null; host?: string | null; why: string }
 interface Hint { ref: string; field: string; value: string; errors: number; error_share: number; other_share: number; ratio: number }
 interface Series { ref: string; service: string | null; what: string; start: string; step_seconds: number; counts: number[] }
 interface AiStep {
   step: string; schema: string; status: "running" | "done" | "failed"; started_at: string; finished_at?: string; seconds?: number;
-  messages: { at: string; text: string }[]; prompt: string; reply: string | null; outcome: string;
+  messages: { at: string; text: string }[]; prompt: string; reply: string | null; outcome: string; timeout_seconds?: number;
 }
 export interface AskResult {
   kind: "general" | "clarify" | "lines" | "table" | "report";
@@ -35,7 +35,7 @@ export interface AskPlan {
   id: string; question: string; via: string; notes: string[]; spec: Record<string, unknown>; require_approval: boolean;
   status: "waiting_approval" | "approved" | "running" | "done" | "failed" | "rejected" | "expired";
   created_at: string; expires_at?: string; rounds: { n: number; purpose: string; queries: AskQuery[] }[]; result: AskResult | null;
-  ai?: AiStep[];
+  ai?: AiStep[]; error?: string;
 }
 
 const ANCHOR: Record<string, string> = {
@@ -186,12 +186,33 @@ function Until({ iso }: { iso: string }) {
   return <>{min > 0 ? `Expires in ${min} min.` : "Expires in under a minute."}</>;
 }
 
-/** Seconds since ``since``, ticking: "12 s", "1 min 04 s". */
-export function Elapsed({ since }: { since: string }) {
+const SLOW = 60;  // seconds: past this an LLM call is slower than usual, and the UI says so
+
+function useSecondsSince(since: string) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
-  const s = Math.max(0, Math.round((now - Date.parse(since)) / 1000));
-  return <span className="num">{s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")} s`}</span>;
+  return Math.max(0, Math.round((now - Date.parse(since)) / 1000));
+}
+
+function duration(s: number) {
+  return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")} s`;
+}
+
+/** Seconds since ``since``, ticking: "12 s", "1 min 04 s". */
+export function Elapsed({ since }: { since: string }) {
+  return <span className="num">{duration(useSecondsSince(since))}</span>;
+}
+
+/** A running LLM call's clock, and once it's slow, how long until it's given up on. */
+function Waiting({ since, limit }: { since: string; limit?: number }) {
+  const s = useSecondsSince(since);
+  const slow = s >= SLOW;
+  return (
+    <span className={slow ? "ask-slow" : "muted"}>
+      <span className="num">{duration(s)}</span>
+      {slow && <> · slower than usual{limit ? `; stops waiting in ${duration(Math.max(0, Math.round(limit - s)))}` : ""}</>}
+    </span>
+  );
 }
 
 /** What the LLM is doing for this plan, as it happens: each call, the adapter's own steps, the
@@ -202,12 +223,14 @@ function AiActivity({ steps }: { steps: AiStep[] }) {
   const runningSince = running?.started_at;
   useEffect(() => { if (runningSince) setOpen(true); }, [runningSince]);  // a new call opens it again
   const total = steps.reduce((a, s) => a + (s.seconds ?? 0), 0);
+  const failed = steps.filter((s) => s.status === "failed").length;
   return (
     <details className={`ask-ai${running ? " is-running" : ""}`} open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
       <summary>
         {running ? <span className="spin" aria-hidden="true" /> : <span className="ask-ai-mark" aria-hidden="true">AI</span>}
-        <span className="grow">{running ? <><strong>{running.step}…</strong> <span className="muted"><Elapsed since={running.started_at} /></span></>
-          : <>LLM activity <span className="muted">· {steps.length} call{steps.length === 1 ? "" : "s"}, {Math.round(total)} s</span></>}</span>
+        <span className="grow">{running ? <><strong>{running.step}…</strong> <Waiting since={running.started_at} limit={running.timeout_seconds} /></>
+          : <>LLM activity <span className="muted">· {steps.length} call{steps.length === 1 ? "" : "s"}, {Math.round(total)} s</span>
+            {failed > 0 && <span className="badge bad" style={{ marginLeft: 6 }}>{failed} failed</span>}</>}</span>
         <span className="muted small">{open ? "Hide" : "Show"}</span>
       </summary>
       <ol className="ask-ai-steps">
@@ -224,9 +247,9 @@ function AiStepView({ s }: { s: AiStep }) {
       <div className="ask-ai-head">
         {s.status === "running" ? <span className="spin" aria-hidden="true" /> : <span className={`ask-q-dot q-${s.status === "done" ? "done" : "failed"}`} aria-hidden="true" />}
         <strong className="grow">{s.step}</strong>
-        <span className="muted small">{s.status === "running" ? <Elapsed since={s.started_at} /> : `${s.seconds ?? 0} s`}</span>
+        <span className="small">{s.status === "running" ? <Waiting since={s.started_at} limit={s.timeout_seconds} /> : <span className="muted">{s.seconds ?? 0} s</span>}</span>
       </div>
-      {s.outcome && <div className="small ask-ai-outcome">{s.outcome}</div>}
+      {s.outcome && <div className={`small ask-ai-outcome${s.status === "failed" ? " error-text" : ""}`}>{s.outcome}</div>}
       {s.messages.length > 0 && (
         <ul className="ask-ai-log">{s.messages.map((m, i) => (
           <li key={i}><span className="ask-time">+{Math.max(0, Math.round((Date.parse(m.at) - Date.parse(s.started_at)) / 1000))} s</span> {m.text}</li>))}
@@ -343,7 +366,11 @@ export function ReportView({ r }: { r: AskResult }) {
           )}
           {a && <span className={`badge ${a.by === "llm" ? "info" : ""}`}>{a.by === "llm" ? "Written by the LLM, checked against the evidence" : "Ranked by rules (no LLM)"}</span>}
         </div>
-        {a?.insufficient_evidence && <div className="callout warn"><div><strong>Not enough evidence to name a cause.</strong> {a.missing}</div></div>}
+        {a?.llm_error && (
+          <div className="callout bad"><div><strong>The LLM failed, so this answer is the rules' ranking.</strong> {a.llm_error}
+            <div className="muted small">The evidence below is complete; only the written explanation is missing. Ask again to retry the LLM.</div></div></div>
+        )}
+        {a?.insufficient_evidence && !a.llm_error && <div className="callout warn"><div><strong>Not enough evidence to name a cause.</strong> {a.missing}</div></div>}
         <div className="tabs" role="tablist">
           {(["answer", "evidence", "ranking"] as const).map((t) => (
             <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>
@@ -399,7 +426,7 @@ export function ReportView({ r }: { r: AskResult }) {
             {a.next_steps.length > 0 && <section><h3>Next steps</h3><ol className="ask-next">{a.next_steps.map((s, i) => <li key={i}>{s}</li>)}</ol></section>}
             <p className="muted small" style={{ margin: 0 }}>
               {a.dropped.length > 0 && <>{a.dropped.length} claim{a.dropped.length === 1 ? " was" : "s were"} dropped for citing nothing in the evidence. </>}
-              {a.note}{r.notes?.length ? ` ${r.notes.join(" · ")}` : ""}
+              {!a.llm_error && a.note}{r.notes?.length ? ` ${r.notes.join(" · ")}` : ""}
             </p>
           </div>
         )}
@@ -530,7 +557,10 @@ export function PlanView({ id }: { id: string }) {
         </div>
       )}
       {DONE_TEXT[plan.status] && <div className="callout"><div>{DONE_TEXT[plan.status]}</div></div>}
-      {plan.status === "failed" && <div className="callout bad"><div>The plan failed: see the failed query above.</div></div>}
+      {plan.status === "failed" && (
+        <div className="callout bad" role="alert"><div><strong>This run stopped.</strong> {plan.error ?? "A query failed: see the round above."}
+          <div className="muted small">Nothing else will run for it. Ask again to start over.</div></div></div>
+      )}
       {plan.result && <ResultBody r={plan.result} />}
     </article>
   );
@@ -538,14 +568,14 @@ export function PlanView({ id }: { id: string }) {
 
 /** While the question is being read (by rules, or by the LLM, which can take a while through a
  *  web chat): the question, a running clock and what happens next. */
-function Pending({ question, what = "Reading your question" }: { question: string; what?: string }) {
+function Pending({ question, what = "Reading your question", limit }: { question: string; what?: string; limit?: number }) {
   const [since] = useState(() => new Date().toISOString());
   return (
     <article className="ask-plan ask-pending" aria-busy="true" aria-live="polite">
       <h2 className="ask-question">{question}</h2>
       <div className="ask-ai is-running ask-ai-static">
         <span className="spin" aria-hidden="true" />
-        <span className="grow"><strong>{what}…</strong> <span className="muted"><Elapsed since={since} /></span></span>
+        <span className="grow"><strong>{what}…</strong> <Waiting since={since} limit={limit} /></span>
       </div>
       <p className="muted small" style={{ margin: 0 }}>Plain questions are read by rules in a moment. Anything else goes to the LLM, which can take up to a minute;
         then you see the queries it plans before any of them runs.</p>
@@ -558,7 +588,7 @@ interface Recent { id: string; question: string; status: AskPlan["status"]; crea
 export function AskPanel({ initialPlan }: { initialPlan?: string }) {
   const [question, setQuestion] = useState("");
   const [current, setCurrent] = useState<string | undefined>(initialPlan);
-  const recent = usePoll<{ plans: Recent[]; require_approval: boolean }>("/api/ask", 10000).data;
+  const recent = usePoll<{ plans: Recent[]; require_approval: boolean; llm_timeout_seconds: number }>("/api/ask", 10000).data;
   const serverRequires = recent?.require_approval ?? true;
   const [mine, setMine] = useState(true);  // only matters when the server lets queries run unapproved
   const ask = useAction((q: string) => api<AskPlan>("/api/ask", {
@@ -581,7 +611,7 @@ export function AskPanel({ initialPlan }: { initialPlan?: string }) {
         </div>
         {ask.error && <div className="callout warn"><div>{ask.error.message}</div></div>}
       </form>
-      {ask.isPending && <Pending question={ask.variables ?? question} />}
+      {ask.isPending && <Pending question={ask.variables ?? question} limit={recent?.llm_timeout_seconds} />}
       {!current && !ask.isPending && (
         <div className="ask-empty">
           <p className="muted small" style={{ margin: 0 }}>Plain questions are read by rules. Anything else goes to the LLM, which only fills in a search form, never SQL. Try:</p>
