@@ -11,6 +11,7 @@ them: they are part of the code's contract, not something to tune.
 ``RuntimeSettings`` is different: the settings a person changes in the UI, stored in the control
 store and validated here.
 """
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -28,6 +29,7 @@ def _env(prefix: str = "") -> SettingsConfigDict:
 
 class AppSettings(BaseSettings):
     """Where the CLI pipeline reads and writes, and which store and queue it uses."""
+
     model_config = _env()
     logs_path: Path = Path("logs")
     registry_path: Path = Path("artifacts/registry.json")
@@ -112,10 +114,11 @@ class ServerSettings(BaseSettings):
 
 class AskSettings(BaseSettings):
     """The Ask box: limits on a query spec, plans, and the template index."""
+
     model_config = _env("LOGPIPE_ASK_")
     model: str = "sentence-transformers/all-MiniLM-L6-v2"  # text -> template embeddings
     plan_ttl_minutes: float = 15  # a plan waiting for approval expires after this
-    max_rounds: int = 6  # discovery, evidence, one widening, up to three follow-ups
+    max_rounds: int = 7  # discovery, evidence, one widening, up to four follow-ups
     default_minutes: int = 60
     max_span_days: int = 90
     max_keywords: int = 5
@@ -125,6 +128,8 @@ class AskSettings(BaseSettings):
     budget_tokens: int = 6000  # evidence bundle sent to the LLM
     chars_per_token: int = 4
     shutdown_min_score: float = 0.45  # how close a template must be to a shutdown phrase
+    # one LLM call may take this long (a web chat retries a slow reply twice at 60 s each)
+    llm_timeout_seconds: float = 240
 
     @property
     def plan_ttl(self) -> timedelta:
@@ -137,6 +142,7 @@ class AskSettings(BaseSettings):
 
 class RcaSettings(BaseSettings):
     """Root-cause analysis: the window around the anchor and the ranking (see ``logpipe.ask.rca``)."""
+
     model_config = _env("LOGPIPE_RCA_")
     before_minutes: float = 30
     after_minutes: float = 2
@@ -149,7 +155,8 @@ class RcaSettings(BaseSettings):
     warn_weight: float = 0.5
     other_weight: float = 0.1
     shutdown_weight: float = 0.9
-    related_weight: float = 0.5  # a LogBERT neighbour of the anchor, or a template matching the question
+    # a LogBERT neighbour of the anchor, or a template matching the question
+    related_weight: float = 0.5
     proximity_seconds: float = 600  # proximity = exp(-|first seen - anchor| / this)
     precursor_seconds: float = 120
     strong: float = 0.15  # a candidate that stands out: a new warning near the anchor scores 0.5
@@ -157,7 +164,16 @@ class RcaSettings(BaseSettings):
     max_candidates: int = 15
     max_lines: int = 40
     line_chars: int = 300
-    follow_ups: int = 3
+    follow_ups: int = 4  # rounds of reads the LLM may ask for, each approved like the rest
+    moves_per_round: int = 3
+    move_max_hours: float = 24  # how far before the anchor a follow-up read may look
+    follow_up_lines: int = 20  # lines one follow-up round may add to the bundle
+    # value hints: a host or extracted value carried by error lines far more often than by the others
+    hint_min_ratio: float = 3.0  # share among errors / share among the other lines
+    hint_min_share: float = 0.2  # of the error lines
+    hint_min_lines: int = 3
+    hint_min_others: int = 10  # fewer other lines than this: nothing to contrast with
+    max_hints: int = 5
 
     @property
     def before(self) -> timedelta:
@@ -180,7 +196,9 @@ class RcaSettings(BaseSettings):
         return timedelta(hours=self.baseline_hours)
 
     def level_weight(self, level: str | None) -> float:
-        return {"error": self.error_weight, "warn": self.warn_weight}.get(level or "", self.other_weight)
+        return {"error": self.error_weight, "warn": self.warn_weight}.get(
+            level or "", self.other_weight
+        )
 
 
 class Settings(BaseModel):
@@ -204,6 +222,7 @@ def get_settings() -> Settings:
 
 class RuntimeSettings(BaseModel):
     """What a person changes in the UI (Settings page), kept in the control store."""
+
     model_config = ConfigDict(extra="ignore", validate_assignment=True)
     sample_cap: int = Field(5000, ge=100, le=200_000)
     retrain_days: float = Field(7, ge=0.01, le=3650)
@@ -215,14 +234,22 @@ class RuntimeSettings(BaseModel):
     setup_done: bool = False
 
     # What PUT /api/settings may change; the rest is set by the server as setup progresses.
-    EDITABLE: ClassVar[tuple[str, ...]] = ("sample_cap", "retrain_days", "draft_lines", "draft_after_minutes", "ask_require_approval")
+    EDITABLE: ClassVar[tuple[str, ...]] = (
+        "sample_cap",
+        "retrain_days",
+        "draft_lines",
+        "draft_after_minutes",
+        "ask_require_approval",
+    )
 
     def changed(self, body: dict) -> RuntimeSettings:
         """A copy with the editable fields in ``body`` applied; ValueError naming the bad one."""
         from pydantic import ValidationError
 
         fields = {k: body[k] for k in self.EDITABLE if k in body}
-        if "ask_require_approval" in fields and not isinstance(fields["ask_require_approval"], bool):
+        if "ask_require_approval" in fields and not isinstance(
+            fields["ask_require_approval"], bool
+        ):
             raise ValueError("ask_require_approval is true or false")
         try:
             return self.model_validate(self.model_dump() | fields)

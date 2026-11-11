@@ -6,23 +6,36 @@ not the UI, enforces that. With approval switched off in Settings (``ask_require
 rounds are approved as they're planned; a request can still ask for approval (it can only
 tighten the setting, never loosen it). A plan waiting for approval expires after 15 minutes.
 """
+
 from __future__ import annotations
 
 import json
 import uuid
 from dataclasses import asdict
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from pathlib import Path
 
+from ..progress import JobProgress
 from ..settings import get_settings
+from .activity import Recorder, StepStatus
 from .engine import Ctx, Outcome, Round, advance, execute, first_round
 from .models import ClarifyResult
-from .query import Query
+from .query import Query, QueryStatus
 from .router import route
 from .spec import Catalog, QuerySpec, validate
 
 KIND = "ask_plan"
-FINAL = ("done", "failed", "rejected", "expired")
+
+
+class PlanStatus(StrEnum):
+    WAITING = "waiting_approval"
+    APPROVED = "approved"
+    RUNNING = "running"
+    DONE = "done"
+    FAILED = "failed"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
 
 
 def _now() -> datetime:
@@ -41,11 +54,24 @@ class AskService:
         snap = s.registry.current
         from ..server.core import _template_text
 
-        return Catalog(services={src["service"] for src in s.sources.values() if src["service"]},
-                       hosts={src["host"] for src in s.sources.values()} | {a["hostname"] for a in s.control.all("agent")},
-                       templates={t: _template_text(e.tokens, e.keys) for t, e in snap.templates.items()
-                                  if e.alias_of is None},
-                       groups=s.groups.services())
+        services = {src["service"] for src in s.sources.values() if src["service"]}
+
+        host_ids = {src["host"] for src in s.sources.values()}
+        host_names = {a["hostname"] for a in s.control.all("agent")}
+        hosts = host_ids | host_names
+
+        templates = {
+            t: _template_text(e.tokens, e.keys)
+            for t, e in snap.templates.items()
+            if e.alias_of is None
+        }
+
+        return Catalog(
+            services=services,
+            hosts=hosts,
+            templates=templates,
+            groups=s.groups.services(),
+        )
 
     def ctx(self, now: datetime | None = None, adapter=None, question: str = "", **flags) -> Ctx:
         s = self.server
@@ -63,54 +89,120 @@ class AskService:
         from .index import shutdown_set
 
         index = self.index_for(cat)
-        return Ctx(store=s.reads, templates=cat.templates, canonical=snap.canonical_id, scorer_for=scorer_for,
-                   agents=s.agents, alerts=s.reads.alerts, search_templates=index.search, neighbours=index.neighbours,
-                   shutdown=shutdown_set(s.control, cat.templates, index), groups=cat.groups,
-                   adapter=adapter or s.adapter, question=question, now=now or _now(), window=s.window, **flags)
+        return Ctx(
+            store=s.reads,
+            templates=cat.templates,
+            canonical=snap.canonical_id,
+            scorer_for=scorer_for,
+            agents=s.agents,
+            alerts=s.reads.alerts,
+            search_templates=index.search,
+            neighbours=index.neighbours,
+            shutdown=shutdown_set(s.control, cat.templates, index),
+            groups=cat.groups,
+            services=cat.services,
+            adapter=adapter or s.adapter,
+            question=question,
+            now=now or _now(),
+            window=s.window,
+            **flags,
+        )
 
     def index_for(self, cat: Catalog):
         from .index import TemplateIndex
 
         s = self.server
         # rebuilt when templates change or a stream model is retrained (its LogBERT vectors move)
-        key = (s.registry.current.version, frozenset(cat.templates), tuple(sorted((k, id(v)) for k, v in s.scorers.items())))
+        key = (
+            s.registry.current.version,
+            frozenset(cat.templates),
+            tuple(sorted((k, id(v)) for k, v in s.scorers.items())),
+        )
         if self.index is None or self._index_key != key:
-            self.index, self._index_key = TemplateIndex.build(cat.templates, key[0], s.scorers, s.registry.current), key
+            self.index, self._index_key = (
+                TemplateIndex.build(cat.templates, key[0], s.scorers, s.registry.current),
+                key,
+            )
         return self.index
 
     def require_approval(self, asked: bool | None) -> bool:
         return self.server.settings.ask_require_approval or asked is True
 
-    def ask(self, question: str, *, require_approval: bool | None = None, tz_offset: int | None = None,
-            spec: dict | None = None, incident: str | None = None) -> dict:
+    def ask(
+        self,
+        question: str,
+        *,
+        require_approval: bool | None = None,
+        tz_offset: int | None = None,
+        spec: dict | None = None,
+        incident: str | None = None,
+    ) -> dict:
         now = _now()
         cat = self.catalog()
+        llm_steps: list[dict] = []
         if spec is not None:
             routed_spec, via, notes = validate(spec, cat, now), "given", []
         else:
-            r = route(question, cat, self.server.adapter, now, tz_offset)
+            r = route(question, cat, Recorder(self.server.adapter, llm_steps), now, tz_offset)
             routed_spec, via, notes = r.spec, r.via, r.notes
-        plan = {"id": uuid.uuid4().hex[:12], "question": question[:1000], "via": via, "notes": notes,
-                "spec": routed_spec.model_dump(mode="json"), "require_approval": self.require_approval(require_approval),
-                "created_at": now.isoformat(), "incident": incident, "rounds": [], "state": {}, "result": None}
+        plan = {
+            "id": uuid.uuid4().hex[:12],
+            "question": question[:1000],
+            "via": via,
+            "notes": notes,
+            "llm_steps": llm_steps,
+            "spec": routed_spec.model_dump(mode="json"),
+            "require_approval": self.require_approval(require_approval),
+            "created_at": now.isoformat(),
+            "incident": incident,
+            "rounds": [],
+            "state": {},
+            "result": None,
+        }
         return self._plan(plan, first_round(routed_spec, self.ctx(now, question=question)), now)
 
     def _plan(self, plan: dict, out: Outcome, now: datetime, enqueue: bool = True) -> dict:
         plan["state"] = {**plan.get("state", {}), **out.state}
         if out.result is not None:
-            plan.update(status="done", result=out.result.model_dump(mode="json"), finished_at=now.isoformat())
+            plan.update(
+                status=PlanStatus.DONE,
+                result=out.result.model_dump(mode="json"),
+                finished_at=now.isoformat(),
+            )
         else:
             assert out.round is not None
-            plan["rounds"].append({"n": out.round.n, "purpose": out.round.purpose,
-                                   "queries": [asdict(q) for q in out.round.queries]})
-            plan.update(status="waiting_approval", expires_at=(now + get_settings().ask.plan_ttl).isoformat())
+            plan["rounds"].append(
+                {
+                    "n": out.round.n,
+                    "purpose": out.round.purpose,
+                    "queries": [asdict(q) for q in out.round.queries],
+                }
+            )
+            plan.update(
+                status=PlanStatus.WAITING,
+                expires_at=(now + get_settings().ask.plan_ttl).isoformat(),
+            )
             if not plan["require_approval"]:
                 for q in plan["rounds"][-1]["queries"]:
-                    q["status"] = "approved"
-                plan["status"] = "approved"
-        self.server.control.put(KIND, plan["id"], plan)
-        if plan["status"] == "approved" and enqueue:  # the job runs auto-approved rounds itself
+                    q["status"] = QueryStatus.APPROVED
+                plan["status"] = PlanStatus.APPROVED
+        self._put(plan)
+        # inside a job, the job runs auto-approved rounds itself (enqueue=False)
+        if plan["status"] == PlanStatus.APPROVED and enqueue:
             self.server.enqueue("ask", plan=plan["id"], round=plan["rounds"][-1]["n"])
+        self.server.events.notify()
+        return plan
+
+    def _put(self, plan: dict) -> None:
+        plan["updated_at"] = _now().isoformat()  # a running plan's heartbeat (see get)
+        self.server.control.put(KIND, plan["id"], plan)
+
+    def _fail(self, plan: dict, error: str) -> dict:
+        for entry in plan.get("llm_steps") or []:
+            if entry.get("status") == StepStatus.RUNNING:
+                entry.update(status=StepStatus.FAILED, outcome="stopped: the run ended")
+        plan.update(status=PlanStatus.FAILED, error=error[:500], finished_at=_now().isoformat())
+        self._put(plan)
         self.server.events.notify()
         return plan
 
@@ -118,21 +210,38 @@ class AskService:
         plan = self.server.control.get(KIND, plan_id)
         if plan is None:
             raise KeyError(plan_id)
-        if plan["status"] == "waiting_approval" and plan["expires_at"] < _now().isoformat():
-            plan["status"] = "expired"
-            self.server.control.put(KIND, plan_id, plan)
+        now = _now()
+        if plan["status"] == PlanStatus.WAITING and plan["expires_at"] < now.isoformat():
+            plan["status"] = PlanStatus.EXPIRED
+            self._put(plan)
+        # a running plan saves at least once per LLM deadline; silence well past it means the job
+        # died with the server (a restart) and nothing will finish it
+        quiet = timedelta(seconds=get_settings().ask.llm_timeout_seconds + 120)
+        last = datetime.fromisoformat(plan.get("updated_at") or plan["created_at"])
+        if plan["status"] == PlanStatus.RUNNING and now - last > quiet:
+            self._fail(
+                plan,
+                f"the run stopped responding (nothing for {int(quiet.total_seconds())} s; was the server restarted?)",
+            )
         return plan
 
     def recent(self, limit: int = 20) -> list[dict]:
-        plans = sorted(self.server.control.all(KIND), key=lambda p: p["created_at"], reverse=True)[:limit]
-        return [{k: p.get(k) for k in ("id", "question", "status", "created_at", "via")}
-                | {"intent": p["spec"]["intent"]} for p in plans]
+        plans = sorted(self.server.control.all(KIND), key=lambda p: p["created_at"], reverse=True)[
+            :limit
+        ]
+        return [
+            {k: p.get(k) for k in ("id", "question", "status", "created_at", "via")}
+            | {"intent": p["spec"]["intent"]}
+            for p in plans
+        ]
 
     def _waiting(self, plan_id: str) -> dict:
         plan = self.get(plan_id)
-        if plan["status"] == "expired":
-            raise ValueError(f"this plan expired ({get_settings().ask.plan_ttl_minutes:g} minutes without approval); ask again")
-        if plan["status"] != "waiting_approval":
+        if plan["status"] == PlanStatus.EXPIRED:
+            raise ValueError(
+                f"this plan expired ({get_settings().ask.plan_ttl_minutes:g} minutes without approval); ask again"
+            )
+        if plan["status"] != PlanStatus.WAITING:
             raise ValueError(f"this plan is {plan['status']}, not waiting for approval")
         return plan
 
@@ -147,9 +256,9 @@ class AskService:
         if not chosen:
             raise ValueError("approve at least one query, or reject the plan")
         for q in current["queries"]:
-            q["status"] = "approved" if q["id"] in chosen else "rejected"
-        plan.update(status="approved", approved_at=_now().isoformat())
-        self.server.control.put(KIND, plan_id, plan)
+            q["status"] = QueryStatus.APPROVED if q["id"] in chosen else QueryStatus.REJECTED
+        plan.update(status=PlanStatus.APPROVED, approved_at=_now().isoformat())
+        self._put(plan)
         job = self.server.enqueue("ask", plan=plan_id, round=current["n"])
         self.server.events.notify()
         return plan | {"job": job["id"]}
@@ -161,16 +270,21 @@ class AskService:
             raise ValueError("the spec can only be edited before the first round runs")
         now = _now()
         new = validate(spec, self.catalog(), now)
-        plan.update(spec=new.model_dump(mode="json"), rounds=[], state={}, via=f"{plan['via']}, edited",
-                    require_approval=True)
+        plan.update(
+            spec=new.model_dump(mode="json"),
+            rounds=[],
+            state={},
+            via=f"{plan['via']}, edited",
+            require_approval=True,
+        )
         return self._plan(plan, first_round(new, self.ctx(now, question=plan["question"])), now)
 
     def reject(self, plan_id: str) -> dict:
         plan = self._waiting(plan_id)
         for q in plan["rounds"][-1]["queries"]:
-            q["status"] = "rejected"
-        plan.update(status="rejected", finished_at=_now().isoformat())
-        self.server.control.put(KIND, plan_id, plan)
+            q["status"] = QueryStatus.REJECTED
+        plan.update(status=PlanStatus.REJECTED, finished_at=_now().isoformat())
+        self._put(plan)
         self.server.events.notify()
         return plan
 
@@ -183,8 +297,16 @@ class AskService:
         rows = []
         for tid, text in cat.templates.items():
             on = (tid in auto or tid in edits.get("add", [])) and tid not in edits.get("remove", [])
-            rows.append({"template_id": tid, "text": text, "shutdown": on, "auto": tid in auto, "why": auto.get(tid),
-                         "edited": tid in edits.get("add", []) or tid in edits.get("remove", [])})
+            rows.append(
+                {
+                    "template_id": tid,
+                    "text": text,
+                    "shutdown": on,
+                    "auto": tid in auto,
+                    "why": auto.get(tid),
+                    "edited": tid in edits.get("add", []) or tid in edits.get("remove", []),
+                }
+            )
         return {"templates": rows, "index": self.index.kind if self.index else None}
 
     def edit_shutdown(self, body: dict) -> dict:
@@ -200,36 +322,61 @@ class AskService:
             add.add(tid)
         elif on is False:
             remove.add(tid)
-        self.server.control.put("ask_shutdown", "edits", {"add": sorted(add), "remove": sorted(remove)})
+        self.server.control.put(
+            "ask_shutdown", "edits", {"add": sorted(add), "remove": sorted(remove)}
+        )
         return self.shutdown_view()
 
     def _outputs_path(self, plan_id: str) -> Path:
         return self.dir / f"{plan_id}.json"
 
-    def run(self, progress, plan_id: str, round_n: int, adapter=None) -> str:
+    def run(self, progress: JobProgress, plan_id: str, round_n: int, adapter=None) -> str:
         plan = self.get(plan_id)
-        if plan["status"] != "approved" or plan["rounds"][-1]["n"] != round_n:
+        if plan["status"] != PlanStatus.APPROVED or plan["rounds"][-1]["n"] != round_n:
             raise ValueError(f"plan {plan_id} round {round_n} is not approved")
         spec = QuerySpec.model_validate(plan["spec"])
         path = self._outputs_path(plan_id)
-        outputs: dict[str, list[dict]] = json.loads(path.read_text("utf-8")) if path.exists() else {}
-        plan["status"] = "running"
-        self.server.control.put(KIND, plan_id, plan)
+        outputs: dict[str, list[dict]] = (
+            json.loads(path.read_text("utf-8")) if path.exists() else {}
+        )
+        plan["status"] = PlanStatus.RUNNING
+        self._put(plan)
+
+        def save() -> None:
+            self._put(plan)
+            self.server.events.notify()
+
+        recorder = Recorder(adapter or self.server.adapter, plan.setdefault("llm_steps", []), save)
+        try:
+            return self._run_rounds(progress, plan, spec, outputs, path, recorder)
+        except Exception as error:  # whatever broke, the plan says so instead of spinning forever
+            self._fail(plan, f"{type(error).__name__}: {error}")
+            raise
+
+    def _run_rounds(
+        self,
+        progress: JobProgress,
+        plan: dict,
+        spec: QuerySpec,
+        outputs: dict,
+        path: Path,
+        recorder: Recorder,
+    ) -> str:
         rounds = 0
         while True:
             rounds += 1
             current = plan["rounds"][-1]
             queries = [Query(**q) for q in current["queries"]]
-            ctx = self.ctx(adapter=adapter, question=plan["question"])
+            ctx = self.ctx(adapter=recorder, question=plan["question"])
             for i, q in enumerate(queries):
-                if q.status != "approved":
+                if q.status != QueryStatus.APPROVED:
                     continue
                 progress(0.1 + 0.8 * i / max(len(queries), 1), f"round {current['n']}: {q.title}")
                 try:
                     outputs[q.id] = execute(q, ctx)
-                    q.status, q.result_summary = "done", f"{len(outputs[q.id])} rows"
+                    q.status, q.result_summary = QueryStatus.DONE, f"{len(outputs[q.id])} rows"
                 except (ValueError, PermissionError) as error:
-                    q.status, q.error = "failed", str(error)
+                    q.status, q.error = QueryStatus.FAILED, str(error)
             current["queries"] = [asdict(q) for q in queries]
             self.dir.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(outputs, default=str), "utf-8")
@@ -237,17 +384,29 @@ class AskService:
             progress(0.9, "reading what came back")
             out = advance(spec, plan["state"], done, outputs, ctx)
             if out.round is not None and len(plan["rounds"]) >= ctx.ask.max_rounds:
-                out = Outcome(result=ClarifyResult(message="stopped after the maximum number of rounds"), state=out.state)
+                out = Outcome(
+                    result=ClarifyResult(message="stopped after the maximum number of rounds"),
+                    state=out.state,
+                )
             plan = self._plan(plan, out, _now(), enqueue=False)
-            if plan["status"] != "approved" or rounds > ctx.ask.max_rounds:  # waiting for a person, or finished
+            # waiting for a person, or finished
+            if plan["status"] != PlanStatus.APPROVED or rounds > ctx.ask.max_rounds:
                 break
-        if plan["status"] == "done" and plan.get("incident"):
+        if plan["status"] == PlanStatus.DONE and plan.get("incident"):
             self._save_incident(plan)
-        return {"done": "answer ready", "waiting_approval": "waiting for approval of the next round"}.get(
-            plan["status"], plan["status"])
+        return {
+            PlanStatus.DONE: "answer ready",
+            PlanStatus.WAITING: "waiting for approval of the next round",
+        }.get(plan["status"], plan["status"])
 
     def _save_incident(self, plan: dict) -> None:
         control = self.server.control
-        inc = control.get("incident", plan["incident"]) or {"id": plan["incident"], "status": "open"}
-        control.put("incident", plan["incident"], inc | {"explanation": plan["result"] | {"at": _now().isoformat(),
-                                                                                           "plan": plan["id"]}})
+        inc = control.get("incident", plan["incident"]) or {
+            "id": plan["incident"],
+            "status": "open",
+        }
+        control.put(
+            "incident",
+            plan["incident"],
+            inc | {"explanation": plan["result"] | {"at": _now().isoformat(), "plan": plan["id"]}},
+        )

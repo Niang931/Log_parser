@@ -83,8 +83,18 @@ class KafkaQueue:
     def from_env(cls, **overrides) -> KafkaQueue:
         """``KAFKA_*`` settings (``logpipe.settings.KafkaSettings``); keyword arguments win."""
         cfg = get_settings().kafka
-        return cls(**({"bootstrap": cfg.bootstrap, "topic": cfg.topic, "group": cfg.group,
-                       "dlq_topic": cfg.dlq_topic, "key_by": cfg.key_by} | overrides))
+        return cls(
+            **(
+                {
+                    "bootstrap": cfg.bootstrap,
+                    "topic": cfg.topic,
+                    "group": cfg.group,
+                    "dlq_topic": cfg.dlq_topic,
+                    "key_by": cfg.key_by,
+                }
+                | overrides
+            )
+        )
 
     @property
     def producer(self):
@@ -135,11 +145,15 @@ class KafkaQueue:
         self._drain_spill()
         self.producer.poll(0)  # serve delivery callbacks; never blocks
 
-    def _produce(self, topic: str, key: bytes, value: bytes, headers: list[tuple[str, bytes]]) -> bool:
+    def _produce(
+        self, topic: str, key: bytes, value: bytes, headers: list[tuple[str, bytes]]
+    ) -> bool:
         try:
-            self.producer.produce(topic, value, key=key, headers=headers, on_delivery=self._delivered)
+            self.producer.produce(
+                topic, value, key=key, headers=headers, on_delivery=self._delivered
+            )
             return True
-        
+
         except BufferError:  # Buffer full: the broker is slow or gone
             self._spill(topic, key, value, headers, "local send buffer full")
         except Exception as error:  # noqa: BLE001 - any failed send is parked, never lost
@@ -151,7 +165,7 @@ class KafkaQueue:
             headers = [(k, v) for k, v in (message.headers() or []) if v is not None]
             self._spill(message.topic(), message.key(), message.value(), headers, str(error))
             return
-        
+
         if self._broker_down:
             self._broker_down = False
             LOGGER.info("kafka: deliveries to %s succeed again", self.bootstrap)
@@ -163,7 +177,7 @@ class KafkaQueue:
 
         self._parked.append((topic, key, value, headers))
         self._retry_at = time.monotonic() + self.retry_after
-        
+
         if not self._broker_down:
             self._broker_down = True
             self._alert(f"Kafka: Can't deliver to {self.bootstrap} ({reason}); buffering locally")
@@ -176,7 +190,7 @@ class KafkaQueue:
     def _drain_spill(self, limit: int = 1_000) -> int:
         if not self._parked or time.monotonic() < self._retry_at:
             return 0
-        
+
         sent = 0
         while self._parked and sent < limit:
             topic, key, value, headers = self._parked.popleft()
@@ -206,7 +220,7 @@ class KafkaQueue:
     def flush(self, timeout: float = 10.0) -> None:
         if self._producer is None:
             return
-        
+
         deadline = time.monotonic() + timeout
         self._retry_at = 0.0
         self._drain_spill(limit=self.spill_size)
@@ -215,9 +229,14 @@ class KafkaQueue:
             if remaining == 0 and not self._parked:
                 return
             if time.monotonic() >= deadline:
-                LOGGER.warning("Kafka: %d messages still undelivered after %.0fs (%d spilled)", remaining, timeout, len(self._parked))
+                LOGGER.warning(
+                    "Kafka: %d messages still undelivered after %.0fs (%d spilled)",
+                    remaining,
+                    timeout,
+                    len(self._parked),
+                )
                 return
-            
+
             self._retry_at = 0.0
             self._drain_spill(limit=self.spill_size)
 
@@ -250,7 +269,7 @@ class KafkaQueue:
                 self._uncommitted += 1
                 continue
             batch.append(Message(row, attempts))
-        
+
         self._uncommitted += len(batch)
         self._stats.consumed += len(batch)
         return batch

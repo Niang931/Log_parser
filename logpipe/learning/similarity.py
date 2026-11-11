@@ -1,4 +1,3 @@
-
 from collections.abc import Sequence
 
 from ..enrich.llm import LLMAdapter

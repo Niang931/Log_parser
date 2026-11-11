@@ -6,6 +6,7 @@ thresholds on a validation stream, then generate the test stream live (so a firm
 or an anomaly can be triggered from the page) and feed it through ``Pipeline`` one line at a
 time. A stdlib HTTP server exposes each stage as JSON for ``index.html``.
 """
+
 from __future__ import annotations
 
 import json
@@ -58,13 +59,17 @@ def template_sql(entry: TemplateEntry, engine: str = "sqlite") -> str:
     keys = [k for k in entry.keys if k not in ("timestamp", "device_id")]
     if engine == "clickhouse":
         cols = "".join(f",\n  payload.`{k}` AS `{k}`" for k in keys)
-        return (f"SELECT timestamp, device_id{cols}\nFROM iot_logs FINAL\n"
-                f"WHERE template_id = {entry.template_id} AND log_status = 'FINAL'\n"
-                "ORDER BY timestamp DESC\nLIMIT 50")
-    cols = "".join(f",\n  json_extract(payload, '$.\"{k}\"') AS \"{k}\"" for k in keys)
-    return (f"SELECT timestamp, device_id{cols}\nFROM logs\n"
-            f"WHERE template_id = {entry.template_id} AND status = 'FINAL'\n"
-            "ORDER BY timestamp DESC\nLIMIT 50;")
+        return (
+            f"SELECT timestamp, device_id{cols}\nFROM iot_logs FINAL\n"
+            f"WHERE template_id = {entry.template_id} AND log_status = 'FINAL'\n"
+            "ORDER BY timestamp DESC\nLIMIT 50"
+        )
+    cols = "".join(f',\n  json_extract(payload, \'$."{k}"\') AS "{k}"' for k in keys)
+    return (
+        f"SELECT timestamp, device_id{cols}\nFROM logs\n"
+        f"WHERE template_id = {entry.template_id} AND status = 'FINAL'\n"
+        "ORDER BY timestamp DESC\nLIMIT 50;"
+    )
 
 
 class _Mirror(MemoryStore):
@@ -106,38 +111,73 @@ def cache_path(cache_dir: Path, llm: str, devices: int, history_hours: float, se
     return cache_dir / f"registry_{backend}_d{devices}_h{history_hours:g}_s{seed}.json"
 
 
-def save_registry(path: Path, *, devices: int = 2, history_hours: float = 2, seed: int = 7,
-                  llm: str = "offline", browser: Browser = "camoufox", log=print,
-                  adapter=None) -> None:
+def save_registry(
+    path: Path,
+    *,
+    devices: int = 2,
+    history_hours: float = 2,
+    seed: int = 7,
+    llm: str = "offline",
+    browser: Browser = "camoufox",
+    log=print,
+    adapter=None,
+) -> None:
     """Calibrate the demo's history with ``llm`` and save the registry (the Colab step for ``hf``)."""
     fleet = generate(devices, history_hours, 0, 0, anomaly_rate=0.0, seed=seed)
     log(f"[demo] calibrating {len(fleet.history)} history lines with {llm}")
     cal = calibrate([e.line for e in fleet.history], adapter or get_adapter(llm, browser=browser))
     path.parent.mkdir(parents=True, exist_ok=True)
     SchemaRegistry(cal.snapshot).save(path)
-    _meta_path(path).write_text(json.dumps({"mask_backend": llm, "devices": devices,
-                                            "history_hours": history_hours, "seed": seed}))
-    log(f"[demo] saved registry v{cal.snapshot.version} ({len(cal.snapshot.masks)} masks, "
-        f"{len(cal.snapshot.templates)} templates) -> {path}")
+    _meta_path(path).write_text(
+        json.dumps(
+            {"mask_backend": llm, "devices": devices, "history_hours": history_hours, "seed": seed}
+        )
+    )
+    log(
+        f"[demo] saved registry v{cal.snapshot.version} ({len(cal.snapshot.masks)} masks, "
+        f"{len(cal.snapshot.templates)} templates) -> {path}"
+    )
 
 
 class Demo:
-    def __init__(self, devices: int = 2, history_hours: float = 2, test_hours: float = 1,
-                 validation_hours: float = 1, epochs: int = 8, window: int = 20, stride: int = 5,
-                 enrich_every: int = 300, seed: int = 7, llm: str = "offline", queue: str = "memory",
-                 store: str = "memory", registry_path: Path | None = None,
-                 browser: Browser = "camoufox", cache_dir: Path | None = None,
-                 recalibrate: bool = False, log=print):
+    def __init__(
+        self,
+        devices: int = 2,
+        history_hours: float = 2,
+        test_hours: float = 1,
+        validation_hours: float = 1,
+        epochs: int = 8,
+        window: int = 20,
+        stride: int = 5,
+        enrich_every: int = 300,
+        seed: int = 7,
+        llm: str = "offline",
+        queue: str = "memory",
+        store: str = "memory",
+        registry_path: Path | None = None,
+        browser: Browser = "camoufox",
+        cache_dir: Path | None = None,
+        recalibrate: bool = False,
+        log=print,
+    ):
         """``cache_dir`` keeps the calibration between runs (reused unless ``recalibrate``);
         ``registry_path`` loads a given registry instead, e.g. fine-tuned masks from Colab."""
-        fleet = generate(devices, history_hours, validation_hours, 0, anomaly_rate=ANOMALY_RATE,
-                         seed=seed)
+        fleet = generate(
+            devices, history_hours, validation_hours, 0, anomaly_rate=ANOMALY_RATE, seed=seed
+        )
         adapter = get_adapter(llm, browser=browser)
         if registry_path is None and cache_dir is not None:
             cached = cache_path(cache_dir, llm, devices, history_hours, seed)
             if recalibrate or not cached.exists():
-                save_registry(cached, devices=devices, history_hours=history_hours, seed=seed,
-                              llm=llm, log=log, adapter=adapter)
+                save_registry(
+                    cached,
+                    devices=devices,
+                    history_hours=history_hours,
+                    seed=seed,
+                    llm=llm,
+                    log=log,
+                    adapter=adapter,
+                )
             else:
                 log(f"[demo] reusing the calibration in {cached} (--recalibrate to redo it)")
             registry_path = cached
@@ -147,11 +187,18 @@ class Demo:
             meta = json.loads(meta_file.read_text()) if meta_file.exists() else {}
             self.mask_backend = meta.get("mask_backend", f"cached {registry_path.name}")
             if meta and (meta.get("devices"), meta.get("history_hours"), meta.get("seed")) != (
-                    devices, history_hours, seed):
-                log(f"[demo] warning: registry was calibrated for {meta}, this run uses "
-                    f"devices={devices} history_hours={history_hours} seed={seed}")
-            log(f"[demo] loaded registry v{snapshot.version} from {registry_path} "
-                f"(masks by {self.mask_backend})")
+                devices,
+                history_hours,
+                seed,
+            ):
+                log(
+                    f"[demo] warning: registry was calibrated for {meta}, this run uses "
+                    f"devices={devices} history_hours={history_hours} seed={seed}"
+                )
+            log(
+                f"[demo] loaded registry v{snapshot.version} from {registry_path} "
+                f"(masks by {self.mask_backend})"
+            )
         else:
             log(f"[demo] calibrating on {len(fleet.history)} history lines with {llm}")
             snapshot = calibrate([e.line for e in fleet.history], adapter).snapshot
@@ -166,23 +213,34 @@ class Demo:
         random.Random(seed).shuffle(encoded)
         n_valid = max(1, len(encoded) // 10)
         log(f"[demo] training LogBERT on {len(windows)} windows, {epochs} epochs")
-        trained = train_logbert(encoded[n_valid:], encoded[:n_valid],
-                                LogBERTConfig(len(vocab), 32, 1, 2, max_len=window + 1),
-                                TrainConfig(epochs=epochs), log=log)
+        trained = train_logbert(
+            encoded[n_valid:],
+            encoded[:n_valid],
+            LogBERTConfig(len(vocab), 32, 1, 2, max_len=window + 1),
+            TrainConfig(epochs=epochs),
+            log=log,
+        )
         # Small vocabulary: a low top-g keeps the sequence signal meaningful (see iot_eval).
         self.scorer = LogBERTScorer.from_training(
-            trained, vocab, settings=ScorerSettings(num_candidates=3), version="logbert-demo")
+            trained, vocab, settings=ScorerSettings(num_candidates=3), version="logbert-demo"
+        )
         detector_config = DetectorConfig(window=window, stride=stride, record_windows=True)
 
         log(f"[demo] tuning thresholds on {len(fleet.validation)} validation lines")
-        val = Pipeline.assemble(SchemaRegistry(snapshot), MemoryStore(), scorer=self.scorer,
-                                detector_config=detector_config)
+        val = Pipeline.assemble(
+            SchemaRegistry(snapshot),
+            MemoryStore(),
+            scorer=self.scorer,
+            detector_config=detector_config,
+        )
         val.run(as_log_events(fleet.validation))
         assert val.detector is not None
         val_labels = _Labels(fleet.validation)
         self.scorer.settings.thresholds, _ = tune_thresholds(
-            self.scorer, [w.score for w in val.detector.scored if not val_labels.kinds_in(w)],
-            [w.score for w in val.detector.scored if val_labels.kinds_in(w)])
+            self.scorer,
+            [w.score for w in val.detector.scored if not val_labels.kinds_in(w)],
+            [w.score for w in val.detector.scored if val_labels.kinds_in(w)],
+        )
 
         self.initial: RegistrySnapshot = snapshot
         self.browser: Browser = browser
@@ -196,8 +254,13 @@ class Demo:
         self._stats_lock = threading.Lock()
         self._stats_cache: tuple | None = None
         self.session = 0
-        self._reset(snapshot, seed + 1, "session 1 started", (queue, store, llm),
-                    self._open(queue, store, llm, adapter))
+        self._reset(
+            snapshot,
+            seed + 1,
+            "session 1 started",
+            (queue, store, llm),
+            self._open(queue, store, llm, adapter),
+        )
 
     def _open(self, queue: str, store: str, llm: str, adapter=None) -> tuple:
         """Queue, store and adapter for a session, starting their Docker services first.
@@ -207,15 +270,22 @@ class Demo:
         """
         if queue not in ("memory", "kafka") or store not in ("memory", "clickhouse"):
             raise ValueError(f"queue {queue!r} / store {store!r}")
-        services = [name for name, on in (("kafka", queue == "kafka"),
-                                          ("clickhouse", store == "clickhouse")) if on]
+        services = [
+            name
+            for name, on in (("kafka", queue == "kafka"), ("clickhouse", store == "clickhouse"))
+            if on
+        ]
         if services:
             from ..start import docker_up
+
             docker_up(services)
         # A fresh topic per session, so a broker kept up between demos never replays old rows.
         run = uuid.uuid4().hex[:8]
-        q = (open_queue("kafka", topic=f"logpipe-demo-{run}", group=f"logpipe-demo-{run}")
-             if queue == "kafka" else open_queue("memory"))
+        q = (
+            open_queue("kafka", topic=f"logpipe-demo-{run}", group=f"logpipe-demo-{run}")
+            if queue == "kafka"
+            else open_queue("memory")
+        )
         st: MemoryStore = MemoryStore()
         if store == "clickhouse":
             from ..storage.clickhouse import ClickHouseStore
@@ -226,8 +296,14 @@ class Demo:
             st = _Mirror(sink)
         return q, st, adapter or get_adapter(llm, browser=self.browser)
 
-    def _reset(self, snapshot: RegistrySnapshot, stream_seed: int, note: str,
-               kinds: tuple[str, str, str], opened: tuple) -> None:
+    def _reset(
+        self,
+        snapshot: RegistrySnapshot,
+        stream_seed: int,
+        note: str,
+        kinds: tuple[str, str, str],
+        opened: tuple,
+    ) -> None:
         """Start a session: empty store and queue, ``snapshot`` as the registry, a fresh stream.
 
         Calibration, LogBERT and its thresholds are kept; they are the slow part.
@@ -243,16 +319,23 @@ class Demo:
         self.registry = SchemaRegistry(snapshot)
         # The demo runs cycles itself (see step) so it can map each cycle back to its lines.
         self.pipeline = Pipeline.assemble(
-            self.registry, self.store, adapter=self.adapter, scorer=self.scorer,
-            detector_config=self.detector_config, enrich_every=10**12, queue=self.queue,
+            self.registry,
+            self.store,
+            adapter=self.adapter,
+            scorer=self.scorer,
+            detector_config=self.detector_config,
+            enrich_every=10**12,
+            queue=self.queue,
         )
         # Regenerated (cheap) so the devices start from their pre-rollout state again.
-        fleet = generate(devices, history_hours, validation_hours, 0, anomaly_rate=ANOMALY_RATE,
-                         seed=seed)
+        fleet = generate(
+            devices, history_hours, validation_hours, 0, anomaly_rate=ANOMALY_RATE, seed=seed
+        )
         start = fleet.validation[-1].timestamp if fleet.validation else fleet.history[-1].timestamp
         self.stream_seed = stream_seed
-        self.fleet = LiveFleet(fleet.devices, start, test_hours, random.Random(stream_seed),
-                               anomaly_rate=ANOMALY_RATE)
+        self.fleet = LiveFleet(
+            fleet.devices, start, test_hours, random.Random(stream_seed), anomaly_rate=ANOMALY_RATE
+        )
         self.labels = _Labels([])
         self.lines: list[dict] = []
         self.log_ids: list[str] = []
@@ -267,8 +350,14 @@ class Demo:
         self.session += 1
         self._event("control", note)
 
-    def restart(self, new_stream: bool = False, keep_learned: bool = False,
-                queue: str | None = None, store: str | None = None, llm: str | None = None) -> None:
+    def restart(
+        self,
+        new_stream: bool = False,
+        keep_learned: bool = False,
+        queue: str | None = None,
+        store: str | None = None,
+        llm: str | None = None,
+    ) -> None:
         """Replay from the start: the same stream (or a new one), from calibration or keeping
         what enrichment learned, with this or another queue, store and keys/alias LLM."""
         kinds = (queue or self.queue_kind, store or self.store_kind, llm or self.llm)
@@ -280,18 +369,31 @@ class Demo:
             snapshot = self.registry.current if keep_learned else self.initial
             seed = random.randrange(1 << 30) if new_stream else self.stream_seed
             learned = len(snapshot.templates) - len(self.initial.templates)
-            self._reset(snapshot, seed, f"session {self.session + 1} started: "
-                        f"{'new' if new_stream else 'same'} stream, registry v{snapshot.version}"
-                        + (f" keeping {learned} learned templates" if keep_learned else " from calibration")
-                        + f"; {kinds[0]} queue, {kinds[1]} store, keys/alias by {kinds[2]}",
-                        kinds, opened)
+            self._reset(
+                snapshot,
+                seed,
+                f"session {self.session + 1} started: "
+                f"{'new' if new_stream else 'same'} stream, registry v{snapshot.version}"
+                + (f" keeping {learned} learned templates" if keep_learned else " from calibration")
+                + f"; {kinds[0]} queue, {kinds[1]} store, keys/alias by {kinds[2]}",
+                kinds,
+                opened,
+            )
             self.paused = False
 
     def _event(self, kind: str, text: str, *, i: int | None = None, **extra) -> None:
         """``i`` is the line the event points at; default the line just ingested."""
         i = len(self.lines) - 1 if i is None else i
-        self.events.append({"n": len(self.events), "i": i, "kind": kind,
-                            "time": self.lines[-1]["time"] if self.lines else None, "text": text} | extra)
+        self.events.append(
+            {
+                "n": len(self.events),
+                "i": i,
+                "kind": kind,
+                "time": self.lines[-1]["time"] if self.lines else None,
+                "text": text,
+            }
+            | extra
+        )
 
     def step(self) -> bool:
         """Feed the next live line through the pipeline; False once the stream is done."""
@@ -316,19 +418,36 @@ class Demo:
             log_id = str(next(reversed(self.store.rows)))
             self.log_ids.append(log_id)
             self.line_of[log_id] = i
-            self.lines.append({
-                "i": i, "device_id": e.device_id, "time": e.timestamp.isoformat(), "raw": e.line,
-                "status": str(r.status), "template_id": r.template_id, "payload": r.payload,
-                "registry_version": r.registry_version, "anomaly": e.anomaly, "firmware": e.firmware,
-            })
+            self.lines.append(
+                {
+                    "i": i,
+                    "device_id": e.device_id,
+                    "time": e.timestamp.isoformat(),
+                    "raw": e.line,
+                    "status": str(r.status),
+                    "template_id": r.template_id,
+                    "payload": r.payload,
+                    "registry_version": r.registry_version,
+                    "anomaly": e.anomaly,
+                    "firmware": e.firmware,
+                }
+            )
             hit = str(r.status) == "FINAL"
-            self.trail[i].append(f"v{r.registry_version} parser: " + (
-                f"hit template #{r.template_id}" if hit else f"miss -> PENDING, published to {self.queue_kind} queue"))
+            self.trail[i].append(
+                f"v{r.registry_version} parser: "
+                + (
+                    f"hit template #{r.template_id}"
+                    if hit
+                    else f"miss -> PENDING, published to {self.queue_kind} queue"
+                )
+            )
             if e.firmware == 2 and e.device_id not in self._fw2:
                 self._fw2.add(e.device_id)
                 self._event("rollout", f"{e.device_id} now logs firmware 2.x", device=e.device_id)
             if e.anomaly and self._in_anomaly.get(e.device_id) != e.anomaly:
-                self._event("truth", f"{e.anomaly} anomaly starts on {e.device_id}", device=e.device_id)
+                self._event(
+                    "truth", f"{e.anomaly} anomaly starts on {e.device_id}", device=e.device_id
+                )
             self._in_anomaly[e.device_id] = e.anomaly
             if (i + 1) % self.enrich_every == 0:
                 self._cycle(self.pipeline.enrich())
@@ -348,30 +467,49 @@ class Demo:
             t = snap.templates[tid]
             score, why = report.alias_decisions.get(tid, (0.0, ""))
             if tid in report.aliased:
-                self._event("alias", f"v{v}: template #{tid} re-associated with #{report.aliased[tid]} "
-                            f"(similarity {score:.2f}, {why})", template_id=tid, i=first_line.get(tid),
-                            alias_of=report.aliased[tid], tokens=" ".join(t.tokens))
+                self._event(
+                    "alias",
+                    f"v{v}: template #{tid} re-associated with #{report.aliased[tid]} "
+                    f"(similarity {score:.2f}, {why})",
+                    template_id=tid,
+                    i=first_line.get(tid),
+                    alias_of=report.aliased[tid],
+                    tokens=" ".join(t.tokens),
+                )
             else:
-                self._event("new", f"v{v}: new template #{tid} (similarity {score:.2f}: {why})",
-                            template_id=tid, i=first_line.get(tid), tokens=" ".join(t.tokens))
+                self._event(
+                    "new",
+                    f"v{v}: new template #{tid} (similarity {score:.2f}: {why})",
+                    template_id=tid,
+                    i=first_line.get(tid),
+                    tokens=" ".join(t.tokens),
+                )
         for label, why in report.rejected.items():
             self._event("rejected", f"v{v}: cluster rejected ({why}): {label}")
         for log_id, tid in report.resolved_rows:
             if (i := self.line_of.get(log_id)) is not None:
                 canon = snap.canonical_id(tid)
-                self.trail[i].append(f"cycle -> v{v}: resolved as #{tid}"
-                                     + (f" (alias of #{canon})" if canon != tid else "") + ", row backfilled")
+                self.trail[i].append(
+                    f"cycle -> v{v}: resolved as #{tid}"
+                    + (f" (alias of #{canon})" if canon != tid else "")
+                    + ", row backfilled"
+                )
         for log_id, attempts, why in report.requeued_rows:
             if (i := self.line_of.get(log_id)) is not None:
-                self.trail[i].append(f"cycle -> v{v}: still PENDING ({why}), requeued attempt {attempts}")
+                self.trail[i].append(
+                    f"cycle -> v{v}: still PENDING ({why}), requeued attempt {attempts}"
+                )
         for log_id, why in report.dead_letter_rows:
             if (i := self.line_of.get(log_id)) is not None:
                 self.trail[i].append(f"cycle -> v{v}: dead-lettered ({why})")
         if report.resolved:
             self._event("backfill", f"v{v}: {report.resolved} PENDING rows backfilled")
         if report.requeued_rows:
-            self._event("requeue", f"v{v}: {len(report.requeued_rows)} rows requeued "
-                        f"(max attempt {max(a for _, a, _ in report.requeued_rows)})")
+            self._event(
+                "requeue",
+                f"v{v}: {len(report.requeued_rows)} rows requeued "
+                f"(max attempt {max(a for _, a, _ in report.requeued_rows)})",
+            )
         if report.dead_letter_rows:
             self._event("dead", f"v{v}: {len(report.dead_letter_rows)} rows dead-lettered")
 
@@ -379,7 +517,7 @@ class Demo:
         """Turn newly scored windows into TP / FP / FN events, merging overlaps per device."""
         detector = self.pipeline.detector
         assert detector is not None
-        for w in detector.scored[self._windows_seen:]:
+        for w in detector.scored[self._windows_seen :]:
             truth, flagged = self.labels.kinds_in(w), bool(w.reasons)
             outcome = ("tp" if flagged else "fn") if truth else ("fp" if flagged else None)
             last = self._last_outcome.get(w.device_id)
@@ -389,8 +527,11 @@ class Demo:
             if last and last["kind"] == outcome and w.start <= last["end"]:
                 last["end"] = w.end  # same episode, already on the timeline
                 continue
-            what = {"tp": "ALERT, true positive", "fp": "ALERT, false positive",
-                    "fn": "missed anomaly (false negative)"}[outcome]
+            what = {
+                "tp": "ALERT, true positive",
+                "fp": "ALERT, false positive",
+                "fn": "missed anomaly (false negative)",
+            }[outcome]
             detail = ", ".join(sorted(truth)) if truth else ", ".join(w.reasons)
             self._event(outcome, f"{what} on {w.device_id}: {detail}", device=w.device_id)
             self._last_outcome[w.device_id] = {"kind": outcome, "end": w.end}
@@ -409,8 +550,13 @@ class Demo:
         if action == "restart":  # outside the lock: it may wait for Docker
             flags = {x for x in value.split(",") if "=" not in x}
             opts = dict(x.split("=", 1) for x in value.split(",") if "=" in x)
-            self.restart(new_stream="new" in flags, keep_learned="keep" in flags,
-                         queue=opts.get("queue"), store=opts.get("store"), llm=opts.get("llm"))
+            self.restart(
+                new_stream="new" in flags,
+                keep_learned="keep" in flags,
+                queue=opts.get("queue"),
+                store=opts.get("store"),
+                llm=opts.get("llm"),
+            )
             return {"paused": self.paused, "rate": self.rate, "session": self.session}
         with self.lock:
             if action == "pause":
@@ -430,7 +576,11 @@ class Demo:
                 if device_id not in self.fleet.devices:
                     raise KeyError(device_id)
                 self.fleet.inject(device_id, kind)
-                self._event("control", f"injected {kind} into the next episode of {device_id}", device=device_id)
+                self._event(
+                    "control",
+                    f"injected {kind} into the next episode of {device_id}",
+                    device=device_id,
+                )
             elif action == "enrich":
                 self._cycle(self.pipeline.enrich())
             else:
@@ -439,11 +589,17 @@ class Demo:
 
     def stream(self, after: int) -> dict:
         with self.lock:
-            return {"lines": self.lines[after:after + 5000], "done": len(self.lines),
-                    "end": self.fleet.end.isoformat(), "finished": self.finished,
-                    "paused": self.paused, "rate": self.rate,
-                    "registry_version": self.registry.current.version,
-                    "alerts": len(self.pipeline.stats.alerts), "session": self.session}
+            return {
+                "lines": self.lines[after : after + 5000],
+                "done": len(self.lines),
+                "end": self.fleet.end.isoformat(),
+                "finished": self.finished,
+                "paused": self.paused,
+                "rate": self.rate,
+                "registry_version": self.registry.current.version,
+                "alerts": len(self.pipeline.stats.alerts),
+                "session": self.session,
+            }
 
     def _queue_stats(self) -> dict:
         """Kafka's lag asks the broker (~1.5 s); the page polls every second, so it is read
@@ -466,14 +622,23 @@ class Demo:
             detector = self.pipeline.detector
             assert detector is not None
             return {
-                "lines": stats.lines, "hit": stats.final, "miss": stats.pending,
+                "lines": stats.lines,
+                "hit": stats.final,
+                "miss": stats.pending,
                 "registry_version": self.registry.current.version,
                 "templates": len(self.registry.current.templates),
-                "masks": len(self.registry.current.masks), "mask_backend": self.mask_backend,
-                "llm": self.llm, "queue": queue_stats, "store": self.store_kind,
-                "choices": {"queue": ["memory", "kafka"], "store": ["memory", "clickhouse"],
-                            "llm": llm_choices()},
-                "cycles": len(cycles), "clusters": sum(c.clusters for c in cycles),
+                "masks": len(self.registry.current.masks),
+                "mask_backend": self.mask_backend,
+                "llm": self.llm,
+                "queue": queue_stats,
+                "store": self.store_kind,
+                "choices": {
+                    "queue": ["memory", "kafka"],
+                    "store": ["memory", "clickhouse"],
+                    "llm": llm_choices(),
+                },
+                "cycles": len(cycles),
+                "clusters": sum(c.clusters for c in cycles),
                 "published": sum(len(c.published) for c in cycles),
                 "aliased": sum(len(c.aliased) for c in cycles),
                 "rejected": sum(len(c.rejected) for c in cycles),
@@ -481,11 +646,18 @@ class Demo:
                 "requeued": sum(len(c.requeued_rows) for c in cycles),
                 "dead_lettered": sum(c.dead_lettered for c in cycles),
                 "llm_calls": sum(c.llm_calls for c in cycles),
-                "pending_now": Counter(r.template_id for r in self.store.rows.values()).get(UNK_TEMPLATE_ID, 0),
-                "windows": len(detector.scored), "alerts": len(stats.alerts),
-                "tp": outcomes["tp"], "fp": outcomes["fp"], "fn": outcomes["fn"],
+                "pending_now": Counter(r.template_id for r in self.store.rows.values()).get(
+                    UNK_TEMPLATE_ID, 0
+                ),
+                "windows": len(detector.scored),
+                "alerts": len(stats.alerts),
+                "tp": outcomes["tp"],
+                "fp": outcomes["fp"],
+                "fn": outcomes["fn"],
                 "devices": {d: self.fleet.kinds(d) for d in sorted(self.fleet.devices)},
-                "paused": self.paused, "rate": self.rate, "finished": self.finished,
+                "paused": self.paused,
+                "rate": self.rate,
+                "finished": self.finished,
                 "session": self.session,
                 "learned": len(self.registry.current.templates) - len(self.initial.templates),
             }
@@ -498,21 +670,34 @@ class Demo:
         with self.lock:
             snap = self.registry.current
             counts = Counter(r.template_id for r in self.store.rows.values())
-            cycles = [{"registry_version": c.registry_version, "buffered": c.buffered,
-                       "published": c.published, "aliased": c.aliased, "resolved": c.resolved,
-                       "still_pending": c.still_pending, "dead_lettered": c.dead_lettered}
-                      for c in self.pipeline.stats.cycles]
+            cycles = [
+                {
+                    "registry_version": c.registry_version,
+                    "buffered": c.buffered,
+                    "published": c.published,
+                    "aliased": c.aliased,
+                    "resolved": c.resolved,
+                    "still_pending": c.still_pending,
+                    "dead_lettered": c.dead_lettered,
+                }
+                for c in self.pipeline.stats.cycles
+            ]
             return {
                 "version": snap.version,
                 "masks": [m.to_dict() for m in snap.masks],
                 "mask_backend": self.mask_backend,
                 "pending_rows": counts.get(UNK_TEMPLATE_ID, 0),
-                "templates": [asdict(t) | {
-                    "count": counts.get(t.template_id, 0),
-                    "learned": t.template_id not in self.initial.templates,
-                    "sql": template_sql(t, self._engine()),
-                } for t in sorted(snap.templates.values(), key=lambda t: t.template_id)],
-                "cycles": cycles, "engine": self._engine(),
+                "templates": [
+                    asdict(t)
+                    | {
+                        "count": counts.get(t.template_id, 0),
+                        "learned": t.template_id not in self.initial.templates,
+                        "sql": template_sql(t, self._engine()),
+                    }
+                    for t in sorted(snap.templates.values(), key=lambda t: t.template_id)
+                ],
+                "cycles": cycles,
+                "engine": self._engine(),
             }
 
     def _engine(self) -> str:
@@ -529,19 +714,42 @@ class Demo:
                 result = client.query(sql, settings={"readonly": 2})
             except Exception as error:  # the server's message, shown under the editor
                 raise ValueError(str(error).strip().splitlines()[0]) from error
-            return {"columns": list(result.column_names), "rows": result.result_rows[:200],
-                    "table_rows": len(rows), "engine": "clickhouse"}
+            return {
+                "columns": list(result.column_names),
+                "rows": result.result_rows[:200],
+                "table_rows": len(rows),
+                "engine": "clickhouse",
+            }
         db = sqlite3.connect(":memory:")
-        db.execute("CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, "
-                   "template_id INTEGER, status TEXT, registry_version INTEGER, "
-                   "payload TEXT, raw_message TEXT)")
-        db.executemany("INSERT INTO logs VALUES (?,?,?,?,?,?,?,?)", [
-            (str(r.log_id), r.timestamp.isoformat(), r.device_id, r.template_id, str(r.status),
-             r.registry_version, json.dumps(r.payload), r.raw_message) for r in rows])
+        db.execute(
+            "CREATE TABLE logs (log_id TEXT, timestamp TEXT, device_id TEXT, "
+            "template_id INTEGER, status TEXT, registry_version INTEGER, "
+            "payload TEXT, raw_message TEXT)"
+        )
+        db.executemany(
+            "INSERT INTO logs VALUES (?,?,?,?,?,?,?,?)",
+            [
+                (
+                    str(r.log_id),
+                    r.timestamp.isoformat(),
+                    r.device_id,
+                    r.template_id,
+                    str(r.status),
+                    r.registry_version,
+                    json.dumps(r.payload),
+                    r.raw_message,
+                )
+                for r in rows
+            ],
+        )
         db.execute("PRAGMA query_only = ON")
         cur = db.execute(sql)
-        return {"columns": [d[0] for d in cur.description or ()], "rows": cur.fetchmany(200),
-                "table_rows": len(rows), "engine": "sqlite"}
+        return {
+            "columns": [d[0] for d in cur.description or ()],
+            "rows": cur.fetchmany(200),
+            "table_rows": len(rows),
+            "engine": "sqlite",
+        }
 
     def metrics(self) -> dict:
         with self.lock:
@@ -553,8 +761,10 @@ class Demo:
             windows = [self._window(w) for w in detector.scored]
         t = self.scorer.settings.thresholds
         return {
-            "minutes": [{"minute": m, "FINAL": c["FINAL"], "PENDING": c["PENDING"]}
-                        for m, c in sorted(buckets.items())],
+            "minutes": [
+                {"minute": m, "FINAL": c["FINAL"], "PENDING": c["PENDING"]}
+                for m, c in sorted(buckets.items())
+            ],
             "windows": windows,
             "thresholds": asdict(t) | {"radius": self.scorer.radius},
             "flags_by_reason": dict(Counter(r for w in windows for r in w["reasons"])),
@@ -562,11 +772,16 @@ class Demo:
 
     def _window(self, w) -> dict:
         s = w.score
-        return {"device_id": w.device_id, "start": w.start.isoformat(), "end": w.end.isoformat(),
-                "template_ids": list(w.template_ids),
-                "in_vocab": [t in self.scorer.vocab for t in w.template_ids],
-                "reasons": list(w.reasons), "truth": sorted(self.labels.kinds_in(w)),
-                "score": asdict(s) | {"miss_ratio": s.miss_ratio, "novelty_ratio": s.novelty_ratio}}
+        return {
+            "device_id": w.device_id,
+            "start": w.start.isoformat(),
+            "end": w.end.isoformat(),
+            "template_ids": list(w.template_ids),
+            "in_vocab": [t in self.scorer.vocab for t in w.template_ids],
+            "reasons": list(w.reasons),
+            "truth": sorted(self.labels.kinds_in(w)),
+            "score": asdict(s) | {"miss_ratio": s.miss_ratio, "novelty_ratio": s.novelty_ratio},
+        }
 
     def trace(self, i: int) -> dict:
         with self.lock:
@@ -581,16 +796,26 @@ class Demo:
             now_t = snap.templates.get(row.template_id)
             detector = self.pipeline.detector
             assert detector is not None
-            windows = [self._window(w) for w in detector.scored
-                       if w.device_id == row.device_id and w.start <= row.timestamp <= w.end]
+            windows = [
+                self._window(w)
+                for w in detector.scored
+                if w.device_id == row.device_id and w.start <= row.timestamp <= w.end
+            ]
             trail = list(self.trail[i])
         return {
-            "line": line, "masked": masked, "tokens": tokenize(masked),
+            "line": line,
+            "masked": masked,
+            "tokens": tokenize(masked),
             "ingest_template": ingest_t and asdict(ingest_t),
-            "current": {"status": str(row.status), "template_id": row.template_id,
-                        "payload": row.payload, "registry_version": row.registry_version,
-                        "template": now_t and asdict(now_t)},
-            "windows": windows, "trail": trail,
+            "current": {
+                "status": str(row.status),
+                "template_id": row.template_id,
+                "payload": row.payload,
+                "registry_version": row.registry_version,
+                "template": now_t and asdict(now_t),
+            },
+            "windows": windows,
+            "trail": trail,
             "path": self._path(line, trail, windows),
         }
 
@@ -647,16 +872,18 @@ def make_handler(demo: Demo):
         def do_GET(self) -> None:
             if urlparse(self.path).path in ("/", "/index.html"):
                 return self._send(200, INDEX.read_bytes(), "text/html; charset=utf-8")
-            self._route({
-                "/api/stream": lambda q: demo.stream(int(q.get("after", 0))),
-                "/api/system": lambda q: demo.system(),
-                "/api/events": lambda q: demo.timeline(int(q.get("after", 0))),
-                "/api/templates": lambda q: demo.templates(),
-                "/api/query": lambda q: demo.query(q["sql"]),
-                "/api/metrics": lambda q: demo.metrics(),
-                "/api/trace": lambda q: demo.trace(int(q["i"])),
-                "/api/eval": lambda q: demo.eval_report(),
-            })
+            self._route(
+                {
+                    "/api/stream": lambda q: demo.stream(int(q.get("after", 0))),
+                    "/api/system": lambda q: demo.system(),
+                    "/api/events": lambda q: demo.timeline(int(q.get("after", 0))),
+                    "/api/templates": lambda q: demo.templates(),
+                    "/api/query": lambda q: demo.query(q["sql"]),
+                    "/api/metrics": lambda q: demo.metrics(),
+                    "/api/trace": lambda q: demo.trace(int(q["i"])),
+                    "/api/eval": lambda q: demo.eval_report(),
+                }
+            )
 
         def do_POST(self) -> None:
             self._route({"/api/control": lambda q: demo.control(q["action"], q.get("value", ""))})
@@ -668,8 +895,11 @@ def serve(demo: Demo, host: str = "127.0.0.1", port: int = 8000, rate: float = 2
     demo.rate = rate
     threading.Thread(target=demo.replay, daemon=True).start()
     server = ThreadingHTTPServer((host, port), make_handler(demo))
-    print(f"[demo] live stream until {demo.fleet.end:%H:%M} event time at {rate} lines/s, "
-          f"{demo.queue_kind} queue, {demo.store_kind} store, keys/alias by {demo.llm} -> http://{host}:{port}/", flush=True)
+    print(
+        f"[demo] live stream until {demo.fleet.end:%H:%M} event time at {rate} lines/s, "
+        f"{demo.queue_kind} queue, {demo.store_kind} store, keys/alias by {demo.llm} -> http://{host}:{port}/",
+        flush=True,
+    )
     try:
         server.serve_forever()
     except KeyboardInterrupt:

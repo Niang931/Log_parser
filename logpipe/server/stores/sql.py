@@ -2,6 +2,7 @@
 ``logs``). A dialect subclass supplies the few expressions that differ; the query shapes live here
 once. Plus ``guard_sql``, which every free-form SQL query passes before it runs.
 """
+
 from __future__ import annotations
 
 import re
@@ -28,8 +29,11 @@ from .base import (
 _LITERAL = re.compile(r"'(?:[^'\\]|\\.|'')*'|--[^\n]*|/\*.*?\*/|#[^\n]*", re.DOTALL)
 _QUOTED_NAME = re.compile(r'"((?:[^"]|"")*)"|`((?:[^`]|``)*)`')
 _TABLE_FUNCTION = re.compile(r"\b(?:from|join)\s+([a-z_][\w]*)\s*\(", re.IGNORECASE)
-_DENIED = re.compile(r"\b(?:into\s+outfile|attach|detach|pragma|vacuum|load_extension|readfile|writefile|"
-                     r"fts3_tokenizer|system\s*\.|information_schema\s*\.)", re.IGNORECASE)
+_DENIED = re.compile(
+    r"\b(?:into\s+outfile|attach|detach|pragma|vacuum|load_extension|readfile|writefile|"
+    r"fts3_tokenizer|system\s*\.|information_schema\s*\.)",
+    re.IGNORECASE,
+)
 
 
 def guard_sql(sql: str) -> str:
@@ -53,7 +57,9 @@ def guard_sql(sql: str) -> str:
 class SqlCompiler(Compiler):
     columns: ClassVar[dict[str, str]]  # builder field -> column expression
     source: str  # FROM clause
-    about_table: ClassVar[dict[str, str]] = {}  # sidebar names that differ from the column expression
+    about_table: ClassVar[
+        dict[str, str]
+    ] = {}  # sidebar names that differ from the column expression
 
     @abstractmethod
     def quote(self, value: str) -> str: ...
@@ -61,6 +67,10 @@ class SqlCompiler(Compiler):
     @abstractmethod
     def extracted(self, key: str, numeric: bool) -> str:
         """A field a template extracted (``payload``), as text or as a number."""
+
+    def payload_json(self) -> str:
+        """The extracted fields as JSON text."""
+        return "payload"
 
     @abstractmethod
     def time_col(self) -> str:
@@ -93,7 +103,10 @@ class SqlCompiler(Compiler):
 
     def time_where(self, spec: dict) -> list[str]:
         if rng := absolute_range(spec):
-            return [f"{self.time_col()} >= {self.instant(rng[0])}", f"{self.time_col()} <= {self.instant(rng[1])}"]
+            return [
+                f"{self.time_col()} >= {self.instant(rng[0])}",
+                f"{self.time_col()} <= {self.instant(rng[1])}",
+            ]
         return [self.since_minutes(relative_minutes(spec))]
 
     def filter_where(self, filters: list[dict] | None) -> list[str]:
@@ -126,7 +139,11 @@ class SqlCompiler(Compiler):
     def build(self, spec: dict) -> str:
         where = self.time_where(spec) + self.filter_where(spec.get("filters"))
         fn, target, label = measure_of(spec)
-        value = self.count if fn == "count" else self.aggregate(fn, self.field(target or "", numeric=fn != "count_distinct"))
+        value = (
+            self.count
+            if fn == "count"
+            else self.aggregate(fn, self.field(target or "", numeric=fn != "count_distinct"))
+        )
         select, group = [], []
         if spec.get("over_time"):
             select.append(f"{self.time_bucket(step_for(span_minutes(spec)))} AS time")
@@ -139,29 +156,64 @@ class SqlCompiler(Compiler):
         sql = f"SELECT {', '.join(select)}\nFROM {self.source}\nWHERE " + "\n  AND ".join(where)
         if group:
             sql += f"\nGROUP BY {', '.join(group)}"
-        return sql + "\nORDER BY " + ("time" if spec.get("over_time") else f"{label} DESC") + f"\nLIMIT {limit}"
+        return (
+            sql
+            + "\nORDER BY "
+            + ("time" if spec.get("over_time") else f"{label} DESC")
+            + f"\nLIMIT {limit}"
+        )
 
     def schema(self, fields: list[str]) -> dict:
         cols = [{"name": "timestamp", "about": "when the line was logged"}]
-        cols += [{"name": self.about_table.get(k, self.columns[k]), "builder": k, "about": about} for k, about in FIELDS.items()]
+        cols += [
+            {"name": self.about_table.get(k, self.columns[k]), "builder": k, "about": about}
+            for k, about in FIELDS.items()
+        ]
         cols.append({"name": "payload", "about": "fields extracted by the line's template (JSON)"})
-        return {"engine": self.engine, "table": self.table, "columns": cols, "fields": sorted(fields),
-                "payload_access": self.extracted("name", False), "measures": list(MEASURES), "ops": list(OPS)}
+        return {
+            "engine": self.engine,
+            "table": self.table,
+            "columns": cols,
+            "fields": sorted(fields),
+            "payload_access": self.extracted("name", False),
+            "measures": list(MEASURES),
+            "ops": list(OPS),
+        }
 
-    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False) -> str:
+    def rows(
+        self,
+        filters: list[dict],
+        start: datetime,
+        end: datetime,
+        limit: int = 200,
+        newest_first: bool = False,
+        payload: bool = False,
+    ) -> str:
         limit = max(1, min(int(limit), get_settings().ask.row_cap))
-        return (f"SELECT {self.log_id} AS log_id, timestamp, device_id AS host, service, source, template_id, "
-                f"{self.columns['level']} AS level, raw_message AS message\n"
-                f"FROM {self.source}\nWHERE {self._where(filters, start, end)}\n"
-                f"ORDER BY {self.time_col()} {'DESC' if newest_first else 'ASC'}\nLIMIT {limit}")
+        extra = f"{self.payload_json()} AS payload, " if payload else ""
+        return (
+            f"SELECT {self.log_id} AS log_id, timestamp, device_id AS host, service, source, template_id, "
+            f"{self.columns['level']} AS level, {extra}raw_message AS message\n"
+            f"FROM {self.source}\nWHERE {self._where(filters, start, end)}\n"
+            f"ORDER BY {self.time_col()} {'DESC' if newest_first else 'ASC'}\nLIMIT {limit}"
+        )
 
-    def buckets(self, filters: list[dict], start: datetime, end: datetime, step: int, by: str = "template_id") -> str:
+    def buckets(
+        self,
+        filters: list[dict],
+        start: datetime,
+        end: datetime,
+        step: int,
+        by: str = "template_id",
+    ) -> str:
         if by not in ("template_id", "service"):
             raise ValueError("buckets are by template_id or service")
         step, origin = max(1, int(step)), int(start.timestamp())
-        return (f"SELECT {by} AS key, {self.bucket_index(origin, step)} AS bucket, {self.count} AS n\n"
-                f"FROM {self.source}\nWHERE {self._where(filters, start, end)}\n"
-                f"GROUP BY key, bucket\nORDER BY bucket\nLIMIT {get_settings().ask.agg_cap}")
+        return (
+            f"SELECT {by} AS key, {self.bucket_index(origin, step)} AS bucket, {self.count} AS n\n"
+            f"FROM {self.source}\nWHERE {self._where(filters, start, end)}\n"
+            f"GROUP BY key, bucket\nORDER BY bucket\nLIMIT {get_settings().ask.agg_cap}"
+        )
 
     def bucket_index(self, origin: int, step: int) -> str:
         return f"({self.unix_seconds()} - {origin}) / {step}"

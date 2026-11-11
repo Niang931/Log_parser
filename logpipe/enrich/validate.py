@@ -3,6 +3,7 @@
 LLM output and device-produced log text are both untrusted, so a proposed
 template, key list or mask is accepted only if it passes these checks.
 """
+
 from __future__ import annotations
 
 import re

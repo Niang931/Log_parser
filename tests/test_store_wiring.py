@@ -1,4 +1,5 @@
 """`--store mongodb` is wired into shared code (no MongoDB needed)."""
+
 from __future__ import annotations
 
 import pytest

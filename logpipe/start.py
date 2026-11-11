@@ -3,6 +3,7 @@
 Every answer is saved to ``.logpipe/start.json`` and offered as the default next time; the
 questions are still asked, so a saved setup is one Enter per question away.
 """
+
 from __future__ import annotations
 
 import json
@@ -73,6 +74,7 @@ def number(question: str, default: float, cast: type = int) -> float:
             return None if cast(answer) > 0 else "must be positive"
         except ValueError:
             return "not a number"
+
     return cast(text(question, str(default), bad))
 
 
@@ -103,8 +105,13 @@ def _free_port(answer: str) -> str | None:
 def _listener(port: int) -> str | None:
     """'logpipe (pid 123)' for whatever listens on ``port``, when the OS tells us."""
     try:
-        out = subprocess.run(["ss", "-ltnpH", f"sport = :{port}"], capture_output=True, text=True,
-                             timeout=2, check=False).stdout
+        out = subprocess.run(
+            ["ss", "-ltnpH", f"sport = :{port}"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        ).stdout
     except (OSError, subprocess.SubprocessError):
         return None
     m = re.search(r'users:\(\("([^"]+)",pid=(\d+)', out)
@@ -117,8 +124,10 @@ def ask_password() -> str:
 
     while True:
         try:
-            pw = getpass.getpass("Admin password for the UI (Enter keeps the current one; a new "
-                                 "server generates and prints one): ")
+            pw = getpass.getpass(
+                "Admin password for the UI (Enter keeps the current one; a new "
+                "server generates and prints one): "
+            )
         except EOFError:
             raise SystemExit("\nstopped") from None
         if not pw:
@@ -134,96 +143,201 @@ def ask_password() -> str:
 def ask_setup(saved: dict, mode: str | None = None) -> dict:
     """The questions; returns the answers (saved as next time's defaults)."""
     a: dict = {}
-    a["mode"] = mode or choose("What do you want to run?", [
-        ("demo", "browser demo: a live synthetic IoT fleet through every stage"),
-        ("pipeline", "the pipeline on your own log files"),
-        ("server", "the server for logpipe-agent hosts, with the operator UI"),
-    ], saved.get("mode"))
-    a["queue"] = choose("Unresolved queue (lines no template matched wait here to be learned)?", [
-        ("memory", "in-process, nothing to install (straightforward)"),
-        ("kafka", "Kafka broker in Docker, started for you"),
-    ], saved.get("queue"))
-    a["store"] = choose("Where do parsed rows go?", [
-        ("memory", "in memory, gone when the run ends"
-         + (" (API keys and agents too)" if a["mode"] == "server" else "")),
-        ("clickhouse", "ClickHouse in Docker, started for you"
-         + (" (the demo's Query tab then runs on it)" if a["mode"] == "demo" else "")),
-        ("mongodb", "MongoDB in Docker, started for you (everything except raw SQL)"),
-    ], saved.get("store"))
-    a["llm_kind"] = choose("Who names slot keys and confirms template re-associations?", [
-        ("offline", "rules, no model (never re-associates a reworded template)"),
-        ("web", "a chat site driven in a browser (web scrape), no API key"),
-        ("api", "a hosted API, needs its API key in the environment or .env"),
-    ], saved.get("llm_kind"))
+    a["mode"] = mode or choose(
+        "What do you want to run?",
+        [
+            ("demo", "browser demo: a live synthetic IoT fleet through every stage"),
+            ("pipeline", "the pipeline on your own log files"),
+            ("server", "the server for logpipe-agent hosts, with the operator UI"),
+        ],
+        saved.get("mode"),
+    )
+    a["queue"] = choose(
+        "Unresolved queue (lines no template matched wait here to be learned)?",
+        [
+            ("memory", "in-process, nothing to install (straightforward)"),
+            ("kafka", "Kafka broker in Docker, started for you"),
+        ],
+        saved.get("queue"),
+    )
+    a["store"] = choose(
+        "Where do parsed rows go?",
+        [
+            (
+                "memory",
+                "in memory, gone when the run ends"
+                + (" (API keys and agents too)" if a["mode"] == "server" else ""),
+            ),
+            (
+                "clickhouse",
+                "ClickHouse in Docker, started for you"
+                + (" (the demo's Query tab then runs on it)" if a["mode"] == "demo" else ""),
+            ),
+            ("mongodb", "MongoDB in Docker, started for you (everything except raw SQL)"),
+        ],
+        saved.get("store"),
+    )
+    a["llm_kind"] = choose(
+        "Who names slot keys and confirms template re-associations?",
+        [
+            ("offline", "rules, no model (never re-associates a reworded template)"),
+            ("web", "a chat site driven in a browser (web scrape), no API key"),
+            ("api", "a hosted API, needs its API key in the environment or .env"),
+        ],
+        saved.get("llm_kind"),
+    )
     if a["llm_kind"] == "web":
-        a["site"] = choose("Which chat site?", [
-            (name, "works signed out" if site.anonymous else "needs a one-time sign-in")
-            for name, site in sorted(SITES.items())], saved.get("site"))
-        browsers = [("camoufox", "bundled Firefox build (one-time download)"),
-                    ("chromium", "the chromium on your PATH")]
+        a["site"] = choose(
+            "Which chat site?",
+            [
+                (name, "works signed out" if site.anonymous else "needs a one-time sign-in")
+                for name, site in sorted(SITES.items())
+            ],
+            saved.get("site"),
+        )
+        browsers = [
+            ("camoufox", "bundled Firefox build (one-time download)"),
+            ("chromium", "the chromium on your PATH"),
+        ]
         if shutil.which("chromium"):  # nothing to download, so offer it first
             browsers.reverse()
         a["browser"] = choose("Which browser drives it?", browsers, saved.get("browser"))
     elif a["llm_kind"] == "api":
-        a["provider"] = choose("Which provider?", [
-            (p, " or ".join(env)) for p, env in API_KEY_ENV.items()], saved.get("provider"))
+        a["provider"] = choose(
+            "Which provider?",
+            [(p, " or ".join(env)) for p, env in API_KEY_ENV.items()],
+            saved.get("provider"),
+        )
 
     if a["mode"] == "demo":
-        a["masks"] = choose("Where do the regex masks come from?", [
-            ("calibrate", "calibrate on the demo history once, then reuse it (artifacts/demo/)"),
-            ("recalibrate", "calibrate again, replacing that saved calibration"),
-            ("file", "a registry saved on Colab with the fine-tuned model"),
-        ], saved.get("masks"))
+        a["masks"] = choose(
+            "Where do the regex masks come from?",
+            [
+                (
+                    "calibrate",
+                    "calibrate on the demo history once, then reuse it (artifacts/demo/)",
+                ),
+                ("recalibrate", "calibrate again, replacing that saved calibration"),
+                ("file", "a registry saved on Colab with the fine-tuned model"),
+            ],
+            saved.get("masks"),
+        )
         if a["masks"] == "file":
-            a["registry"] = text("Registry file", saved.get("registry", "demo_registry.json"),
-                                 _exists("registry"))
+            a["registry"] = text(
+                "Registry file", saved.get("registry", "demo_registry.json"), _exists("registry")
+            )
         a["devices"] = number("Devices per kind", saved.get("devices", 2))
-        a["test_hours"] = number("Hours of live stream (event time)", saved.get("test_hours", 1), float)
+        a["test_hours"] = number(
+            "Hours of live stream (event time)", saved.get("test_hours", 1), float
+        )
         a["port"] = int(text("Port for the page", str(saved.get("port", 8000)), _free_port))
     elif a["mode"] == "server":
-        a["server_port"] = int(text("Port for agents and the UI", str(saved.get("server_port", 8080)),
-                                    _free_port))
-        a["data_dir"] = text("Directory for the registry and models",
-                             saved.get("data_dir", "artifacts/server"))
-        a["with_demo"] = confirm("Also serve the developer demo at /demo/?", saved.get("with_demo", False))
+        a["server_port"] = int(
+            text("Port for agents and the UI", str(saved.get("server_port", 8080)), _free_port)
+        )
+        a["data_dir"] = text(
+            "Directory for the registry and models", saved.get("data_dir", "artifacts/server")
+        )
+        a["with_demo"] = confirm(
+            "Also serve the developer demo at /demo/?", saved.get("with_demo", False)
+        )
     else:
         a["logs"] = text("Log directory", saved.get("logs", "logs"), _exists("directory"))
-        a["registry"] = text("Registry file (created by calibrating if missing)",
-                             saved.get("registry", "artifacts/registry.json"))
-        a["model"] = text("LogBERT model directory (trained if missing)",
-                          saved.get("model", "artifacts/logbert"))
+        a["registry"] = text(
+            "Registry file (created by calibrating if missing)",
+            saved.get("registry", "artifacts/registry.json"),
+        )
+        a["model"] = text(
+            "LogBERT model directory (trained if missing)", saved.get("model", "artifacts/logbert")
+        )
     return a
 
 
 def plan(a: dict) -> tuple[list[str], list[list[str]]]:
     """Docker services to start and the ``logpipe`` argv lists to run, in order."""
-    llm = {"offline": "offline", "web": f"llm:web:{a.get('site')}",
-           "api": f"llm:{a.get('provider')}"}[a["llm_kind"]]
-    top = ["--browser", "chrome" if a.get("browser") == "chromium" else a.get("browser", "camoufox")]
-    services = [name for name, on in (("kafka", a["queue"] == "kafka"),
-                                      ("clickhouse", a["store"] == "clickhouse"),
-                                      ("mongo", a["store"] == "mongodb")) if on]
+    llm = {
+        "offline": "offline",
+        "web": f"llm:web:{a.get('site')}",
+        "api": f"llm:{a.get('provider')}",
+    }[a["llm_kind"]]
+    top = [
+        "--browser",
+        "chrome" if a.get("browser") == "chromium" else a.get("browser", "camoufox"),
+    ]
+    services = [
+        name
+        for name, on in (
+            ("kafka", a["queue"] == "kafka"),
+            ("clickhouse", a["store"] == "clickhouse"),
+            ("mongo", a["store"] == "mongodb"),
+        )
+        if on
+    ]
     if a["mode"] == "demo":
-        cmd = [*top, "demo", "--llm", llm, "--queue", a["queue"], "--store", a["store"],
-               "--devices", str(a["devices"]),
-               "--test-hours", str(a["test_hours"]), "--port", str(a["port"])]
+        cmd = [
+            *top,
+            "demo",
+            "--llm",
+            llm,
+            "--queue",
+            a["queue"],
+            "--store",
+            a["store"],
+            "--devices",
+            str(a["devices"]),
+            "--test-hours",
+            str(a["test_hours"]),
+            "--port",
+            str(a["port"]),
+        ]
         if a["masks"] == "file":
             cmd += ["--registry", a["registry"]]
         elif a["masks"] == "recalibrate":
             cmd.append("--recalibrate")
         return services, [cmd]
     if a["mode"] == "server":
-        cmd = [*top, "server", "--llm", llm, "--queue", a["queue"], "--store", a["store"],
-               "--port", str(a["server_port"]), "--data-dir", a["data_dir"]]
+        cmd = [
+            *top,
+            "server",
+            "--llm",
+            llm,
+            "--queue",
+            a["queue"],
+            "--store",
+            a["store"],
+            "--port",
+            str(a["server_port"]),
+            "--data-dir",
+            a["data_dir"],
+        ]
         return services, [cmd + ["--demo"] if a["with_demo"] else cmd]
     commands = []
     if not Path(a["registry"]).exists():
-        commands.append([*top, "calibrate", "--logs", a["logs"], "--registry", a["registry"], "--llm", llm])
+        commands.append(
+            [*top, "calibrate", "--logs", a["logs"], "--registry", a["registry"], "--llm", llm]
+        )
     if not (Path(a["model"]) / "config.json").exists():
-        commands.append(["train-logbert", "--logs", a["logs"], "--registry", a["registry"],
-                         "--out", a["model"]])
-    commands.append([*top, "run", "--logs", a["logs"], "--registry", a["registry"], "--model", a["model"],
-                     "--llm", llm, "--queue", a["queue"], "--store", a["store"]])
+        commands.append(
+            ["train-logbert", "--logs", a["logs"], "--registry", a["registry"], "--out", a["model"]]
+        )
+    commands.append(
+        [
+            *top,
+            "run",
+            "--logs",
+            a["logs"],
+            "--registry",
+            a["registry"],
+            "--model",
+            a["model"],
+            "--llm",
+            llm,
+            "--queue",
+            a["queue"],
+            "--store",
+            a["store"],
+        ]
+    )
     return services, commands
 
 
@@ -241,7 +355,9 @@ def docker_up(services: list[str], run: Callable = subprocess.run) -> None:
     try:
         run(["docker", "compose", "up", "-d", "--wait", *services], check=True)
     except subprocess.CalledProcessError as error:
-        raise RuntimeError(f"docker compose up {' '.join(services)} failed ({error.returncode})") from error
+        raise RuntimeError(
+            f"docker compose up {' '.join(services)} failed ({error.returncode})"
+        ) from error
 
 
 def _save(a: dict, signed_in: list[str]) -> None:
@@ -251,8 +367,11 @@ def _save(a: dict, signed_in: list[str]) -> None:
     SAVED.write_text(json.dumps(a | masks | {"signed_in": signed_in}, indent=2))
 
 
-def start(run: Callable = subprocess.run, launch: Callable[[list[str]], None] | None = None,
-          mode: str | None = None) -> None:
+def start(
+    run: Callable = subprocess.run,
+    launch: Callable[[list[str]], None] | None = None,
+    mode: str | None = None,
+) -> None:
     """``mode`` skips the first question (``logpipe demo`` asks only the demo's questions)."""
     load_env()
     saved = json.loads(SAVED.read_text()) if SAVED.exists() else {}
@@ -281,16 +400,31 @@ def start(run: Callable = subprocess.run, launch: Callable[[list[str]], None] | 
     if a["llm_kind"] == "web":
         signed_in = saved.get("signed_in", [])
         if a["browser"] == "camoufox" and confirm(
-                "Download or update the camoufox browser now? (needed once, and after camoufox "
-                "upgrades)", "camoufox" not in signed_in):
+            "Download or update the camoufox browser now? (needed once, and after camoufox "
+            "upgrades)",
+            "camoufox" not in signed_in,
+        ):
             run([sys.executable, "-m", "camoufox", "fetch"], check=True)
             signed_in = sorted({*signed_in, "camoufox"})
         anonymous = SITES[a["site"]].anonymous
-        question = (f"Sign in to {a['site']}? Optional, it answers signed out" if anonymous
-                    else f"Sign in to {a['site']} in a browser window now? (needed once)")
+        question = (
+            f"Sign in to {a['site']}? Optional, it answers signed out"
+            if anonymous
+            else f"Sign in to {a['site']} in a browser window now? (needed once)"
+        )
         if confirm(question, not anonymous and a["site"] not in signed_in):
-            run([sys.executable, "-m", "deepparse.ai_scraper", "login", a["site"], "--browser",
-                 "chrome" if a["browser"] == "chromium" else "camoufox"], check=True)
+            run(
+                [
+                    sys.executable,
+                    "-m",
+                    "deepparse.ai_scraper",
+                    "login",
+                    a["site"],
+                    "--browser",
+                    "chrome" if a["browser"] == "chromium" else "camoufox",
+                ],
+                check=True,
+            )
             signed_in = sorted({*signed_in, a["site"]})
         _save(a, signed_in)
     if a["mode"] == "server" and not get_settings().server.admin_password:

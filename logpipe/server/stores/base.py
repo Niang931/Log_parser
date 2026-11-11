@@ -5,6 +5,7 @@ backend: ``memory`` (rows in Python, queries on a SQLite copy), ``clickhouse`` a
 Everything here is shared: how a line's level is read, the builder's vocabulary, and how rows
 and alerts are turned into JSON.
 """
+
 from __future__ import annotations
 
 import re
@@ -71,12 +72,16 @@ def histogram_keys(by: str) -> tuple[str, ...]:
     return LEVELS if by == "level" else ("FINAL", "PENDING")
 
 
-def zero_fill(minutes: int, step: int, counts: dict[int, Counter], keys: tuple[str, ...]) -> list[dict]:
+def zero_fill(
+    minutes: int, step: int, counts: dict[int, Counter], keys: tuple[str, ...]
+) -> list[dict]:
     """Every bucket in the range, empty ones included, so bars keep their width and gaps show."""
     end = int(datetime.now(UTC).timestamp()) // step * step
     start = end - (minutes * 60 // step) * step
-    return [{"t": t * 1000, **{k: counts.get(t, Counter())[k] for k in keys}}
-            for t in range(start + step, end + step, step)]
+    return [
+        {"t": t * 1000, **{k: counts.get(t, Counter())[k] for k in keys}}
+        for t in range(start + step, end + step, step)
+    ]
 
 
 def iso(t) -> str:
@@ -86,18 +91,33 @@ def iso(t) -> str:
 
 
 def row_json(r: LogRow) -> dict:
-    return {"log_id": str(r.log_id), "timestamp": r.timestamp.isoformat(), "host": r.device_id,
-            "service": r.service, "source": r.source, "tags": list(r.tags), "status": str(r.status),
-            "template_id": r.template_id, "payload": r.payload, "message": r.raw_message,
-            "level": level(r.raw_message, r.tags)}
+    return {
+        "log_id": str(r.log_id),
+        "timestamp": r.timestamp.isoformat(),
+        "host": r.device_id,
+        "service": r.service,
+        "source": r.source,
+        "tags": list(r.tags),
+        "status": str(r.status),
+        "template_id": r.template_id,
+        "payload": r.payload,
+        "message": r.raw_message,
+        "level": level(r.raw_message, r.tags),
+    }
 
 
 def alert_json(a: dict) -> dict:
-    return {"alert_id": str(a["alert_id"]), "key": a["device_id"],
-            "window_start": iso(a["window_start"]), "window_end": iso(a["window_end"]),
-            "template_ids": list(a["template_ids"]), "miss_ratio": a["miss_ratio"],
-            "novelty_ratio": a["novelty_ratio"], "reasons": list(a["reasons"]),
-            "model_version": a["model_version"]}
+    return {
+        "alert_id": str(a["alert_id"]),
+        "key": a["device_id"],
+        "window_start": iso(a["window_start"]),
+        "window_end": iso(a["window_end"]),
+        "template_ids": list(a["template_ids"]),
+        "miss_ratio": a["miss_ratio"],
+        "novelty_ratio": a["novelty_ratio"],
+        "reasons": list(a["reasons"]),
+        "model_version": a["model_version"],
+    }
 
 
 def absolute_range(spec: dict) -> tuple[datetime, datetime] | None:
@@ -134,7 +154,9 @@ def check_field(name: str) -> str:
             raise ValueError(f"field {name!r}: extracted field names are lower_snake_case")
         return name
     if name not in FIELDS:
-        raise ValueError(f"unknown field {name!r}; use one of {', '.join(FIELDS)} or @extracted_field")
+        raise ValueError(
+            f"unknown field {name!r}; use one of {', '.join(FIELDS)} or @extracted_field"
+        )
     return name
 
 
@@ -171,6 +193,7 @@ def measure_of(spec: dict) -> tuple[str, str | None, str]:
 class Compiler(ABC):
     """Turns a request into the exact query text that will run (shown to a person first), for
     one backend. Field names are checked and values quoted here, so a spec can't inject."""
+
     engine: str  # sqlite | clickhouse | mongodb
     table: str
 
@@ -183,7 +206,15 @@ class Compiler(ABC):
         """What the Query page's sidebar lists."""
 
     @abstractmethod
-    def rows(self, filters: list[dict], start: datetime, end: datetime, limit: int = 200, newest_first: bool = False) -> str:
+    def rows(
+        self,
+        filters: list[dict],
+        start: datetime,
+        end: datetime,
+        limit: int = 200,
+        newest_first: bool = False,
+        payload: bool = False,
+    ) -> str:
         """Matching lines (log_id, timestamp, host, service, source, template_id, level, message)."""
 
     @abstractmethod
@@ -191,7 +222,9 @@ class Compiler(ABC):
         """Per (template, service): count, first and last time, and the first line (example)."""
 
     @abstractmethod
-    def buckets(self, filters: list[dict], start: datetime, end: datetime, step: int, by: str) -> str:
+    def buckets(
+        self, filters: list[dict], start: datetime, end: datetime, step: int, by: str
+    ) -> str:
         """Lines per ``by`` (template_id or service) per ``step`` seconds, bucket 0 at ``start``."""
 
     @abstractmethod
@@ -201,6 +234,7 @@ class Compiler(ABC):
 
 class StoreReads(ABC):
     """The UI's reads on one backend, plus ``query``: free-form text on the read-only path."""
+
     compiler: Compiler
 
     @property
@@ -208,17 +242,29 @@ class StoreReads(ABC):
         return self.compiler.engine
 
     @abstractmethod
-    def recent(self, filters: dict, limit: int, text: str = "", minutes: int | None = None) -> list[dict]: ...
+    def recent(
+        self, filters: dict, limit: int, text: str = "", minutes: int | None = None
+    ) -> list[dict]: ...
 
     @abstractmethod
-    def between(self, start: datetime, end: datetime, limit: int, host: str | None = None,
-                service: str | None = None) -> list[dict]: ...
+    def between(
+        self,
+        start: datetime,
+        end: datetime,
+        limit: int,
+        host: str | None = None,
+        service: str | None = None,
+    ) -> list[dict]: ...
 
     @abstractmethod
-    def histogram(self, minutes: int, by: str, filters: dict | None = None, text: str = "") -> dict: ...
+    def histogram(
+        self, minutes: int, by: str, filters: dict | None = None, text: str = ""
+    ) -> dict: ...
 
     @abstractmethod
-    def top(self, field: str, minutes: int, limit: int, filters: dict | None = None, text: str = "") -> list[tuple]: ...
+    def top(
+        self, field: str, minutes: int, limit: int, filters: dict | None = None, text: str = ""
+    ) -> list[tuple]: ...
 
     @abstractmethod
     def source_lines(self, host: str, service: str, source: str, limit: int) -> list[str]: ...

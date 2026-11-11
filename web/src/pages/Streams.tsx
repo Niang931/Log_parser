@@ -177,7 +177,7 @@ export default function Streams() {
 
 /** Groups: each one names several streams (a stream is in at most one). Ask can be asked about a
  *  group ("why is mail down?"), which covers the services of all its streams. */
-function GroupsCard() {
+export function GroupsCard() {
   const groups = usePoll<{ groups: Group[] }>("/api/groups", 5000);
   const streams = usePoll<{ streams: Stream[] }>("/api/streams", 5000).data?.streams ?? [];
   const [editing, setEditing] = useState<string | null>(null);  // group id, or "new"

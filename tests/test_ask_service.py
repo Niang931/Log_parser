@@ -1,5 +1,6 @@
 """Ask on the server: nothing runs before approval, the toggle only loosens from Settings, plans
 expire, edits re-plan, and answers come back with what ran."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
@@ -14,8 +15,15 @@ def ready(env):  # noqa: F811
     server, client, headers = env
     calibrated(server, client, headers, app_lines(300))
     now = datetime.now(UTC)
-    send(server, client, headers, [e | {"ts": (now - timedelta(minutes=3)).isoformat()}
-                                   for e in events(["ERROR db pool exhausted"] * 3 + ["WARN disk 91% full"], service="db")])
+    send(
+        server,
+        client,
+        headers,
+        [
+            e | {"ts": (now - timedelta(minutes=3)).isoformat()}
+            for e in events(["ERROR db pool exhausted"] * 3 + ["WARN disk 91% full"], service="db")
+        ],
+    )
     return server, client
 
 
@@ -28,9 +36,15 @@ def plan_of(client, question, **kw):
 def test_nothing_runs_before_approval(ready):
     server, client = ready
     plan = plan_of(client, "errors from db in the last 15 minutes")
-    assert plan["status"] == "waiting_approval" and plan["via"] == "fast" and plan["require_approval"]
+    assert (
+        plan["status"] == "waiting_approval" and plan["via"] == "fast" and plan["require_approval"]
+    )
     q = plan["rounds"][0]["queries"][0]
-    assert q["status"] == "pending" and "level IN ('error')" in q["compiled"] and "service IN ('db')" in q["compiled"]
+    assert (
+        q["status"] == "pending"
+        and "level IN ('error')" in q["compiled"]
+        and "service IN ('db')" in q["compiled"]
+    )
     assert server.jobs.empty()  # not even queued
     # a job for an unapproved round refuses to run
     server.enqueue("ask", plan=plan["id"], round=1)
@@ -52,8 +66,13 @@ def test_per_query_approval_and_reject(ready):
     server, client = ready
     plan = plan_of(client, "why did db go down?")  # rca: a discovery round of several reads
     ids = [q["id"] for q in plan["rounds"][0]["queries"]]
-    assert len(ids) >= 4 and {q["engine"] for q in plan["rounds"][0]["queries"]} == {"sqlite", "local"}
-    assert client.post(f"/api/ask/{plan['id']}/approve", json={"queries": ["nope"]}).status_code == 400
+    assert len(ids) >= 4 and {q["engine"] for q in plan["rounds"][0]["queries"]} == {
+        "sqlite",
+        "local",
+    }
+    assert (
+        client.post(f"/api/ask/{plan['id']}/approve", json={"queries": ["nope"]}).status_code == 400
+    )
     assert client.post(f"/api/ask/{plan['id']}/approve", json={"queries": []}).status_code == 400
     client.post(f"/api/ask/{plan['id']}/approve", json={"queries": ids[:2]})
     run_jobs(server)
@@ -83,8 +102,14 @@ def test_toggle_off_runs_rounds_but_a_request_can_still_ask_for_approval(ready):
     assert tight["status"] == "waiting_approval"
     # and with approval on, a request can't switch it off
     client.put("/api/settings", json={"ask_require_approval": True})
-    assert plan_of(client, "why did db go down?", require_approval=False)["status"] == "waiting_approval"
-    assert client.post("/api/ask", json={"question": "why", "require_approval": "false"}).status_code == 400
+    assert (
+        plan_of(client, "why did db go down?", require_approval=False)["status"]
+        == "waiting_approval"
+    )
+    assert (
+        client.post("/api/ask", json={"question": "why", "require_approval": "false"}).status_code
+        == 400
+    )
 
 
 def test_edit_replans_and_waits_again(ready):
@@ -93,18 +118,28 @@ def test_edit_replans_and_waits_again(ready):
     plan = plan_of(client, "errors in the last hour", require_approval=True)
     spec = plan["spec"] | {"services": ["db"], "min_level": "warn"}
     edited = client.post(f"/api/ask/{plan['id']}/edit", json={"spec": spec}).json()
-    assert edited["status"] == "waiting_approval" and edited["require_approval"]  # an edit is always re-approved
+    # an edit is always re-approved
+    assert edited["status"] == "waiting_approval" and edited["require_approval"]
     assert "level IN ('warn', 'error')" in edited["rounds"][0]["queries"][0]["compiled"]
     bad = client.post(f"/api/ask/{plan['id']}/edit", json={"spec": spec | {"services": ["nope"]}})
     assert bad.status_code == 400 and "unknown service" in bad.json()["detail"]
-    assert client.post(f"/api/ask/{plan['id']}/edit", json={"spec": spec | {"sql": "DROP"}}).status_code == 400
+    assert (
+        client.post(
+            f"/api/ask/{plan['id']}/edit", json={"spec": spec | {"sql": "DROP"}}
+        ).status_code
+        == 400
+    )
 
 
 def test_plans_expire(ready):
     server, client = ready
     plan = plan_of(client, "errors in the last hour")
     doc = server.control.get("ask_plan", plan["id"])
-    server.control.put("ask_plan", plan["id"], doc | {"expires_at": (datetime.now(UTC) - timedelta(seconds=1)).isoformat()})
+    server.control.put(
+        "ask_plan",
+        plan["id"],
+        doc | {"expires_at": (datetime.now(UTC) - timedelta(seconds=1)).isoformat()},
+    )
     r = client.post(f"/api/ask/{plan['id']}/approve")
     assert r.status_code == 400 and "expired" in r.json()["detail"]
     assert client.get(f"/api/ask/{plan['id']}").json()["status"] == "expired"
@@ -143,20 +178,28 @@ def test_shutdown_set_is_editable(ready):
     assert next(t for t in on["templates"] if t["template_id"] == tid)["shutdown"]
     off = client.put("/api/ask-shutdown", json={"template_id": tid, "shutdown": None}).json()
     assert not next(t for t in off["templates"] if t["template_id"] == tid)["edited"]
-    assert client.put("/api/ask-shutdown", json={"template_id": 10**6, "shutdown": True}).status_code == 400
+    assert (
+        client.put("/api/ask-shutdown", json={"template_id": 10**6, "shutdown": True}).status_code
+        == 400
+    )
 
 
-def test_follow_up_searches_wait_for_approval_and_stop_at_three(ready):
+def test_follow_up_reads_wait_for_approval_and_stop_at_four(ready):
     server, client = ready
 
     class Curious:
         """Always wants one more search."""
+
         can_ask = True
 
         def ask(self, schema, prompt):
             if schema.__name__ == "RouteOut":
                 return schema(intent="rca", services=["db"], anchor_event="db down")
-            return schema(summary="need more", hypotheses=[], follow_up=[{"keywords": ["pool"], "services": ["db"]}])
+            return schema(
+                summary="need more",
+                hypotheses=[],
+                follow_up=[{"kind": "lines", "keywords": ["pool"], "services": ["db"]}],
+            )
 
     server._adapter = Curious()
     plan = plan_of(client, "what is wrong with the database lately")
@@ -171,7 +214,16 @@ def test_follow_up_searches_wait_for_approval_and_stop_at_three(ready):
         run_jobs(server)
     done = client.get(f"/api/ask/{plan['id']}").json()
     follow = [x for x in purposes if x.startswith("follow-up")]
-    assert follow == ["follow-up 1 of 3", "follow-up 2 of 3", "follow-up 3 of 3"]
+    assert follow == [f"follow-up {i} of 4" for i in range(1, 5)]
     assert done["status"] == "done" and done["result"]["answer"]["insufficient_evidence"]
+    # the activity log the UI shows as it happens
+    steps = [(e["step"], e["status"]) for e in done["llm_steps"]]
+    assert (
+        steps[0] == ("Reading your question", "done")
+        and steps.count(("Writing the answer from the evidence", "done")) == 5
+    )
+    assert "asked for 1 more read" in done["llm_steps"][1]["outcome"] and done["llm_steps"][1][
+        "prompt"
+    ].startswith("You are helping")
     q = done["rounds"][-1]["queries"][0]
     assert "'%pool%'" in q["compiled"] or "lower('pool')" in q["compiled"]

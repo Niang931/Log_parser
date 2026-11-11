@@ -20,6 +20,7 @@ Injected anomaly kinds, labelled per event:
 * ``burst``: one event repeated many times (keypad brute force).
 * ``stuck``: a relay flapping on/off with no telemetry between.
 """
+
 from __future__ import annotations
 
 import heapq
@@ -90,8 +91,10 @@ class Thermostat(_Device):
         self.temp += (0.25 if self.heating else -0.15) + r.uniform(-0.05, 0.05)
         mode = r.choice(["auto", "auto", "auto", "heat", "eco"])
         hum = r.randint(35, 60)
-        tele = (f"Thermostat SN:{self.id} temp={self.temp:.1f}C target={self.target:.1f}C "
-                f"mode={mode} humidity={hum}%")
+        tele = (
+            f"Thermostat SN:{self.id} temp={self.temp:.1f}C target={self.target:.1f}C "
+            f"mode={mode} humidity={hum}%"
+        )
         if self.firmware >= 2:
             tele += " fw=2.1.0"
         out = [("INFO", tele)]
@@ -101,11 +104,21 @@ class Thermostat(_Device):
         elif self.heating and self.temp >= self.target:
             self.heating = False
             out.append(("INFO", "Heater relay switched state=off duty=0"))
-        out.append(("INFO", f"MQTT publish topic=home/{self.id}/telemetry qos=1 bytes={r.randint(180, 260)}"))
+        out.append(
+            (
+                "INFO",
+                f"MQTT publish topic=home/{self.id}/telemetry qos=1 bytes={r.randint(180, 260)}",
+            )
+        )
         if r.random() < 0.05:
             out.append(("WARN", f"Wifi rssi={r.randint(-85, -71)} dBm below threshold -70 dBm"))
         if self.firmware >= 2 and r.random() < 0.2:
-            out.append(("INFO", f"Schedule applied profile={r.choice(['home', 'away', 'night'])} slot={r.randint(0, 7)}"))
+            out.append(
+                (
+                    "INFO",
+                    f"Schedule applied profile={r.choice(['home', 'away', 'night'])} slot={r.randint(0, 7)}",
+                )
+            )
         return out
 
 
@@ -120,7 +133,12 @@ class DoorLock(_Device):
         r = self.rng
         if r.random() < 0.6:
             self.battery = max(5, self.battery - (1 if r.random() < 0.05 else 0))
-            return [("INFO", f"Lock {self.id} heartbeat battery={self.battery}% rssi={r.randint(-80, -40)}")]
+            return [
+                (
+                    "INFO",
+                    f"Lock {self.id} heartbeat battery={self.battery}% rssi={r.randint(-80, -40)}",
+                )
+            ]
         user, slot = r.choice(["alice", "bob", "carol", "dave"]), r.randint(1, 8)
         out = [
             ("INFO", f"Keypad code accepted user={user} slot={slot}"),
@@ -147,9 +165,19 @@ class SmartPlug(_Device):
         out = []
         if r.random() < 0.15:
             self.on = not self.on
-            out.append(("INFO", f"Relay toggled state={'on' if self.on else 'off'} source={r.choice(['app', 'schedule', 'button'])}"))
+            out.append(
+                (
+                    "INFO",
+                    f"Relay toggled state={'on' if self.on else 'off'} source={r.choice(['app', 'schedule', 'button'])}",
+                )
+            )
         watts = r.uniform(20, 1800) if self.on else r.uniform(0, 1.5)
-        out.append(("INFO", f"Plug {self.id} power={watts:.1f}W voltage={r.uniform(228, 242):.1f}V current={watts / 235:.2f}A"))
+        out.append(
+            (
+                "INFO",
+                f"Plug {self.id} power={watts:.1f}W voltage={r.uniform(228, 242):.1f}V current={watts / 235:.2f}A",
+            )
+        )
         return out
 
 
@@ -158,7 +186,12 @@ class Gateway(_Device):
 
     def episode(self):
         r = self.rng
-        out = [("INFO", f"Gateway {self.id} connected clients={r.randint(3, 40)} uptime={r.randint(1000, 900000)}s")]
+        out = [
+            (
+                "INFO",
+                f"Gateway {self.id} connected clients={r.randint(3, 40)} uptime={r.randint(1000, 900000)}s",
+            )
+        ]
         if r.random() < 0.1:
             version = "2.1.0" if self.firmware >= 2 else "1.4.2"
             out.append(("INFO", f"OTA check version={version} available=false"))
@@ -170,7 +203,9 @@ class Gateway(_Device):
 KINDS = [Thermostat, DoorLock, SmartPlug, Gateway]
 
 
-def _inject(device: _Device, kind: str, episode: list[tuple[str, str]]) -> list[tuple[str, str, bool]]:
+def _inject(
+    device: _Device, kind: str, episode: list[tuple[str, str]]
+) -> list[tuple[str, str, bool]]:
     """Turn a normal episode into an anomalous one; the bool marks anomalous events."""
     r = device.rng
     normal = [(lvl, msg, False) for lvl, msg in episode]
@@ -186,8 +221,11 @@ def _inject(device: _Device, kind: str, episode: list[tuple[str, str]]) -> list[
         flaps = []
         for i in range(r.randint(8, 14)):
             state = "on" if i % 2 == 0 else "off"
-            msg = (f"Relay toggled state={state} source=button" if isinstance(device, SmartPlug)
-                   else f"Heater relay switched state={state} duty={40 if state == 'on' else 0}")
+            msg = (
+                f"Relay toggled state={state} source=button"
+                if isinstance(device, SmartPlug)
+                else f"Heater relay switched state={state} duty={40 if state == 'on' else 0}"
+            )
             flaps.append(("INFO", msg, True))
         return flaps + normal
     if kind == "reorder" and len(normal) >= 3:
@@ -220,25 +258,36 @@ def _anomaly_kind(device: _Device, rng: random.Random) -> str:
     return rng.choice(_kind_options(device))
 
 
-def _episode_events(device: _Device, now: datetime, phase: str, rng: random.Random,
-                    kind: str | None) -> tuple[list[SynthEvent], datetime]:
+def _episode_events(
+    device: _Device, now: datetime, phase: str, rng: random.Random, kind: str | None
+) -> tuple[list[SynthEvent], datetime]:
     """One episode (anomalous when ``kind`` is set) starting at ``now``; returns the next start."""
     episode = device.episode()
     if kind:
-        tagged = [(lvl, msg, kind if bad else None) for lvl, msg, bad in _inject(device, kind, episode)]
+        tagged = [
+            (lvl, msg, kind if bad else None) for lvl, msg, bad in _inject(device, kind, episode)
+        ]
     else:
         tagged = [(lvl, msg, None) for lvl, msg in episode]
     events = []
     for lvl, msg, tag in tagged:
         now += timedelta(milliseconds=rng.randint(40, 900))
         now = now.replace(microsecond=now.microsecond // 1000 * 1000)
-        events.append(SynthEvent(device.id, now, device.line(now, lvl, msg), phase, tag, device.firmware))
+        events.append(
+            SynthEvent(device.id, now, device.line(now, lvl, msg), phase, tag, device.firmware)
+        )
     return events, now + timedelta(seconds=rng.uniform(5, 25))
 
 
 def _run_phase(
-    devices: list[_Device], phase: str, start: datetime, hours: float, rng: random.Random,
-    anomaly_rate: float, rollout_at: float | None, rollout_share: float,
+    devices: list[_Device],
+    phase: str,
+    start: datetime,
+    hours: float,
+    rng: random.Random,
+    anomaly_rate: float,
+    rollout_at: float | None,
+    rollout_share: float,
 ) -> list[SynthEvent]:
     events: list[SynthEvent] = []
     end = start + timedelta(hours=hours)
@@ -250,7 +299,9 @@ def _run_phase(
             if rollout_time is not None and now >= rollout_time and device.id in upgrade:
                 device.firmware = 2
             # device.episode() draws from device.rng, so drawing the kind first keeps rng order.
-            kind = _anomaly_kind(device, rng) if anomaly_rate and rng.random() < anomaly_rate else None
+            kind = (
+                _anomaly_kind(device, rng) if anomaly_rate and rng.random() < anomaly_rate else None
+            )
             batch, now = _episode_events(device, now, phase, rng, kind)
             events.extend(batch)
     events.sort(key=lambda e: (e.timestamp, e.device_id))
@@ -272,13 +323,17 @@ class Fleet:
                 by_device.setdefault(e.device_id, []).append(e.line)
             (out / phase).mkdir(parents=True, exist_ok=True)
             for device, lines in by_device.items():
-                (out / phase / f"{device}.log").write_text("\n".join(lines) + "\n", encoding="utf-8")
+                (out / phase / f"{device}.log").write_text(
+                    "\n".join(lines) + "\n", encoding="utf-8"
+                )
         with (out / "labels.tsv").open("w", encoding="utf-8") as fh:
             fh.write("phase\tdevice_id\ttimestamp\tanomaly\tline\n")
             for phase in ("validation", "test"):
                 for e in getattr(self, phase):
                     if e.anomaly:
-                        fh.write(f"{phase}\t{e.device_id}\t{e.timestamp.isoformat()}\t{e.anomaly}\t{e.line}\n")
+                        fh.write(
+                            f"{phase}\t{e.device_id}\t{e.timestamp.isoformat()}\t{e.anomaly}\t{e.line}\n"
+                        )
 
 
 def generate(
@@ -295,12 +350,16 @@ def generate(
     devices: list[_Device] = []
     for kind in KINDS:
         for i in range(devices_per_kind):
-            prefix = {"thermostat": "TH", "doorlock": "DL", "plug": "PL", "gateway": "GW"}[kind.kind]
+            prefix = {"thermostat": "TH", "doorlock": "DL", "plug": "PL", "gateway": "GW"}[
+                kind.kind
+            ]
             devices.append(kind(f"{prefix}-{1000 + i}", random.Random(rng.random())))
     t0 = datetime(2026, 4, 13, tzinfo=UTC)
     history = _run_phase(devices, "history", t0, history_hours, rng, 0.0, None, 0.0)
     t1 = t0 + timedelta(hours=history_hours)
-    validation = _run_phase(devices, "validation", t1, validation_hours, rng, anomaly_rate, None, 0.0)
+    validation = _run_phase(
+        devices, "validation", t1, validation_hours, rng, anomaly_rate, None, 0.0
+    )
     t2 = t1 + timedelta(hours=validation_hours)
     test = _run_phase(devices, "test", t2, test_hours, rng, anomaly_rate, rollout_at, rollout_share)
     return Fleet(history, validation, test, devices)
@@ -313,13 +372,23 @@ class LiveFleet:
     produce an earlier one, so the stream stays in timestamp order.
     """
 
-    def __init__(self, devices: list[_Device], start: datetime, hours: float, rng: random.Random,
-                 anomaly_rate: float = 0.01, rollout_at: float | None = 0.5,
-                 rollout_share: float = 0.6, phase: str = "test"):
+    def __init__(
+        self,
+        devices: list[_Device],
+        start: datetime,
+        hours: float,
+        rng: random.Random,
+        anomaly_rate: float = 0.01,
+        rollout_at: float | None = 0.5,
+        rollout_share: float = 0.6,
+        phase: str = "test",
+    ):
         self.devices = {d.id: d for d in devices}
         self.end = start + timedelta(hours=hours)
         self.rng, self.anomaly_rate, self.phase = rng, anomaly_rate, phase
-        self.rollout_time = start + timedelta(hours=hours * rollout_at) if rollout_at is not None else None
+        self.rollout_time = (
+            start + timedelta(hours=hours * rollout_at) if rollout_at is not None else None
+        )
         self.upgrade = {d.id for d in devices if rng.random() < rollout_share}
         self.clock = {d.id: start + timedelta(seconds=rng.uniform(0, 30)) for d in devices}
         self.forced: dict[str, str] = {}
@@ -334,7 +403,9 @@ class LiveFleet:
         if self.clock[device_id] >= self.end:
             raise ValueError(f"{device_id} has no episode left before the stream ends")
         if kind not in self.kinds(device_id):
-            raise ValueError(f"{kind!r} does not apply to {device_id}; one of {self.kinds(device_id)}")
+            raise ValueError(
+                f"{kind!r} does not apply to {device_id}; one of {self.kinds(device_id)}"
+            )
         self.forced[device_id] = kind
 
     def rollout(self) -> list[str]:

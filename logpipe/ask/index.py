@@ -15,6 +15,7 @@ The shutdown set (templates that say a process stopped or can't go on: OOM, SIGT
 connection refused, disk full, ...) is a fixed pattern plus the templates closest to a few seed
 phrases, and a person can add or remove templates (control doc ``ask_shutdown``).
 """
+
 from __future__ import annotations
 
 import re
@@ -26,13 +27,26 @@ import numpy as np
 
 from ..settings import get_settings
 
-SHUTDOWN_PHRASES = ("out of memory", "killed process", "received shutdown request", "terminated by signal",
-                    "segmentation fault", "connection refused", "no space left on device", "panic", "fatal error",
-                    "exited with code", "shutting down", "unknown directive emerg")
-SHUTDOWN_RX = re.compile(r"(?i)out ?of ?memory|oom[- ]?kill|killed process|\bsig(term|kill|segv|abrt)\b|signal (6|9|11|15)\b|"
-                         r"segmentation fault|segfault|core dumped|shut(ting)? ?down|shutdown request|\bterminat(ed|ing)\b|"
-                         r"\bpanic\b|\bfatal\b|connection refused|\brefused\b|no space left|enospc|disk (is )?full|"
-                         r"exit(ed)? (with )?(code|status)|\bcrash|\[emerg\]|aborting")
+SHUTDOWN_PHRASES = (
+    "out of memory",
+    "killed process",
+    "received shutdown request",
+    "terminated by signal",
+    "segmentation fault",
+    "connection refused",
+    "no space left on device",
+    "panic",
+    "fatal error",
+    "exited with code",
+    "shutting down",
+    "unknown directive emerg",
+)
+SHUTDOWN_RX = re.compile(
+    r"(?i)out ?of ?memory|oom[- ]?kill|killed process|\bsig(term|kill|segv|abrt)\b|signal (6|9|11|15)\b|"
+    r"segmentation fault|segfault|core dumped|shut(ting)? ?down|shutdown request|\bterminat(ed|ing)\b|"
+    r"\bpanic\b|\bfatal\b|connection refused|\brefused\b|no space left|enospc|disk (is )?full|"
+    r"exit(ed)? (with )?(code|status)|\bcrash|\[emerg\]|aborting"
+)
 
 
 def readable(text: str) -> str:
@@ -55,7 +69,9 @@ def text_model(name: str):
 
 
 def _encode(model, texts: list[str]) -> np.ndarray:
-    return np.asarray(model.encode([readable(t) or t for t in texts], normalize_embeddings=True), dtype=np.float32)
+    return np.asarray(
+        model.encode([readable(t) or t for t in texts], normalize_embeddings=True), dtype=np.float32
+    )
 
 
 @dataclass
@@ -69,7 +85,9 @@ class TemplateIndex:
     kind: str = "minilm"
 
     @classmethod
-    def build(cls, templates: dict[int, str], version: int, scorers: dict | None = None, snapshot=None) -> TemplateIndex:
+    def build(
+        cls, templates: dict[int, str], version: int, scorers: dict | None = None, snapshot=None
+    ) -> TemplateIndex:
         model = text_model(get_settings().ask.model)
         ids, texts = list(templates), list(templates.values())
         vectors = _encode(model, texts) if ids else np.zeros((0, 0), np.float32)
@@ -96,7 +114,9 @@ def _logbert_vectors(scorers: dict, snapshot) -> dict[int, np.ndarray]:
     for scorer in scorers.values():
         table = scorer.model.embedding.token.weight.detach().cpu().numpy()
         for tid in scorer.vocab.template_ids:
-            sums.setdefault(snapshot.canonical_id(tid) if snapshot else tid, []).append(table[scorer.vocab.index(tid)])
+            sums.setdefault(snapshot.canonical_id(tid) if snapshot else tid, []).append(
+                table[scorer.vocab.index(tid)]
+            )
     out = {}
     for tid, vs in sums.items():
         v = np.mean(vs, axis=0)

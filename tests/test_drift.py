@@ -1,4 +1,5 @@
 """Drift: a stream's live anomaly-score distribution against the one its model was trained on."""
+
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -11,8 +12,12 @@ from tests.test_server import app_lines, calibrated, env, events, send  # noqa: 
 
 
 def windows(misses, alerted=False):
-    return [SimpleNamespace(score=SimpleNamespace(miss_ratio=m), reasons=("sequence",) if alerted else ())
-            for m in misses]
+    return [
+        SimpleNamespace(
+            score=SimpleNamespace(miss_ratio=m), reasons=("sequence",) if alerted else ()
+        )
+        for m in misses
+    ]
 
 
 def test_psi_is_zero_for_the_same_distribution_and_large_for_a_shift():
@@ -31,7 +36,8 @@ def test_report_needs_a_baseline_and_enough_live_windows():
     d.observe("s", windows([0.9] * 100, alerted=True))
     row = d.report([stream])[0]
     assert row["psi"] > 0.25 and row["alert_pct"] > 30
-    assert d.report([{"id": "s", "name": "old model"}])[0]["psi"] is None  # trained before baselines
+    # trained before baselines
+    assert d.report([{"id": "s", "name": "old model"}])[0]["psi"] is None
     d.reset("s")
     assert d.report([stream])[0]["live_windows"] == 0
 

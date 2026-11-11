@@ -1,42 +1,96 @@
 """Question -> QuerySpec. A deterministic fast path handles the questions a regex can read
 (time ranges, levels, quoted words, service names, "why did X go down"); anything else is one
 structured LLM call. Both outputs go through :func:`spec.validate`, so a bad answer fails closed."""
+
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
-from functools import lru_cache
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 from ..enrich.llm import NeedsLLM
-from .spec import AGG_FNS, Catalog, QuerySpec, validate
+from .activity import LLMFailed
+from .spec import Catalog, Intent, Level, Measure, QuerySpec, validate
 
 
 @dataclass
 class Routed:
     spec: QuerySpec
-    via: str  # "fast" | "llm"
+    via: Literal["fast", "llm"]
     notes: list[str]
 
 
-_UNITS = {"m": 1, "min": 1, "mins": 1, "minute": 1, "minutes": 1, "h": 60, "hr": 60, "hrs": 60,
-          "hour": 60, "hours": 60, "d": 1440, "day": 1440, "days": 1440}
-_LAST = re.compile(r"\b(?:last|past|previous|in the last|over the last)\s+(\d+)\s*(" + "|".join(
-    sorted(_UNITS, key=len, reverse=True)) + r")\b", re.IGNORECASE)
+_UNITS = {
+    "m": 1,
+    "min": 1,
+    "mins": 1,
+    "minute": 1,
+    "minutes": 1,
+    "h": 60,
+    "hr": 60,
+    "hrs": 60,
+    "hour": 60,
+    "hours": 60,
+    "d": 1440,
+    "day": 1440,
+    "days": 1440,
+}
+_LAST = re.compile(
+    r"\b(?:last|past|previous|in the last|over the last)\s+(\d+)\s*("
+    + "|".join(sorted(_UNITS, key=len, reverse=True))
+    + r")\b",
+    re.IGNORECASE,
+)
 _LAST_ONE = re.compile(r"\b(?:last|past|previous)\s+(minute|hour|day)\b", re.IGNORECASE)
 _TODAY = re.compile(r"\btoday\b", re.IGNORECASE)
-_CLOCK = re.compile(r"\b(at|around|since|after|before|near)\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?\b", re.IGNORECASE)
+_CLOCK = re.compile(
+    r"\b(at|around|since|after|before|near)\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?\b",
+    re.IGNORECASE,
+)
 _QUOTED = re.compile(r"\"([^\"]{1,100})\"|“([^”]{1,100})”|'([^']{2,100})'")
-_CONTAINING = re.compile(r"\b(?:containing|contains|mentioning|matching|with the word)\s+([\w.:/-]{2,100})", re.IGNORECASE)
-_RCA = re.compile(r"\b(why|root[ -]?cause|what caused|cause of|caused|went down|go(?:es)? down|crash(?:ed|es|ing)?|"
-                  r"outage|broke|died|what happened|stopp?ed working|fell over)\b", re.IGNORECASE)
-_SUMMARY = re.compile(r"\b(summar\w*|overview|what'?s going on|anything (?:unusual|weird|strange)|status report)\b", re.IGNORECASE)
+_CONTAINING = re.compile(
+    r"\b(?:containing|contains|mentioning|matching|with the word)\s+([\w.:/-]{2,100})",
+    re.IGNORECASE,
+)
+_RCA = re.compile(
+    r"\b(why|root[ -]?cause|what caused|cause of|caused|went down|go(?:es)? down|crash(?:ed|es|ing)?|"
+    r"outage|broke|died|what happened|stopp?ed working|fell over)\b",
+    re.IGNORECASE,
+)
+_SUMMARY = re.compile(
+    r"\b(summar\w*|overview|what'?s going on|anything (?:unusual|weird|strange)|status report)\b",
+    re.IGNORECASE,
+)
 _ERRORS = re.compile(r"\b(errors?|fatal|failures?|exceptions?|critical)\b", re.IGNORECASE)
 _WARNS = re.compile(r"\b(warn(?:ing)?s?)\b", re.IGNORECASE)
 _COUNT = re.compile(r"\b(how many|count|number of)\b", re.IGNORECASE)
-_PER = re.compile(r"\b(?:per|by|for each|grouped by)\s+(service|host|level|source|template)s?\b", re.IGNORECASE)
+# the word a person types after "per"/"by" -> the field it groups by
+_GROUP_WORDS = {
+    "service": "service",
+    "app": "service",
+    "application": "service",
+    "host": "host",
+    "server": "host",
+    "machine": "host",
+    "node": "host",
+    "level": "level",
+    "severity": "level",
+    "source": "source",
+    "file": "source",
+    "template": "template_id",
+    "pattern": "template_id",
+}
+_PER = re.compile(
+    rf"\b(?:per|by|for each|grouped by)\s+({'|'.join(_GROUP_WORDS)})s?\b", re.IGNORECASE
+)
 _OVER_TIME = re.compile(r"\b(over time|per minute|per hour|trend|timeline of)\b", re.IGNORECASE)
-_HARD = re.compile(r"\b(average|avg|mean|p\d\d|percentile|max(?:imum)?|minimum|lowest|highest|sum|total|distinct|unique)\b", re.IGNORECASE)
+_HARD = re.compile(
+    r"\b(average|avg|mean|p\d\d|percentile|max(?:imum)?|minimum|lowest|highest|sum|total|distinct|unique)\b",
+    re.IGNORECASE,
+)
 
 
 def _tz(offset_minutes: int | None) -> timezone:
@@ -45,22 +99,36 @@ def _tz(offset_minutes: int | None) -> timezone:
 
 def _names(question: str, known: set[str]) -> list[str]:
     q = question.lower()
-    return sorted(n for n in known if n and re.search(rf"(?<![\w-]){re.escape(n.lower())}(?![\w-])", q))
+    return sorted(
+        n for n in known if n and re.search(rf"(?<![\w-]){re.escape(n.lower())}(?![\w-])", q)
+    )
 
 
-def fast_path(question: str, catalog: Catalog, now: datetime, tz_offset: int | None = None) -> dict | None:
+def fast_path(
+    question: str, catalog: Catalog, now: datetime, tz_offset: int | None = None
+) -> dict | None:
     """A spec dict for questions simple enough to read without a model, else None."""
     q = question.strip()
-    spec: dict = {"intent": "keyword", "services": _names(q, catalog.services),
-                  "hosts": _names(q, catalog.hosts - catalog.services), "groups": _names(q, set(catalog.groups))}
+    spec: dict = {
+        "intent": "keyword",
+        "services": _names(q, catalog.services),
+        "hosts": _names(q, catalog.hosts - catalog.services),
+        "groups": _names(q, set(catalog.groups)),
+    }
+
+    # TODO: this significantly increase the time for some queries but I feel like usin this deterministic way of andling human language might come bite me in the butt later
+    # A regex approach to extracting the time scope of the query
     if m := _LAST.search(q):
         spec["minutes"] = int(m.group(1)) * _UNITS[m.group(2).lower()]
+
     elif m := _LAST_ONE.search(q):
         spec["minutes"] = _UNITS[m.group(1).lower()]
+
     elif _TODAY.search(q):
         local = now.astimezone(_tz(tz_offset))
         spec["start"] = local.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(UTC)
         spec["end"] = now
+
     if m := _CLOCK.search(q):
         word, hh, mm, ss, ampm = m.groups()
         hour = int(hh) % 12 + (12 if (ampm or "").lower() == "pm" else 0) if ampm else int(hh)
@@ -77,59 +145,85 @@ def fast_path(question: str, catalog: Catalog, now: datetime, tz_offset: int | N
             spec["start"], spec["end"] = at - timedelta(hours=1), at
         else:
             spec["anchor_time"] = at
+
     keywords = [next(g for g in m.groups() if g) for m in _QUOTED.finditer(q)]
     keywords += [m.group(1) for m in _CONTAINING.finditer(q)]
     spec["keywords"] = keywords
+
+    # Setting the priority level based on regex
     if _ERRORS.search(q):
         spec["min_level"] = "error"
     elif _WARNS.search(q):
         spec["min_level"] = "warn"
 
+    # If tit is an RCA request then log level wouldnt matter due to the intention
     if _RCA.search(q):
         spec["intent"] = "rca"
         spec["anchor_event"] = q[:200]
-        spec.pop("min_level", None)  # "why did it fail" is not a filter on error lines
+        spec.pop("min_level", None)
         return spec
+
     if _SUMMARY.search(q):
         spec["intent"] = "summary"
         return spec
+
+    # NOTE: more dedicated jobs are performed by LLM
     if _HARD.search(q):
-        return None  # measures beyond a count: the LLM's job
+        return None
+
+    # route() keeps the first 2 groupings and notes any it drops
     if _COUNT.search(q) or _PER.search(q) or _OVER_TIME.search(q):
-        groups = [g.lower() for g in dict.fromkeys(m.group(1) for m in _PER.finditer(q))]
-        spec["aggregate"] = {"fn": "count", "group_by": [{"template": "template_id"}.get(g, g) for g in groups][:2],
-                             "over_time": bool(_OVER_TIME.search(q))}
-    if not (keywords or spec.get("min_level") or spec["services"] or spec["hosts"] or spec["groups"] or spec.get("aggregate")):
-        return None  # nothing concrete to search for
+        groups = dict.fromkeys(_GROUP_WORDS[m.group(1).lower()] for m in _PER.finditer(q))
+        spec["aggregate"] = {
+            "fn": "count",
+            "group_by": list(groups),
+            "over_time": bool(_OVER_TIME.search(q)),
+        }
+
+    # if the question involve nothing concrete to search for
+    if not (
+        keywords
+        or spec.get("min_level")
+        or spec["services"]
+        or spec["hosts"]
+        or spec["groups"]
+        or spec.get("aggregate")
+    ):
+        return None
+
     return spec
 
 
-@lru_cache(maxsize=1)
-def route_schema():
-    from pydantic import BaseModel, Field
+class RouteOut(BaseModel):
+    """The question as a log query. Leave a field empty when the question doesn't say."""
 
-    class RouteOut(BaseModel):
-        """The question as a log query. Leave a field empty when the question doesn't say."""
-        intent: str = Field(description="general | keyword | event | semantic | rca | summary")
-        minutes: int | None = Field(None, description="relative range: the last N minutes")
-        start: str | None = Field(None, description="absolute range start, ISO 8601 UTC")
-        end: str | None = Field(None, description="absolute range end, ISO 8601 UTC")
-        services: list[str] = Field(default_factory=list)
-        hosts: list[str] = Field(default_factory=list)
-        groups: list[str] = Field(default_factory=list, description="groups named in the question (each covers several services)")
-        min_level: str | None = Field(None, description="debug | info | warn | error")
-        keywords: list[str] = Field(default_factory=list, description="literal words the lines must contain")
-        template_ids: list[int] = Field(default_factory=list)
-        anchor_event: str | None = Field(None, description="rca/event: the event in the user's words")
-        anchor_time: str | None = Field(None, description="rca: when the user says it happened, ISO 8601 UTC")
-        semantic_query: str | None = Field(None, description="semantic: what kind of line to look for")
-        aggregate_fn: str | None = Field(None, description="count | count_distinct | avg | min | max | sum | p95")
-        aggregate_field: str | None = None
-        group_by: list[str] = Field(default_factory=list)
-        over_time: bool = False
-        answer: str | None = Field(None, description="general only: a short answer from general knowledge")
-
-    return RouteOut
+    intent: Intent
+    minutes: int | None = Field(None, description="relative range: the last N minutes")
+    start: str | None = Field(None, description="absolute range start, ISO 8601 UTC")
+    end: str | None = Field(None, description="absolute range end, ISO 8601 UTC")
+    services: list[str] = Field(default_factory=list)
+    hosts: list[str] = Field(default_factory=list)
+    groups: list[str] = Field(
+        default_factory=list,
+        description="groups named in the question (each covers several services)",
+    )
+    min_level: Level | None = None
+    keywords: list[str] = Field(
+        default_factory=list, description="literal words the lines must contain"
+    )
+    template_ids: list[int] = Field(default_factory=list)
+    anchor_event: str | None = Field(None, description="rca/event: the event in the user's words")
+    anchor_time: str | None = Field(
+        None, description="rca: when the user says it happened, ISO 8601 UTC"
+    )
+    semantic_query: str | None = Field(None, description="semantic: what kind of line to look for")
+    aggregate_fn: Measure | None = None
+    aggregate_field: str | None = None
+    group_by: list[str] = Field(default_factory=list)
+    over_time: bool = False
+    answer: str | None = Field(
+        None, description="general only: a short answer from general knowledge"
+    )
 
 
 ROUTE_PROMPT = """You turn an on-call engineer's question into a query over their log store.
@@ -167,47 +261,98 @@ Question: {question}"""
 
 
 def _from_llm(out) -> dict:
+    """Convert from LLM structured class response back to raw dictionary python object."""
     d = out.model_dump() if hasattr(out, "model_dump") else dict(out)
-    spec = {k: d.get(k) for k in ("intent", "minutes", "start", "end", "min_level", "anchor_event",
-                                  "anchor_time", "semantic_query", "answer") if d.get(k) not in (None, "")}
+    spec = {
+        k: d.get(k)
+        for k in (
+            "intent",
+            "minutes",
+            "start",
+            "end",
+            "min_level",
+            "anchor_event",
+            "anchor_time",
+            "semantic_query",
+            "answer",
+        )
+        if d.get(k) not in (None, "")
+    }
+
     for k in ("services", "hosts", "groups", "keywords", "template_ids"):
         if d.get(k):
             spec[k] = d[k]
+
     if d.get("aggregate_fn"):
-        spec["aggregate"] = {"fn": d["aggregate_fn"], "field": d.get("aggregate_field") or None,
-                             "group_by": d.get("group_by") or [], "over_time": bool(d.get("over_time"))}
+        spec["aggregate"] = {
+            "fn": d["aggregate_fn"],
+            "field": d.get("aggregate_field") or None,
+            "group_by": d.get("group_by") or [],
+            "over_time": bool(d.get("over_time")),
+        }
+
     if spec.get("min_level") == "warning":
         spec["min_level"] = "warn"
+
     return spec
 
 
-def route(question: str, catalog: Catalog, adapter, now: datetime | None = None,
-          tz_offset: int | None = None) -> Routed:
+def route(
+    question: str,
+    catalog: Catalog,
+    adapter,
+    now: datetime | None = None,
+    tz_offset: int | None = None,
+) -> Routed:
     question = question.strip()
+    """The routing call that ask what information to be retrieved based on question (provided with both regex quick path and LLM answer."""
+
     if not question:
         raise ValueError("ask a question, e.g. 'why did checkout fail in the last hour?'")
+
     if len(question) > 1000:
         raise ValueError("questions are at most 1000 characters")
+
     now = now or datetime.now(UTC)
     notes: list[str] = []
     fast = fast_path(question, catalog, now, tz_offset)
     if fast is not None:
+        group_by = (fast.get("aggregate") or {}).get("group_by", [])
+        if len(group_by) > 2:
+            notes.append(
+                f"grouped by {' and '.join(group_by[:2])} only; dropped {', '.join(group_by[2:])}"
+            )
+            del group_by[2:]
         try:
             return Routed(validate(fast, catalog, now), "fast", notes)
-        except ValueError as error:  # e.g. a word that looked like a host; let the model read it
+        except ValueError as error:
             notes.append(f"fast path gave up: {error}")
+
+    # checking if the LLM provider is actually available
     if not getattr(adapter, "can_ask", False):
-        raise NeedsLLM("this question needs an LLM (start the server with --llm llm:<provider>); "
-                       "without one, ask with a time range, a level, a service name or \"quoted words\"")
+        raise NeedsLLM(
+            "this question needs an LLM (start the server with --llm llm:<provider>); "
+            'without one, ask with a time range, a level, a service name or "quoted words"'
+        )
+
     tz = f"{'+' if (tz_offset or 0) >= 0 else '-'}{abs(tz_offset or 0) // 60:02d}:{abs(tz_offset or 0) % 60:02d}"
-    out = adapter.ask(route_schema(), ROUTE_PROMPT.format(now=now.isoformat(timespec="seconds"), tz=tz,
-                                                  catalog=catalog.describe(), question=question))
+    prompt = ROUTE_PROMPT.format(
+        now=now.isoformat(timespec="seconds"), tz=tz, catalog=catalog.describe(), question=question
+    )
+
+    # only after fast path fail will we invoke the LLM
+    try:
+        out = adapter.ask(RouteOut, prompt)
+    except LLMFailed as error:
+        raise ValueError(
+            f"the LLM couldn't read the question ({error}). Try again, or ask with a time range, "
+            'a level, a service name or "quoted words", which need no LLM'
+        ) from None
+
     if out is None:
         raise ValueError("the LLM gave no usable answer; try rephrasing")
+
     raw = _from_llm(out)
-    agg = raw.get("aggregate")
-    if agg and agg["fn"] not in AGG_FNS:
-        raise ValueError(f"the LLM asked for an unknown measure {agg['fn']!r}")
     try:
         return Routed(validate(raw, catalog, now), "llm", notes)
     except ValueError as error:

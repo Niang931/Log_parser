@@ -17,6 +17,7 @@ Every calibration also measures itself:
   depth and similarity threshold, keeping the best GA (then PA, then the
   fewest templates).
 """
+
 from __future__ import annotations
 
 import json
@@ -111,8 +112,13 @@ def _mine(lines: Sequence[str], masks: Sequence[Mask], depth: int, sim: float) -
 
 
 def _accuracy(
-    lines: Sequence[str], masks: Sequence[Mask], depth: int, sim: float, truth: GroundTruth,
-    *, deepparse_default: bool = False,
+    lines: Sequence[str],
+    masks: Sequence[Mask],
+    depth: int,
+    sim: float,
+    truth: GroundTruth,
+    *,
+    deepparse_default: bool = False,
 ) -> tuple[float, float, int]:
     engine = (
         DrainEngine(depth=depth, similarity_threshold=sim, masks=list(masks))
@@ -141,7 +147,9 @@ def _new_templates(
     new_templates = []
     for cluster in progress(engine.clusters, "naming keys", unit="template"):
         tokens = tuple(cluster.template)
-        proposed = adapter.name_keys(tokens, samples.get(cluster.cluster_id, [])) if adapter else None
+        proposed = (
+            adapter.name_keys(tokens, samples.get(cluster.cluster_id, [])) if adapter else None
+        )
         new_templates.append(NewTemplate(tokens=tokens, keys=tuple(clean_keys(proposed, tokens))))
     return new_templates
 
@@ -172,8 +180,7 @@ def _holdout(
     final = [r for r in map(parser.parse, test) if r.status == Status.FINAL]
     # The frozen parser returns an empty payload when the extractor fails.
     extracted = sum(
-        1 for r in final
-        if r.payload or not slot_labels(snapshot.templates[r.template_id].tokens)
+        1 for r in final if r.payload or not slot_labels(snapshot.templates[r.template_id].tokens)
     )
     return len(test), len(final) / len(test), (extracted / len(final) if final else 0.0)
 
@@ -207,7 +214,9 @@ def calibrate(
     if tune and ground_truth is not None:
         for d, s in progress(grid, "tuning drain", unit="config"):
             ga, pa, n = _accuracy(lines, masks, d, s, ground_truth)
-            tuning.append({"depth": d, "similarity_threshold": s, "GA": ga, "PA": pa, "templates": n})
+            tuning.append(
+                {"depth": d, "similarity_threshold": s, "GA": ga, "PA": pa, "templates": n}
+            )
         best = max(tuning, key=lambda r: (r["GA"], r["PA"], -r["templates"]))
         depth, similarity_threshold = best["depth"], best["similarity_threshold"]
 
@@ -255,13 +264,12 @@ def append_calibrate(
     Masks stay as they are, so ids already stored and models trained on them remain valid.
     Returns the ids of the new templates.
     """
-    new_templates = append_drafts(registry, lines, adapter, depth=depth,
-                                  similarity_threshold=similarity_threshold)
+    new_templates = append_drafts(
+        registry, lines, adapter, depth=depth, similarity_threshold=similarity_threshold
+    )
     if not new_templates:
         return []
-    _, ids = registry.publish(
-        new_templates, key_vocab=[k for t in new_templates for k in t.keys]
-    )
+    _, ids = registry.publish(new_templates, key_vocab=[k for t in new_templates for k in t.keys])
     return ids
 
 
@@ -275,7 +283,9 @@ def append_drafts(
 ) -> list[NewTemplate]:
     """The templates :func:`append_calibrate` would add, without publishing them."""
     parser = FrozenParser(registry.current, depth=depth)
-    unmatched = [line for line in lines if line.strip() and parser.parse(line).status != Status.FINAL]
+    unmatched = [
+        line for line in lines if line.strip() and parser.parse(line).status != Status.FINAL
+    ]
     if not unmatched:
         return []
     engine = _mine(unmatched, registry.current.masks, depth, similarity_threshold)

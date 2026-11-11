@@ -1,4 +1,5 @@
 """``logpipe server``: agent intake, the operator UI's API and the learning lifecycle."""
+
 from __future__ import annotations
 
 import logging
@@ -30,8 +31,13 @@ class _Json(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         import json
 
-        out = {"ts": self.formatTime(record), "level": record.levelname.lower(), "logger": record.name,
-               "message": record.getMessage(), "thread": record.threadName}
+        out = {
+            "ts": self.formatTime(record),
+            "level": record.levelname.lower(),
+            "logger": record.name,
+            "message": record.getMessage(),
+            "thread": record.threadName,
+        }
         if record.exc_info:
             out["error"] = self.formatException(record.exc_info)
         return json.dumps(out, default=str)
@@ -43,8 +49,11 @@ def setup_logging(data_dir: Path) -> Path:
     data_dir.mkdir(parents=True, exist_ok=True)
     log_file = data_dir / "server.log"
     to_file = logging.handlers.RotatingFileHandler(log_file, maxBytes=10 << 20, backupCount=3)
-    to_file.setFormatter(_Json() if get_settings().server.log_format == "json"
-                         else logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
+    to_file.setFormatter(
+        _Json()
+        if get_settings().server.log_format == "json"
+        else logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+    )
     console = logging.StreamHandler()
     console.setLevel(logging.WARNING)
     console.setFormatter(_Console(log_file))
@@ -54,8 +63,18 @@ def setup_logging(data_dir: Path) -> Path:
     return log_file
 
 
-def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str, data_dir: Path,
-        epochs: int, demo: bool = False) -> None:
+def run(
+    *,
+    host: str,
+    port: int,
+    store: str,
+    queue: str,
+    llm: str,
+    browser: str,
+    data_dir: Path,
+    epochs: int,
+    demo: bool = False,
+) -> None:
     import uvicorn
 
     from ..enrich.llm import get_adapter
@@ -73,10 +92,15 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
         from ..storage.mongo import MongoDocs
 
         control = ControlStore(MongoDocs(log_store.db))  # type: ignore[attr-defined]
-    server = Server(log_store, control, data_dir=data_dir, epochs=epochs,
-                    adapter_factory=lambda: get_adapter(llm, browser=browser),  # type: ignore[arg-type]
-                    queue_factory=lambda: open_queue(queue),
-                    bootstrap_key=get_settings().server.bootstrap_key or None)
+    server = Server(
+        log_store,
+        control,
+        data_dir=data_dir,
+        epochs=epochs,
+        adapter_factory=lambda: get_adapter(llm, browser=browser),  # type: ignore[arg-type]
+        queue_factory=lambda: open_queue(queue),
+        bootstrap_key=get_settings().server.bootstrap_key or None,
+    )
     from .auth import Auth
 
     generated = Auth(control).ensure(get_settings().server.admin_password or None)
@@ -86,13 +110,25 @@ def run(*, host: str, port: int, store: str, queue: str, llm: str, browser: str,
 
         demo_instance = Demo(llm=llm, browser=browser, cache_dir=Path("artifacts/demo"))  # type: ignore[arg-type]
         threading.Thread(target=demo_instance.replay, daemon=True).start()
-    print(f"[server] logpipe on http://{host}:{port}/ ({store} store, {queue} queue, {llm}); "
-          f"log: {log_file}", flush=True)
+    print(
+        f"[server] logpipe on http://{host}:{port}/ ({store} store, {queue} queue, {llm}); "
+        f"log: {log_file}",
+        flush=True,
+    )
     if generated:
-        print(f"[server] admin password for the UI: {generated}  (change it in the UI; set "
-              "LOGPIPE_ADMIN_PASSWORD to reset it)", flush=True)
+        print(
+            f"[server] admin password for the UI: {generated}  (change it in the UI; set "
+            "LOGPIPE_ADMIN_PASSWORD to reset it)",
+            flush=True,
+        )
     try:
-        uvicorn.run(create_app(server, demo_instance, {"store": store, "queue": queue, "llm": llm}), host=host, port=port, log_config=None,
-                    timeout_graceful_shutdown=2)  # SSE streams and agent long-polls never end on their own
+        # SSE streams and agent long-polls never end on their own
+        uvicorn.run(
+            create_app(server, demo_instance, {"store": store, "queue": queue, "llm": llm}),
+            host=host,
+            port=port,
+            log_config=None,
+            timeout_graceful_shutdown=2,
+        )
     finally:
         server.close()

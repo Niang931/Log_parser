@@ -1,4 +1,5 @@
 """Needs a ClickHouse server: ``make docker-up`` (or set CLICKHOUSE_* env vars)."""
+
 import os
 from datetime import UTC, datetime, timedelta
 
@@ -36,8 +37,12 @@ TS = datetime(2026, 4, 13, 12, tzinfo=UTC)
 
 
 def _pending(i: int, ts=TS) -> LogRow:
-    return LogRow.from_result(ParseResult(1, Status.PENDING, {}, 1), device_id="dev-1",
-                              timestamp=ts, raw_message=f"unknown line {i}")
+    return LogRow.from_result(
+        ParseResult(1, Status.PENDING, {}, 1),
+        device_id="dev-1",
+        timestamp=ts,
+        raw_message=f"unknown line {i}",
+    )
 
 
 def test_backfill_supersedes_pending_rows(store):
@@ -58,8 +63,21 @@ def test_backfill_supersedes_pending_rows(store):
 
 
 def test_alerts_round_trip(store):
-    alert = AnomalyAlert("dev-1", TS, TS + timedelta(seconds=30), (2, 3, 1), 0.6, 0.33, 1.5,
-                         ("sequence", "novelty"), True, 3, "logbert-test")
+    alert = AnomalyAlert(
+        "dev-1",
+        TS,
+        TS + timedelta(seconds=30),
+        (2, 3, 1),
+        0.6,
+        0.33,
+        1.5,
+        ("sequence", "novelty"),
+        True,
+        3,
+        "logbert-test",
+    )
     store.insert_alerts([alert])
-    rows = store.client.query("SELECT device_id, reasons, had_unknowns FROM anomaly_alerts").result_rows
+    rows = store.client.query(
+        "SELECT device_id, reasons, had_unknowns FROM anomaly_alerts"
+    ).result_rows
     assert rows == [("dev-1", ["sequence", "novelty"], 1)]

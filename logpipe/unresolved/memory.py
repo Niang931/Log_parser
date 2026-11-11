@@ -33,10 +33,10 @@ class MemoryQueue:
 
     def consume(self, max_messages: int, timeout: float = 1.0) -> list[Message]:
         with self._lock:
-            if self._in_flight:  
+            if self._in_flight:
                 # redelivery: the previous batch was never committed
                 return list(self._in_flight)
-            
+
             batch = [self._pending.popleft() for _ in range(min(max_messages, len(self._pending)))]
             self._in_flight = batch
             self._stats.consumed += len(batch)

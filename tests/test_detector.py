@@ -39,8 +39,9 @@ class FakeScorer:
 
 
 def _detector(scorer: FakeScorer | None = None, **cfg) -> StreamingDetector:
-    config = DetectorConfig(window=4, stride=2, min_len=2, batch_size=1,
-                            lateness=timedelta(0), **cfg)
+    config = DetectorConfig(
+        window=4, stride=2, min_len=2, batch_size=1, lateness=timedelta(0), **cfg
+    )
     return StreamingDetector(scorer or FakeScorer(), config)
 
 
@@ -64,8 +65,14 @@ def test_windows_are_emitted_every_stride_and_alert_on_anomalies():
 
 
 def test_reorder_buffer_restores_event_time_order():
-    config = DetectorConfig(window=3, stride=3, min_len=1, batch_size=100,
-                            lateness=timedelta(seconds=5), fleet_min_devices=0)
+    config = DetectorConfig(
+        window=3,
+        stride=3,
+        min_len=1,
+        batch_size=100,
+        lateness=timedelta(seconds=5),
+        fleet_min_devices=0,
+    )
     scorer = FakeScorer()
     detector = StreamingDetector(scorer, config)
     for offset, tid in [(2, 4), (0, 2), (1, 3)]:  # arrives out of order
@@ -99,7 +106,9 @@ def test_pending_lines_are_re_resolved_at_scoring_time():
     scorer = FakeScorer()
     detector = _detector(scorer, fleet_min_devices=0)
     detector.resolver = lambda line: 3 if "learned" in line else 1
-    for i, (tid, line) in enumerate([(2, None), (1, "learned later"), (1, "still unknown"), (4, None)]):
+    for i, (tid, line) in enumerate(
+        [(2, None), (1, "learned later"), (1, "still unknown"), (4, None)]
+    ):
         detector.observe("d1", tid, T0 + timedelta(seconds=i), line)
     detector.flush()
     assert scorer.calls[0][0] == (2, 3, 1, 4)
@@ -116,8 +125,15 @@ def test_recorded_windows_keep_scores():
 def test_resolved_lines_count_spread_at_their_own_time_not_per_window():
     # One fault line per device, re-resolved in several overlapping windows,
     # must not look like a template recurring across many minutes.
-    config = DetectorConfig(window=4, stride=1, min_len=2, batch_size=1, lateness=timedelta(0),
-                            fleet_min_devices=2, fleet_min_minutes=3)
+    config = DetectorConfig(
+        window=4,
+        stride=1,
+        min_len=2,
+        batch_size=1,
+        lateness=timedelta(0),
+        fleet_min_devices=2,
+        fleet_min_minutes=3,
+    )
     detector = StreamingDetector(FakeScorer(), config, resolver=lambda line: 77)
     for device in ("a", "b"):
         for i in range(8):

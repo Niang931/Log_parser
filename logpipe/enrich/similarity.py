@@ -247,5 +247,10 @@ def find_alias(
     best, nearest = scored[0][0], scored[0][1].template_id  # highest similarity first
     if best < threshold:
         return AliasDecision(None, best, None, f"nearest #{nearest} below threshold {threshold}")
-    return AliasDecision(None, best, None, f"nearest #{nearest} not the same event "
-                         "(opposite states, or the LLM did not confirm the wording change)")
+    return AliasDecision(
+        None,
+        best,
+        None,
+        f"nearest #{nearest} not the same event "
+        "(opposite states, or the LLM did not confirm the wording change)",
+    )

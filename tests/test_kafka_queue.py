@@ -203,7 +203,12 @@ def test_dead_letter_carries_reason_and_attempts():
 
 
 def test_from_env_reads_kafka_settings(monkeypatch):
-    for k, v in {"KAFKA_BOOTSTRAP": "k:9092", "KAFKA_TOPIC": "u", "KAFKA_GROUP": "w", "KAFKA_KEY_BY": "device"}.items():
+    for k, v in {
+        "KAFKA_BOOTSTRAP": "k:9092",
+        "KAFKA_TOPIC": "u",
+        "KAFKA_GROUP": "w",
+        "KAFKA_KEY_BY": "device",
+    }.items():
         monkeypatch.setenv(k, v)
     monkeypatch.delenv("KAFKA_DLQ_TOPIC", raising=False)
     queue = KafkaQueue.from_env()

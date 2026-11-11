@@ -36,8 +36,7 @@ jobs:
       - run: uv sync --group dev
       - name: ruff check
         run: uv run ruff check logpipe tests
-      - name: ruff format --check (advisory)
-        continue-on-error: true
+      - name: ruff format --check
         run: uv run ruff format --check logpipe tests
 
   unit:

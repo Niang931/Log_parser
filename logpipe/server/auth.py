@@ -4,6 +4,7 @@ One password, kept as a scrypt hash in the control store (so it survives restart
 ClickHouse store). A login hands out a signed session cookie; the signing key includes the hash,
 so changing the password signs everyone out. Agents never use this: they send API keys.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -27,7 +28,9 @@ def hash_password(password: str, salt: bytes | None = None) -> str:
 def verify_password(password: str, stored: str) -> bool:
     try:
         _, n, r, p, salt, digest = stored.split("$")
-        got = hashlib.scrypt(password.encode(), salt=bytes.fromhex(salt), n=int(n), r=int(r), p=int(p))
+        got = hashlib.scrypt(
+            password.encode(), salt=bytes.fromhex(salt), n=int(n), r=int(r), p=int(p)
+        )
     except (ValueError, TypeError):
         return False
     return hmac.compare_digest(got.hex(), digest)
@@ -50,8 +53,15 @@ class Auth:
     def set_password(self, password: str) -> None:
         if len(password) < (n := get_settings().server.min_password_length):
             raise ValueError(f"the password needs at least {n} characters")
-        self.control.put("auth", "admin", {"hash": hash_password(password),
-                                           "secret": secrets.token_hex(32), "changed_at": time.time()})
+        self.control.put(
+            "auth",
+            "admin",
+            {
+                "hash": hash_password(password),
+                "secret": secrets.token_hex(32),
+                "changed_at": time.time(),
+            },
+        )
 
     def ensure(self, from_env: str | None) -> str | None:
         """At startup: ``from_env`` (LOGPIPE_ADMIN_PASSWORD) always wins, so a forgotten password

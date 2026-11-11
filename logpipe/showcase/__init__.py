@@ -5,6 +5,7 @@ connect the agent, draft templates, review them (with a hand-written rule), trai
 inject an incident, add a new service. Each act says what to do in the UI and waits until it
 has happened; pressing Enter lets the showcase do it instead. ``--auto`` runs every act itself.
 """
+
 from __future__ import annotations
 
 import json
@@ -27,8 +28,10 @@ from .generator import FILES, ShopGenerator
 
 ROOT = Path("artifacts/showcase")
 HOST = "shop-web-1"
-PG_RULE = ("%{timestamp:ts} UTC [%{integer:pid}] LOG: duration: %{number:duration_ms} ms "
-           "statement: %{data:statement}")
+PG_RULE = (
+    "%{timestamp:ts} UTC [%{integer:pid}] LOG: duration: %{number:duration_ms} ms "
+    "statement: %{data:statement}"
+)
 B, D, G, Y, R = "\033[1m", "\033[2m", "\033[32m", "\033[33m", "\033[0m"
 
 
@@ -38,9 +41,12 @@ class Api:
         self.cookie = ""  # the admin session, after login()
 
     def __call__(self, path: str, body: dict | None = None, method: str | None = None):
-        req = urllib.request.Request(self.base + path, method=method or ("POST" if body is not None else "GET"),
-                                     data=json.dumps(body).encode() if body is not None else None,
-                                     headers={"Content-Type": "application/json", "Cookie": self.cookie})
+        req = urllib.request.Request(
+            self.base + path,
+            method=method or ("POST" if body is not None else "GET"),
+            data=json.dumps(body).encode() if body is not None else None,
+            headers={"Content-Type": "application/json", "Cookie": self.cookie},
+        )
         with urllib.request.urlopen(req, timeout=30) as res:
             if set_cookie := res.headers.get("Set-Cookie"):
                 self.cookie = set_cookie.split(";", 1)[0]
@@ -59,13 +65,15 @@ def find_agent(out: Path) -> str:
         return str(out)
     if found := shutil.which("logpipe-agent"):
         return found
-    raise SystemExit("logpipe-agent not found: install Go (to build ./agent) or put logpipe-agent on PATH")
+    raise SystemExit(
+        "logpipe-agent not found: install Go (to build ./agent) or put logpipe-agent on PATH"
+    )
 
 
 def _fit(text: str, indent: int) -> str:
     """One terminal line: a long status that wrapped would break redrawing it in place."""
     width = shutil.get_terminal_size((100, 24)).columns - indent - 1
-    return text if len(text) <= width else text[:max(width - 1, 10)] + "…"
+    return text if len(text) <= width else text[: max(width - 1, 10)] + "…"
 
 
 class Tour:
@@ -100,9 +108,16 @@ class Tour:
             print(f"    {D}{text}{R}", flush=True)
             self._live_at = time.monotonic()
 
-    def wait(self, what: str, done: Callable[[], bool], do: Callable[[], None] | None = None,
-             timeout: float = 900, live: Callable[[], str] | None = None,
-             steps: Callable[[], list[str]] | None = None, give_up: str = "") -> None:
+    def wait(
+        self,
+        what: str,
+        done: Callable[[], bool],
+        do: Callable[[], None] | None = None,
+        timeout: float = 900,
+        live: Callable[[], str] | None = None,
+        steps: Callable[[], list[str]] | None = None,
+        give_up: str = "",
+    ) -> None:
         """Until ``done()``; Enter (or --auto) runs ``do`` instead of waiting for the UI.
         ``live`` is a counter (lines collected, your review); ``steps`` gives the background
         job's new steps (LLM prompts, answers, epochs), each printed as it happens. With
@@ -154,6 +169,7 @@ def _ask(fn: Callable, fallback):
 def _drop_typed_ahead() -> None:
     if sys.stdin.isatty():
         import termios
+
         termios.tcflush(sys.stdin, termios.TCIFLUSH)
 
 
@@ -170,12 +186,13 @@ def _job_steps(api: Api, *kinds: str) -> Callable[[], list[str]]:
             log = [m for _, m in j.get("log") or []]
             if j["id"] not in printed:
                 out.append(f"{j['kind']} job started")
-            out += log[printed.get(j["id"], 0):]
+            out += log[printed.get(j["id"], 0) :]
             if j["status"] == "failed":
                 out.append(f"{j['kind']} job failed: {j.get('error')}")
                 old.add(j["id"])
             printed[j["id"]] = len(log)
         return out
+
     return new
 
 
@@ -204,10 +221,18 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
     auto = auto or not sys.stdin.isatty()  # nobody to press Enter
     if ask and not auto:
         saved = json.loads(SAVED.read_text()) if SAVED.exists() else {}
-        print("The showcase runs `logpipe server`; pick its store, queue and LLM (Enter keeps the default).")
+        print(
+            "The showcase runs `logpipe server`; pick its store, queue and LLM (Enter keeps the default)."
+        )
         a = ask_setup(saved | {"server_port": port}, "server")
     else:
-        a = {"mode": "server", "queue": "memory", "store": "memory", "llm_kind": "offline", "server_port": port}
+        a = {
+            "mode": "server",
+            "queue": "memory",
+            "store": "memory",
+            "llm_kind": "offline",
+            "server_port": port,
+        }
     a |= {"data_dir": str(ROOT / "server"), "with_demo": False}
     services, [cmd] = plan(a)
     port = int(a["server_port"])
@@ -219,9 +244,11 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
     env = os.environ | {"CLICKHOUSE_DB": "logpipe_showcase", "LOGPIPE_ADMIN_PASSWORD": password}
     if a["store"] == "clickhouse":  # a fresh database every run
         import clickhouse_connect
+
         ch = settings.clickhouse
-        clickhouse_connect.get_client(host=ch.host, port=ch.port, username=ch.user, password=ch.password,
-                                      ).command("DROP DATABASE IF EXISTS logpipe_showcase")
+        clickhouse_connect.get_client(
+            host=ch.host, port=ch.port, username=ch.user, password=ch.password
+        ).command("DROP DATABASE IF EXISTS logpipe_showcase")
     shutil.rmtree(ROOT, ignore_errors=True)
     ROOT.mkdir(parents=True)
     agent_bin = find_agent(ROOT / "bin" / "logpipe-agent")
@@ -231,8 +258,14 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
     gen = ShopGenerator(ROOT / "logs")
     try:
         print(f"{D}$ logpipe {' '.join(cmd)}   (output in {ROOT / 'server.out'}){R}")
-        procs.append(subprocess.Popen([sys.executable, "-c", "from logpipe.cli import main; main()", *cmd],
-                                      stdout=(ROOT / "server.out").open("w"), stderr=subprocess.STDOUT, env=env))
+        procs.append(
+            subprocess.Popen(
+                [sys.executable, "-c", "from logpipe.cli import main; main()", *cmd],
+                stdout=(ROOT / "server.out").open("w"),
+                stderr=subprocess.STDOUT,
+                env=env,
+            )
+        )
         for _ in range(120):
             try:
                 api("/api/auth/status")
@@ -258,7 +291,9 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
                 p.kill()
 
 
-def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Popen], password: str) -> None:
+def _tour(
+    t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Popen], password: str
+) -> None:
     api, url = t.api, t.url
     conf = ROOT / "agent"
 
@@ -266,23 +301,42 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
         print(f"  {D}$ logpipe-agent -c {conf} {' '.join(args)}{R}")
         subprocess.run([agent_bin, "-c", str(conf), *args], check=True, stdout=subprocess.DEVNULL)
 
-    t.act(0, "The server is up", [f"Open {B}{url}{R} in a browser and keep it next to this terminal.",
-                                  f"Log in with the admin password {B}{password}{R}.",
-                                  "Every act says what to look at; do it in the UI, or press Enter and I'll do it."])
+    t.act(
+        0,
+        "The server is up",
+        [
+            f"Open {B}{url}{R} in a browser and keep it next to this terminal.",
+            f"Log in with the admin password {B}{password}{R}.",
+            "Every act says what to look at; do it in the UI, or press Enter and I'll do it.",
+        ],
+    )
     t.pause()
 
     gen.start()
-    t.act(1, "A web shop is writing logs", [
-        f"A generator writes a shop's logs into {ROOT / 'logs'} (about 3 orders a second):",
-        *(f"  {svc:<9} {ROOT / 'logs' / FILES[svc][0]}" for svc in ("nginx", "shop-api", "postgres")),
-        "The Java API also writes multiline stack traces when something fails.",
-        f"Watch one: {D}tail -f {ROOT / 'logs' / FILES['shop-api'][0]}{R}"])
+    t.act(
+        1,
+        "A web shop is writing logs",
+        [
+            f"A generator writes a shop's logs into {ROOT / 'logs'} (about 3 orders a second):",
+            *(
+                f"  {svc:<9} {ROOT / 'logs' / FILES[svc][0]}"
+                for svc in ("nginx", "shop-api", "postgres")
+            ),
+            "The Java API also writes multiline stack traces when something fails.",
+            f"Watch one: {D}tail -f {ROOT / 'logs' / FILES['shop-api'][0]}{R}",
+        ],
+    )
     t.pause()
 
-    t.act(2, "Connect a collector agent", [
-        f"In the UI: {B}Agents → Add an agent{R} → create a key and copy it.",
-        "Paste the key here and press Enter (or just press Enter and I'll create one).",
-        "Then I install the agent as your user, no sudo, and track the three files."])
+    t.act(
+        2,
+        "Connect a collector agent",
+        [
+            f"In the UI: {B}Agents → Add an agent{R} → create a key and copy it.",
+            "Paste the key here and press Enter (or just press Enter and I'll create one).",
+            "Then I install the agent as your user, no sudo, and track the three files.",
+        ],
+    )
     token = "" if t.auto or not sys.stdin.isatty() else input("  API key: ").strip()
     if not token.startswith("lp_"):
         token = api("/api/keys", {"name": "showcase"})["token"]
@@ -291,52 +345,101 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
     for svc in ("nginx", "shop-api", "postgres"):
         path, source, multi = FILES[svc]
         extra = ["--multiline", multi] if multi else []
-        agent("track", str((ROOT / "logs" / path).resolve()), "--service", svc, "--source", source,
-              "--start", "beginning", *extra)
-    procs.append(subprocess.Popen([agent_bin, "-c", str(conf), "run"],
-                                  stdout=(ROOT / "agent.log").open("w"), stderr=subprocess.STDOUT))
+        agent(
+            "track",
+            str((ROOT / "logs" / path).resolve()),
+            "--service",
+            svc,
+            "--source",
+            source,
+            "--start",
+            "beginning",
+            *extra,
+        )
+    procs.append(
+        subprocess.Popen(
+            [agent_bin, "-c", str(conf), "run"],
+            stdout=(ROOT / "agent.log").open("w"),
+            stderr=subprocess.STDOUT,
+        )
+    )
 
     def online() -> bool:
         agents = api("/api/agents")["agents"]
-        return any(a["hostname"] == HOST and a["online"] and len(a["status"].get("sources") or []) >= 3 for a in agents)
+        return any(
+            a["hostname"] == HOST and a["online"] and len(a["status"].get("sources") or []) >= 3
+            for a in agents
+        )
+
     t.wait(f"agent {HOST} online with 3 sources (see it appear on the Agents page)", online)
     t.pause()
 
-    t.act(3, "Draft log templates from a sample", [
-        f"In the UI: {B}Setup guide{R} → step through to {B}Sample{R} → {B}Draft templates{R}.",
-        "Each source gives its most varied recent lines (priority sampling); Drain mines templates from them.",
-        "Nothing reaches the parser yet: they become drafts for you to review."])
+    t.act(
+        3,
+        "Draft log templates from a sample",
+        [
+            f"In the UI: {B}Setup guide{R} → step through to {B}Sample{R} → {B}Draft templates{R}.",
+            "Each source gives its most varied recent lines (priority sampling); Drain mines templates from them.",
+            "Nothing reaches the parser yet: they become drafts for you to review.",
+        ],
+    )
 
     def lines() -> int:
         return sum(s["count"] for s in api("/api/setup")["sources"])
-    t.wait("a few hundred lines collected", lambda: lines() >= 300, live=lambda: f"{lines()} / 300 lines")
+
+    t.wait(
+        "a few hundred lines collected",
+        lambda: lines() >= 300,
+        live=lambda: f"{lines()} / 300 lines",
+    )
 
     def batch() -> dict | None:
         """The open first review; you may draft again in the UI, so always the current one."""
         return api("/api/setup")["review"]
 
     def drafted() -> bool:  # and no newer draft still running
-        return batch() is not None and not any(j["kind"] == "draft" and j["status"] in ("queued", "running")
-                                               for j in api("/api/jobs")["jobs"])
-    t.wait("templates drafted", drafted, lambda: api("/api/review/generate", {"sample_cap": 2000}),
-           steps=_job_steps(api, "draft"))
+        return batch() is not None and not any(
+            j["kind"] == "draft" and j["status"] in ("queued", "running")
+            for j in api("/api/jobs")["jobs"]
+        )
+
+    t.wait(
+        "templates drafted",
+        drafted,
+        lambda: api("/api/review/generate", {"sample_cap": 2000}),
+        steps=_job_steps(api, "draft"),
+    )
     t.pause()
 
     def postgres(b: dict | None) -> dict | None:
         drafts = api(f"/api/review/{b['id']}")["drafts"] if b else []
         return next((d for d in drafts if "statement:" in " ".join(d["tokens"])), None)
+
     pg = postgres(batch())
-    t.act(4, "Review the templates, then calibrate", [
-        f"In the UI: {B}Setup guide → Review{R}. Click a template to see the lines it matches.",
-        *([f"The Postgres one came out as {D}… statement: <*> <*> <*> …{R}, one slot per word. Click {B}Edit{R}",
-           f"and replace the rule with:  {B}{PG_RULE}{R}",
-           "The table under it shows what each field extracts from real lines, and lines it misses."] if pg else []),
-        f"Then {B}Approve undecided{R} and {B}Apply … and train{R}: templates go live, stored lines are",
-        "back-filled, and LogBERT trains on each service's sequence of templates."])
+    t.act(
+        4,
+        "Review the templates, then calibrate",
+        [
+            f"In the UI: {B}Setup guide → Review{R}. Click a template to see the lines it matches.",
+            *(
+                [
+                    f"The Postgres one came out as {D}… statement: <*> <*> <*> …{R}, one slot per word. Click {B}Edit{R}",
+                    f"and replace the rule with:  {B}{PG_RULE}{R}",
+                    "The table under it shows what each field extracts from real lines, and lines it misses.",
+                ]
+                if pg
+                else []
+            ),
+            f"Then {B}Approve undecided{R} and {B}Apply … and train{R}: templates go live, stored lines are",
+            "back-filled, and LogBERT trains on each service's sequence of templates.",
+        ],
+    )
 
     def review_done() -> bool:
         streams = api("/api/streams")["streams"]
-        return api("/api/settings")["calibrated"] and all(s["has_model"] or s.get("waiting") for s in streams)
+        return api("/api/settings")["calibrated"] and all(
+            s["has_model"] or s.get("waiting") for s in streams
+        )
 
     def reviewed() -> str:
         b = batch()
@@ -354,96 +457,184 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
             t.say(f"set the Postgres rule: {PG_RULE}")
         api(f"/api/review/{b['id']}/decide-all", {"status": "approved"})
         api(f"/api/review/{b['id']}/apply", {})
-    t.wait("templates applied and the model trained", review_done, do_review, live=reviewed,
-           steps=_job_steps(api, "apply", "retrain"))
+
+    t.wait(
+        "templates applied and the model trained",
+        review_done,
+        do_review,
+        live=reviewed,
+        steps=_job_steps(api, "apply", "retrain"),
+    )
     t.pause()
 
-    t.act(5, "Look around", [
-        f"{B}Log Explorer{R}: click a line; its side panel shows the template and the extracted fields",
-        "  (a Postgres line now has duration_ms and statement). Stack traces are one event, not ten lines.",
-        f"{B}Templates{R}: the Postgres template is marked 'rule'; open it to edit or link templates.",
-        f"{B}Query → Builder{R}: Show {B}Average of @duration_ms{R}, By {B}service{R}, tick {B}over time{R}, Run.",
-        f"{B}Overview / Analytics{R}: volume by level, errors by service, parsing coverage."])
+    t.act(
+        5,
+        "Look around",
+        [
+            f"{B}Log Explorer{R}: click a line; its side panel shows the template and the extracted fields",
+            "  (a Postgres line now has duration_ms and statement). Stack traces are one event, not ten lines.",
+            f"{B}Templates{R}: the Postgres template is marked 'rule'; open it to edit or link templates.",
+            f"{B}Query → Builder{R}: Show {B}Average of @duration_ms{R}, By {B}service{R}, tick {B}over time{R}, Run.",
+            f"{B}Overview / Analytics{R}: volume by level, errors by service, parsing coverage.",
+        ],
+    )
     t.pause()
 
-    t.act(6, "An incident: the payment gateway goes down", [
-        "I'll switch the shop to an outage for a minute: payments retry and time out, orders fail",
-        "with Java stack traces, nginx returns 502, Postgres runs out of connections.",
-        f"Watch {B}Anomaly alerts{R}: LogBERT flags the API's broken order of events (sequence alerts).",
-        f"{B}Maintenance{R} also lists the new error templates as 'new to a model', not as anomalies."])
+    t.act(
+        6,
+        "An incident: the payment gateway goes down",
+        [
+            "I'll switch the shop to an outage for a minute: payments retry and time out, orders fail",
+            "with Java stack traces, nginx returns 502, Postgres runs out of connections.",
+            f"Watch {B}Anomaly alerts{R}: LogBERT flags the API's broken order of events (sequence alerts).",
+            f"{B}Maintenance{R} also lists the new error templates as 'new to a model', not as anomalies.",
+        ],
+    )
     before = len(api("/api/alerts")["alerts"])
     t.pause("press Enter to start the incident")
     gen.incident(60)
-    t.wait("an anomaly alert", lambda: len(api("/api/alerts")["alerts"]) > before, timeout=180,
-           give_up=("no alert this time: the model trained on only a few minutes of logs, so its threshold "
-                    "may sit at 100% missed. Let it collect more, Retrain now on Streams, and try another "
-                    "incident."),
-           live=lambda: f"outage: {max(0, round(gen.incident_until - time.monotonic()))}s left")
+    t.wait(
+        "an anomaly alert",
+        lambda: len(api("/api/alerts")["alerts"]) > before,
+        timeout=180,
+        give_up=(
+            "no alert this time: the model trained on only a few minutes of logs, so its threshold "
+            "may sit at 100% missed. Let it collect more, Retrain now on Streams, and try another "
+            "incident."
+        ),
+        live=lambda: f"outage: {max(0, round(gen.incident_until - time.monotonic()))}s left",
+    )
     t.pause()
 
     _ask_act(t, api)
 
-    t.act(8, "A firmware update: the same events, slightly different lines", [
-        "shop-api ships v2.1. Checkout lines now carry the customer's currency (EUR, USD or GBP) instead",
-        "of always EUR, and 'payment … authorized' now reads 'payment … approved'.",
-        "The parser can't match the changed lines, so the online learner (every 30 s) mines templates for",
-        "them and checks each against the events it already knows: a changed variable is linked by itself,",
-        "a rewording only when the LLM confirms it is the same event.",
-        f"Watch {B}Templates{R}: the new ones show up under the old, marked 'linked automatically' or 'linked by LLM'."])
+    t.act(
+        8,
+        "A firmware update: the same events, slightly different lines",
+        [
+            "shop-api ships v2.1. Checkout lines now carry the customer's currency (EUR, USD or GBP) instead",
+            "of always EUR, and 'payment … authorized' now reads 'payment … approved'.",
+            "The parser can't match the changed lines, so the online learner (every 30 s) mines templates for",
+            "them and checks each against the events it already knows: a changed variable is linked by itself,",
+            "a rewording only when the LLM confirms it is the same event.",
+            f"Watch {B}Templates{R}: the new ones show up under the old, marked 'linked automatically' or 'linked by LLM'.",
+        ],
+    )
+
     def templates() -> list[dict]:
         return api("/api/templates")["templates"]
+
     known = {x["template_id"] for x in templates()}
     t.pause("press Enter to roll out v2.1")
     gen.firmware = True
 
     def new(word: str) -> dict | None:
-        return next((x for x in templates() if x["template_id"] not in known and word in x["text"]), None)
-    t.wait("the learner handled the changed lines", lambda: bool(new("approved") and new("checkout started")), timeout=300,
-           live=lambda: f"{api('/api/overview')['status'].get('PENDING', 0)} lines waiting for the learner (runs every 30 s)")
+        return next(
+            (x for x in templates() if x["template_id"] not in known and word in x["text"]), None
+        )
+
+    t.wait(
+        "the learner handled the changed lines",
+        lambda: bool(new("approved") and new("checkout started")),
+        timeout=300,
+        live=lambda: (
+            f"{api('/api/overview')['status'].get('PENDING', 0)} lines waiting for the learner (runs every 30 s)"
+        ),
+    )
     currency, reworded = new("checkout started"), new("approved")
     assert currency is not None and reworded is not None
     old = next(x for x in templates() if "authorized" in x["text"] and x["alias_of"] is None)
     if currency["alias_of"] is not None:
-        t.say(f"✓ the checkout line with a currency is linked to #{currency['alias_of']} by the pipeline: only a variable differs", G)
+        t.say(
+            f"✓ the checkout line with a currency is linked to #{currency['alias_of']} by the pipeline: only a variable differs",
+            G,
+        )
     else:
         t.say(f"the checkout line with a currency became #{currency['template_id']}, not linked", Y)
     if reworded["alias_of"] is not None:
-        t.say(f"✓ 'payment … approved' is linked to #{reworded['alias_of']}: the LLM confirmed it is the same event", G)
+        t.say(
+            f"✓ 'payment … approved' is linked to #{reworded['alias_of']}: the LLM confirmed it is the same event",
+            G,
+        )
     else:
-        t.say("'payment … approved' stays a new template: a rewording is only linked when an LLM confirms it, and "
-              "this run has none. Link it yourself: Maintenance → the template new to the shop-api model → "
-              f"Same event as… → #{old['template_id']} (payment … authorized).", Y, 2, wrap=True)
+        t.say(
+            "'payment … approved' stays a new template: a rewording is only linked when an LLM confirms it, and "
+            "this run has none. Link it yourself: Maintenance → the template new to the shop-api model → "
+            f"Same event as… → #{old['template_id']} (payment … authorized).",
+            Y,
+            2,
+            wrap=True,
+        )
 
         def link() -> None:
             try:  # also closes its "new to a model" item
-                api(f"/api/warnings/novel_template:{reworded['template_id']}/same-as", {"target": old["template_id"]})
+                api(
+                    f"/api/warnings/novel_template:{reworded['template_id']}/same-as",
+                    {"target": old["template_id"]},
+                )
             except urllib.error.HTTPError:  # no such item yet
-                api(f"/api/templates/{reworded['template_id']}/link", {"target": old["template_id"]})
-        t.wait("the reworded line linked to the event it replaces",
-               lambda: next(x for x in templates() if x["template_id"] == reworded["template_id"])["alias_of"] is not None, link)
-    t.say("Linked lines count as the old event: the shop-api model needs no retrain and raises no alert for the change.", D, 2, wrap=True)
+                api(
+                    f"/api/templates/{reworded['template_id']}/link", {"target": old["template_id"]}
+                )
+
+        t.wait(
+            "the reworded line linked to the event it replaces",
+            lambda: (
+                next(x for x in templates() if x["template_id"] == reworded["template_id"])[
+                    "alias_of"
+                ]
+                is not None
+            ),
+            link,
+        )
+    t.say(
+        "Linked lines count as the old event: the shop-api model needs no retrain and raises no alert for the change.",
+        D,
+        2,
+        wrap=True,
+    )
     t.pause()
 
-    t.act(9, "A new service appears", [
-        "The shop starts an inventory service with its own log file, and I track it on the agent.",
-        f"In {B}Maintenance{R} it first shows as 'collecting lines'; at 200 lines its templates are",
-        "drafted on their own and wait for your review there. Approve them and click Add."])
+    t.act(
+        9,
+        "A new service appears",
+        [
+            "The shop starts an inventory service with its own log file, and I track it on the agent.",
+            f"In {B}Maintenance{R} it first shows as 'collecting lines'; at 200 lines its templates are",
+            "drafted on their own and wait for your review there. Approve them and click Add.",
+        ],
+    )
     t.pause("press Enter to start the inventory service")
     gen.inventory = True
     inv_path, inv_source, _ = FILES["inventory"]
     gen.path("inventory").parent.mkdir(parents=True, exist_ok=True)
     gen.path("inventory").touch()
-    agent("track", str((ROOT / "logs" / inv_path).resolve()), "--service", "inventory", "--source", inv_source,
-          "--start", "beginning")
+    agent(
+        "track",
+        str((ROOT / "logs" / inv_path).resolve()),
+        "--service",
+        "inventory",
+        "--source",
+        inv_source,
+        "--start",
+        "beginning",
+    )
     sid = f"{HOST}|inventory|{inv_source}"
 
     def inv_batch() -> dict | None:
         return next((b for b in api("/api/maintenance")["review"] if sid in b["sources"]), None)
+
     def inv_collected() -> str:
         c = next((c for c in api("/api/maintenance")["collecting"] if c["id"] == sid), None)
         return f"inventory: {c['have']} / {c['need']} lines" if c else ""
-    t.wait("the inventory service's templates drafted for review", lambda: inv_batch() is not None, timeout=300,
-           live=inv_collected, steps=_job_steps(api, "draft"))
+
+    t.wait(
+        "the inventory service's templates drafted for review",
+        lambda: inv_batch() is not None,
+        timeout=300,
+        live=inv_collected,
+        steps=_job_steps(api, "draft"),
+    )
 
     def inv_done() -> bool:
         return any(s["id"] == sid and s["calibrated"] for s in api("/api/sources")["sources"])
@@ -453,17 +644,33 @@ def _tour(t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Po
         if b:
             api(f"/api/review/{b['id']}/decide-all", {"status": "approved"})
             api(f"/api/review/{b['id']}/apply", {})
+
     def inv_reviewed() -> str:
         b = inv_batch()
-        return f"your review: {b['approved']} approved, {b['pending']} undecided" if b else "added; retraining"
-    t.wait("inventory templates reviewed and added", inv_done, do_inv, live=inv_reviewed,
-           steps=_job_steps(api, "apply", "retrain"))
+        return (
+            f"your review: {b['approved']} approved, {b['pending']} undecided"
+            if b
+            else "added; retraining"
+        )
 
-    t.act(10, "That's the tour", [
-        "Everything keeps running: new lines, the agent, the models. Try more in the UI:",
-        "  write a rule on another template, link two templates, save a query, push a source to the",
-        "  agent from its page, or start another incident and ask Ask why it happened.",
-        f"Files: {ROOT}. Server output: {ROOT / 'server.out'}. Press {B}Ctrl+C{R} to stop everything."])
+    t.wait(
+        "inventory templates reviewed and added",
+        inv_done,
+        do_inv,
+        live=inv_reviewed,
+        steps=_job_steps(api, "apply", "retrain"),
+    )
+
+    t.act(
+        10,
+        "That's the tour",
+        [
+            "Everything keeps running: new lines, the agent, the models. Try more in the UI:",
+            "  write a rule on another template, link two templates, save a query, push a source to the",
+            "  agent from its page, or start another incident and ask Ask why it happened.",
+            f"Files: {ROOT}. Server output: {ROOT / 'server.out'}. Press {B}Ctrl+C{R} to stop everything.",
+        ],
+    )
     while True:
         time.sleep(3600)
 
@@ -474,45 +681,76 @@ ASK_QUESTION = "why did the shop break in the last 15 minutes?"
 def _ask_act(t: Tour, api: Api) -> None:
     """Group the shop's streams, then ask why the incident happened: every round of read-only
     queries waits for approval, and the answer cites the lines it rests on."""
-    t.act(7, "Ask why it broke", [
-        f"First a {B}group{R}: on {B}Streams & models{R}, the shop's three streams (nginx, shop-api, postgres)",
-        f"become one group, {B}shop{R}, so a question can name all of them at once. I'll make it now.",
-        f"Then {B}Query → Ask{R} (or press {B}g k{R}) and ask: {B}{ASK_QUESTION}{R}",
-        "Nothing runs on its own: each round lists its read-only queries (open one to see the exact SQL)",
-        f"and waits for {B}Run all{R}. It first looks for when things broke, then reads around that moment and",
-        "ranks what changed against the day before. The answer cites the lines it rests on (L3, T12);",
-        "without an LLM it shows the top of that ranking as leads instead of a diagnosis."])
+    t.act(
+        7,
+        "Ask why it broke",
+        [
+            f"First a {B}group{R}: on {B}Streams & models{R}, the shop's three streams (nginx, shop-api, postgres)",
+            f"become one group, {B}shop{R}, so a question can name all of them at once. I'll make it now.",
+            f"Then {B}Query → Ask{R} (or press {B}g k{R}) and ask: {B}{ASK_QUESTION}{R}",
+            "Nothing runs on its own: each round lists its read-only queries (open one to see the exact SQL)",
+            f"and waits for {B}Run all{R}. It first looks for when things broke, then reads around that moment and",
+            "ranks what changed against the day before. The answer cites the lines it rests on (L3, T12);",
+            "without an LLM it shows the top of that ranking as leads instead of a diagnosis.",
+        ],
+    )
     if not any(g["name"] == "shop" for g in api("/api/groups")["groups"]):
         streams = [s["id"] for s in api("/api/streams")["streams"]]
-        api("/api/groups", {"name": "shop", "description": "nginx, the Java API and Postgres", "streams": streams})
+        api(
+            "/api/groups",
+            {"name": "shop", "description": "nginx, the Java API and Postgres", "streams": streams},
+        )
         t.say("made the group 'shop' with every stream")
     before = {p["id"] for p in api("/api/ask")["plans"]}
 
     def answered() -> dict | None:
-        return next((p for p in api("/api/ask")["plans"] if p["id"] not in before and p["status"] == "done"
-                     and p["intent"] in ("rca", "summary")), None)
+        return next(
+            (
+                p
+                for p in api("/api/ask")["plans"]
+                if p["id"] not in before
+                and p["status"] == "done"
+                and p["intent"] in ("rca", "summary")
+            ),
+            None,
+        )
 
     def ask() -> None:
         plan = api("/api/ask", {"question": ASK_QUESTION})
-        t.say(f"read as: {plan['spec']['intent']}" + (f", groups {plan['spec']['groups']}" if plan["spec"].get("groups") else ""))
+        t.say(
+            f"read as: {plan['spec']['intent']}"
+            + (f", groups {plan['spec']['groups']}" if plan["spec"].get("groups") else "")
+        )
         for _ in range(300):
             plan = api(f"/api/ask/{plan['id']}")
             if plan["status"] == "waiting_approval":
                 r = plan["rounds"][-1]
-                t.say(f"round {r['n']}: {r['purpose']} ({len(r['queries'])} read-only queries), approved")
+                t.say(
+                    f"round {r['n']}: {r['purpose']} ({len(r['queries'])} read-only queries), approved"
+                )
                 api(f"/api/ask/{plan['id']}/approve", {})
             elif plan["status"] in ("done", "failed", "rejected", "expired"):
                 return
             time.sleep(1)
 
-    t.wait("an answer to a 'why' question", lambda: answered() is not None, ask, timeout=600,
-           give_up="no answer yet: open Query → Ask and approve its rounds, or ask again.")
+    t.wait(
+        "an answer to a 'why' question",
+        lambda: answered() is not None,
+        ask,
+        timeout=600,
+        give_up="no answer yet: open Query → Ask and approve its rounds, or ask again.",
+    )
     if done := answered():
         result = api(f"/api/ask/{done['id']}")["result"] or {}
         answer = result.get("answer") or {}
         anchor = result.get("anchor") or {}
         if anchor:
-            t.say(f"broke at {anchor.get('at', '')[11:19]} UTC: {anchor.get('why', '')}", G, 2, wrap=True)
+            t.say(
+                f"broke at {anchor.get('at', '')[11:19]} UTC: {anchor.get('why', '')}",
+                G,
+                2,
+                wrap=True,
+            )
         for i, h in enumerate((answer.get("hypotheses") or answer.get("leads") or [])[:3], 1):
             t.say(f"{i}. {h['cause']}  [{', '.join(h['cites'])}]", G, 4, wrap=True)
         if answer.get("insufficient_evidence"):
