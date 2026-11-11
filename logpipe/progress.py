@@ -7,9 +7,15 @@ Bars only draw on a terminal, so tests and CI logs stay clean.  Print through
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import IO
+from typing import IO, Protocol
 
 from tqdm import tqdm
+
+
+class JobProgress(Protocol):
+    """A server job's progress callback: how far along (0..1), what it's doing, and extra detail for the UI."""
+
+    def __call__(self, fraction: float, message: str, more: dict | None = None) -> None: ...
 
 
 def progress[T](

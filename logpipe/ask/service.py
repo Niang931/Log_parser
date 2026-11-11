@@ -16,6 +16,7 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 
+from ..progress import JobProgress
 from ..settings import get_settings
 from .activity import Recorder, StepStatus
 from .engine import Ctx, Outcome, Round, advance, execute, first_round
@@ -322,7 +323,7 @@ class AskService:
     def _outputs_path(self, plan_id: str) -> Path:
         return self.dir / f"{plan_id}.json"
 
-    def run(self, progress, plan_id: str, round_n: int, adapter=None) -> str:
+    def run(self, progress: JobProgress, plan_id: str, round_n: int, adapter=None) -> str:
         plan = self.get(plan_id)
         if plan["status"] != PlanStatus.APPROVED or plan["rounds"][-1]["n"] != round_n:
             raise ValueError(f"plan {plan_id} round {round_n} is not approved")
@@ -346,7 +347,13 @@ class AskService:
             raise
 
     def _run_rounds(
-        self, progress, plan: dict, spec: QuerySpec, outputs: dict, path: Path, recorder
+        self,
+        progress: JobProgress,
+        plan: dict,
+        spec: QuerySpec,
+        outputs: dict,
+        path: Path,
+        recorder: Recorder,
     ) -> str:
         rounds = 0
         while True:
