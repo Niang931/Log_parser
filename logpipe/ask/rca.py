@@ -98,11 +98,11 @@ def rca_first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
     queries = [
         log_read(
             ctx,
-            1,
-            Discover.PER_MINUTE,
-            "buckets",
-            "Lines per service per minute",
-            "to see whether a service that was logging went quiet",
+            round_no=1,
+            query_no=Discover.PER_MINUTE,
+            tool="buckets",
+            title="Lines per service per minute",
+            why="to see whether a service that was logging went quiet",
             filters=ctx.scope(spec),
             step=60,
             by="service",
@@ -110,42 +110,42 @@ def rca_first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
         ),
         log_read(
             ctx,
-            1,
-            Discover.TEMPLATES,
-            "template_counts",
-            "Templates in the range",
-            "first time each template appeared: shutdown messages, new errors",
+            round_no=1,
+            query_no=Discover.TEMPLATES,
+            tool="template_counts",
+            title="Templates in the range",
+            why="first time each template appeared: shutdown messages, new errors",
             filters=ctx.scope(spec),
             **span(start, end),
         ),
         log_read(
             ctx,
-            1,
-            Discover.BASELINE,
-            "template_counts",
-            f"Templates in the {cfg.baseline_hours:g} h before",
-            "which templates are normal, so new ones stand out",
+            round_no=1,
+            query_no=Discover.BASELINE,
+            tool="template_counts",
+            title=f"Templates in the {cfg.baseline_hours:g} h before",
+            why="which templates are normal, so new ones stand out",
             filters=ctx.scope(spec),
             **span(start - cfg.baseline, start),
         ),
         local(
-            1,
-            Discover.AGENTS,
-            "agents",
-            "Agent heartbeats",
-            "an agent that stopped reporting marks when a host went quiet",
-            "server.agents(): hostname, last_seen, online (control store)",
+            round_no=1,
+            query_no=Discover.AGENTS,
+            tool="agents",
+            title="Agent heartbeats",
+            why="an agent that stopped reporting marks when a host went quiet",
+            describe="server.agents(): hostname, last_seen, online (control store)",
         ),
     ]
     if ctx.use_logbert:
         queries.append(
             local(
-                1,
-                Discover.ALERTS,
-                "alerts",
-                "LogBERT alerts",
-                "windows the anomaly model flagged in the range",
-                "reads.alerts(500) filtered to the range (anomaly_alerts)",
+                round_no=1,
+                query_no=Discover.ALERTS,
+                tool="alerts",
+                title="LogBERT alerts",
+                why="windows the anomaly model flagged in the range",
+                describe="reads.alerts(500) filtered to the range (anomaly_alerts)",
                 **span(start, end),
             )
         )
@@ -182,21 +182,21 @@ def evidence_round(
     queries = [
         log_read(
             ctx,
-            n,
-            Around.TEMPLATES,
-            "template_counts",
-            "Templates around the anchor",
-            "what was logged, and when each kind first appeared",
+            round_no=n,
+            query_no=Around.TEMPLATES,
+            tool="template_counts",
+            title="Templates around the anchor",
+            why="what was logged, and when each kind first appeared",
             filters=f,
             **span(start, end),
         ),
         log_read(
             ctx,
-            n,
-            Around.BASELINE,
-            "buckets",
-            f"The same window, over the {cfg.baseline_hours:g} h before",
-            f"counts per template in {length // 60}-minute slices of the previous day: the baseline",
+            round_no=n,
+            query_no=Around.BASELINE,
+            tool="buckets",
+            title=f"The same window, over the {cfg.baseline_hours:g} h before",
+            why=f"counts per template in {length // 60}-minute slices of the previous day: the baseline",
             filters=f,
             step=length,
             **span(start - cfg.baseline, start),
@@ -207,11 +207,11 @@ def evidence_round(
         queries.append(
             log_read(
                 ctx,
-                n,
-                Around.ANCHOR_LINES,
-                "rows",
-                f"{anchor.service} lines just before the anchor",
-                "its last lines before the anchor"
+                round_no=n,
+                query_no=Around.ANCHOR_LINES,
+                tool="rows",
+                title=f"{anchor.service} lines just before the anchor",
+                why="its last lines before the anchor"
                 + (", which LogBERT re-reads to mark lines it did not expect" if lb else ""),
                 filters={"services": [anchor.service]},
                 limit=2000,
@@ -221,12 +221,12 @@ def evidence_round(
     if ctx.use_logbert:
         queries.append(
             local(
-                n,
-                Around.ALERTS,
-                "alerts",
-                "LogBERT alerts in the window",
-                "windows the anomaly model flagged",
-                "reads.alerts(500) filtered to the window (anomaly_alerts)",
+                round_no=n,
+                query_no=Around.ALERTS,
+                tool="alerts",
+                title="LogBERT alerts in the window",
+                why="windows the anomaly model flagged",
+                describe="reads.alerts(500) filtered to the window (anomaly_alerts)",
                 **span(start, end),
             )
         )
@@ -239,11 +239,11 @@ def evidence_round(
         queries.append(
             log_read(
                 ctx,
-                n,
-                i,
-                "rows",
-                title,
-                "with their extracted fields: which host or value the errors "
+                round_no=n,
+                query_no=i,
+                tool="rows",
+                title=title,
+                why="with their extracted fields: which host or value the errors "
                 "concentrate on, compared with the other lines",
                 filters=f | {"levels": levels},
                 limit=ctx.ask.row_cap,

@@ -6,6 +6,7 @@ approval, with the exact text that will run). Reads are compiled by the store ad
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from typing import Literal
 
 from .spec import QuerySpec, levels_at_least
 
@@ -66,12 +67,18 @@ class Filters:
         return "; ".join(parts) or "no filters"
 
 
+# reads compiled for the log store, and reads of the server's own state
+LogTool = Literal["rows", "template_counts", "buckets", "aggregate"]
+LocalTool = Literal["agents", "alerts"]
+Tool = LogTool | LocalTool
+
+
 @dataclass
 class Query:
     """One read, as shown for approval: what it is for, and the exact text that will run."""
 
     id: str
-    tool: str  # rows | template_counts | buckets | aggregate | alerts | agents | semantic
+    tool: Tool
     title: str
     why: str
     args: dict

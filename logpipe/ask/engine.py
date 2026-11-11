@@ -26,7 +26,7 @@ from .models import (
     TemplateCount,
     TemplateSeen,
 )
-from .query import Filters, Query
+from .query import Filters, LocalTool, LogTool, Query, Tool
 from .spec import QuerySpec, time_range
 
 
@@ -87,19 +87,46 @@ class Outcome:
 
 
 def _q(
-    n: int, i: int, tool: str, title: str, why: str, compiled: str, engine: str, **args
+    *,
+    round_no: int,
+    query_no: int,
+    tool: Tool,
+    title: str,
+    why: str,
+    compiled: str,
+    engine: str,
+    **args,
 ) -> Query:
     return Query(
-        id=f"r{n}q{i}", tool=tool, title=title, why=why, args=args, compiled=compiled, engine=engine
+        id=f"r{round_no}q{query_no}",
+        tool=tool,
+        title=title,
+        why=why,
+        args=args,
+        compiled=compiled,
+        engine=engine,
     )
 
 
-def local(n: int, i: int, tool: str, title: str, why: str, describe: str, **args) -> Query:
+def local(
+    *, round_no: int, query_no: int, tool: LocalTool, title: str, why: str, describe: str, **args
+) -> Query:
     """A read that touches no log data in the store (agent heartbeats, the template index)."""
-    return _q(n, i, tool, title, why, describe, "local", **args)
+    return _q(
+        round_no=round_no,
+        query_no=query_no,
+        tool=tool,
+        title=title,
+        why=why,
+        compiled=describe,
+        engine="local",
+        **args,
+    )
 
 
-def log_read(ctx: Ctx, n: int, i: int, tool: str, title: str, why: str, **args) -> Query:
+def log_read(
+    ctx: Ctx, *, round_no: int, query_no: int, tool: LogTool, title: str, why: str, **args
+) -> Query:
     start, end = (datetime.fromisoformat(args[k]) for k in ("start", "end"))
     f = Filters(**args.get("filters", {})).builder()
     c = ctx.store.compiler
@@ -131,7 +158,16 @@ def log_read(ctx: Ctx, n: int, i: int, tool: str, title: str, why: str, **args) 
         )
     else:
         raise ValueError(f"unknown read {tool}")
-    return _q(n, i, tool, title, why, compiled, c.engine, **args)
+    return _q(
+        round_no=round_no,
+        query_no=query_no,
+        tool=tool,
+        title=title,
+        why=why,
+        compiled=compiled,
+        engine=c.engine,
+        **args,
+    )
 
 
 def span(start: datetime, end: datetime) -> dict:
@@ -193,11 +229,11 @@ def first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
                 [
                     log_read(
                         ctx,
-                        1,
-                        1,
-                        "aggregate",
-                        "Count",
-                        f"{spec.aggregate.fn} per {', '.join(spec.aggregate.group_by) or 'range'}",
+                        round_no=1,
+                        query_no=1,
+                        tool="aggregate",
+                        title="Count",
+                        why=f"{spec.aggregate.fn} per {', '.join(spec.aggregate.group_by) or 'range'}",
                         spec=spec.model_dump(mode="json"),
                         **span(start, end),
                     )
@@ -222,11 +258,11 @@ def first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
     queries = [
         log_read(
             ctx,
-            1,
-            1,
-            "rows",
-            "Matching lines",
-            "the newest lines that match: " + f.describe(),
+            round_no=1,
+            query_no=1,
+            tool="rows",
+            title="Matching lines",
+            why="the newest lines that match: " + f.describe(),
             filters=asdict(f),
             limit=spec.limit,
             newest_first=True,
@@ -237,11 +273,11 @@ def first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
         queries.append(
             log_read(
                 ctx,
-                1,
-                2,
-                "template_counts",
-                "When each template occurred",
-                "first and last time per template, to say when the event happened",
+                round_no=1,
+                query_no=2,
+                tool="template_counts",
+                title="When each template occurred",
+                why="first and last time per template, to say when the event happened",
                 filters=asdict(f),
                 **span(start, end),
             )

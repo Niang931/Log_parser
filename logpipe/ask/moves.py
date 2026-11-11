@@ -159,11 +159,11 @@ def move_round(n: int, moves: list[Move], ctx: Ctx, purpose: str) -> Round:
             queries.append(
                 log_read(
                     ctx,
-                    n,
-                    i,
-                    "rows",
-                    title,
-                    why,
+                    round_no=n,
+                    query_no=i,
+                    tool="rows",
+                    title=title,
+                    why=why,
                     limit=100 if m.kind == MoveKind.TRACE else 50,
                     **args,
                 )
@@ -172,18 +172,28 @@ def move_round(n: int, moves: list[Move], ctx: Ctx, purpose: str) -> Round:
             queries.append(
                 log_read(
                     ctx,
-                    n,
-                    i,
-                    "buckets",
-                    title,
-                    why,
+                    round_no=n,
+                    query_no=i,
+                    tool="buckets",
+                    title=title,
+                    why=why,
                     step=step_for(m.start, m.end),
                     by="service",
                     **args,
                 )
             )
         else:
-            queries.append(log_read(ctx, n, i, "template_counts", title, why, **args))
+            queries.append(
+                log_read(
+                    ctx,
+                    round_no=n,
+                    query_no=i,
+                    tool="template_counts",
+                    title=title,
+                    why=why,
+                    **args,
+                )
+            )
     return Round(n, purpose, queries)
 
 
