@@ -241,15 +241,18 @@ def lookup_templates(spec: QuerySpec, ctx: Ctx) -> tuple[list[int], str]:
 def first_round(spec: QuerySpec, ctx: Ctx) -> Outcome:
     if spec.intent == "general":
         return Outcome(result=GeneralResult(answer=spec.answer or "(no answer)"))
+
     if spec.intent == "rca":
         from .rca import rca_first_round
 
         return rca_first_round(spec, ctx)
+
     start, end = time_range(spec, ctx.now)
     if spec.intent == "summary":
         from .rca import summary_round
 
         return summary_round(spec, ctx, start, end)
+
     if spec.aggregate:
         return Outcome(
             Round(

@@ -343,10 +343,13 @@ def find_anchor(
 ) -> Anchor | None:
     focus = set(spec.services)
     counts = rows_of(done, outputs, Discover.TEMPLATES, TemplateCount)
+
+    # checking for services that suddenly went quiet
     if found := silence(
         rows_of(done, outputs, Discover.PER_MINUTE, Bucket), counts, rng, focus, ctx
     ):
         return found
+
     for a in rows_of(done, outputs, Discover.AGENTS, AgentSeen):
         if a.last_seen and not a.online and rng.start <= a.last_seen <= rng.end:
             return Anchor(
@@ -355,6 +358,8 @@ def find_anchor(
                 host=a.host,
                 why=f"agent {a.host} stopped sending heartbeats at {a.last_seen:%H:%M:%S}",
             )
+
+    # checking for services that had logs notifying service went down
     shutdown = [c for c in counts if ctx.canonical(c.template_id) in ctx.shutdown]
     if shutdown:
         c = min(
@@ -371,6 +376,8 @@ def find_anchor(
             message=c.example[: ctx.rca.line_chars],
             why=f"first shutdown-type message: {ctx.templates.get(tid, '')[:80]}",
         )
+
+    # checking for services that got flagged by anamoly detector
     alerts = sorted(rows_of(done, outputs, Discover.ALERTS, Alert), key=lambda a: a.window_start)
     for a, b in pairwise(alerts):
         if a.key == b.key and b.window_start - a.window_end <= timedelta(minutes=5):
@@ -382,6 +389,8 @@ def find_anchor(
                 service=service or None,
                 why=f"LogBERT flagged {a.key} repeatedly from {a.window_start:%H:%M:%S} (miss ratio {a.miss_ratio:.2f})",
             )
+
+    # checking for services that suddenly have a new kind of error appear
     before = {
         (c.template_id, c.service) for c in rows_of(done, outputs, Discover.BASELINE, TemplateCount)
     }
@@ -416,12 +425,15 @@ def silence(
     origin = rng.start - cfg.before  # bucket 0 of the per-minute read
     total = int((rng.end - origin).total_seconds() // 60)
     per: dict[str | int | None, dict[int, int]] = defaultdict(dict)
+
     for b in buckets:
         per[b.key][b.bucket] = b.n
+
     last_words: dict[str | None, TemplateCount] = {}
     for c in counts:
         if c.service not in last_words or c.last >= last_words[c.service].last:
             last_words[c.service] = c
+
     found = []
     for service, by in per.items():
         last = max(by)

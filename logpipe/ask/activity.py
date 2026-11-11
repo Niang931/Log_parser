@@ -1,6 +1,6 @@
 """What the LLM is doing for a plan, as it happens: one entry per call (reading the question,
 writing the answer), with the adapter's own steps (opening the browser, prompt sent, answer in),
-the prompt and the reply. Stored on the plan (``plan["ai"]``) so the UI can show it while it runs.
+the prompt and the reply. Stored on the plan (``plan["llm_steps"]``) so the UI can show it while it runs.
 """
 
 from __future__ import annotations
@@ -94,6 +94,7 @@ class Recorder:
             if entry["status"] != StepStatus.RUNNING or message.startswith("answer:"):
                 return
             said = {"at": _now(), "text": message[:300]}
+            # add the new result inside and truncate to keep the latest 20s only
             entry["messages"] = [*entry["messages"], said][-20:]
             self._save()
 
@@ -119,16 +120,21 @@ class Recorder:
         # the call runs on a thread of its own so it can be abandoned; it inherits the listener
         with llm.listening(listen):
             context = contextvars.copy_context()
+
+        # context.run in order to use this context instead of initiating a new fresh context
         worker = threading.Thread(target=context.run, args=(call,), name="ask-llm", daemon=True)
         worker.start()
         worker.join(self.timeout)
+
         if worker.is_alive():
             finish(StepStatus.FAILED, f"no answer after {self.timeout:g} s: stopped waiting")
             raise LLMFailed(f"no answer after {self.timeout:g} s")
+
         if "error" in result:
             error = result["error"]
             finish(StepStatus.FAILED, f"failed: {error}"[:300])
             raise LLMFailed(str(error)[:300]) from error
+
         out = result.get("out")
         reply = None if out is None else json.dumps(out.model_dump(), indent=1)[:KEEP]
         finish(StepStatus.DONE if out is not None else StepStatus.FAILED, outcome(name, out), reply)

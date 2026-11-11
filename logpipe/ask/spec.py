@@ -67,7 +67,6 @@ class QuerySpec(BaseModel):
     end: datetime | None = None
     services: list[str] = Field(default_factory=list, max_length=20)
     hosts: list[str] = Field(default_factory=list, max_length=20)
-    # stream groups: their services, together
     groups: list[str] = Field(default_factory=list, max_length=10)
     min_level: Level | None = None
     keywords: list[str] = Field(default_factory=list, max_length=MAX_KEYWORDS)
@@ -99,7 +98,8 @@ class Catalog:
 
     services: set[str] = field(default_factory=set)
     hosts: set[str] = field(default_factory=set)
-    templates: dict[int, str] = field(default_factory=dict)  # id -> text
+    # template id -> actual template string representation
+    templates: dict[int, str] = field(default_factory=dict)
     # group name -> the services of its streams
     groups: dict[str, list[str]] = field(default_factory=dict)
 
@@ -143,12 +143,16 @@ def _pick(names: list[str], known: set[str], what: str) -> list[str]:
 def validate(raw: dict | QuerySpec, catalog: Catalog, now: datetime | None = None) -> QuerySpec:
     """A spec that is safe to plan from, or ValueError saying what's wrong."""
     now = now or datetime.now(UTC)
+
+    # model validation
     try:
         spec = raw if isinstance(raw, QuerySpec) else QuerySpec.model_validate(raw)
     except ValidationError as error:
         first = error.errors()[0]
         where = ".".join(str(p) for p in first["loc"]) or "spec"
         raise ValueError(f"invalid query spec ({where}): {first['msg']}") from None
+
+    # avoid modifying the class, deep copy only
     spec = spec.model_copy(deep=True)
     spec.services = _pick(spec.services, catalog.services, "service")
     spec.hosts = _pick(spec.hosts, catalog.hosts, "host")
@@ -157,27 +161,36 @@ def validate(raw: dict | QuerySpec, catalog: Catalog, now: datetime | None = Non
         raise ValueError(
             f"group {empty[0]!r} has no services yet: add streams that have sources to it"
         )
+
     if unknown := [t for t in spec.template_ids if t not in catalog.templates]:
         raise ValueError(f"unknown template id {unknown[0]}")
+
+    # clamping the start date to not future duration to 90 days
     if spec.start or spec.end:
-        end = min(spec.end or now, now + timedelta(minutes=1))  # nothing is logged in the future
+        end = min(spec.end or now, now + timedelta(minutes=1))
         start = spec.start or end - timedelta(minutes=DEFAULT_MINUTES)
         if start >= end:
             raise ValueError("the time range starts after it ends")
-        spec.start, spec.end = max(start, end - MAX_SPAN), end  # clamped to 90 days
+        spec.start, spec.end = max(start, end - MAX_SPAN), end
         spec.minutes = None
+
     if spec.anchor_time and spec.anchor_time > now + timedelta(minutes=1):
         raise ValueError("the anchor time is in the future")
+
     if spec.intent == "semantic" and not (
         spec.semantic_query or spec.anchor_event or spec.keywords
     ):
         raise ValueError("a semantic search needs something to search for")
+
     if spec.intent == "event" and not (spec.template_ids or spec.anchor_event or spec.keywords):
         raise ValueError("an event search needs a template, an event description or keywords")
+
     if spec.aggregate and spec.aggregate.fn != "count" and not spec.aggregate.field:
         raise ValueError(f"{spec.aggregate.fn} needs a field")
+
     if spec.intent != "general":
         spec.answer = None
+
     return spec
 
 

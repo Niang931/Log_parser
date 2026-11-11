@@ -35,7 +35,7 @@ export interface AskPlan {
   id: string; question: string; via: string; notes: string[]; spec: Record<string, unknown>; require_approval: boolean;
   status: "waiting_approval" | "approved" | "running" | "done" | "failed" | "rejected" | "expired";
   created_at: string; expires_at?: string; rounds: { n: number; purpose: string; queries: AskQuery[] }[]; result: AskResult | null;
-  ai?: AiStep[]; error?: string;
+  llm_steps?: AiStep[]; error?: string;
 }
 
 const ANCHOR: Record<string, string> = {
@@ -97,7 +97,7 @@ function fmtMinutes(m: number) {
 
 /** Where the plan is: read → approve → run → answer. */
 function Steps({ plan }: { plan: AskPlan }) {
-  const writing = plan.status === "running" && plan.ai?.at(-1)?.status === "running" && plan.ai.at(-1)?.schema === "AnswerOut";
+  const writing = plan.status === "running" && plan.llm_steps?.at(-1)?.status === "running" && plan.llm_steps.at(-1)?.schema === "AnswerOut";
   const at = writing ? 3 : { waiting_approval: 1, approved: 2, running: 2, done: 3, failed: 2, rejected: 1, expired: 1 }[plan.status];
   const broke = ["failed", "rejected", "expired"].includes(plan.status);
   const names = ["Question read", plan.require_approval ? "Your approval" : "Approval off", "Read-only queries", "Answer"];
@@ -550,7 +550,7 @@ export function PlanView({ id }: { id: string }) {
         {plan.notes.length > 0 && <p className="muted small" style={{ margin: 0 }}>{plan.notes.join(" · ")}</p>}
         {plan.rounds.length > 0 && <Steps plan={plan} />}
       </header>
-      {!!plan.ai?.length && <AiActivity steps={plan.ai} />}
+      {!!plan.llm_steps?.length && <AiActivity steps={plan.llm_steps} />}
       {plan.rounds.length > 0 && (
         <div className="ask-rounds">
           {plan.rounds.map((r, i) => <RoundView key={`${r.n}-${plan.status}`} plan={plan} round={r} waiting={i === last && plan.status === "waiting_approval"} />)}

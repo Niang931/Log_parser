@@ -54,15 +54,22 @@ class AskService:
         snap = s.registry.current
         from ..server.core import _template_text
 
+        services = {src["service"] for src in s.sources.values() if src["service"]}
+
+        host_ids = {src["host"] for src in s.sources.values()}
+        host_names = {a["hostname"] for a in s.control.all("agent")}
+        hosts = host_ids | host_names
+
+        templates = {
+            t: _template_text(e.tokens, e.keys)
+            for t, e in snap.templates.items()
+            if e.alias_of is None
+        }
+
         return Catalog(
-            services={src["service"] for src in s.sources.values() if src["service"]},
-            hosts={src["host"] for src in s.sources.values()}
-            | {a["hostname"] for a in s.control.all("agent")},
-            templates={
-                t: _template_text(e.tokens, e.keys)
-                for t, e in snap.templates.items()
-                if e.alias_of is None
-            },
+            services=services,
+            hosts=hosts,
+            templates=templates,
             groups=s.groups.services(),
         )
 
@@ -132,18 +139,18 @@ class AskService:
     ) -> dict:
         now = _now()
         cat = self.catalog()
-        ai: list[dict] = []  # what the LLM did for this plan, shown as it happens
+        llm_steps: list[dict] = []
         if spec is not None:
             routed_spec, via, notes = validate(spec, cat, now), "given", []
         else:
-            r = route(question, cat, Recorder(self.server.adapter, ai), now, tz_offset)
+            r = route(question, cat, Recorder(self.server.adapter, llm_steps), now, tz_offset)
             routed_spec, via, notes = r.spec, r.via, r.notes
         plan = {
             "id": uuid.uuid4().hex[:12],
             "question": question[:1000],
             "via": via,
             "notes": notes,
-            "ai": ai,
+            "llm_steps": llm_steps,
             "spec": routed_spec.model_dump(mode="json"),
             "require_approval": self.require_approval(require_approval),
             "created_at": now.isoformat(),
@@ -191,7 +198,7 @@ class AskService:
         self.server.control.put(KIND, plan["id"], plan)
 
     def _fail(self, plan: dict, error: str) -> dict:
-        for entry in plan.get("ai") or []:
+        for entry in plan.get("llm_steps") or []:
             if entry.get("status") == StepStatus.RUNNING:
                 entry.update(status=StepStatus.FAILED, outcome="stopped: the run ended")
         plan.update(status=PlanStatus.FAILED, error=error[:500], finished_at=_now().isoformat())
@@ -339,7 +346,7 @@ class AskService:
             self._put(plan)
             self.server.events.notify()
 
-        recorder = Recorder(adapter or self.server.adapter, plan.setdefault("ai", []), save)
+        recorder = Recorder(adapter or self.server.adapter, plan.setdefault("llm_steps", []), save)
         try:
             return self._run_rounds(progress, plan, spec, outputs, path, recorder)
         except Exception as error:  # whatever broke, the plan says so instead of spinning forever

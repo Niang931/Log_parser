@@ -115,14 +115,20 @@ def fast_path(
         "hosts": _names(q, catalog.hosts - catalog.services),
         "groups": _names(q, set(catalog.groups)),
     }
+
+    # TODO: this significantly increase the time for some queries but I feel like usin this deterministic way of andling human language might come bite me in the butt later
+    # A regex approach to extracting the time scope of the query
     if m := _LAST.search(q):
         spec["minutes"] = int(m.group(1)) * _UNITS[m.group(2).lower()]
+
     elif m := _LAST_ONE.search(q):
         spec["minutes"] = _UNITS[m.group(1).lower()]
+
     elif _TODAY.search(q):
         local = now.astimezone(_tz(tz_offset))
         spec["start"] = local.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(UTC)
         spec["end"] = now
+
     if m := _CLOCK.search(q):
         word, hh, mm, ss, ampm = m.groups()
         hour = int(hh) % 12 + (12 if (ampm or "").lower() == "pm" else 0) if ampm else int(hh)
@@ -139,24 +145,32 @@ def fast_path(
             spec["start"], spec["end"] = at - timedelta(hours=1), at
         else:
             spec["anchor_time"] = at
+
     keywords = [next(g for g in m.groups() if g) for m in _QUOTED.finditer(q)]
     keywords += [m.group(1) for m in _CONTAINING.finditer(q)]
     spec["keywords"] = keywords
+
+    # Setting the priority level based on regex
     if _ERRORS.search(q):
         spec["min_level"] = "error"
     elif _WARNS.search(q):
         spec["min_level"] = "warn"
 
+    # If tit is an RCA request then log level wouldnt matter due to the intention
     if _RCA.search(q):
         spec["intent"] = "rca"
         spec["anchor_event"] = q[:200]
-        spec.pop("min_level", None)  # "why did it fail" is not a filter on error lines
+        spec.pop("min_level", None)
         return spec
+
     if _SUMMARY.search(q):
         spec["intent"] = "summary"
         return spec
+
+    # NOTE: more dedicated jobs are performed by LLM
     if _HARD.search(q):
-        return None  # measures beyond a count: the LLM's job
+        return None
+
     # route() keeps the first 2 groupings and notes any it drops
     if _COUNT.search(q) or _PER.search(q) or _OVER_TIME.search(q):
         groups = dict.fromkeys(_GROUP_WORDS[m.group(1).lower()] for m in _PER.finditer(q))
@@ -165,6 +179,8 @@ def fast_path(
             "group_by": list(groups),
             "over_time": bool(_OVER_TIME.search(q)),
         }
+
+    # if the question involve nothing concrete to search for
     if not (
         keywords
         or spec.get("min_level")
@@ -173,7 +189,8 @@ def fast_path(
         or spec["groups"]
         or spec.get("aggregate")
     ):
-        return None  # nothing concrete to search for
+        return None
+
     return spec
 
 
@@ -244,6 +261,7 @@ Question: {question}"""
 
 
 def _from_llm(out) -> dict:
+    """Convert from LLM structured class response back to raw dictionary python object."""
     d = out.model_dump() if hasattr(out, "model_dump") else dict(out)
     spec = {
         k: d.get(k)
@@ -260,9 +278,11 @@ def _from_llm(out) -> dict:
         )
         if d.get(k) not in (None, "")
     }
+
     for k in ("services", "hosts", "groups", "keywords", "template_ids"):
         if d.get(k):
             spec[k] = d[k]
+
     if d.get("aggregate_fn"):
         spec["aggregate"] = {
             "fn": d["aggregate_fn"],
@@ -270,8 +290,10 @@ def _from_llm(out) -> dict:
             "group_by": d.get("group_by") or [],
             "over_time": bool(d.get("over_time")),
         }
+
     if spec.get("min_level") == "warning":
         spec["min_level"] = "warn"
+
     return spec
 
 
@@ -283,10 +305,14 @@ def route(
     tz_offset: int | None = None,
 ) -> Routed:
     question = question.strip()
+    """The routing call that ask what information to be retrieved based on question (provided with both regex quick path and LLM answer."""
+
     if not question:
         raise ValueError("ask a question, e.g. 'why did checkout fail in the last hour?'")
+
     if len(question) > 1000:
         raise ValueError("questions are at most 1000 characters")
+
     now = now or datetime.now(UTC)
     notes: list[str] = []
     fast = fast_path(question, catalog, now, tz_offset)
@@ -299,26 +325,33 @@ def route(
             del group_by[2:]
         try:
             return Routed(validate(fast, catalog, now), "fast", notes)
-        except ValueError as error:  # e.g. a word that looked like a host; let the model read it
+        except ValueError as error:
             notes.append(f"fast path gave up: {error}")
+
+    # checking if the LLM provider is actually available
     if not getattr(adapter, "can_ask", False):
         raise NeedsLLM(
             "this question needs an LLM (start the server with --llm llm:<provider>); "
             'without one, ask with a time range, a level, a service name or "quoted words"'
         )
+
     tz = f"{'+' if (tz_offset or 0) >= 0 else '-'}{abs(tz_offset or 0) // 60:02d}:{abs(tz_offset or 0) % 60:02d}"
     prompt = ROUTE_PROMPT.format(
         now=now.isoformat(timespec="seconds"), tz=tz, catalog=catalog.describe(), question=question
     )
+
+    # only after fast path fail will we invoke the LLM
     try:
         out = adapter.ask(RouteOut, prompt)
-    except LLMFailed as error:  # down, signed out, timed out: say so instead of a server error
+    except LLMFailed as error:
         raise ValueError(
             f"the LLM couldn't read the question ({error}). Try again, or ask with a time range, "
             'a level, a service name or "quoted words", which need no LLM'
         ) from None
+
     if out is None:
         raise ValueError("the LLM gave no usable answer; try rephrasing")
+
     raw = _from_llm(out)
     try:
         return Routed(validate(raw, catalog, now), "llm", notes)

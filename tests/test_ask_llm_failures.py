@@ -60,7 +60,7 @@ def test_a_failing_llm_ends_the_run_with_the_ranking_and_says_why(ready):  # noq
     answer = done["result"]["answer"]
     assert done["status"] == "done" and answer["by"] == "rules"
     assert "signed out" in answer["llm_error"] and "not a diagnosis" in answer["note"]
-    step = done["ai"][-1]
+    step = done["llm_steps"][-1]
     assert step["status"] == "failed" and "signed out" in step["outcome"]
 
 
@@ -76,7 +76,10 @@ def test_a_hanging_llm_is_cut_off_at_the_deadline(ready, monkeypatch):  # noqa: 
         release.set()
     assert done["status"] == "done"
     assert "no answer after 0.5 s" in done["result"]["answer"]["llm_error"]
-    assert done["ai"][-1]["status"] == "failed" and done["ai"][-1]["timeout_seconds"] == 0.5
+    assert (
+        done["llm_steps"][-1]["status"] == "failed"
+        and done["llm_steps"][-1]["timeout_seconds"] == 0.5
+    )
 
 
 def test_a_failing_llm_on_the_question_is_a_clear_error_not_a_crash(ready):  # noqa: F811

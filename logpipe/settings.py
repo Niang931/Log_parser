@@ -155,9 +155,8 @@ class RcaSettings(BaseSettings):
     warn_weight: float = 0.5
     other_weight: float = 0.1
     shutdown_weight: float = 0.9
-    related_weight: float = (
-        0.5  # a LogBERT neighbour of the anchor, or a template matching the question
-    )
+    # a LogBERT neighbour of the anchor, or a template matching the question
+    related_weight: float = 0.5
     proximity_seconds: float = 600  # proximity = exp(-|first seen - anchor| / this)
     precursor_seconds: float = 120
     strong: float = 0.15  # a candidate that stands out: a new warning near the anchor scores 0.5
