@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from logpipe.ask.router import fast_path, route, route_schema
+from logpipe.ask.router import RouteOut, fast_path, route
 from logpipe.ask.spec import Catalog, QuerySpec, time_range, validate
 from logpipe.enrich.llm import NeedsLLM, OfflineAdapter
 
@@ -143,7 +143,7 @@ def test_llm_route_is_validated_and_fails_closed():
         ({"intent": "keyword", "services": ["payments"]}, "unknown service"),  # invented name
         ({"intent": "drop table"}, "intent"),
         ({"intent": "event", "template_ids": [999]}, "unknown template"),
-        ({"intent": "keyword", "aggregate_fn": "evil"}, "unknown measure"),
+        ({"intent": "keyword", "aggregate_fn": "evil"}, "aggregate_fn"),  # refused by the schema
         ({"intent": "keyword", "group_by": ["host; DROP"], "aggregate_fn": "count"}, "group by"),
         ({"intent": "semantic"}, "needs something"),
         ({"intent": "keyword", "minutes": 10**9}, "minutes"),
@@ -192,5 +192,5 @@ def test_time_range():
 
 
 def test_route_schema_is_flat_for_every_provider():
-    fields = route_schema().model_fields
+    fields = RouteOut.model_fields
     assert {"intent", "aggregate_fn", "answer"} <= set(fields)

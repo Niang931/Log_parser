@@ -12,44 +12,43 @@ from __future__ import annotations
 
 import re
 from datetime import UTC
-from functools import lru_cache
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 from .engine import Ctx
 from .models import Answer, Dropped, Hypothesis, Report, TimelineEvent, template_ref
-from .moves import Move, check_moves, move_schema
+from .moves import Move, MoveRequest, check_moves
 from .spec import QuerySpec
 
 
-@lru_cache(maxsize=1)
-def synth_schema():
+class Event(BaseModel):
+    at: str = Field(description="time, copied from the cited line (UTC, ending in Z)")
+    what: str
+    cites: list[str] = Field(description="refs like L3, T12, H1 or S2")
+
+
+class Cause(BaseModel):
+    cause: str
+    confidence: Literal["high", "medium", "low"]
+    reasoning: str
+    cites: list[str] = Field(description="refs like L3, T12, H1 or S2 that show it")
+
+
+class AnswerOut(BaseModel):
     """What the LLM must answer with (structured output)."""
-    from pydantic import BaseModel, Field
 
-    class Event(BaseModel):
-        at: str = Field(description="time, copied from the cited line (UTC, ending in Z)")
-        what: str
-        cites: list[str] = Field(description="refs like L3, T12, H1 or S2")
-
-    class Cause(BaseModel):
-        cause: str
-        confidence: str = Field(description="high | medium | low")
-        reasoning: str
-        cites: list[str] = Field(description="refs like L3, T12, H1 or S2 that show it")
-
-    class AnswerOut(BaseModel):
-        summary: str
-        timeline: list[Event] = Field(default_factory=list)
-        hypotheses: list[Cause] = Field(
-            default_factory=list, description="most likely first, at most 4"
-        )
-        insufficient_evidence: bool = False
-        missing: str = Field("", description="what would settle it, if the evidence is thin")
-        next_steps: list[str] = Field(default_factory=list)
-        follow_up: list[move_schema()] = Field(
-            default_factory=list, description="at most 3 more reads, only if needed"
-        )  # type: ignore[valid-type]
-
-    return AnswerOut
+    summary: str
+    timeline: list[Event] = Field(default_factory=list)
+    hypotheses: list[Cause] = Field(
+        default_factory=list, description="most likely first, at most 4"
+    )
+    insufficient_evidence: bool = False
+    missing: str = Field("", description="what would settle it, if the evidence is thin")
+    next_steps: list[str] = Field(default_factory=list)
+    follow_up: list[MoveRequest] = Field(
+        default_factory=list, description="at most 3 more reads, only if needed"
+    )
 
 
 PROMPT = """You are helping an on-call engineer find the root cause. You get an evidence bundle chosen
@@ -283,7 +282,7 @@ def synthesize(spec: QuerySpec, report: Report, ctx: Ctx) -> tuple[Answer, list[
         hints=hints_text(report),
         series=series_text(report),
     )
-    out = ctx.adapter.ask(synth_schema(), prompt)
+    out = ctx.adapter.ask(AnswerOut, prompt)
     if out is None:
         return offline_answer(report, ctx).model_copy(
             update={"note": "The LLM gave no usable answer; showing the ranked evidence."}
@@ -291,4 +290,4 @@ def synthesize(spec: QuerySpec, report: Report, ctx: Ctx) -> tuple[Answer, list[
     raw = out.model_dump()
     answer = check_citations(raw, report)
     answer.leads = leads(report, ctx)
-    return answer, check_moves(raw.get("follow_up") or [], report, ctx)
+    return answer, check_moves(out.follow_up, report, ctx)

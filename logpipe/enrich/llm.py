@@ -15,7 +15,8 @@ can carry prompt injection, so callers validate the output (see
 from __future__ import annotations
 
 import atexit
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import lru_cache
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
@@ -38,6 +39,23 @@ if TYPE_CHECKING:
 LISTEN: ContextVar[Callable[[str, dict | None], None] | None] = ContextVar(
     "llm_listen", default=None
 )
+
+
+@contextmanager
+def listening(listen: Callable[[str, dict | None], None]) -> Iterator[None]:
+    """Hear every chat step while inside; whoever was already listening still hears them too."""
+    outer = LISTEN.get()
+
+    def both(message: str, record: dict | None) -> None:
+        listen(message, record)
+        if outer is not None:
+            outer(message, record)
+
+    token = LISTEN.set(both)
+    try:
+        yield
+    finally:
+        LISTEN.reset(token)
 
 
 def _step(message: str, record: dict | None = None) -> None:
@@ -274,9 +292,8 @@ def get_adapter(backend: str, *, browser: Browser | None = None) -> LLMAdapter:
     """
     if backend.startswith("llm:"):
         _, provider, *model = backend.split(":", 2)
-        return ChatAdapter(
-            provider, model[0] if model else None, browser=browser or get_settings().llm.web_browser
-        )  # type: ignore[arg-type]
+        chosen = browser or get_settings().llm.web_browser
+        return ChatAdapter(provider, model[0] if model else None, browser=chosen)  # type: ignore[arg-type]
     adapters = {"offline": OfflineAdapter, "hf": HFDeepSeekAdapter}
     if backend not in adapters:
         raise ValueError(

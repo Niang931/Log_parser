@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
+from pydantic import ValidationError
+
 from logpipe.ask.engine import Ctx, Round
 from logpipe.ask.hints import value_hints
 from logpipe.ask.models import Anchor, Evidence, LogLine, Report
-from logpipe.ask.moves import absorb, check_moves, move_round
+from logpipe.ask.moves import MoveKind, MoveRequest, absorb, check_moves, move_round
 from logpipe.ask.synth import check_citations, leads
 from logpipe.server.stores.memory import MemoryReads
 from logpipe.settings import get_settings
@@ -80,9 +83,8 @@ REPORT = Report(
 
 
 def ctx(store=None) -> Ctx:
-    return Ctx(
-        store=store, templates={}, services={"api", "db", "dns"}, now=AT + timedelta(minutes=10)
-    )  # type: ignore[arg-type]
+    services = {"api", "db", "dns"}
+    return Ctx(store=store, templates={}, services=services, now=AT + timedelta(minutes=10))  # type: ignore[arg-type]
 
 
 def test_moves_are_checked_before_they_become_reads():
@@ -91,33 +93,39 @@ def test_moves_are_checked_before_they_become_reads():
         {"kind": "trace", "value": "req-0000"},  # not in the bundle: a guess
         {"kind": "rate", "services": ["db", "invented"], "minutes_before": 10_000},
         {"kind": "lines"},  # nothing to search for
-        {"kind": "drop table"},
         {"kind": "neighbours"},
         {"kind": "lines", "keywords": ["x"]},
     ]
-    moves = check_moves(raw, REPORT, ctx())
+    moves = check_moves([MoveRequest.model_validate(m) for m in raw], REPORT, ctx())
     assert [m.kind for m in moves] == ["trace", "rate", "neighbours"]  # capped at moves_per_round
     trace, rate, near = moves
-    assert trace.filters.keywords == ["req-8f3a"] and trace.filters.services == []  # every service
+    # a trace reads every service
+    assert (
+        trace.kind is MoveKind.TRACE
+        and trace.filters.keywords == ["req-8f3a"]
+        and trace.filters.services == []
+    )
     assert rate.filters.services == ["db"] and AT - rate.start == timedelta(
         hours=CFG.move_max_hours
     )
     assert near.filters.levels == ["error", "warn"] and near.end == AT + timedelta(minutes=2)
 
 
+def test_a_kind_that_is_not_a_move_is_refused_when_the_answer_is_read():
+    with pytest.raises(ValidationError):
+        MoveRequest.model_validate({"kind": "drop table"})
+
+
 def test_follow_up_reads_compile_and_come_back_as_lines_and_rates():
     store = MemoryStore()
     reads = MemoryReads(store)
     c = ctx(reads)
-    moves = check_moves(
-        [
-            {"kind": "trace", "value": "req-8f3a", "why": "follow the request"},
-            {"kind": "rate", "services": ["db"], "minutes_before": 30, "minutes_after": 1},
-            {"kind": "neighbours"},
-        ],
-        REPORT,
-        c,
-    )
+    requests = [
+        MoveRequest(kind=MoveKind.TRACE, value="req-8f3a", why="follow the request"),
+        MoveRequest(kind=MoveKind.RATE, services=["db"], minutes_before=30, minutes_after=1),
+        MoveRequest(kind=MoveKind.NEIGHBOURS),
+    ]
+    moves = check_moves(requests, REPORT, c)
     r = move_round(3, moves, c, "follow-up 1 of 4")
     trace, rate, near = r.queries
     assert (

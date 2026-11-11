@@ -8,7 +8,7 @@ from logpipe.ask.engine import Ctx
 from logpipe.ask.index import TemplateIndex, auto_shutdown
 from logpipe.ask.models import Anchor, Candidate, Evidence, Report
 from logpipe.ask.spec import QuerySpec
-from logpipe.ask.synth import check_citations, offline_answer, synth_schema, synthesize
+from logpipe.ask.synth import AnswerOut, check_citations, offline_answer, synthesize
 
 AT = datetime(2026, 11, 8, 10, 5, tzinfo=UTC)
 
@@ -150,7 +150,7 @@ def test_offline_answer_is_the_ranking_not_a_diagnosis():
 
 def test_schema_has_what_the_prompt_asks_for():
     assert {"summary", "timeline", "hypotheses", "insufficient_evidence", "follow_up"} <= set(
-        synth_schema().model_fields
+        AnswerOut.model_fields
     )
 
 
@@ -195,7 +195,6 @@ def test_unparsed_lines_are_cited_by_line_not_by_their_shared_template():
         summary="s",
         hypotheses=[{"cause": "x", "confidence": "low", "reasoning": "", "cites": ["T1"]}],
     )
-    answer, _ = synthesize(
-        QuerySpec(intent="rca"), unparsed, Ctx(store=None, templates={}, adapter=llm)
-    )  # type: ignore[arg-type]
+    plain = Ctx(store=None, templates={}, adapter=llm)  # type: ignore[arg-type]
+    answer, _ = synthesize(QuerySpec(intent="rca"), unparsed, plain)
     assert answer.insufficient_evidence and "unparsed: FATAL" in llm.prompts[0]

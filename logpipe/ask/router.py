@@ -7,10 +7,11 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
-from functools import lru_cache
+
+from pydantic import BaseModel, Field
 
 from ..enrich.llm import NeedsLLM
-from .spec import AGG_FNS, Catalog, QuerySpec, validate
+from .spec import AGG_FNS, Catalog, Intent, Level, Measure, QuerySpec, validate
 
 
 @dataclass
@@ -157,48 +158,36 @@ def fast_path(
     return spec
 
 
-@lru_cache(maxsize=1)
-def route_schema():
-    from pydantic import BaseModel, Field
+class RouteOut(BaseModel):
+    """The question as a log query. Leave a field empty when the question doesn't say."""
 
-    class RouteOut(BaseModel):
-        """The question as a log query. Leave a field empty when the question doesn't say."""
-
-        intent: str = Field(description="general | keyword | event | semantic | rca | summary")
-        minutes: int | None = Field(None, description="relative range: the last N minutes")
-        start: str | None = Field(None, description="absolute range start, ISO 8601 UTC")
-        end: str | None = Field(None, description="absolute range end, ISO 8601 UTC")
-        services: list[str] = Field(default_factory=list)
-        hosts: list[str] = Field(default_factory=list)
-        groups: list[str] = Field(
-            default_factory=list,
-            description="groups named in the question (each covers several services)",
-        )
-        min_level: str | None = Field(None, description="debug | info | warn | error")
-        keywords: list[str] = Field(
-            default_factory=list, description="literal words the lines must contain"
-        )
-        template_ids: list[int] = Field(default_factory=list)
-        anchor_event: str | None = Field(
-            None, description="rca/event: the event in the user's words"
-        )
-        anchor_time: str | None = Field(
-            None, description="rca: when the user says it happened, ISO 8601 UTC"
-        )
-        semantic_query: str | None = Field(
-            None, description="semantic: what kind of line to look for"
-        )
-        aggregate_fn: str | None = Field(
-            None, description="count | count_distinct | avg | min | max | sum | p95"
-        )
-        aggregate_field: str | None = None
-        group_by: list[str] = Field(default_factory=list)
-        over_time: bool = False
-        answer: str | None = Field(
-            None, description="general only: a short answer from general knowledge"
-        )
-
-    return RouteOut
+    intent: Intent
+    minutes: int | None = Field(None, description="relative range: the last N minutes")
+    start: str | None = Field(None, description="absolute range start, ISO 8601 UTC")
+    end: str | None = Field(None, description="absolute range end, ISO 8601 UTC")
+    services: list[str] = Field(default_factory=list)
+    hosts: list[str] = Field(default_factory=list)
+    groups: list[str] = Field(
+        default_factory=list,
+        description="groups named in the question (each covers several services)",
+    )
+    min_level: Level | None = None
+    keywords: list[str] = Field(
+        default_factory=list, description="literal words the lines must contain"
+    )
+    template_ids: list[int] = Field(default_factory=list)
+    anchor_event: str | None = Field(None, description="rca/event: the event in the user's words")
+    anchor_time: str | None = Field(
+        None, description="rca: when the user says it happened, ISO 8601 UTC"
+    )
+    semantic_query: str | None = Field(None, description="semantic: what kind of line to look for")
+    aggregate_fn: Measure | None = None
+    aggregate_field: str | None = None
+    group_by: list[str] = Field(default_factory=list)
+    over_time: bool = False
+    answer: str | None = Field(
+        None, description="general only: a short answer from general knowledge"
+    )
 
 
 ROUTE_PROMPT = """You turn an on-call engineer's question into a query over their log store.
@@ -294,7 +283,7 @@ def route(
         )
     tz = f"{'+' if (tz_offset or 0) >= 0 else '-'}{abs(tz_offset or 0) // 60:02d}:{abs(tz_offset or 0) % 60:02d}"
     out = adapter.ask(
-        route_schema(),
+        RouteOut,
         ROUTE_PROMPT.format(
             now=now.isoformat(timespec="seconds"),
             tz=tz,

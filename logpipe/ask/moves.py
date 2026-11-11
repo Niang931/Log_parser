@@ -18,61 +18,70 @@ from __future__ import annotations
 import math
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from functools import lru_cache
-from typing import Literal
+from enum import StrEnum
+
+from pydantic import BaseModel, Field
 
 from .engine import Ctx, Round, log_read, span
 from .models import Bucket, LogLine, Report, Series, TemplateCount
 from .query import Filters, Query
 
-KINDS = ("lines", "trace", "rate", "neighbours")
-# None: the wide RCA window
-DEFAULT_WINDOW = {"lines": None, "trace": None, "rate": None, "neighbours": (5, 2)}
+
+class MoveKind(StrEnum):
+    LINES = "lines"
+    TRACE = "trace"
+    RATE = "rate"
+    NEIGHBOURS = "neighbours"
 
 
-@lru_cache(maxsize=1)
-def move_schema():
-    """One follow-up, as the LLM fills it in (part of the answer's structured output)."""
-    from pydantic import BaseModel, Field
+class MoveRequest(BaseModel):
+    """One follow-up read, as the LLM asks for it (part of the answer's structured output)."""
 
-    class Move(BaseModel):
-        kind: Literal["lines", "trace", "rate", "neighbours"] = Field(
-            description=(
-                "lines: keyword search in some services; trace: every line in any service carrying an id; "
-                "rate: error/warn lines per service over time; neighbours: errors in any service around the anchor"
-            )
+    kind: MoveKind = Field(
+        description=(
+            "lines: keyword search in some services; trace: every line in any service carrying "
+            "an id; rate: error/warn lines per service over time; neighbours: errors in any "
+            "service around the anchor"
         )
-        why: str = Field("", description="what this read would settle")
-        keywords: list[str] = Field(
-            default_factory=list, description="lines/rate: words the lines contain"
-        )
-        services: list[str] = Field(
-            default_factory=list,
-            description="lines/rate: services to read (from the bundle or the groups)",
-        )
-        value: str = Field(
-            "",
-            description="trace: an id copied exactly from a line (request id, trace id, order id)",
-        )
-        minutes_before: int = Field(
-            0, description="start this many minutes before the anchor (0: the default window)"
-        )
-        minutes_after: int = Field(
-            0, description="end this many minutes after the anchor (0: the default window)"
-        )
-        all_lines: bool = Field(
-            False,
-            description="rate: count every line, not only errors and warnings (to see a service go quiet)",
-        )
+    )
+    why: str = Field("", description="what this read would settle")
+    keywords: list[str] = Field(
+        default_factory=list, description="lines/rate: words the lines contain"
+    )
+    services: list[str] = Field(
+        default_factory=list,
+        description="lines/rate: services to read (from the bundle or the groups)",
+    )
+    value: str = Field(
+        "",
+        description="trace: an id copied exactly from a line (request id, trace id, order id)",
+    )
+    minutes_before: int = Field(
+        0, description="start this many minutes before the anchor (0: the default window)"
+    )
+    minutes_after: int = Field(
+        0, description="end this many minutes after the anchor (0: the default window)"
+    )
+    all_lines: bool = Field(
+        False,
+        description="rate: count every line, not only errors and warnings (to see a service go quiet)",
+    )
 
-    return Move
+
+# minutes before/after the anchor when the LLM leaves the window at 0; None: the wide RCA window
+DEFAULT_WINDOW: dict[MoveKind, tuple[float, float] | None] = {
+    MoveKind.LINES: None,
+    MoveKind.TRACE: None,
+    MoveKind.RATE: None,
+    MoveKind.NEIGHBOURS: (5, 2),
+}
 
 
 @dataclass
 class Move:
-    """A checked move, ready to compile."""
+    """A request that passed the checks, ready to compile into a read."""
 
-    kind: str
+    kind: MoveKind
     filters: Filters
     start: datetime
     end: datetime
@@ -83,66 +92,56 @@ class Move:
 
     def describe(self) -> str:
         what = {
-            "lines": self.filters.describe(),
-            "trace": f"every line carrying {self.value!r}",
-            "rate": f"{'all' if self.all_lines else 'error/warn'} lines per minute of {', '.join(self.services)}",
-            "neighbours": "errors in any service around the anchor",
+            MoveKind.LINES: self.filters.describe(),
+            MoveKind.TRACE: f"every line carrying {self.value!r}",
+            MoveKind.RATE: f"{'all' if self.all_lines else 'error/warn'} lines per minute of "
+            + ", ".join(self.services),
+            MoveKind.NEIGHBOURS: "errors in any service around the anchor",
         }[self.kind]
         return f"{what}, {self.start:%H:%M}-{self.end:%H:%M} UTC"
 
 
-def check_moves(raw: list[dict], report: Report, ctx: Ctx) -> list[Move]:
-    """The moves that hold up, deduplicated and capped; the rest are dropped without a word (they
-    were never going to run)."""
+def check_moves(requests: list[MoveRequest], report: Report, ctx: Ctx) -> list[Move]:
+    """The requests that hold up, as moves, deduplicated and capped; the rest are dropped without
+    a word (they were never going to run)."""
     known = ctx.services or {e.service for e in report.evidence if e.service}
     text = "\n".join(e.message for e in report.evidence)
     cfg, out, seen = ctx.rca, [], set()
-    for m in raw:
-        kind = m.get("kind")
-        if kind not in KINDS:
+    longest = cfg.move_max_hours * 60
+    for r in requests:
+        services = [s for s in r.services if s in known][:5]
+        keywords = [k.strip()[:100] for k in r.keywords if k.strip()][:3]
+        value = r.value.strip()
+        # an id must come from the bundle: the LLM follows evidence, it doesn't guess
+        if r.kind == MoveKind.TRACE and not (
+            4 <= len(value) <= 100 and " " not in value and value in text
+        ):
             continue
-        services = [s for s in m.get("services") or [] if s in known][:5]
-        keywords = [k.strip()[:100] for k in m.get("keywords") or [] if k.strip()][:3]
-        value = str(m.get("value") or "").strip()
-        if kind == "trace" and not (4 <= len(value) <= 100 and " " not in value and value in text):
-            continue  # an id must come from the bundle: the LLM follows evidence, it doesn't guess
-        if kind == "lines" and not (keywords or services):
+        if r.kind == MoveKind.LINES and not (keywords or services):
             continue
-        if kind == "rate" and not services:
+        if r.kind == MoveKind.RATE and not services:
             continue
-        default = DEFAULT_WINDOW[kind] or (cfg.wide_before_minutes, cfg.wide_after_minutes)
-        before = min(
-            max(int(m.get("minutes_before") or 0), 0) or default[0], cfg.move_max_hours * 60
-        )
-        after = min(max(int(m.get("minutes_after") or 0), 0) or default[1], cfg.move_max_hours * 60)
+        default = DEFAULT_WINDOW[r.kind] or (cfg.wide_before_minutes, cfg.wide_after_minutes)
+        before = min(max(r.minutes_before, 0) or default[0], longest)
+        after = min(max(r.minutes_after, 0) or default[1], longest)
         at = report.anchor.at
         start, end = at - timedelta(minutes=before), min(at + timedelta(minutes=after), ctx.now)
         if start >= end:
             continue
         filters = {
-            "trace": Filters(keywords=[value]),
-            "neighbours": Filters(levels=["error", "warn"]),
-            "rate": Filters(
+            MoveKind.TRACE: Filters(keywords=[value]),
+            MoveKind.NEIGHBOURS: Filters(levels=["error", "warn"]),
+            MoveKind.RATE: Filters(
                 services=services,
                 keywords=keywords,
-                levels=[] if m.get("all_lines") else ["error", "warn"],
+                levels=[] if r.all_lines else ["error", "warn"],
             ),
-            "lines": Filters(services=services, keywords=keywords),
-        }[kind]
-        move = Move(
-            kind,
-            filters,
-            start,
-            end,
-            str(m.get("why") or "")[:200],
-            value,
-            bool(m.get("all_lines")),
-            services,
-        )
-        key = (kind, repr(filters), start, end)
+            MoveKind.LINES: Filters(services=services, keywords=keywords),
+        }[r.kind]
+        key = (r.kind, repr(filters), start, end)
         if key not in seen:
             seen.add(key)
-            out.append(move)
+            out.append(Move(r.kind, filters, start, end, r.why[:200], value, r.all_lines, services))
     return out[: cfg.moves_per_round]
 
 
@@ -156,13 +155,20 @@ def move_round(n: int, moves: list[Move], ctx: Ctx, purpose: str) -> Round:
     for i, m in enumerate(moves, 1):
         args = {"filters": asdict(m.filters), "move": m.kind, **span(m.start, m.end)}
         title, why = f"Follow-up ({m.kind}): {m.describe()}", m.why or "the model asked for this"
-        if m.kind in ("lines", "trace"):
+        if m.kind in (MoveKind.LINES, MoveKind.TRACE):
             queries.append(
                 log_read(
-                    ctx, n, i, "rows", title, why, limit=100 if m.kind == "trace" else 50, **args
+                    ctx,
+                    n,
+                    i,
+                    "rows",
+                    title,
+                    why,
+                    limit=100 if m.kind == MoveKind.TRACE else 50,
+                    **args,
                 )
             )
-        elif m.kind == "rate":
+        elif m.kind == MoveKind.RATE:
             queries.append(
                 log_read(
                     ctx,
@@ -201,7 +207,7 @@ def absorb(report: Report, done: Round, outputs: dict[str, list[dict]], ctx: Ctx
     for q in done.queries:
         if q.id not in outputs:
             continue
-        rows, kind = outputs[q.id], q.args.get("move", "lines")
+        rows, kind = outputs[q.id], MoveKind(q.args.get("move", MoveKind.LINES))
         why = f"follow-up {kind}: {q.why}"
         if q.tool == "rows":
             report.evidence = add_lines(

@@ -207,14 +207,8 @@ class _Traced:
                 prompts.append(record)
             self._report(f"  {message}")
 
-        outer = llm.LISTEN.get()  # someone else listening too (Ask's activity log): tell both
-        token = llm.LISTEN.set(
-            listen if outer is None else lambda m, r: (listen(m, r), outer(m, r))
-        )
-        try:
+        with llm.listening(listen):
             out = fn(*args)
-        finally:
-            llm.LISTEN.reset(token)
         entry["output"] = _brief(out)
         self._report(answered(out))
         return out

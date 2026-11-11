@@ -430,10 +430,11 @@ def silence(
         rate = sum(before) / len(before) if before else 0
         if quiet < cfg.silence_minutes or rate < cfg.silence_min_rate:
             continue
+        service = None if service is None else str(service)  # the buckets were by service
         words = last_words.get(service)
-        loud = bool(words) and (
+        loud = words is not None and (
             words.level in ("error", "warn") or ctx.canonical(words.template_id) in ctx.shutdown
-        )  # type: ignore[union-attr]
+        )
         found.append(
             Anchor(
                 kind="silence",

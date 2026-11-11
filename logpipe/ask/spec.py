@@ -22,11 +22,16 @@ AGG_FNS = ("count", "count_distinct", "avg", "min", "max", "sum", "p95")
 GROUP_FIELDS = ("host", "service", "source", "level", "status", "template_id")
 
 
+Intent = Literal["general", "keyword", "event", "semantic", "rca", "summary"]
+Level = Literal["debug", "info", "warn", "error"]
+Measure = Literal["count", "count_distinct", "avg", "min", "max", "sum", "p95"]
+
+
 class Aggregate(BaseModel):
     """A number instead of lines: ``fn`` of ``field`` per ``group_by`` (and per time bucket)."""
 
     model_config = ConfigDict(extra="forbid")
-    fn: Literal["count", "count_distinct", "avg", "min", "max", "sum", "p95"] = "count"
+    fn: Measure = "count"
     field: str | None = None
     group_by: list[str] = Field(default_factory=list, max_length=2)
     over_time: bool = False
@@ -56,7 +61,7 @@ class Aggregate(BaseModel):
 
 class QuerySpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    intent: Literal["general", "keyword", "event", "semantic", "rca", "summary"]
+    intent: Intent
     minutes: int | None = Field(None, ge=1, le=60 * 24 * 90)  # relative: the last N minutes
     start: datetime | None = None  # absolute range; wins over minutes
     end: datetime | None = None
@@ -64,7 +69,7 @@ class QuerySpec(BaseModel):
     hosts: list[str] = Field(default_factory=list, max_length=20)
     # stream groups: their services, together
     groups: list[str] = Field(default_factory=list, max_length=10)
-    min_level: Literal["debug", "info", "warn", "error"] | None = None
+    min_level: Level | None = None
     keywords: list[str] = Field(default_factory=list, max_length=MAX_KEYWORDS)
     template_ids: list[int] = Field(default_factory=list, max_length=50)
     anchor_event: str | None = Field(None, max_length=200)  # "the server went down"

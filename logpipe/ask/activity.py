@@ -63,17 +63,13 @@ class Recorder:
 
         def listen(message: str, record: dict | None) -> None:
             if not message.startswith("answer:"):  # the reply itself is kept whole below
-                entry["messages"] = [*entry["messages"], {"at": _now(), "text": message[:300]}][
-                    -20:
-                ]
+                said = {"at": _now(), "text": message[:300]}
+                entry["messages"] = [*entry["messages"], said][-20:]
                 self._save()
 
-        outer = llm.LISTEN.get()
-        token = llm.LISTEN.set(
-            listen if outer is None else lambda m, r: (listen(m, r), outer(m, r))
-        )
         try:
-            out = self._inner.ask(schema, prompt)
+            with llm.listening(listen):
+                out = self._inner.ask(schema, prompt)
         except Exception as error:
             entry.update(
                 status="failed",
@@ -83,8 +79,6 @@ class Recorder:
             )
             self._save()
             raise
-        finally:
-            llm.LISTEN.reset(token)
         entry.update(
             status="done" if out is not None else "failed",
             outcome=outcome(name, out),
