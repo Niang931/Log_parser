@@ -303,9 +303,10 @@ class ClickHouseReads(StoreReads):
                 "result_overflow_mode": "break",
                 "max_execution_time": 30,
             }
-            # the read-only user's profile pins readonly itself
+            # the read-only user's profile pins readonly itself; 1, not 2: 2 still runs table
+            # functions (url(), remote()), which reach other hosts from the ClickHouse server
             if self.query_client is self.client:
-                settings["readonly"] = 2
+                settings["readonly"] = 1
             result = self.query_client.query(sql, settings=settings)
         except Exception as error:  # the server's message, shown under the editor
             raise ValueError(str(error).strip().splitlines()[0]) from error

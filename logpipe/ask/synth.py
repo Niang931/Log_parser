@@ -16,6 +16,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from ..enrich.llm import cap_explanation
 from .activity import LLMFailed
 from .engine import Ctx
 from .models import Answer, Dropped, Hypothesis, Report, TimelineEvent, template_ref
@@ -171,14 +172,21 @@ def check_citations(raw: dict, report: Report) -> Answer:
             dropped.append(
                 Dropped(section="hypotheses", text=item.get("cause"), cites=item.get("cites") or [])
             )
+    capped = cap_explanation(
+        {
+            "summary": raw.get("summary") or "",
+            "likely_cause": "",
+            "next_steps": raw.get("next_steps") or [],
+        }
+    )
     answer = Answer(
-        summary=raw.get("summary") or "",
+        summary=capped["summary"],
         timeline=timeline,
         hypotheses=hypotheses[:4],
         dropped=dropped,
         insufficient_evidence=bool(raw.get("insufficient_evidence")),
         missing=raw.get("missing") or "",
-        next_steps=list(raw.get("next_steps") or []),
+        next_steps=capped["next_steps"],
         by="llm",
     )
     if not answer.hypotheses:

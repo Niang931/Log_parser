@@ -67,15 +67,45 @@ def compile_extractor(tokens: Sequence[str]) -> re.Pattern[str]:
 
 def extract(pattern: re.Pattern[str], keys: Sequence[str], line: str) -> dict[str, str] | None:
     """Return ``{key: value}`` for ``line``, or ``None`` if it does not fit the template."""
-    match = pattern.match(line)
+    match = pattern.fullmatch(line)
+
     if match is None:
         return None
+
+    match = pattern.fullmatch(line)
+
+    if match is None:
+        return None
+
+    values = match.groups()
+
+    # Ensure the extractor and field definitions agree
+    if len(keys) != len(values):
+        return None
+
+    # Reject invalid or duplicate field names
+    if len(set(keys)) != len(keys) or not all(
+        isinstance(key, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,63}", key) for key in keys
+    ):
+        return None
+
     payload: dict[str, str] = {}
-    for key, value in zip(keys, match.groups()):
-        # Assume there are 2 logs user=A, user=B -> log parser would convert them to just <*>,
-        # this is undesirable so we would like to recover the key as user=<*> instead
-        inline = _INLINE_KV_RE.match(value) if _GENERIC_KEY_RE.match(key) else None
-        if inline and _snake(inline.group(1)) not in payload:
-            key, value = _snake(inline.group(1)), inline.group(2)
+
+    for key, value in zip(keys, values):
+        # Only recover inline keys for generic variables
+        inline = _INLINE_KV_RE.fullmatch(value) if _GENERIC_KEY_RE.fullmatch(key) else None
+
+        if inline:
+            candidate = _snake(inline.group(1))
+
+            # Never overwrite existing fields or accept unsafe names
+            if re.fullmatch(r"[a-z][a-z0-9_]{0,63}", candidate) and candidate not in payload:
+                key = candidate
+                value = inline.group(2)
+
+        if key in payload:
+            return None
+
         payload[key] = value
+
     return payload

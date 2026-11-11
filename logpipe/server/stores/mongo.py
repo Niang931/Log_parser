@@ -9,6 +9,7 @@ code or write (``$where``, ``$function``, ``$accumulator``, ``$out``, ``$merge``
 from __future__ import annotations
 
 import json
+import math
 import re
 from collections import Counter
 from datetime import UTC, datetime, timedelta
@@ -197,6 +198,8 @@ class MongoCompiler(Compiler):
                     number = float(value)
                 except ValueError:
                     raise ValueError(f"{name} {op} needs a number, got {value!r}") from None
+                if not math.isfinite(number):
+                    raise ValueError("numeric filters must use finite numbers")
                 cmp = "$gt" if op == ">" else "$lt"
                 match.append(
                     {"$expr": {"$and": [{"$ne": [_num(path), None]}, {cmp: [_num(path), number]}]}}
@@ -252,7 +255,11 @@ class MongoCompiler(Compiler):
         pipeline += [
             {"$project": project},
             {"$sort": {"time": 1} if spec.get("over_time") else {label: -1}},
-            {"$limit": min(int(spec.get("limit") or 100), get_settings().server.max_builder_rows)},
+            {
+                "$limit": max(
+                    1, min(int(spec.get("limit") or 100), get_settings().server.max_builder_rows)
+                )
+            },
         ]
         return _dump(pipeline)
 

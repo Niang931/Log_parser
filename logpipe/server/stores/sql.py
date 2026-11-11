@@ -5,6 +5,7 @@ once. Plus ``guard_sql``, which every free-form SQL query passes before it runs.
 
 from __future__ import annotations
 
+import math
 import re
 from abc import abstractmethod
 from datetime import UTC, datetime
@@ -127,6 +128,8 @@ class SqlCompiler(Compiler):
                     number = float(value)
                 except ValueError:
                     raise ValueError(f"{name} {op} needs a number, got {value!r}") from None
+                if not math.isfinite(number):
+                    raise ValueError("numeric filters must use finite numbers")
                 where.append(f"{col} {op} {number}")
             else:
                 where.append(f"{col} {op} {self.quote(value)}")
@@ -152,7 +155,7 @@ class SqlCompiler(Compiler):
             select.append(f"{self.field(str(g))} AS {alias(str(g), i)}")
             group.append(alias(str(g), i))
         select.append(f"{value} AS {label}")
-        limit = min(int(spec.get("limit") or 100), get_settings().server.max_builder_rows)
+        limit = max(1, min(int(spec.get("limit") or 100), get_settings().server.max_builder_rows))
         sql = f"SELECT {', '.join(select)}\nFROM {self.source}\nWHERE " + "\n  AND ".join(where)
         if group:
             sql += f"\nGROUP BY {', '.join(group)}"

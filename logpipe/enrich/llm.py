@@ -285,6 +285,16 @@ class ChatAdapter(OfflineAdapter):
         return bool(parsed and parsed.same_event)
 
 
+def cap_explanation(out: dict) -> dict:
+    """An LLM's incident explanation, bounded: the lines it read may have asked it to ramble or
+    to echo them back (the UI shows it as plain text either way)."""
+    return out | {
+        "summary": str(out["summary"])[:1000],
+        "likely_cause": str(out["likely_cause"])[:1000],
+        "next_steps": [str(s)[:500] for s in list(out["next_steps"])[:4]],
+    }
+
+
 def get_adapter(backend: str, *, browser: Browser | None = None) -> LLMAdapter:
     """``offline`` | ``hf`` | ``llm:<provider>[:<model>]``.
 

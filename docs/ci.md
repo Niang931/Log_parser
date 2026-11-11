@@ -82,3 +82,25 @@ Keep the IoT parameters identical to `eval_params` in the baseline; the F1 of a 
   The context names are the job `name:` fields in `ci.yml`; rename both together.
 - **Dependabot** (`.github/dependabot.yml`): weekly uv updates for `/` and `/DeepParse`, grouped minor+patch, plus GitHub Actions versions.
 - **pre-commit** (`.pre-commit-config.yaml`): ruff check/format on `logpipe` and `tests`, `uv lock` consistency, YAML and large-file checks. Install once with `uv run --with pre-commit pre-commit install`.
+
+## Security job
+
+`ci.yml` → **Security** runs on every PR and push to main:
+
+- **pip-audit** on `uv.lock` (exported to pinned requirements). torch's `+cpu` wheels aren't on
+  PyPI, so it is skipped and reported as skipped.
+- **npm audit** for the web UI's production dependencies (high and above).
+- **gitleaks** on the pushed or PR commits, for committed secrets.
+- **Trivy** filesystem scan: vulnerable dependencies and secrets (CRITICAL/HIGH with a fix fail
+  the job); Dockerfile misconfigurations are reported but don't fail it yet (the server image
+  runs as root).
+
+**Prompt injection.** `tests/test_prompt_injection.py` runs `tests/fixtures/prompt_injection.txt`,
+log lines written to steer the LLM, against an adapter that does whatever they ask. The guards
+must still refuse every result: key names fall back to safe ones, catastrophic or broken masks are
+dropped, catch-all templates are refused, an always-yes alias answer can't merge unrelated or
+opposite events, and drafted SQL can't write. Incident explanations are length-capped. Add a line
+to the corpus whenever a new LLM call is added.
+
+User SQL on ClickHouse runs with `readonly=1`. `readonly=2` still allows table functions
+(`url()`, `remote()`, `file()`), so a query could make the ClickHouse server call other hosts.

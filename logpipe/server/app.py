@@ -22,6 +22,7 @@ from fastapi.responses import (
     StreamingResponse,
 )
 
+from ..enrich.sql_guard import validate_sql
 from ..parsing.grok import rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp
@@ -366,7 +367,10 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.post("/api/query")
     def query(body: Annotated[dict, Body()]) -> dict:
-        return server.reads.query(str(body.get("sql", "")))
+        sql = str(body.get("sql", ""))
+        if engine != "mongodb":
+            validate_sql(sql, engine)
+        return server.reads.query(sql)
 
     def query_schema() -> dict:
         snap = server.registry.current
@@ -380,6 +384,8 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
     @app.post("/api/query/build")
     def build_query(body: Annotated[dict, Body()]) -> dict:
         sql = compiler.build(body)
+        if engine != "mongodb":
+            validate_sql(sql, engine)
         return {"sql": sql, "result": server.reads.query(sql)}
 
     # Ask: question -> plan of read-only queries -> approval -> answer (logpipe.ask)
