@@ -24,6 +24,8 @@ FILES = {
     "postgres": ("db/postgres.log", "postgresql", r"^\d{4}-\d{2}-\d{2} "),
     "inventory": ("inventory/inventory.log", "go", None),
 }
+# service -> the host it runs on, unless an event says otherwise (a fault on one box)
+HOSTS = {"nginx": "web-1", "shop-api": "web-1", "postgres": "db-1", "inventory": "web-1"}
 AGENTS = ("Mozilla/5.0 (X11; Linux x86_64)", "Mozilla/5.0 (Macintosh)", "curl/8.5.0", "okhttp/4.12")
 
 
@@ -223,7 +225,11 @@ FAULTS: dict[str, dict] = {
 class Event:
     service: str
     message: str  # may span lines (stack traces)
-    host: str | None = None  # None: the service's usual host
+    # empty: the service's usual host
+    host: str = ""
+
+    def __post_init__(self) -> None:
+        self.host = self.host or HOSTS[self.service]
 
 
 class ShopGenerator:

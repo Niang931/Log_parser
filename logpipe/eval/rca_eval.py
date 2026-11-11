@@ -97,7 +97,7 @@ def _send(server, gen: ShopGenerator, events, when: datetime) -> None:
     for e in events:
         server.process(
             LogEvent(
-                device_id=e.host or ("db-1" if e.service == "postgres" else "web-1"),
+                device_id=e.host,
                 source=FILES[e.service][1],
                 line_no=0,
                 line=e.message,

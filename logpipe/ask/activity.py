@@ -10,11 +10,17 @@ import json
 import threading
 import time
 from datetime import UTC, datetime
+from typing import Literal, cast, get_args
 
 from ..enrich import llm
 from ..settings import get_settings
 
-STEPS = {"RouteOut": "Reading your question", "AnswerOut": "Writing the answer from the evidence"}
+# the structured answers Ask asks the LLM for (router.RouteOut, synth.AnswerOut)
+Schema = Literal["RouteOut", "AnswerOut"]
+STEPS: dict[Schema, str] = {
+    "RouteOut": "Reading your question",
+    "AnswerOut": "Writing the answer from the evidence",
+}
 KEEP = 20_000  # characters of a prompt or reply kept for the UI
 
 
@@ -22,20 +28,19 @@ def _now() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def outcome(schema_name: str, out) -> str:
+def outcome(schema: Schema, out) -> str:
     if out is None:
         return "no usable answer"
-    d = out.model_dump()
-    if schema_name == "RouteOut":
-        return f"read as: {d.get('intent')}"
-    if schema_name == "AnswerOut":
-        asked = len(d.get("follow_up") or [])
-        return (
-            f"{len(d.get('hypotheses') or [])} likely cause(s)"
-            + (", not enough evidence" if d.get("insufficient_evidence") else "")
-            + (f", asked for {asked} more read(s)" if asked else "")
-        )
-    return "answered"
+    match schema:
+        case "RouteOut":
+            return f"read as: {out.intent}"
+        case "AnswerOut":
+            asked = len(out.follow_up)
+            return (
+                f"{len(out.hypotheses)} likely cause(s)"
+                + (", not enough evidence" if out.insufficient_evidence else "")
+                + (f", asked for {asked} more read(s)" if asked else "")
+            )
 
 
 class LLMFailed(RuntimeError):
@@ -57,9 +62,11 @@ class Recorder:
         return bool(getattr(self._inner, "can_ask", False))
 
     def ask(self, schema, prompt: str):
-        name = schema.__name__
+        if schema.__name__ not in get_args(Schema):
+            raise TypeError(f"Ask only asks the LLM for {get_args(Schema)}, not {schema.__name__}")
+        name = cast(Schema, schema.__name__)
         entry = {
-            "step": STEPS.get(name, name),
+            "step": STEPS[name],
             "schema": name,
             "status": "running",
             "started_at": _now(),
