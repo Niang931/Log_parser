@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import asdict
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from ..settings import get_settings
@@ -168,9 +168,22 @@ class AskService:
                 for q in plan["rounds"][-1]["queries"]:
                     q["status"] = "approved"
                 plan["status"] = "approved"
-        self.server.control.put(KIND, plan["id"], plan)
+        self._put(plan)
         if plan["status"] == "approved" and enqueue:  # the job runs auto-approved rounds itself
             self.server.enqueue("ask", plan=plan["id"], round=plan["rounds"][-1]["n"])
+        self.server.events.notify()
+        return plan
+
+    def _put(self, plan: dict) -> None:
+        plan["updated_at"] = _now().isoformat()  # a running plan's heartbeat (see get)
+        self.server.control.put(KIND, plan["id"], plan)
+
+    def _fail(self, plan: dict, error: str) -> dict:
+        for entry in plan.get("ai") or []:
+            if entry.get("status") == "running":
+                entry.update(status="failed", outcome="stopped: the run ended")
+        plan.update(status="failed", error=error[:500], finished_at=_now().isoformat())
+        self._put(plan)
         self.server.events.notify()
         return plan
 
@@ -178,9 +191,19 @@ class AskService:
         plan = self.server.control.get(KIND, plan_id)
         if plan is None:
             raise KeyError(plan_id)
-        if plan["status"] == "waiting_approval" and plan["expires_at"] < _now().isoformat():
+        now = _now()
+        if plan["status"] == "waiting_approval" and plan["expires_at"] < now.isoformat():
             plan["status"] = "expired"
-            self.server.control.put(KIND, plan_id, plan)
+            self._put(plan)
+        # a running plan saves at least once per LLM deadline; silence well past it means the job
+        # died with the server (a restart) and nothing will finish it
+        quiet = timedelta(seconds=get_settings().ask.llm_timeout_seconds + 120)
+        last = datetime.fromisoformat(plan.get("updated_at") or plan["created_at"])
+        if plan["status"] == "running" and now - last > quiet:
+            self._fail(
+                plan,
+                f"the run stopped responding (nothing for {int(quiet.total_seconds())} s; was the server restarted?)",
+            )
         return plan
 
     def recent(self, limit: int = 20) -> list[dict]:
@@ -216,7 +239,7 @@ class AskService:
         for q in current["queries"]:
             q["status"] = "approved" if q["id"] in chosen else "rejected"
         plan.update(status="approved", approved_at=_now().isoformat())
-        self.server.control.put(KIND, plan_id, plan)
+        self._put(plan)
         job = self.server.enqueue("ask", plan=plan_id, round=current["n"])
         self.server.events.notify()
         return plan | {"job": job["id"]}
@@ -242,7 +265,7 @@ class AskService:
         for q in plan["rounds"][-1]["queries"]:
             q["status"] = "rejected"
         plan.update(status="rejected", finished_at=_now().isoformat())
-        self.server.control.put(KIND, plan_id, plan)
+        self._put(plan)
         self.server.events.notify()
         return plan
 
@@ -298,13 +321,22 @@ class AskService:
             json.loads(path.read_text("utf-8")) if path.exists() else {}
         )
         plan["status"] = "running"
-        self.server.control.put(KIND, plan_id, plan)
+        self._put(plan)
 
         def save() -> None:
-            self.server.control.put(KIND, plan_id, plan)
+            self._put(plan)
             self.server.events.notify()
 
         recorder = Recorder(adapter or self.server.adapter, plan.setdefault("ai", []), save)
+        try:
+            return self._run_rounds(progress, plan, spec, outputs, path, recorder)
+        except Exception as error:  # whatever broke, the plan says so instead of spinning forever
+            self._fail(plan, f"{type(error).__name__}: {error}")
+            raise
+
+    def _run_rounds(
+        self, progress, plan: dict, spec: QuerySpec, outputs: dict, path: Path, recorder
+    ) -> str:
         rounds = 0
         while True:
             rounds += 1

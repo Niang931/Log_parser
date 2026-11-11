@@ -207,6 +207,7 @@ class Answer(_Model):
     dropped: list[Dropped] = Field(default_factory=list)
     by: Literal["llm", "rules"] = "rules"
     note: str = ""
+    llm_error: str = ""  # the LLM failed or timed out: the answer is the rules' ranking instead
 
 
 class Report(_Model):

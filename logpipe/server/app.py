@@ -406,6 +406,7 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         return {
             "plans": server.ask.recent(max(1, min(limit, 100))),
             "require_approval": server.settings.ask_require_approval,
+            "llm_timeout_seconds": server.config.ask.llm_timeout_seconds,
         }
 
     @app.get("/api/ask/{plan_id}")

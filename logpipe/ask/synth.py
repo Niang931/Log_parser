@@ -16,6 +16,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from .activity import LLMFailed
 from .engine import Ctx
 from .models import Answer, Dropped, Hypothesis, Report, TimelineEvent, template_ref
 from .moves import Move, MoveRequest, check_moves
@@ -282,7 +283,13 @@ def synthesize(spec: QuerySpec, report: Report, ctx: Ctx) -> tuple[Answer, list[
         hints=hints_text(report),
         series=series_text(report),
     )
-    out = ctx.adapter.ask(AnswerOut, prompt)
+    try:
+        out = ctx.adapter.ask(AnswerOut, prompt)
+    # the evidence is still good: stop waiting and show the ranking
+    except LLMFailed as error:
+        failed = offline_answer(report, ctx)
+        note = "The LLM failed, so this is the rules' ranking of the evidence, not a diagnosis."
+        return failed.model_copy(update={"llm_error": str(error)[:300], "note": note}), []
     if out is None:
         return offline_answer(report, ctx).model_copy(
             update={"note": "The LLM gave no usable answer; showing the ranked evidence."}

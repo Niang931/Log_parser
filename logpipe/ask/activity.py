@@ -5,11 +5,14 @@ the prompt and the reply. Stored on the plan (``plan["ai"]``) so the UI can show
 
 from __future__ import annotations
 
+import contextvars
 import json
+import threading
 import time
 from datetime import UTC, datetime
 
 from ..enrich import llm
+from ..settings import get_settings
 
 STEPS = {"RouteOut": "Reading your question", "AnswerOut": "Writing the answer from the evidence"}
 KEEP = 20_000  # characters of a prompt or reply kept for the UI
@@ -35,11 +38,19 @@ def outcome(schema_name: str, out) -> str:
     return "answered"
 
 
-class Recorder:
-    """The LLM adapter, with each call written to ``entries`` (``save`` is called on every change)."""
+class LLMFailed(RuntimeError):
+    """The LLM raised, or gave no answer before the deadline. Only the server's Recorder raises
+    it: Ask falls back to the rules on it, while any other adapter's error (an eval replay
+    missing a reply) still fails loudly."""
 
-    def __init__(self, inner, entries: list[dict], save=lambda: None):
+
+class Recorder:
+    """The LLM adapter, with each call written to ``entries`` (``save`` is called on every change)
+    and cut off after ``timeout`` seconds: a web chat that hangs must not hold the plan forever."""
+
+    def __init__(self, inner, entries: list[dict], save=lambda: None, timeout: float | None = None):
         self._inner, self.entries, self._save = inner, entries, save
+        self.timeout = get_settings().ask.llm_timeout_seconds if timeout is None else timeout
 
     @property
     def can_ask(self) -> bool:
@@ -52,6 +63,7 @@ class Recorder:
             "schema": name,
             "status": "running",
             "started_at": _now(),
+            "timeout_seconds": self.timeout,
             "messages": [],
             "prompt": prompt[:KEEP],
             "reply": None,
@@ -62,31 +74,48 @@ class Recorder:
         started = time.monotonic()
 
         def listen(message: str, record: dict | None) -> None:
-            if not message.startswith("answer:"):  # the reply itself is kept whole below
-                said = {"at": _now(), "text": message[:300]}
-                entry["messages"] = [*entry["messages"], said][-20:]
-                self._save()
+            # a call cut off by the deadline may still talk: it no longer belongs to this entry
+            if entry["status"] != "running" or message.startswith("answer:"):
+                return
+            said = {"at": _now(), "text": message[:300]}
+            entry["messages"] = [*entry["messages"], said][-20:]
+            self._save()
 
-        try:
-            with llm.listening(listen):
-                out = self._inner.ask(schema, prompt)
-        except Exception as error:
+        def finish(status: str, outcome_text: str, reply: str | None = None) -> None:
+            seconds = round(time.monotonic() - started, 1)
             entry.update(
-                status="failed",
-                outcome=str(error)[:300],
+                status=status,
+                outcome=outcome_text,
                 finished_at=_now(),
-                seconds=round(time.monotonic() - started, 1),
+                seconds=seconds,
+                reply=reply,
             )
             self._save()
-            raise
-        entry.update(
-            status="done" if out is not None else "failed",
-            outcome=outcome(name, out),
-            finished_at=_now(),
-            seconds=round(time.monotonic() - started, 1),
-            reply=None if out is None else json.dumps(out.model_dump(), indent=1)[:KEEP],
-        )
-        self._save()
+
+        result: dict = {}
+
+        def call() -> None:
+            try:
+                result["out"] = self._inner.ask(schema, prompt)
+            except Exception as error:  # noqa: BLE001 - handed to the caller below
+                result["error"] = error
+
+        # the call runs on a thread of its own so it can be abandoned; it inherits the listener
+        with llm.listening(listen):
+            context = contextvars.copy_context()
+        worker = threading.Thread(target=context.run, args=(call,), name="ask-llm", daemon=True)
+        worker.start()
+        worker.join(self.timeout)
+        if worker.is_alive():
+            finish("failed", f"no answer after {self.timeout:g} s: stopped waiting")
+            raise LLMFailed(f"no answer after {self.timeout:g} s")
+        if "error" in result:
+            error = result["error"]
+            finish("failed", f"failed: {error}"[:300])
+            raise LLMFailed(str(error)[:300]) from error
+        out = result.get("out")
+        reply = None if out is None else json.dumps(out.model_dump(), indent=1)[:KEEP]
+        finish("done" if out is not None else "failed", outcome(name, out), reply)
         return out
 
     def __getattr__(self, name: str):

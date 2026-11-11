@@ -11,7 +11,8 @@ from datetime import UTC, datetime, timedelta, timezone
 from pydantic import BaseModel, Field
 
 from ..enrich.llm import NeedsLLM
-from .spec import AGG_FNS, Catalog, Intent, Level, Measure, QuerySpec, validate
+from .activity import LLMFailed
+from .spec import Catalog, Intent, Level, Measure, QuerySpec, validate
 
 
 @dataclass
@@ -282,21 +283,19 @@ def route(
             'without one, ask with a time range, a level, a service name or "quoted words"'
         )
     tz = f"{'+' if (tz_offset or 0) >= 0 else '-'}{abs(tz_offset or 0) // 60:02d}:{abs(tz_offset or 0) % 60:02d}"
-    out = adapter.ask(
-        RouteOut,
-        ROUTE_PROMPT.format(
-            now=now.isoformat(timespec="seconds"),
-            tz=tz,
-            catalog=catalog.describe(),
-            question=question,
-        ),
+    prompt = ROUTE_PROMPT.format(
+        now=now.isoformat(timespec="seconds"), tz=tz, catalog=catalog.describe(), question=question
     )
+    try:
+        out = adapter.ask(RouteOut, prompt)
+    except LLMFailed as error:  # down, signed out, timed out: say so instead of a server error
+        raise ValueError(
+            f"the LLM couldn't read the question ({error}). Try again, or ask with a time range, "
+            'a level, a service name or "quoted words", which need no LLM'
+        ) from None
     if out is None:
         raise ValueError("the LLM gave no usable answer; try rephrasing")
     raw = _from_llm(out)
-    agg = raw.get("aggregate")
-    if agg and agg["fn"] not in AGG_FNS:
-        raise ValueError(f"the LLM asked for an unknown measure {agg['fn']!r}")
     try:
         return Routed(validate(raw, catalog, now), "llm", notes)
     except ValueError as error:

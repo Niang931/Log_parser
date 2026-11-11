@@ -128,6 +128,8 @@ class AskSettings(BaseSettings):
     budget_tokens: int = 6000  # evidence bundle sent to the LLM
     chars_per_token: int = 4
     shutdown_min_score: float = 0.45  # how close a template must be to a shutdown phrase
+    # one LLM call may take this long (a web chat retries a slow reply twice at 60 s each)
+    llm_timeout_seconds: float = 240
 
     @property
     def plan_ttl(self) -> timedelta:
