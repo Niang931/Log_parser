@@ -426,9 +426,11 @@ def silence(
     total = int((rng.end - origin).total_seconds() // 60)
     per: dict[str | int | None, dict[int, int]] = defaultdict(dict)
 
+    # sparse map of minute -> line count
     for b in buckets:
         per[b.key][b.bucket] = b.n
 
+    # add in the last log count for each service
     last_words: dict[str | None, TemplateCount] = {}
     for c in counts:
         if c.service not in last_words or c.last >= last_words[c.service].last:
@@ -440,10 +442,15 @@ def silence(
         quiet = total - 1 - last  # whole minutes with nothing, up to the end
         before = [by.get(i, 0) for i in range(max(0, last - 29), last)]
         rate = sum(before) / len(before) if before else 0
+
+        # skip if service that rarely logs stays idle (chance of getting anything from it is small)
         if quiet < cfg.silence_minutes or rate < cfg.silence_min_rate:
             continue
+
         service = None if service is None else str(service)  # the buckets were by service
         words = last_words.get(service)
+
+        # the last log was an error -> died saying why
         loud = words is not None and (
             words.level in ("error", "warn") or ctx.canonical(words.template_id) in ctx.shutdown
         )
@@ -459,7 +466,7 @@ def silence(
         )
     # A service that died saying why beats one that went quiet because nothing reached it
     # (a database with no callers); then the one asked about; then the first.
-    return min(found, key=lambda a: (not a.loud, a.service not in focus, a.at)) if found else None
+    return min(found, key=lambda a: (not a.loud, a.service not in focus, a.at), default=None)
 
 
 def rank(
@@ -472,6 +479,7 @@ def rank(
     length = datetime.fromisoformat(window["end"]) - datetime.fromisoformat(window["start"])
     n_slices = max(1, int(cfg.baseline / max(length, timedelta(minutes=1))))
     base: dict[int, list[int]] = defaultdict(lambda: [0] * n_slices)
+
     # slices the store has any line in: before its first line there's no baseline
     covered: set[int] = set()
     for b in rows_of(done, outputs, Around.BASELINE, Bucket):
@@ -479,10 +487,12 @@ def rank(
             base[ctx.canonical(int(b.key or 0))][b.bucket] += b.n
             covered.add(b.bucket)
 
+    # checking for logbert surprise metrics (whether logbert have seen it before)
     notes = []
     surprise = logbert_surprise(rows, anchor, ctx)
     if surprise is None and ctx.use_logbert and anchor.service:
         notes.append(f"no LogBERT model covers {anchor.service}: ranked without it")
+
     near = (
         dict(ctx.neighbours(anchor.template_id, 5))
         if ctx.use_semantic and anchor.template_id
@@ -501,43 +511,50 @@ def rank(
         tid = ctx.canonical(c.template_id)
         history = [base[tid][i] for i in sorted(covered)] if tid in base else [0] * len(covered)
         med = median(history) if history else 0.0
-        # a sporadic template: its mean
         expected = med or (sum(history) / len(history) if history else 0.0)
         is_new = bool(covered) and expected == 0
-        ratio = c.n / expected if expected else math.inf
-        rarity = (
-            1.0
-            if is_new
-            else 0.5
-            if not covered  # no baseline at all: neither rare nor common
-            else min(1.0, max(0.02, (ratio - 1) / 9))
-        )
+        if is_new:
+            rarity = 1.0
+            rarity_why = f"new: not in the {cfg.baseline_hours:g} h before"
+        elif not covered:
+            # no baseline at all: neither rare nor common
+            rarity = 0.5
+            rarity_why = (
+                f"no baseline: the store has no lines from the {cfg.baseline_hours:g} h before"
+            )
+        else:
+            ratio = c.n / expected
+            rarity = min(1.0, max(0.02, (ratio - 1) / 9))
+            rarity_why = f"{c.n} lines vs {expected:.3g} expected per window (x{ratio:.1f})"
+
         parts = {"level": cfg.level_weight(c.level)}
+
         if tid in ctx.shutdown:
             parts["shutdown template"] = cfg.shutdown_weight
+
         if surprise and tid in surprise:
             parts["LogBERT did not expect it"] = surprise[tid]
+
         if tid in near:
             parts["LogBERT neighbour of the anchor"] = cfg.related_weight
+
         if tid in described:
             parts["matches the question"] = cfg.related_weight
-        anomaly = max(parts.values())
-        proximity = (
-            1.0
-            if anchor.kind == "range"
-            else math.exp(-abs((c.first - anchor.at).total_seconds()) / cfg.proximity_seconds)
-        )
-        why = [
-            f"anomaly {anomaly:.2f} ({max(parts, key=lambda k: parts[k])})",
-            "new: not in the 24 h before"
-            if is_new
-            else "no baseline: the store has no lines from the 24 h before"
-            if not covered
-            else f"{c.n} lines vs {expected:.3g} expected per window (x{ratio:.1f})",
-            f"first seen {_ago(c.first, anchor.at)}"
-            if anchor.kind != "range"
-            else f"first seen {c.first:%H:%M:%S}",
-        ]
+
+        reason = max(parts, key=lambda k: parts[k])
+        anomaly = parts[reason]
+        anomaly_why = f"anomaly {anomaly:.2f} ({reason})"
+
+        if anchor.kind == "range":
+            # a summary has no moment to be close to
+            proximity = 1.0
+            when_why = f"first seen {c.first:%H:%M:%S}"
+        else:
+            distance = abs((c.first - anchor.at).total_seconds())
+            proximity = math.exp(-distance / cfg.proximity_seconds)
+            when_why = f"first seen {_ago(c.first, anchor.at)}"
+
+        why = [anomaly_why, rarity_why, when_why]
         cands.append(
             Candidate(
                 template_id=tid,
