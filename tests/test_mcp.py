@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+import queue
+import threading
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -54,6 +56,8 @@ def test_mcp_keys_reach_only_allowlisted_routes(server, client):
     assert client.get("/api/review", headers=mcp).status_code == 200
     assert client.post("/api/review/b1/apply", headers=mcp).status_code == 403
     assert client.post("/api/review/b1/discard", headers=mcp).status_code == 403
+    assert client.post("/api/ask/p1/reject", headers=mcp).status_code == 403
+    assert client.put("/api/ask-shutdown", headers=mcp, json={}).status_code == 403
     assert client.get("/api/keys", headers=mcp).status_code == 403
     assert client.put("/api/settings", headers=mcp, json={}).status_code == 403
 
@@ -125,3 +129,45 @@ def test_prompts_are_listed(client):
             p["name"] for p in rpc(client, new_key(client, "mcp"), "prompts/list")["prompts"]
         }
     assert prompts == {"investigate_incident", "review_batch"}
+
+
+def test_ask_approves_its_rounds_and_returns_the_report(server, client):
+    now = datetime.now(UTC)
+    server.ingest(
+        [
+            {
+                "ts": (now - timedelta(minutes=30 - i)).isoformat(),
+                "host": "web-1",
+                "service": "api",
+                "source": "python",
+                "level": "error" if i >= 20 else "info",
+                "message": "db connection refused" if i >= 20 else f"user {i} logged in",
+            }
+            for i in range(25)
+        ]
+    )
+    while not server.inbox.empty():
+        server.process(server.inbox.get_nowait())
+    stop = threading.Event()
+
+    # start_threads=False: run the queued ask rounds the way the server's worker does
+    def pump():
+        while not stop.is_set():
+            try:
+                server.run_job(server.jobs.get(timeout=0.1))
+            except queue.Empty:
+                pass
+
+    worker = threading.Thread(target=pump, daemon=True)
+    worker.start()
+    try:
+        with client:
+            mcp = new_key(client, "mcp")
+            at = (now - timedelta(minutes=10)).strftime("%H:%M")
+            report = call_tool(client, mcp, "ask", question=f"why did api fail around {at}?")
+    finally:
+        stop.set()
+        worker.join()
+    assert "error" not in report, report
+    assert report["anchor"]["kind"] == "user"
+    assert report["candidates"] and report["evidence"]
