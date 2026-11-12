@@ -114,6 +114,28 @@ def _traffic(server, gen: ShopGenerator, start: datetime, end: datetime) -> None
         t += ORDER_EVERY
 
 
+def make_server(data_dir: Path, adapter_factory=None, epochs: int = 4, start_threads=False):
+    """A memory-store server and a test client on its app, as every eval builds it."""
+    from fastapi.testclient import TestClient
+
+    from ..enrich.llm import get_adapter
+    from ..server.app import create_app
+    from ..server.control import ControlStore
+    from ..server.core import Server
+    from ..storage.memory import MemoryStore
+
+    server = Server(
+        MemoryStore(),
+        ControlStore(),
+        data_dir=data_dir,
+        adapter_factory=adapter_factory or (lambda: get_adapter("offline")),
+        epochs=epochs,
+        start_threads=start_threads,
+        min_train_steps=0,
+    )
+    return server, TestClient(create_app(server))
+
+
 def build_world(
     modes: list[str] | None = None,
     data_dir: Path | None = None,
@@ -125,27 +147,10 @@ def build_world(
     """Train on normal traffic, then inject each fault in its own slot ending just before now."""
     import tempfile
 
-    from fastapi.testclient import TestClient
-
-    from ..enrich.llm import get_adapter
-    from ..server.app import create_app
-    from ..server.control import ControlStore
-    from ..server.core import Server
-    from ..storage.memory import MemoryStore
-
     started = time.perf_counter()
     modes = modes or list(FAULTS)
     data_dir = data_dir or Path(tempfile.mkdtemp(prefix="rca-eval-"))
-    server = Server(
-        MemoryStore(),
-        ControlStore(),
-        data_dir=data_dir,
-        adapter_factory=adapter_factory or (lambda: get_adapter("offline")),
-        epochs=epochs,
-        start_threads=False,
-        min_train_steps=0,
-    )
-    client = TestClient(create_app(server))
+    server, client = make_server(data_dir, adapter_factory, epochs)
     gen = ShopGenerator(data_dir / "unused", seed=seed)
     slot_len = NORMAL_BEFORE + ASK_AFTER
     end = (datetime.now(UTC) - timedelta(minutes=1)).replace(microsecond=0)
