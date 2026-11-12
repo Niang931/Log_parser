@@ -23,8 +23,14 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from ..showcase.generator import FAULTS, FILES, ShopGenerator
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+
+    from ..server.core import Server
 
 ORDER_EVERY = timedelta(seconds=5)
 NORMAL_BEFORE = timedelta(minutes=60)  # normal traffic before each fault
@@ -68,8 +74,8 @@ class Slot:
 
 @dataclass
 class World:
-    server: object
-    client: object
+    server: Server
+    client: TestClient
     slots: list[Slot] = field(default_factory=list)
     seconds: float = 0.0
 
