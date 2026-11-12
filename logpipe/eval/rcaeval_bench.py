@@ -13,6 +13,10 @@ the failure around the injection time (the same time RCAEval's classic methods g
 logpipe's MCP endpoint to an agent CLI (Claude Code by default), with the ``ask`` tool
 (``mcp+ask``) and without it (``mcp-raw``), so the ranking's worth to an LLM shows.
 
+Everything that reasons is recorded under ``<out>/transcripts/``: each case's RCA report, every
+LLM prompt and reply (``--llm``, e.g. ``llm:web:gemini``), and the agent's whole stream with
+``--via mcp`` (its tool calls and what they returned).
+
 Logs only: RE1 (metrics) and RE3-SS (no logs) can't be answered, and only the service level is
 meaningful. Run with ``make rcaeval DATASET=re3-ob``.
 """
@@ -94,11 +98,29 @@ def load_case(case_dir: Path, adapter_factory=None, epochs: int = 4):
     return task, World(server, client)
 
 
+def cited_services(report: dict) -> list[str | None]:
+    """The services of the lines the LLM's hypotheses cite, best hypothesis first (``L3`` names a
+    line, ``T12`` every line of a template). Empty when the rules wrote the answer."""
+    answer = report.get("answer") or {}
+    if answer.get("by") != "llm":
+        return []
+    evidence = report.get("evidence") or []
+    by_ref = {e["ref"]: e for e in evidence}
+    out = []
+    for h in answer.get("hypotheses") or []:
+        for ref in h.get("cites") or []:
+            if ref in by_ref:
+                out.append(by_ref[ref].get("service"))
+            out += [e.get("service") for e in evidence if f"T{e.get('template_id')}" == ref]
+    return out
+
+
 def ranks(report: dict, candidates: list[str]) -> list[str]:
-    """Services in the order the report puts them (ranked candidates, the anchor, the evidence),
-    kept to RCAEval's vocabulary."""
+    """Services in the order the report puts them (what the LLM's hypotheses cite, the ranked
+    candidates, the anchor, the evidence), kept to RCAEval's vocabulary."""
     allowed = {c.lower() for c in candidates}
-    names = [c.get("service") for c in report.get("candidates") or []]
+    names = cited_services(report)
+    names += [c.get("service") for c in report.get("candidates") or []]
     names.append((report.get("anchor") or {}).get("service"))
     names += [e.get("service") for e in report.get("evidence") or []]
     return list(dict.fromkeys(n.lower() for n in names if n and n.lower() in allowed))
@@ -114,17 +136,64 @@ def slot_for(task: dict, anchored: bool) -> Slot:
     return Slot(task["case_id"], inject, question, None, inject + AFTER)
 
 
-def answer_direct(world: World, task: dict, variant: dict, anchored: bool) -> dict:
+def answer_direct(
+    world: World, task: dict, variant: dict, anchored: bool, log: Path | None = None
+) -> dict:
+    """Ask the RCA pipeline; ``log`` gets the whole report (anchor, rounds, ranking, answer)."""
     report = investigate(world, slot_for(task, anchored), **dict(variant))
+    if log is not None:
+        append(log, {"case_id": task["case_id"], "report": report})
+    answer = report.get("answer") or {}
+    hyps = answer.get("hypotheses") if answer.get("by") == "llm" else None
     top = (report.get("candidates") or [{}])[0]
     return {
         "ranks": ranks(report, task["candidate_services"]),
-        "reasoning": top.get("why") or report.get("message", ""),
+        "reasoning": f"{hyps[0]['cause']}: {hyps[0].get('reasoning', '')}"
+        if hyps
+        else top.get("why") or report.get("message", ""),
     }
 
 
-def answer_mcp(world: World, task: dict, blocked: list[str], agent_cmd: list[str]) -> dict:
-    """Serve the case on localhost and let the agent CLI investigate it over /mcp."""
+def append(path: Path, row: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(row, default=str) + "\n")
+
+
+class Transcript:
+    """An LLM that logs every prompt and reply (or error) to ``path``, tagged with ``case``."""
+
+    def __init__(self, inner, path: Path):
+        self.inner, self.path, self.case = inner, path, ""
+        self.can_ask = getattr(inner, "can_ask", True)
+
+    def ask(self, schema, prompt):
+        started, reply, error = time.perf_counter(), None, None
+        try:
+            reply = self.inner.ask(schema, prompt)
+            return reply
+        except Exception as e:
+            error = f"{type(e).__name__}: {e}"
+            raise
+        finally:
+            append(
+                self.path,
+                {
+                    "case_id": self.case,
+                    "schema": schema.__name__,
+                    "prompt": prompt,
+                    "reply": reply.model_dump(mode="json") if reply is not None else None,
+                    "error": error,
+                    "seconds": round(time.perf_counter() - started, 2),
+                },
+            )
+
+
+def answer_mcp(
+    world: World, task: dict, blocked: list[str], agent_cmd: list[str], log: Path
+) -> dict:
+    """Serve the case on localhost and let the agent CLI investigate it over /mcp. ``log`` gets
+    the prompt, then the agent's whole stream: every message, tool call and tool result."""
     import socket
     import subprocess
     import threading
@@ -182,9 +251,16 @@ def answer_mcp(world: World, task: dict, blocked: list[str], agent_cmd: list[str
         thread.join()
         jobs.join()
         config.unlink(missing_ok=True)
+    log.parent.mkdir(parents=True, exist_ok=True)
+    log.write_text(
+        json.dumps({"type": "prompt", "cmd": cmd, "prompt": prompt}) + "\n" + done.stdout,
+        "utf-8",
+    )
     if done.returncode:
         raise RuntimeError(f"agent exited {done.returncode}: {done.stderr[-500:]}")
-    out = json.loads(done.stdout)
+    # stream-json: one event per line, the last of type "result" carries the answer and usage
+    events = [json.loads(line) for line in done.stdout.splitlines() if line.strip()]
+    out = next((e for e in reversed(events) if e.get("type") == "result"), {})
     reply = parse_reply(out.get("result", ""))
     allowed = {c.lower() for c in task["candidate_services"]}
     usage = out.get("usage") or {}
@@ -240,15 +316,22 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--no-anchor", action="store_true", help="don't tell the RCA when it broke")
     ap.add_argument("--epochs", type=int, default=4)
     ap.add_argument("--llm", help="direct: llm:<provider>[:<model>] for the router and synthesizer")
-    ap.add_argument("--record", type=Path, help="with --llm: save every reply here")
+    ap.add_argument(
+        "--record",
+        type=Path,
+        help="with --llm: replies for --replay (default: OUT/llm-replies.<dataset>.json)",
+    )
     ap.add_argument("--replay", type=Path, help="answer from replies saved by --record")
     ap.add_argument(
         "--agent-cmd",
-        default="claude -p --output-format json",
+        default="claude -p --output-format stream-json --verbose",
         help="mcp: the agent CLI; gets --mcp-config and --allowedTools appended, the prompt on stdin",
     )
     args = ap.parse_args(argv)
 
+    out_dir = args.out or args.tasks.parent
+    # what each run saw and said, to read its reasoning afterwards
+    logs = out_dir / "transcripts"
     if args.via == "mcp":
         variants: dict = {
             k: v for k, v in MCP_VARIANTS.items() if k in (args.variants or MCP_VARIANTS)
@@ -259,16 +342,16 @@ def main(argv: list[str] | None = None) -> None:
             from ..enrich.llm import get_adapter
 
             inner = get_adapter(args.llm) if args.llm else None
-            llm = (
-                Recorded(args.replay or args.record, None if args.replay else inner)
-                if args.replay or args.record
-                else inner
-            )
-            variants = {f"{k}+llm": v | {"adapter": llm} for k, v in variants.items()}
+            record = args.replay or args.record or out_dir / f"llm-replies.{args.tasks.name}.json"
+            llm = Recorded(record, None if args.replay else inner)
+            variants = {
+                f"{k}+llm": v
+                | {"adapter": Transcript(llm, logs / f"{args.tasks.name}.{k}+llm.llm.jsonl")}
+                for k, v in variants.items()
+            }
     if not variants:
         ap.error("no variant left to run")
     suffix = "" if not args.no_anchor else ".no_anchor"
-    out_dir = args.out or args.tasks.parent
     out_dir.mkdir(parents=True, exist_ok=True)
     paths = {k: out_dir / f"preds.{args.tasks.name}.{k}{suffix}.jsonl" for k in variants}
 
@@ -294,16 +377,21 @@ def main(argv: list[str] | None = None) -> None:
                     if world is None:
                         raise RuntimeError(error)
                     if args.via == "mcp":
-                        pred = answer_mcp(world, task, variant, args.agent_cmd.split())
+                        log = logs / f"{args.tasks.name}.{name}{suffix}" / f"{case.name}.jsonl"
+                        pred = answer_mcp(world, task, variant, args.agent_cmd.split(), log)
                     else:
-                        pred = answer_direct(world, task, variant, not args.no_anchor)
+                        if isinstance(variant.get("adapter"), Transcript):
+                            variant["adapter"].case = case.name
+                        log = logs / f"{args.tasks.name}.{name}{suffix}.reports.jsonl"
+                        pred = answer_direct(world, task, variant, not args.no_anchor, log)
                 except Exception as e:  # noqa: BLE001
                     pred = {"ranks": [], "reasoning": f"error: {e}"}
                 wall = loaded + time.perf_counter() - started
                 pred["usage"] = (pred.get("usage") or {}) | {"wall_time_s": round(wall, 2)}
-                line = {"case_id": case.name, "model": f"logpipe-rca/{name}{suffix}"} | pred
-                with paths[name].open("a", encoding="utf-8") as f:
-                    f.write(json.dumps(line) + "\n")
+                append(
+                    paths[name],
+                    {"case_id": case.name, "model": f"logpipe-rca/{name}{suffix}"} | pred,
+                )
                 print(f"[{i}/{len(cases)}] {case.name} {name}: {pred['ranks'][:3]} ({wall:.0f} s)")
     for p in paths.values():
         print(p)

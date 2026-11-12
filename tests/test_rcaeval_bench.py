@@ -6,7 +6,9 @@ import csv
 import json
 from datetime import UTC, datetime, timedelta
 
-from logpipe.eval.rcaeval_bench import main, parse_reply, ranks
+from pydantic import BaseModel
+
+from logpipe.eval.rcaeval_bench import Transcript, main, parse_reply, ranks
 
 INJECT = datetime(2024, 1, 15, 21, 24, tzinfo=UTC)
 SERVICES = ["frontend", "cartservice", "checkoutservice"]
@@ -48,6 +50,8 @@ def test_ranks_the_failing_service_first(tmp_path):
     assert pred["case_id"] == "re3-ob-0001"
     assert pred["ranks"][0] == "checkoutservice", pred
     assert pred["usage"]["wall_time_s"] > 0
+    [kept] = (tmp_path / "transcripts" / "re3-ob.full.reports.jsonl").read_text().splitlines()
+    assert json.loads(kept)["report"]["candidates"]
 
     # a second run resumes: the answered case isn't redone
     main([str(tasks), "--variants", "full", "--epochs", "1"])
@@ -67,3 +71,43 @@ def test_parse_reply_finds_the_json_in_prose():
     text = 'Looking at it... ```json\n{"ranks": ["cartservice"], "reasoning": "x {y}"}\n```'
     assert parse_reply(text)["ranks"] == ["cartservice"]
     assert parse_reply("no json here") == {}
+
+
+def test_the_llm_cited_services_lead_the_ranks():
+    report = {
+        "candidates": [{"service": "redis"}, {"service": "frontend"}],
+        "evidence": [
+            {"ref": "L1", "service": "redis", "template_id": 3},
+            {"ref": "L2", "service": "cartservice", "template_id": 9},
+        ],
+        "answer": {"by": "llm", "hypotheses": [{"cause": "cart", "cites": ["T9"]}]},
+    }
+    assert ranks(report, SERVICES + ["redis"])[:2] == ["cartservice", "redis"]
+    # the rules' own answer doesn't reorder anything
+    report["answer"]["by"] = "rules"
+    assert ranks(report, SERVICES + ["redis"])[0] == "redis"
+
+
+class Reply(BaseModel):
+    text: str
+
+
+class Echo:
+    def ask(self, schema, prompt):
+        if prompt == "boom":
+            raise TimeoutError("no reply")
+        return schema(text=prompt.upper())
+
+
+def test_transcript_keeps_every_prompt_reply_and_error(tmp_path):
+    log = tmp_path / "t.jsonl"
+    llm = Transcript(Echo(), log)
+    llm.case = "re3-ob-0001"
+    assert llm.ask(Reply, "hi").text == "HI"
+    try:
+        llm.ask(Reply, "boom")
+    except TimeoutError:
+        pass
+    ok, failed = [json.loads(line) for line in log.read_text().splitlines()]
+    assert ok["case_id"] == "re3-ob-0001" and ok["prompt"] == "hi" and ok["reply"] == {"text": "HI"}
+    assert failed["reply"] is None and failed["error"] == "TimeoutError: no reply"
