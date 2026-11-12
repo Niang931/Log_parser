@@ -34,7 +34,11 @@ def test_opposite_states_stay_distinct_event_types(snapshot):
 def test_unknown_line_is_pending_and_resolves_after_swap(snapshot):
     handle = ParserHandle(snapshot)
     pending = handle.parse(NEW_LINE)
-    assert (pending.template_id, pending.status, pending.payload) == (UniqueTemplateID.UNK_TEMPLATE_ID, "PENDING", {})
+    assert (pending.template_id, pending.status, pending.payload) == (
+        UniqueTemplateID.UNK_TEMPLATE_ID,
+        "PENDING",
+        {},
+    )
 
     registry = SchemaRegistry(snapshot)
     learned = calibrate([NEW_LINE], OfflineAdapter()).snapshot

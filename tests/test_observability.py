@@ -1,59 +1,75 @@
+import json
 import socket
+from contextlib import nullcontext
 
 import pytest
 
-from logpipe import observability as obs
+from logpipe.observability import Datadog
+from logpipe.settings import DatadogSettings
+
+
+@pytest.fixture
+def settings(tmp_path):
+    return DatadogSettings(log_file=tmp_path / "dd.jsonl", service="shop")
 
 
 @pytest.fixture(autouse=True)
-def _clean(monkeypatch):
-    for k in ("DD_ENABLED", "DD_LLMOBS_ENABLED", "DD_AGENT_HOST"):
-        monkeypatch.delenv(k, raising=False)
-    yield
-    obs._statsd = None
+def _no_llmobs(monkeypatch):
+    """LLMObs.enable is process-wide; never really turn it on in tests."""
+    monkeypatch.setattr("ddtrace.llmobs.LLMObs.enable", lambda **_: None)
 
 
 def test_off_by_default_and_calls_are_noops():
-    assert obs.init() is False
-    with obs.stage("parse"):
+    dd = Datadog()
+    assert not dd.enabled and not dd.logging_on() and not dd.llm_on
+    with dd.stage("parse"):
         pass
-    obs.incr("lines", 1, "status:final")
-    obs.gauge("enrich.backlog", 3)
+    dd.incr("lines", 1, "status:final")
+    dd.gauge("enrich.backlog", 3)
+    dd.log(message="x")
 
 
-def test_bad_host_turns_off_not_crash(monkeypatch):
-    monkeypatch.setenv("DD_ENABLED", "1")
-
+def test_bad_host_turns_off_not_crash(monkeypatch, settings):
     def boom(_host):
         raise socket.gaierror
 
     monkeypatch.setattr(socket, "gethostbyname", boom)
-    assert obs.init() is False
-    with obs.stage("parse"):
+    dd = Datadog(settings)
+    assert not dd.enabled and not dd.logging_on()
+    with dd.stage("parse"):
         pass
 
 
-def test_llmobs_enable_error_means_off(monkeypatch):
-    monkeypatch.setenv("DD_LLMOBS_ENABLED", "1")
-    monkeypatch.setattr("ddtrace.llmobs.LLMObs.enable", lambda **_: (_ for _ in ()).throw(ValueError("no key")))
-    assert obs.init_llm() is False
+def test_llmobs_enable_error_means_llm_off(monkeypatch, settings):
+    def no_key(**_):
+        raise ValueError("no key")
+
+    monkeypatch.setattr("ddtrace.llmobs.LLMObs.enable", no_key)
+    dd = Datadog(settings)
+    assert dd.enabled and not dd.llm_on
 
 
-def test_on_times_stage_and_counts_error_then_reraises(monkeypatch):
-    monkeypatch.setenv("DD_ENABLED", "1")
-    assert obs.init() is True  # UDP to a closed port: no Agent needed
+def test_on_times_stage_and_counts_error_then_reraises(monkeypatch, settings):
+    dd = Datadog(settings)  # UDP to a closed port: no Agent needed
+    assert dd.enabled
     sent = []
-    monkeypatch.setattr(obs._statsd, "distribution", lambda m, v, tags: sent.append(("d", m, tags)))
-    monkeypatch.setattr(obs._statsd, "increment", lambda m, *a, tags: sent.append(("i", m, tags)))
-    with pytest.raises(RuntimeError), obs.stage("store"):
+    monkeypatch.setattr(dd._statsd, "distribution", lambda m, v, tags: sent.append(("d", m, tags)))
+    monkeypatch.setattr(dd._statsd, "increment", lambda m, *a, tags: sent.append(("i", m, tags)))
+    with pytest.raises(RuntimeError), dd.stage("store"):
         raise RuntimeError
-    assert sent == [("i", "logpipe.stage.errors", ["stage:store"]),
-                    ("d", "logpipe.stage.duration", ["stage:store"])]
+    assert sent == [
+        ("i", "logpipe.stage.errors", ["stage:store"]),
+        ("d", "logpipe.stage.duration", ["stage:store"]),
+    ]
 
 
-def test_traced_is_identity_when_off_and_wraps_when_on(monkeypatch):
-    from contextlib import nullcontext
+def test_log_uses_configured_service(settings):
+    dd = Datadog(settings)
+    dd.log(message="hello")
+    assert json.loads(settings.log_file.read_text())["service"] == "shop"
 
+
+def test_traced_is_identity_when_off_and_wraps_when_on(monkeypatch, settings):
     class Fake:
         def __init__(self):
             self.key_vocab: list[str] = []
@@ -62,14 +78,26 @@ def test_traced_is_identity_when_off_and_wraps_when_on(monkeypatch):
             return list(tokens)
 
     fake = Fake()
-    assert obs.traced(fake, "offline") is fake
+    assert Datadog().traced(fake, "offline") is fake
 
     spans = []
-    monkeypatch.setattr(obs, "_llm_on", True)
     monkeypatch.setattr("ddtrace.llmobs.LLMObs.llm", lambda **kw: spans.append(kw) or nullcontext())
     monkeypatch.setattr("ddtrace.llmobs.LLMObs.annotate", lambda **kw: None)
-    wrapped = obs.traced(fake, "llm:anthropic:m")
+    wrapped = Datadog(settings).traced(fake, "llm:anthropic:m")
     assert wrapped.name_keys(["a"]) == ["a"]
-    assert spans == [{"model_name": "llm:anthropic:m", "model_provider": "anthropic", "name": "name_keys"}]
+    assert spans == [
+        {"model_name": "llm:anthropic:m", "model_provider": "anthropic", "name": "name_keys"}
+    ]
     wrapped.key_vocab = ["x"]  # writes through, like CountedAdapter
     assert fake.key_vocab == ["x"]
+
+
+def test_cli_turns_datadog_on_only_with_the_flag(monkeypatch, tmp_path):
+    from logpipe import cli
+
+    monkeypatch.setenv("DD_LOG_FILE", str(tmp_path / "dd.jsonl"))
+    seen = []
+    monkeypatch.setattr(cli, "_run", lambda args: seen.append(cli._datadog(args).enabled))
+    cli.main(["run"])
+    cli.main(["run", "--datadog"])
+    assert seen == [False, True]

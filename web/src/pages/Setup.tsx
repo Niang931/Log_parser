@@ -6,7 +6,7 @@ import { api, useAction, usePoll, type Batch, type Job, type Settings, type Sour
 import { Card, JobRow, Loading, Meter, PageHead, Stepper, TimeAgo, fmt, sourceLabel } from "../ui";
 import { InstallStep, KeyStep } from "./AddAgent";
 import { ReviewBatch } from "./Review";
-import { StreamsEditor } from "./Streams";
+import { GroupsCard, StreamsEditor } from "./Streams";
 
 interface SetupState {
   keys: number;
@@ -19,7 +19,7 @@ interface SetupState {
   review: Batch | null;
 }
 
-const STEPS = ["API key", "Agents", "Sources", "Sample", "Streams", "Review", "Train"];
+const STEPS = ["API key", "Agents", "Sources", "Sample", "Streams & groups", "Review", "Train"];
 
 function Screen({ n, title, intro, children }: { n: number; title: string; intro: ReactNode; children: ReactNode }) {
   return (
@@ -153,9 +153,13 @@ export default function Setup() {
         )}
 
         {step === 4 && (
-          <Screen n={4} title="Group sources into streams (optional)"
-            intro={<>Each stream trains its own anomaly model on the sources in it. Every source starts with a stream of its own, and a new one joins the stream of a source like it (same service). Group sources that behave alike, such as IoT gateways, by ticking them into one stream. You can change this any time under Streams.</>}>
+          <Screen n={4} title="Streams and groups (optional)"
+            intro={<>Each stream trains its own anomaly model on the sources in it. Every source starts with a stream of its own, and a new one joins the stream of a source like it (same service). Tick sources that behave alike, such as IoT gateways, into one stream. You can change both any time under Streams.</>}>
+            <h3 style={{ margin: "0 0 8px" }}>Streams</h3>
             <StreamsEditor compact />
+            <p className="muted small" style={{ margin: "20px 0 8px", maxWidth: "75ch" }}>A group puts the streams of one system together, e.g. <em>mail</em> = the ldap and proxy streams, <em>iot</em> = cameras and sensors.
+              Ask then covers all of a group's services when you name it ("why is mail down?"), and the LLM is told which services depend on each other.</p>
+            <GroupsCard />
           </Screen>
         )}
 

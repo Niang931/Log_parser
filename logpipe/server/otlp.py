@@ -6,6 +6,7 @@ Each log record becomes one intake event. Semantic-convention attributes give it
 else the instrumentation scope); ``severity`` becomes a ``severity:<level>`` tag, which the
 level facet trusts over guessing from the text.
 """
+
 from __future__ import annotations
 
 import json
@@ -62,13 +63,35 @@ def _level(record: dict) -> str | None:
     number = record.get("severityNumber")
     if isinstance(number, str):  # protobuf JSON gives the enum name, e.g. SEVERITY_NUMBER_WARN
         name = number.removeprefix("SEVERITY_NUMBER_").rstrip("0123456789").lower()
-        return {"trace": "debug", "debug": "debug", "info": "info", "warn": "warn",
-                "error": "error", "fatal": "error"}.get(name)
+        return {
+            "trace": "debug",
+            "debug": "debug",
+            "info": "info",
+            "warn": "warn",
+            "error": "error",
+            "fatal": "error",
+        }.get(name)
     if isinstance(number, int) and number > 0:
-        return "debug" if number <= 8 else "info" if number <= 12 else "warn" if number <= 16 else "error"
+        return (
+            "debug"
+            if number <= 8
+            else "info"
+            if number <= 12
+            else "warn"
+            if number <= 16
+            else "error"
+        )
     text = str(record.get("severityText") or "").lower()
-    for prefix, lvl in (("fatal", "error"), ("crit", "error"), ("err", "error"), ("warn", "warn"),
-                        ("info", "info"), ("notice", "info"), ("debug", "debug"), ("trace", "debug")):
+    for prefix, lvl in (
+        ("fatal", "error"),
+        ("crit", "error"),
+        ("err", "error"),
+        ("warn", "warn"),
+        ("info", "info"),
+        ("notice", "info"),
+        ("debug", "debug"),
+        ("trace", "debug"),
+    ):
         if text.startswith(prefix):
             return lvl
     return None
@@ -97,19 +120,32 @@ def events(request: dict) -> list[dict]:
                 if body is None or body == "":
                     continue
                 attrs = _attrs(rec.get("attributes"))
-                nanos = int(rec.get("timeUnixNano") or 0) or int(rec.get("observedTimeUnixNano") or 0)
-                ts = (datetime.fromtimestamp(nanos / 1e9, tz=UTC).astimezone(zone) if nanos
-                      else datetime.now(UTC)).isoformat()
-                tags = [str(t) for t in (attrs.get("logpipe.tags") or res.get("logpipe.tags") or [])]
+                nanos = int(rec.get("timeUnixNano") or 0) or int(
+                    rec.get("observedTimeUnixNano") or 0
+                )
+                ts = (
+                    datetime.fromtimestamp(nanos / 1e9, tz=UTC).astimezone(zone)
+                    if nanos
+                    else datetime.now(UTC)
+                ).isoformat()
+                tags = [
+                    str(t) for t in (attrs.get("logpipe.tags") or res.get("logpipe.tags") or [])
+                ]
                 if level := _level(rec):
                     tags.append(f"severity:{level}")
-                out.append({
-                    "ts": ts,
-                    "host": attrs.get("host.name") or res.get("host.name") or "unknown",
-                    "service": res.get("service.name") or attrs.get("service.name") or "",
-                    "source": (res.get("logpipe.source") or attrs.get("log.file.name")
-                               or scope or "otlp"),
-                    "tags": tags,
-                    "message": body if isinstance(body, str) else json.dumps(body, default=str),
-                })
+                out.append(
+                    {
+                        "ts": ts,
+                        "host": attrs.get("host.name") or res.get("host.name") or "unknown",
+                        "service": res.get("service.name") or attrs.get("service.name") or "",
+                        "source": (
+                            res.get("logpipe.source")
+                            or attrs.get("log.file.name")
+                            or scope
+                            or "otlp"
+                        ),
+                        "tags": tags,
+                        "message": body if isinstance(body, str) else json.dumps(body, default=str),
+                    }
+                )
     return out

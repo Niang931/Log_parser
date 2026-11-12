@@ -70,8 +70,8 @@ demo: gen-iot ## end to end on the synthetic fleet
 	$(LOGPIPE) train-logbert --logs artifacts/fleet/history --epochs $(EPOCHS)
 	$(LOGPIPE) run --logs artifacts/fleet/test $(LLM_ARG)
 
-demo-datadog: ## incident for Datadog: slow then failing store (DD_ENABLED=1; PHASE=seconds each)
-	DD_ENABLED=1 $(RUN) python examples/datadog_incident.py --phase $(or $(PHASE),60)
+demo-datadog: ## incident for Datadog: slow then failing store (PHASE=seconds each)
+	$(RUN) python examples/datadog_incident.py --phase $(or $(PHASE),60)
 
 ## --- datasets (artifacts/datasets) ------------------------------------------
 

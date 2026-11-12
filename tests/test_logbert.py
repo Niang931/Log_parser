@@ -28,17 +28,27 @@ def test_vocab_maps_unknown_and_reserved_ids_to_unk():
 
 def test_masking_never_masks_unknowns_and_is_deterministic_for_prediction():
     seq = [5, UNK, 6, 7, UNK, 8]
-    inputs, labels = mask_sequence(sequence=seq, vocab_size=10, mask_ratio=1.0, rng=random.Random(0), predict=True)
+    inputs, labels = mask_sequence(
+        sequence=seq, vocab_size=10, mask_ratio=1.0, rng=random.Random(0), predict=True
+    )
     assert inputs[0] == SOS
     assert [labels[i + 1] for i, tok in enumerate(seq) if tok == UNK] == [0, 0]
     assert all(inputs[i + 1] == MASK for i, tok in enumerate(seq) if tok != UNK)
-    first = mask_sequence(sequence=seq, vocab_size=10, mask_ratio=0.5, rng=predict_rng(seq), predict=True)
-    assert first == mask_sequence(sequence=seq, vocab_size=10, mask_ratio=0.5, rng=predict_rng(seq), predict=True)
+    first = mask_sequence(
+        sequence=seq, vocab_size=10, mask_ratio=0.5, rng=predict_rng(seq), predict=True
+    )
+    assert first == mask_sequence(
+        sequence=seq, vocab_size=10, mask_ratio=0.5, rng=predict_rng(seq), predict=True
+    )
 
 
 def test_ensure_one_masks_short_windows():
     inputs, labels = mask_sequence(
-        sequence=[5, 6], vocab_size=10, mask_ratio=0.0, rng=random.Random(0), predict=True,
+        sequence=[5, 6],
+        vocab_size=10,
+        mask_ratio=0.0,
+        rng=random.Random(0),
+        predict=True,
         ensure_one=True,
     )
     assert sum(1 for x in labels if x) == 1 and MASK in inputs
@@ -62,7 +72,8 @@ def trained():
     vocab = TemplateVocab.build(normal)
     encoded = [vocab.encode(s) for s in normal]
     result = train_logbert(
-        encoded[30:], encoded[:30],
+        encoded[30:],
+        encoded[:30],
         LogBERTConfig(len(vocab), hidden=32, layers=1, attn_heads=2, max_len=16),
         TrainConfig(epochs=12, patience=12, batch_size=32, unk_ratio=0.0),
         log=lambda _: None,
@@ -107,7 +118,9 @@ def test_unknown_modes_change_the_model_input_not_the_novelty_count(trained):
     window = [2, 3, 99, 5, 6, 7, 2, 3, 99, 5, 6, 7]
     counts = {}
     for mode in get_args(UnknownMode):
-        scorer = LogBERTScorer.from_training(result, vocab, settings=ScorerSettings(unknown_mode=mode))
+        scorer = LogBERTScorer.from_training(
+            result, vocab, settings=ScorerSettings(unknown_mode=mode)
+        )
         (score,) = scorer.score([window])
         counts[mode] = (score.unknown, score.length)
     assert set(counts.values()) == {(2, 12)}
@@ -139,5 +152,9 @@ def test_explain_looks_at_every_event_and_says_what_was_expected(trained):
     for i, e in enumerate(events):
         if i != 8:
             assert e["status"] in ("expected", "unexpected")
-            assert window[i] not in e["expected"] and set(e["expected"]) <= set(CYCLE) and len(e["expected"]) <= 3
+            assert (
+                window[i] not in e["expected"]
+                and set(e["expected"]) <= set(CYCLE)
+                and len(e["expected"]) <= 3
+            )
     assert scorer.explain(window) == events  # deterministic: no random masking

@@ -63,7 +63,8 @@ class CycleReport:
     queue_lag: int | None = None
     # Per-row outcomes, for tracing one line through the loop (the demo's timeline).
     resolved_rows: list[tuple[str, int]] = field(default_factory=list)  # (log_id, template_id)
-    requeued_rows: list[tuple[str, int, str]] = field(default_factory=list)  # (log_id, attempts, why)
+    # (log_id, attempts, why)
+    requeued_rows: list[tuple[str, int, str]] = field(default_factory=list)
     dead_letter_rows: list[tuple[str, str]] = field(default_factory=list)  # (log_id, why)
     llm_calls: int = 0
     llm_errors: int = 0
@@ -261,8 +262,11 @@ class EnrichmentWorker:
 
         with self.publish_lock:
             # A review may have added these while the LLM was answering: skip what now parses.
-            keep = [i for i, line in enumerate(new_samples)
-                    if self.handle.parse(line).status != Status.FINAL]
+            keep = [
+                i
+                for i, line in enumerate(new_samples)
+                if self.handle.parse(line).status != Status.FINAL
+            ]
             if keep:
                 snapshot, ids = self.registry.publish(
                     [new_templates[i] for i in keep],
@@ -271,7 +275,9 @@ class EnrichmentWorker:
                 id_of = dict(zip(keep, ids))
                 report.published = ids
                 report.aliased = {id_of[i]: t for i, t in report.aliased.items() if i in id_of}
-                report.alias_decisions = {id_of[i]: d for i, d in report.alias_decisions.items() if i in id_of}
+                report.alias_decisions = {
+                    id_of[i]: d for i, d in report.alias_decisions.items() if i in id_of
+                }
 
                 # the live parser picks up the new snapshot
                 self.handle.swap(snapshot)

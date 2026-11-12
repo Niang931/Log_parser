@@ -29,7 +29,8 @@ def test_pipeline_closes_the_loop(snapshot):
     store = MemoryStore()
     worker = EnrichmentWorker(registry, handle, store, OfflineAdapter())
     detector = StreamingDetector(
-        FakeScorer(), DetectorConfig(window=5, stride=5, min_len=2, lateness=timedelta(0)),
+        FakeScorer(),
+        DetectorConfig(window=5, stride=5, min_len=2, lateness=timedelta(0)),
         resolver=lambda line: handle.parse(line).template_id,
     )
     pipeline = Pipeline(handle, store, worker=worker, detector=detector, enrich_every=1_000)
@@ -55,10 +56,10 @@ def test_pipeline_without_enrichment_leaves_rows_pending(snapshot):
     assert store.count_by_status() == {"FINAL": 17, "PENDING": len(NEW)}
 
 
-def test_pipeline_reports_stage_timings_and_line_counts(snapshot, monkeypatch):
+def test_pipeline_reports_stage_timings_and_line_counts(snapshot):
     from collections import Counter
 
-    from logpipe import observability as obs
+    from logpipe.observability import Datadog
 
     class Rec:
         def __init__(self):
@@ -71,8 +72,9 @@ def test_pipeline_reports_stage_timings_and_line_counts(snapshot, monkeypatch):
             self.calls[(name, tuple(tags))] += n
 
     rec = Rec()
-    monkeypatch.setattr(obs, "_statsd", rec)
-    Pipeline(ParserHandle(snapshot), MemoryStore()).run(_events())
+    dd = Datadog()
+    dd._statsd = rec
+    Pipeline(ParserHandle(snapshot), MemoryStore(), datadog=dd).run(_events())
     assert rec.calls[("logpipe.stage.duration", ("stage:parse",))] == 17 + len(NEW)
     assert rec.calls[("logpipe.stage.duration", ("stage:store",))] == 17 + len(NEW)
     assert rec.calls[("logpipe.lines", ("status:final",))] == 17
@@ -82,18 +84,14 @@ def test_pipeline_reports_stage_timings_and_line_counts(snapshot, monkeypatch):
 def test_pipeline_writes_json_lines_for_the_agent(snapshot, tmp_path, monkeypatch):
     import json
 
-    from logpipe import observability as obs
+    from logpipe.observability import Datadog
+    from logpipe.settings import DatadogSettings
 
-    monkeypatch.setenv("DD_ENABLED", "1")
-    monkeypatch.setenv("DD_LOG_FILE", str(tmp_path / "dd.jsonl"))
-    try:
-        assert obs.init() and obs.logging_on()
-        Pipeline(ParserHandle(snapshot), MemoryStore()).run(_events())
-    finally:
-        monkeypatch.delenv("DD_ENABLED")
-        obs.init()  # closes the file, turns everything off
+    monkeypatch.setattr("ddtrace.llmobs.LLMObs.enable", lambda **_: None)
+    dd = Datadog(DatadogSettings(log_file=tmp_path / "dd.jsonl"))
+    assert dd.logging_on()
+    Pipeline(ParserHandle(snapshot), MemoryStore(), datadog=dd).run(_events())
     rows = [json.loads(x) for x in (tmp_path / "dd.jsonl").read_text().splitlines()]
     assert len(rows) == 17 + len(NEW)
     assert all("message" in r and "template_id" in r for r in rows)
     assert sum(r["template"] is not None for r in rows) >= 17
-    assert not obs.logging_on()

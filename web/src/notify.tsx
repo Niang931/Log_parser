@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePoll, type Incident, type Job } from "./api";
 import type { MetricAlert } from "./pages/System";
-import { JOB_NAMES, jobTarget } from "./ui";
+import { JOB_NAMES, jobTarget, Switch } from "./ui";
 
 interface Toast { id: string; title: string; body: string; to: string; tone: "bad" | "good" | "info" }
 
@@ -112,10 +112,12 @@ export function DesktopToggle() {
     try { localStorage.setItem(DESKTOP, granted ? "on" : "off"); } catch { /* private window */ }
     setOn(granted);
   };
+  const denied = Notification.permission === "denied";
   return (
-    <label className="row small" title={Notification.permission === "denied" ? "Blocked in the browser's site settings" : "Anomalies and finished or failed jobs, while this tab is in the background"}>
-      <input type="checkbox" checked={on} onChange={toggle} disabled={Notification.permission === "denied"} />
-      Desktop notifications
-    </label>
+    <div className="stack" style={{ gap: 4 }}>
+      <Switch checked={on} onChange={toggle} disabled={denied} label="Desktop notifications" />
+      <span className="muted small">{denied ? "Blocked in this browser's site settings: allow notifications for this site there, then come back."
+        : "Anomalies, metric alerts and finished or failed jobs, while this tab is in the background."}</span>
+    </div>
   );
 }

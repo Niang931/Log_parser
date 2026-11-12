@@ -161,6 +161,28 @@ See [docs/agent-platform.md](docs/agent-platform.md) for the learning lifecycle 
 template review, streams, maintenance, retraining) and [agent/README.md](agent/README.md) for the
 agent's Datadog-style config and CLI.
 
+### AI assistant (MCP)
+
+The server exposes an MCP endpoint at `/mcp`. Claude Code and other MCP clients can use it to
+search logs, run read-only queries, investigate incidents and pre-review template batches.
+
+1. In the UI, open **Settings → API keys** and create a key with use **AI assistant**. Each person
+   should get their own key, so the UI shows whose assistant wrote a note or decided a draft.
+2. Connect Claude Code:
+
+   ```sh
+   claude mcp add --transport http logpipe https://<your-server>/mcp \
+     --header "Authorization: Bearer lp_..."
+   ```
+
+3. Ask in plain words, e.g. "investigate the latest open incident". You can also use the
+   `investigate_incident` and `review_batch` prompts.
+
+An assistant key can only read, save queries, write incident notes, and edit, merge, approve or
+reject drafts. It can't change an incident's status or apply a review batch: a person does that
+in the UI. Serve `/mcp` over HTTPS only. On MongoDB, also set `MONGO_READONLY_URI` so that
+`run_query` runs as a read-only database user.
+
 ## Calibration and evaluation
 
 `logpipe calibrate` reports **holdout coverage** for every run: the share of the newest 20%

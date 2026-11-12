@@ -3,6 +3,7 @@
 Device clocks drift and some lines carry no timestamp at all, so callers
 fall back to ingest time when nothing parses.
 """
+
 from __future__ import annotations
 
 import re
@@ -10,8 +11,13 @@ from datetime import UTC, datetime, timedelta, timezone, tzinfo
 
 _PATTERNS: list[tuple[re.Pattern[str], str]] = [
     # 2026-04-13 10:15:23.123 / 2026-04-13T10:15:23Z / ... 10:15:23 UTC / ... 10:15:23+08:00
-    (re.compile(r"(\d{4})[-/](\d{2})[-/](\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:[.,](\d{1,6}))?"
-                r"(?:\s?(Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?)(?![\d.:]))?"), "iso"),
+    (
+        re.compile(
+            r"(\d{4})[-/](\d{2})[-/](\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:[.,](\d{1,6}))?"
+            r"(?:\s?(Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?)(?![\d.:]))?"
+        ),
+        "iso",
+    ),
     # BGL: 2005-06-03-15.42.50.675872
     (re.compile(r"(\d{4})-(\d{2})-(\d{2})-(\d{2})\.(\d{2})\.(\d{2})(?:\.(\d{1,6}))?"), "iso"),
     # HDFS: 081109 203615
@@ -49,14 +55,17 @@ def _parse(text: str, local: tzinfo) -> tuple[datetime, bool] | None:
             year, mo, dd, hh, mi, ss = (int(g) for g in groups[:6])
             micro = int((groups[6] or "0").ljust(6, "0")[:6])
             written = groups[7] if len(groups) > 7 else None
-            return datetime(year, mo, dd, hh, mi, ss, micro, tzinfo=_zone(written, local)), bool(written)
+            return datetime(year, mo, dd, hh, mi, ss, micro, tzinfo=_zone(written, local)), bool(
+                written
+            )
         except ValueError:
             continue
     return None
 
 
-def event_time(raw: str, payload: dict[str, str], fallback: datetime | None = None,
-               local: tzinfo = UTC) -> datetime:
+def event_time(
+    raw: str, payload: dict[str, str], fallback: datetime | None = None, local: tzinfo = UTC
+) -> datetime:
     """The line's own time. A zone written in the line wins; a zone-less time is read as
     ``local`` (an agent's host clock), defaulting to UTC."""
     line = _parse(raw, local)

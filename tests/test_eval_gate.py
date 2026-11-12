@@ -10,12 +10,7 @@ from logpipe.eval.gate import collect, compare, run_gate, write_baseline
 
 def _write_results(root: Path, ga: float, fp: int, f1: float) -> None:
     (root / "parsing.json").write_text(
-        json.dumps(
-            [
-                {"system": "A", "GA": ga, "PA": 0.5},
-                {"system": "B", "GA": ga, "PA": 0.7},
-            ]
-        ),
+        json.dumps([{"system": "A", "GA": ga, "PA": 0.5}, {"system": "B", "GA": ga, "PA": 0.7}]),
         encoding="utf-8",
     )
     (root / "alias.json").write_text(
@@ -31,11 +26,7 @@ def _write_results(root: Path, ga: float, fp: int, f1: float) -> None:
     )
     (root / "iot").mkdir(exist_ok=True)
     (root / "iot" / "results.json").write_text(
-        json.dumps(
-            {
-                "variants": {"full": {"test": {"P": 0.6, "R": 0.5, "F1": f1}}},
-            }
-        ),
+        json.dumps({"variants": {"full": {"test": {"P": 0.6, "R": 0.5, "F1": f1}}}}),
         encoding="utf-8",
     )
 

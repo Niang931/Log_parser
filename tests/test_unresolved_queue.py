@@ -24,9 +24,6 @@ def _pending(line: str, device: str = "thermostat-TH-1") -> LogRow:
     return LogRow.from_result(result, device_id=device, timestamp=TS, raw_message=line)
 
 
-# -- codec ---------------------------------------------------------------------
-
-
 def test_row_round_trips_through_json():
     row = _pending('OTA update failed code=0x1F msg="disk full" retry=3')
     assert decode_row(encode_row(row)) == row
@@ -51,9 +48,6 @@ def test_partition_key_modes():
     assert partition_key(row, "shape") == shape_key(row.raw_message)
     with pytest.raises(ValueError):
         partition_key(row, "random")
-
-
-# -- memory queue --------------------------------------------------------------
 
 
 def test_memory_queue_batches_and_redelivers_until_committed():
@@ -95,9 +89,6 @@ def test_open_queue_kinds():
     assert isinstance(open_queue("memory", max_size=5), MemoryQueue)
     with pytest.raises(ValueError):
         open_queue("rabbitmq")
-
-
-# -- worker on the queue -------------------------------------------------------
 
 
 class FailingStore(MemoryStore):

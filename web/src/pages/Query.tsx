@@ -5,7 +5,8 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 import { useSearchParams } from "react-router-dom";
 import { api, useAction, usePoll, type QueryResult } from "../api";
 import { RANGES, TimeRange } from "../charts";
-import { Card, Empty, PageHead, fmt } from "../ui";
+import { AskPanel } from "../ask";
+import { Card, Empty, PageHead, Switch, fmt } from "../ui";
 
 interface Schema {
   engine: string; table: string; payload_access: string; measures: string[]; ops: string[];
@@ -71,7 +72,7 @@ function Builder({ spec, setSpec, schema, onRun, running }: { spec: Spec; setSpe
             <FieldSelect key={i} allowNone label={`Group by ${i + 1}`} fields={fields} value={spec.group_by[i] ?? ""}
               onChange={(v) => { const g = [...spec.group_by]; g[i] = v; setSpec({ ...spec, group_by: g.filter(Boolean) }); }} />
           ))}
-          <label className="row small"><input type="checkbox" checked={spec.over_time} onChange={(e) => setSpec({ ...spec, over_time: e.target.checked })} /> over time</label>
+          <Switch checked={spec.over_time} onChange={(on) => setSpec({ ...spec, over_time: on })} label="over time" />
         </div>
       </div>
       <div className="b-row"><span /><button className="btn primary" disabled={running}>{running ? "Running…" : "Run"}</button></div>
@@ -150,19 +151,17 @@ export default function Query() {
   const [params] = useSearchParams();
   const schema = usePoll<Schema>("/api/query/schema", 60000).data;
   const saved = usePoll<{ queries: Saved[] }>("/api/queries", 30000).data?.queries ?? [];
-  const [tab, setTab] = useState<"builder" | "sql" | "ask">(params.get("sql") ? "sql" : "builder");
+  const [tab, setTab] = useState<"builder" | "sql" | "ask">(params.get("sql") ? "sql" : params.get("tab") === "ask" || params.get("plan") ? "ask" : "builder");
   const [spec, setSpec] = useState<Spec>(EMPTY);
   const [sql, setSql] = useState(params.get("sql") ?? "");
-  const [question, setQuestion] = useState("");
   const [name, setName] = useState("");
   const [naming, setNaming] = useState(false);
   const build = useAction((s: Spec) => api<{ sql: string; result: QueryResult }>("/api/query/build", { method: "POST", json: s }));
   const run = useAction((q: string) => api<QueryResult>("/api/query", { method: "POST", json: { sql: q } }));
-  const ask = useAction((q: string) => api<{ sql: string }>("/api/query/ask", { method: "POST", json: { question: q } }));
   const save = useAction(() => api("/api/queries", { method: "POST", json: { name, sql: tab === "builder" ? build.data?.sql : sql, spec: tab === "builder" ? spec : null } }));
   const del = useAction((id: string) => api(`/api/queries/${id}`, { method: "DELETE" }));
   const result = tab === "builder" ? build.data?.result : run.data;
-  const error = tab === "builder" ? build.error : run.error ?? ask.error;
+  const error = tab === "builder" ? build.error : run.error;
   const currentSql = tab === "builder" ? build.data?.sql : sql;
 
   const insert = (text: string) => { setTab("sql"); setSql((s) => (s ? `${s}${s.endsWith(" ") || s.endsWith("\n") ? "" : " "}${text}` : `SELECT ${text}\nFROM ${schema?.table ?? "iot_logs"}`)); };
@@ -172,7 +171,7 @@ export default function Query() {
 
   return (
     <>
-      <PageHead title="Query" sub="Pick what you want to see, ask in plain English, or write SQL. Everything is read-only." />
+      <PageHead title="Query" sub="Pick what you want to see, ask a question (even why something broke), or write SQL. Everything is read-only." />
       <div className="query-layout">
         <aside className="query-side">
           <Card title="Saved">
@@ -211,21 +210,12 @@ export default function Query() {
             <div className="tabs" role="tablist" style={{ marginBottom: 12 }}>
               {(["builder", "ask", "sql"] as const).map((t) => (
                 <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>
-                  {t === "builder" ? "Builder" : t === "ask" ? "Ask in English" : "SQL"}
+                  {t === "builder" ? "Builder" : t === "ask" ? "Ask" : "SQL"}
                 </button>
               ))}
             </div>
             {tab === "builder" && <Builder spec={spec} setSpec={setSpec} schema={schema} running={build.isPending} onRun={() => build.mutate(spec)} />}
-            {tab === "ask" && (
-              <form className="stack" onSubmit={(e) => { e.preventDefault(); ask.mutate(question, { onSuccess: (r) => { setSql(r.sql); setTab("sql"); } }); }}>
-                <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. which hosts logged the most errors in the last hour?" aria-label="Question" />
-                <div className="row">
-                  <button className="btn primary" disabled={!question.trim() || ask.isPending}>{ask.isPending ? "Writing SQL…" : "Write the SQL"}</button>
-                  <span className="muted small">The LLM writes a query; you review it in the SQL tab before it runs.</span>
-                </div>
-                {ask.error && <div className="callout warn">{ask.error.message}</div>}
-              </form>
-            )}
+            {tab === "ask" && <AskPanel initialPlan={params.get("plan") ?? undefined} />}
             {tab === "sql" && (
               <form className="stack" style={{ gap: 8 }} onSubmit={(e) => { e.preventDefault(); run.mutate(sql); }}>
                 <textarea rows={8} className="mono" value={sql} spellCheck={false} aria-label="SQL" placeholder={`SELECT service, count() FROM ${schema?.table ?? "iot_logs"} GROUP BY service`}

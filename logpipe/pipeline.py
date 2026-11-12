@@ -3,6 +3,7 @@
 PENDING rows go to `class UnresolvedQueue`.  With the in-process queue the enrichment worker runs inside this loop every ``enrich_every`` lines;
 with Kafka this process can be a pure fast path (``worker=None``) and ``logpipe worker`` processes consume the topic.
 """
+
 from __future__ import annotations
 
 import random
@@ -19,7 +20,7 @@ from .anomaly.detector import DetectorConfig, StreamingDetector
 from .anomaly.scorer import Scorer
 from .enrich.llm import LLMAdapter
 from .enrich.worker import CycleReport, EnrichmentWorker
-from .observability import incr, log, log_alerts, logging_on, stage
+from .observability import Datadog
 from .parsing.frozen_parser import ParseResult, ParserHandle, Status
 from .progress import progress
 from .registry import SchemaRegistry
@@ -84,8 +85,10 @@ class Pipeline:
         detector: StreamingDetector | None = None,
         enrich_every: int = 5_000,
         queue: UnresolvedQueue | None = None,
+        datadog: Datadog | None = None,
     ):
         self.handle = handle
+        self.datadog = datadog or Datadog()
         self.store = store
         self.worker = worker
         self.detector = detector
@@ -94,7 +97,9 @@ class Pipeline:
         # online learner (the server holds a new source's lines until its templates are reviewed).
         self.hold: Callable[[LogEvent], bool] | None = None
         # PENDING rows go here. Defaults to the worker's own queue; a queue without a worker is the publish-only fast path (workers run elsewhere).
-        self.queue: UnresolvedQueue | None = (queue if queue is not None else (worker.queue if worker is not None else None))
+        self.queue: UnresolvedQueue | None = (
+            queue if queue is not None else (worker.queue if worker is not None else None)
+        )
         self.stats = PipelineStats()
         self._event_time: datetime | None = None
 
@@ -111,6 +116,7 @@ class Pipeline:
         enrich_every: int = 5_000,
         queue: UnresolvedQueue | None = None,
         publish_lock: AbstractContextManager | None = None,
+        datadog: Datadog | None = None,
     ) -> Pipeline:
         """Wire parser, enrichment and detector around one live registry.
 
@@ -118,55 +124,86 @@ class Pipeline:
         With adapter and scorer, the detector re-resolves PENDING lines against the latest registry when their window is scored.
         """
         handle = ParserHandle(registry.current)
-        worker = (EnrichmentWorker(registry, handle, store, adapter, registry_path=registry_path, queue=queue,
-                                   publish_lock=publish_lock)
+        worker = (
+            EnrichmentWorker(
+                registry,
+                handle,
+                store,
+                adapter,
+                registry_path=registry_path,
+                queue=queue,
+                publish_lock=publish_lock,
+            )
             if adapter is not None
             else None
         )
         detector = None
         if scorer is not None:
             detector = StreamingDetector(
-                scorer, detector_config,
+                scorer,
+                detector_config,
                 registry_version=lambda: handle.version,
                 resolver=(lambda line: handle.parse(line).template_id) if worker else None,
             )
-        return cls(handle, store, worker=worker, detector=detector, enrich_every=enrich_every, queue=queue)
+        return cls(
+            handle,
+            store,
+            worker=worker,
+            detector=detector,
+            enrich_every=enrich_every,
+            queue=queue,
+            datadog=datadog,
+        )
 
     def process(self, event: LogEvent) -> ParseResult:
+        dd = self.datadog
         start = time.perf_counter_ns()
-        with stage("parse"):
+        with dd.stage("parse"):
             result = self.handle.parse(event.line)
         self.stats.record_latency(time.perf_counter_ns() - start)
 
         # Agents send their local offset: a zone-less time in the line is that host's wall clock.
         local = event.time.tzinfo if event.time is not None and event.time.tzinfo else UTC
-        timestamp = event_time(event.line, result.payload, fallback=event.time or datetime.now(UTC),
-                               local=local).astimezone(UTC)
+        timestamp = event_time(
+            event.line, result.payload, fallback=event.time or datetime.now(UTC), local=local
+        ).astimezone(UTC)
         self._event_time = timestamp
         row = LogRow.from_result(
-            result, device_id=event.device_id, timestamp=timestamp, raw_message=event.line,
-            service=event.service, source=event.source, tags=event.tags,
+            result,
+            device_id=event.device_id,
+            timestamp=timestamp,
+            raw_message=event.line,
+            service=event.service,
+            source=event.source,
+            tags=event.tags,
         )
-        with stage("store"):
+        with dd.stage("store"):
             self.store.insert_logs([row])
-        if logging_on():
+        if dd.logging_on():
             entry = self.handle.snapshot.templates.get(result.template_id)
-            log(message=event.line, service=event.service or "logpipe", device_id=event.device_id,
-                template_id=result.template_id, template=" ".join(entry.tokens) if entry else None,
-                parse_status=str(result.status))
+            dd.log(
+                message=event.line,
+                service=event.service or dd.service,
+                device_id=event.device_id,
+                template_id=result.template_id,
+                template=" ".join(entry.tokens) if entry else None,
+                parse_status=str(result.status),
+            )
         self.stats.lines += 1
         if result.status == Status.FINAL:
             self.stats.final += 1
-            incr("lines", 1, "status:final")
+            dd.incr("lines", 1, "status:final")
         else:
             self.stats.pending += 1
-            incr("lines", 1, "status:pending")
+            dd.incr("lines", 1, "status:pending")
             if self.queue is not None and not (self.hold and self.hold(event)):
                 self.queue.publish(row)
 
         if self.detector is not None:
-            with stage("detect"):
-                alerts = self.detector.observe(event.device_id, result.template_id, timestamp, event.line)
+            with dd.stage("detect"):
+                alerts = self.detector.observe(
+                    event.device_id, result.template_id, timestamp, event.line
+                )
             self._alerts(alerts)
         if self.worker is not None and self.stats.lines % self.enrich_every == 0:
             self.enrich()
@@ -176,7 +213,7 @@ class Pipeline:
         if self.worker is None:
             return None
         self.store.flush()
-        with stage("enrich"):
+        with self.datadog.stage("enrich"):
             report = self.worker.run_cycle(now=self._event_time)
         if report.buffered == 0:
             return None
@@ -187,8 +224,8 @@ class Pipeline:
         if alerts:
             self.store.insert_alerts(alerts)
             self.stats.alerts.extend(alerts)
-            incr("anomalies", len(alerts))
-            log_alerts(alerts)
+            self.datadog.incr("anomalies", len(alerts))
+            self.datadog.log_alerts(alerts)
 
     def run(self, events: Iterable[LogEvent], *, total: int | None = None) -> PipelineStats:
         started = time.perf_counter()

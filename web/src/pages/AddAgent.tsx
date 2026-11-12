@@ -58,7 +58,7 @@ export function KeyStep({ token, onToken }: { token: string; onToken: (t: string
           <button className="btn primary" style={{ alignSelf: "flex-end" }} disabled={!pasted.trim().startsWith("lp_")}>Use it</button>
         </form>
       )}
-      <p className="muted small" style={{ margin: 0 }}>Agents send the key with every request. Revoke it any time under <Link to="/keys">API keys</Link>.</p>
+      <p className="muted small" style={{ margin: 0 }}>Agents send the key with every request. Revoke it any time under <Link to="/settings#keys">Settings → API keys</Link>.</p>
       {create.error && <div className="error-text">{create.error.message}</div>}
     </div>
   );

@@ -1,4 +1,5 @@
 """In-process store with ReplacingMergeTree semantics, for tests and offline runs."""
+
 from __future__ import annotations
 
 import threading
@@ -32,8 +33,15 @@ class MemoryStore:
 
     def fetch_pending(self, limit: int = 10_000, template_id: int | None = None) -> list[LogRow]:
         with self._lock:
-            pending = [r for r in self.rows.values() if (r.status == Status.PENDING if template_id is None
-                                                          else r.template_id == template_id)]
+            pending = [
+                r
+                for r in self.rows.values()
+                if (
+                    r.status == Status.PENDING
+                    if template_id is None
+                    else r.template_id == template_id
+                )
+            ]
         return sorted(pending, key=lambda r: r.timestamp)[:limit]
 
     def count_by_status(self) -> dict[str, int]:

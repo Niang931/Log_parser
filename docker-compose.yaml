@@ -7,11 +7,14 @@ services:
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
       CLICKHOUSE_DB: ${CLICKHOUSE_DB}
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+      CLICKHOUSE_READONLY_USER: ${CLICKHOUSE_READONLY_USER:-logpipe_ro}
+      CLICKHOUSE_READONLY_PASSWORD: ${CLICKHOUSE_READONLY_PASSWORD:-}
     ports:
       - "8123:8123"
       - "9000:9000"
     volumes:
       - clickhouse_data:/var/lib/clickhouse
+      - ./docker/clickhouse-init.sh:/docker-entrypoint-initdb.d/clickhouse-init.sh:ro
     ulimits:
       nofile:
         soft: 262144
@@ -82,7 +85,7 @@ services:
       retries: 10
       start_period: 15s
 
-  # --- the agent platform: `docker compose --profile platform up --build` ---------------
+  # the agent platform: `docker compose --profile platform up --build`
   # logpipe server (UI on http://localhost:8080), storing in the clickhouse service above.
   server:
     profiles: [platform]
@@ -95,6 +98,8 @@ services:
       CLICKHOUSE_USER: ${CLICKHOUSE_USER}
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
       CLICKHOUSE_DB: ${CLICKHOUSE_DB}
+      CLICKHOUSE_READONLY_USER: ${CLICKHOUSE_READONLY_USER:-logpipe_ro}
+      CLICKHOUSE_READONLY_PASSWORD: ${CLICKHOUSE_READONLY_PASSWORD:-}
       LLM_BACKEND: ${LLM_BACKEND:-offline}
       # Accepted as an agent API key, so the compose agent can ship before you create keys in the UI.
       LOGPIPE_BOOTSTRAP_KEY: ${LOGPIPE_BOOTSTRAP_KEY:-lp_compose_demo_key}
@@ -159,7 +164,7 @@ services:
 
   # Datadog Agent (optional): `mkdir -p .logpipe && docker compose --profile datadog up -d datadog-agent`
   # (mkdir first: if Docker creates .logpipe it is owned by root and the pipeline cannot write the log).
-  # Run the pipeline on the host with DD_ENABLED=1 (see .env.example). Needs DD_API_KEY in .env.
+  # Run the pipeline on the host with `logpipe run|worker|server --datadog`. Needs DD_API_KEY in .env.
   datadog-agent:
     profiles: [datadog]
     image: "gcr.io/datadoghq/agent:7"

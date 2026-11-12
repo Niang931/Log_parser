@@ -24,7 +24,9 @@ def test_report_without_labels_has_holdout_coverage(fixture_lines):
 
 def test_ground_truth_gives_deepparse_metrics_and_tuning(demo):
     lines, truth = GroundTruth.from_deepparse_dir(demo)
-    report = calibrate(lines, OfflineAdapter(), sample_size=50, ground_truth=truth, tune=True).report
+    report = calibrate(
+        lines, OfflineAdapter(), sample_size=50, ground_truth=truth, tune=True
+    ).report
     assert report.ga is not None and report.pa is not None and report.baseline_ga is not None
     assert report.tuning and max(r["GA"] for r in report.tuning) == report.ga
     assert report.ga >= report.baseline_ga
@@ -36,11 +38,14 @@ def test_baseline_matches_deepparse_evaluation_runner(demo, tmp_path):
     base.write_text(
         f"seed: 1337\nk: 50\nmode: offline\nstrict: false\n"
         f"dataset_dir: {tmp_path / 'data'}\nmask_dir: {tmp_path / 'masks'}\n"
-        f"output_dir: {tmp_path / 'out'}\nlog_dir: {tmp_path / 'logs'}\n", encoding="utf-8")
+        f"output_dir: {tmp_path / 'out'}\nlog_dir: {tmp_path / 'logs'}\n",
+        encoding="utf-8",
+    )
     config = tmp_path / "eval.yaml"
     config.write_text(
         f"base_config: {base}\ndatasets: [DemoTiny]\noutput_csv: {tmp_path / 'm.csv'}\n",
-        encoding="utf-8")
+        encoding="utf-8",
+    )
     row = EvaluationRunner(config).evaluate_dataset("DemoTiny")
 
     lines, truth = GroundTruth.from_deepparse_dir(demo)
@@ -64,6 +69,8 @@ def test_measure_mask_goes_after_timestamps():
 
 def test_from_deepparse_dir_rejects_misaligned_labels(tmp_path):
     (tmp_path / "raw.log").write_text("a\nb\n", encoding="utf-8")
-    (tmp_path / "templates.json").write_text(json.dumps({"entries": [{"template": "a", "cluster_id": 0}]}))
+    (tmp_path / "templates.json").write_text(
+        json.dumps({"entries": [{"template": "a", "cluster_id": 0}]})
+    )
     with pytest.raises(ValueError):
         GroundTruth.from_deepparse_dir(tmp_path)
