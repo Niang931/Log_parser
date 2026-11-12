@@ -28,6 +28,8 @@ SCRAPER  := $(RUN) python -m deepparse.ai_scraper
 # RCAEval runs in its own tool env: its baselines' deps stay out of ours
 RCAEVAL  := uvx --from 'RCAEval[core]' rcaeval-agent
 RCA_OUT  := $(EVAL_OUT)/rcaeval
+# docs: Material for MkDocs in its own tool env, so it isn't a project dependency
+MKDOCS   := NO_MKDOCS_2_WARNING=1 uvx --from mkdocs-material==9.8.1 mkdocs
 
 .DEFAULT_GOAL := help
 .PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo bench \
@@ -36,7 +38,7 @@ RCA_OUT  := $(EVAL_OUT)/rcaeval
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
         eval-rcaeval \
         web-setup web-login web-check web-ask \
-        test test-fast test-slow test-integration lint format typecheck check \
+        test test-fast test-slow test-integration lint format typecheck check docs docs-build \
         docker-up docker-down clean
 
 help: ## list targets
@@ -185,6 +187,12 @@ typecheck: ## pyright
 	$(PYRIGHT)
 
 check: lint typecheck test ## lint, typecheck and test
+
+docs: ## serve the docs site with live reload on http://127.0.0.1:8000
+	$(MKDOCS) serve
+
+docs-build: ## build the docs site into site/ (strict: fails on broken links)
+	$(MKDOCS) build --strict
 
 ## --- services ---------------------------------------------------------------
 
