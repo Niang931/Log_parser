@@ -10,6 +10,11 @@ EVAL_OUT ?= artifacts/eval
 HOLDOUT  ?= OpenSSH
 MASKS    ?=
 PYRIGHT  ?= pyright
+DATASET  ?= re3-ob
+VIA      ?= direct
+LIMIT    ?=
+VARIANTS ?=
+FRESH    ?=
 
 # .env is optional: load it only when it exists.
 RUN      := uv run $(if $(wildcard .env),--env-file .env)
@@ -20,12 +25,16 @@ LOGPIPE  := $(RUN) logpipe --browser $(WEB)
 EVAL     := $(LOGPIPE) eval --out $(EVAL_OUT) $(LLM_ARG)
 TRAIN    := --epochs $(EPOCHS) $(if $(THREADS),--threads $(THREADS))
 SCRAPER  := $(RUN) python -m deepparse.ai_scraper
+# RCAEval runs in its own tool env: its baselines' deps stay out of ours
+RCAEVAL  := uvx --from 'RCAEval[core]' rcaeval-agent
+RCA_OUT  := $(EVAL_OUT)/rcaeval
 
 .DEFAULT_GOAL := help
 .PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo bench \
         data data-loghub data-hdfs data-bgl \
         retrain-data retrain-eval \
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
+        eval-rcaeval \
         web-setup web-login web-check web-ask \
         test test-fast test-slow test-integration lint format typecheck check \
         docker-up docker-down clean
@@ -105,6 +114,15 @@ eval-hdfs: data-hdfs ## LogBERT on an HDFS subset
 
 eval-bgl: data-bgl ## LogBERT on a BGL subset
 	$(EVAL) logbert --dataset BGL $(TRAIN)
+
+eval-rcaeval: ## RCA on RCAEval cases, scored by RCAEval (DATASET VIA=direct|mcp LIMIT LLM VARIANTS FRESH=1)
+	test -d $(RCA_OUT)/tasks/$(DATASET) || $(RCAEVAL) export --dataset $(DATASET) \
+		--out $(RCA_OUT)/tasks --data-root $(RCA_OUT)/data
+	WEB_BROWSER=$(WEB) $(RUN) python -m logpipe.eval.rcaeval_bench $(RCA_OUT)/tasks/$(DATASET) --out $(RCA_OUT) \
+		--via $(VIA) $(if $(LIMIT),--limit $(LIMIT)) $(if $(filter direct,$(VIA)),$(LLM_ARG)) \
+		$(if $(VARIANTS),--variants $(VARIANTS)) $(if $(FRESH),--fresh)
+	for p in $(RCA_OUT)/preds.$(DATASET).*.jsonl; do echo "$$p"; \
+		$(RCAEVAL) evaluate --tasks $(RCA_OUT)/tasks/$(DATASET) --predictions "$$p" --report-chance; done
 
 eval-report: ## summarise EVAL_OUT into a report
 	$(EVAL) report

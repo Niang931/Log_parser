@@ -178,6 +178,10 @@ search logs, run read-only queries, investigate incidents and pre-review templat
 3. Ask in plain words, e.g. "investigate the latest open incident". You can also use the
    `investigate_incident` and `review_batch` prompts.
 
+The `ask` tool puts a question to logpipe's own root-cause analysis and returns its ranked
+report: when it broke, the candidate lines scored by anomaly × rarity × proximity with the reason
+for each score, and the evidence. Its queries are read-only, so the tool approves them itself.
+
 An assistant key can only read, save queries, write incident notes, and edit, merge, approve or
 reject drafts. It can't change an incident's status or apply a review batch: a person does that
 in the UI. Serve `/mcp` over HTTPS only. On MongoDB, also set `MONGO_READONLY_URI` so that
@@ -197,10 +201,33 @@ similarity threshold.
 | `make eval-alias` | alias decisions on labelled template pairs (same event vs. opposite states) |
 | `make eval-iot` | end-to-end on the synthetic fleet with a firmware rollout and injected anomalies, plus ablations |
 | `make eval-hdfs` / `make eval-bgl` | LogBERT on CPU-sized HDFS/BGL subsets: `[UNK]` / `[MASK]` / drop, novelty on/off |
+| `make eval-rcaeval` | root cause on [RCAEval](https://github.com/phamquiluan/RCAEval) failure cases, scored by RCAEval (AC@k, Avg@k) |
 
 `make eval` runs all of them and then `make eval-report`. Results go to `artifacts/eval/`
 (`EVAL_OUT=...` to change); the latest numbers and findings are in
 [docs/evaluation.md](docs/evaluation.md). Training benchmarks take `EPOCHS=` and `THREADS=`.
+
+`make eval-rcaeval DATASET=re3-ob` exports the dataset as RCAEval's blind task view, answers each
+case and scores the answers with `rcaeval-agent evaluate`. RCAEval runs through `uvx`, so it isn't
+a dependency. Each case gets a fresh server that calibrates on the logs before the fault, then
+reads the rest. `VIA=direct` (the default) asks the RCA pipeline, with and without LogBERT and
+semantic search. `VIA=mcp` serves the case and lets Claude Code investigate it over `/mcp`, with the
+`ask` tool and without it; that path costs LLM tokens, so start with `LIMIT=3`.
+
+```sh
+make eval-rcaeval DATASET=re3-ob                                          # rules only
+make eval-rcaeval DATASET=re3-ob LLM=llm:web:gemini BROWSER=chromium      # + Gemini (web)
+make eval-rcaeval DATASET=re3-ob VIA=mcp                                  # Claude Code over /mcp
+```
+
+Runs are cached in `artifacts/eval/rcaeval/`: an answered case and a saved LLM reply are reused,
+so a stopped or repeated run only does what's missing, and a failed case is retried.
+`FRESH=1` redoes everything. Every report, LLM prompt and reply, and agent stream (tool calls
+and results) is kept in `artifacts/eval/rcaeval/transcripts/`. Logs only: the datasets with logs are `re2-ob`, `re2-ss`, `re2-tt`,
+`re3-ob` and `re3-tt`, and only the service level is scored (the indicator level needs metrics).
+Resource faults (`re2`: cpu, mem, disk, delay, loss) leave few traces in logs; the code-level
+faults of `re3` are the fair test. The cases hold about 10 minutes of logs before the fault, so
+`LOGPIPE_RCA_BEFORE_MINUTES` and the other `LOGPIPE_RCA_*` settings change the window to fit.
 
 Datasets go to `artifacts/datasets/`. The eval targets fetch what they need, or download
 up front with `make data` (all), `make data-loghub`, `make data-hdfs` or `make data-bgl`.

@@ -31,6 +31,9 @@ class ChatSite:
     error_banners: tuple[str, ...] = ()
     # Answers a signed-out visitor, so ``login`` is optional.
     anonymous: bool = False
+    # A cookie banner's "reject all" button, and what expands the banner when it is hidden.
+    reject_cookies: tuple[str, ...] = ()
+    more_cookie_options: tuple[str, ...] = ()
 
 
 SITES: dict[str, ChatSite] = {
@@ -45,6 +48,11 @@ SITES: dict[str, ChatSite] = {
         logged_out=("a[href*='ServiceLogin']", "a[aria-label='Sign in']"),
         error_banners=("model-response .error-message", "snack-bar-container"),
         anonymous=True,
+        reject_cookies=(
+            "button[aria-label='Reject all']",
+            "button:has-text('Reject all')",
+        ),
+        more_cookie_options=(".cdk-overlay-container button:has-text('Read more')",),
     ),
     "claude": ChatSite(
         name="Claude",
