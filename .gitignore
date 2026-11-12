@@ -36,3 +36,6 @@ artifacts/
 web/node_modules/
 logpipe/server/static/
 agent/logpipe-agent
+
+# MkDocs build output
+site/
