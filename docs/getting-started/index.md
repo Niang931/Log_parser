@@ -15,4 +15,5 @@ so next time you can run it directly.
 
 1. [Install](install.md): uv, Docker, `.env`, optional extras (Go, Node, a browser for web LLMs).
 2. [Run it](run.md): each mode step by step, with what you should see.
-3. [Commands](commands.md): every `logpipe` subcommand and `make` target.
+3. [Install the agent](agent.md): ship a host's logs, from a container or a Go build.
+4. [Commands](commands.md): every `logpipe` subcommand and `make` target.

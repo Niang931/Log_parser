@@ -12,53 +12,105 @@
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
   <a href="https://niang931.github.io/Log_parser/"><img alt="Docs" src="https://img.shields.io/badge/docs-niang931.github.io-1e88e5?logo=materialformkdocs&logoColor=white"></a>
-  <img alt="Python 3.13" src="https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white">
-  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-server-009688?logo=fastapi&logoColor=white">
-  <img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-LogBERT-EE4C2C?logo=pytorch&logoColor=white">
-  <img alt="ClickHouse" src="https://img.shields.io/badge/ClickHouse-store-FFCC01?logo=clickhouse&logoColor=black">
-  <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-store-47A248?logo=mongodb&logoColor=white">
-  <img alt="Kafka" src="https://img.shields.io/badge/Kafka-queue-231F20?logo=apachekafka&logoColor=white">
-  <img alt="Go" src="https://img.shields.io/badge/Go-agent-00ADD8?logo=go&logoColor=white">
-  <img alt="React" src="https://img.shields.io/badge/React-UI-61DAFB?logo=react&logoColor=black">
   <img alt="OpenTelemetry" src="https://img.shields.io/badge/OpenTelemetry-OTLP%2FHTTP-425CC7?logo=opentelemetry&logoColor=white">
   <img alt="MCP" src="https://img.shields.io/badge/MCP-%2Fmcp-000000?logo=anthropic&logoColor=white">
 </p>
 
 ---
+<p align="center">
+  <img src="docs/assets/log-explorer.png" alt="logpipe Log Explorer: live histogram by level, facets by service, host and source, and parsed log lines">
+</p>
 
-logpipe takes raw log lines from files, Go agents on your hosts or any OpenTelemetry sender and:
+---
 
-- **parses** each one on a sub-millisecond hot path (frozen Drain, about 30 µs at the median), storing
-  lines it doesn't know as `PENDING` instead of waiting;
-- **learns** templates for those lines in the background (cluster → validate → name fields → link
-  rewordings → registry vN+1 → hot-swap → back-fill), with an LLM that is optional and never trusted;
-- **detects** unusual sequences per device or stream with LogBERT, plus a novelty signal and fleet
-  suppression so a rollout doesn't page you;
-- **explains** incidents: a deterministic RCA engine finds when it broke and ranks evidence; an LLM
-  writes a cited answer, or says the evidence is insufficient; every read can require approval;
-- **serves** an operator UI, a SQL / visual query layer, and an MCP endpoint for Claude Code.
+## Features
+
+| Feature | What it does |
+|---|---|
+| **Parse** | Each line goes through a sub-millisecond hot path (frozen Drain, about 30 µs at the median). Lines it doesn't know are stored as `PENDING` instead of waiting. |
+| **Learn** | Templates for those lines are learned in the background: cluster → validate → name fields → link rewordings → registry vN+1 → hot-swap → back-fill. The LLM is optional and never trusted. |
+| **Detect** | LogBERT flags unusual sequences per device or stream, plus a novelty signal and fleet suppression so a rollout doesn't page you. |
+| **Explain** | A deterministic RCA engine finds when it broke and ranks evidence; an LLM writes a cited answer, or says the evidence is insufficient. Every read can require approval. |
+| **Serve** | An operator UI, a SQL / visual query layer, and an MCP endpoint for Claude Code. |
+
 
 ## Overview
 
 ```mermaid
 flowchart LR
-    subgraph hosts[Your hosts]
-        A1[logpipe-agent<br/>files · journald · docker · syslog]
-        A2[OpenTelemetry<br/>Collector / SDK]
+    subgraph hosts["💻 Your hosts"]
+        direction TB
+        F["Files"]
+        J["journald"]
+        DK["Docker"]
+        SL["syslog"]
+        AG["logpipe-agent<br/><i>Go · tails, batches, retries</i>"]
+        OT["OpenTelemetry<br/><i>Collector / SDK</i>"]
+        F & J & DK & SL --> AG
     end
-    A1 -- OTLP/HTTP --> P
-    A2 -- OTLP/HTTP --> P
-    subgraph server[logpipe server]
-        P[Frozen parser<br/>registry vN] -->|FINAL / PENDING| ST[(Store<br/>memory · ClickHouse · MongoDB)]
-        P -->|PENDING| Q[[Unresolved queue<br/>memory · Kafka]]
-        Q --> W[Online learner<br/>LLM optional, output validated]
-        W -->|registry vN+1, hot-swap| P
-        W -->|back-fill| ST
-        P --> D[LogBERT detector] -->|alerts| ST
-        ST --> RCA[Ask / RCA<br/>anchor → evidence → cited answer]
+
+    AG -- "OTLP/HTTP<br/>POST /v1/logs" --> P
+    OT -- "OTLP/HTTP<br/>POST /v1/logs" --> P
+
+    subgraph server["logpipe server"]
+        direction LR
+        subgraph hot["Hot path · ~30 µs"]
+            P["Frozen Drain parser<br/><i>registry vN</i>"]
+        end
+        subgraph learn["Online learning · background"]
+            Q[["Unresolved queue<br/><i>memory · Kafka</i>"]]
+            W["Learner<br/>cluster → validate →<br/>name fields → link rewordings"]
+            LLM(["LLM<br/><i>optional, output validated</i>"])
+            Q --> W
+            LLM -.-> W
+        end
+        ST[("Store<br/><i>memory · ClickHouse · MongoDB</i>")]
+        subgraph detect["Detection"]
+            D["LogBERT<br/><i>per device / stream</i>"]
+            N["Novelty +<br/>fleet suppression"]
+            D --> N
+        end
+        subgraph explain["Ask / RCA"]
+            RCA["Deterministic RCA<br/>anchor → ranked evidence"]
+            ANS["Cited answer<br/><i>or ‘insufficient evidence’</i>"]
+            RCA --> ANS
+        end
+
+        P -- "FINAL / PENDING" --> ST
+        P -- "PENDING" --> Q
+        W == "registry vN+1<br/>hot-swap" ==> P
+        W -- "back-fill" --> ST
+        P --> D
+        N -- "alerts" --> ST
+        ST --> RCA
     end
-    server --> UI[Operator UI]
-    server --> MCP["/mcp · Claude Code"]
+
+    ST --> UI["Operator UI<br/><i>explorer · query · alerts</i>"]
+    ANS --> UI
+    ST --> SQL["SQL / visual query<br/><i>/api/query</i>"]
+    ANS --> MCP["/mcp<br/><i>Claude Code</i>"]
+
+    classDef src fill:#1e293b,stroke:#64748b,color:#e2e8f0
+    classDef hotc fill:#1e3a8a,stroke:#60a5fa,color:#fff
+    classDef learnc fill:#3b0764,stroke:#c084fc,color:#fff
+    classDef store fill:#064e3b,stroke:#34d399,color:#fff
+    classDef det fill:#7f1d1d,stroke:#f87171,color:#fff
+    classDef rca fill:#78350f,stroke:#fbbf24,color:#fff
+    classDef out fill:#0f172a,stroke:#94a3b8,color:#e2e8f0
+    class F,J,DK,SL,AG,OT src
+    class P hotc
+    class Q,W,LLM learnc
+    class ST store
+    class D,N det
+    class RCA,ANS rca
+    class UI,SQL,MCP out
+    style hosts fill:#0f172a,stroke:#475569,color:#cbd5e1
+    style server fill:#0b1220,stroke:#475569,color:#cbd5e1
+    style hot fill:#172554,stroke:#3b82f6,color:#bfdbfe
+    style learn fill:#2e1065,stroke:#a855f7,color:#e9d5ff
+    style detect fill:#450a0a,stroke:#ef4444,color:#fecaca
+    style explain fill:#451a03,stroke:#f59e0b,color:#fde68a
+    linkStyle default stroke:#94a3b8,stroke-width:1.5px
 ```
 
 ## Quick start
@@ -69,24 +121,31 @@ make setup                       # uv sync + .env
 uv run logpipe                   # interactive: asks what to run and starts it
 ```
 
-| Try | Command |
-|---|---|
-| The pipeline live in a browser (synthetic IoT fleet, ~10 s to start) | `uv run logpipe demo` |
-| A guided tour: server, a web shop's logs, a real agent, an outage | `uv run logpipe showcase --auto` |
-| The platform: agents + server + UI on :8080 | `docker compose --profile platform up --build` |
-| Your own log files in batch | `make calibrate train run` (with `LOGS_PATH` in `.env`) |
-| Connect Claude Code | `claude mcp add --transport http logpipe http://localhost:8080/mcp --header "Authorization: Bearer lp_..."` |
-| Every benchmark | `make eval` |
-| Root cause on RCAEval | `make eval-rcaeval DATASET=re3-ob [LLM=llm:web:gemini BROWSER=chromium \| VIA=mcp]` |
-| Tests | `make test-fast` · `make test` · `make test-integration` |
-| Docs locally | `make docs` |
+## Install the agent
 
-Requirements: [uv](https://docs.astral.sh/uv/) (installs Python 3.13); Docker for ClickHouse, MongoDB
-and Kafka; Go 1.23+ to build the agent. The LLM is optional: `offline` rules, a hosted API
-(`llm:anthropic`, …), a fine-tuned local model (`hf`, GPU) or your own signed-in web chat
-(`llm:web:gemini`, no API key).
+Ship a host's logs to the server with `logpipe-agent` 
+1. create an **Agent** key under **Settings → API keys** first
+2. Paste the **API key** and **URL** into the command below
 
-## Results
+```sh
+docker run -d --name logpipe-agent --restart unless-stopped \
+  -e LOGPIPE_ENDPOINT=http://logpipe.example:8080 -e LOGPIPE_API_KEY=lp_xxx -e LOGPIPE_HOSTNAME=$(hostname) \
+  -v /var/log:/var/log:ro -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -v logpipe-agent:/var/lib/logpipe-agent ghcr.io/niang931/logpipe-agent:latest
+```
+
+or from source (Go 1.23+), no root needed
+
+```sh
+cd agent && go build -o logpipe-agent .
+./logpipe-agent init --endpoint http://logpipe.example:8080 --api-key lp_xxx
+./logpipe-agent track '/var/log/myapp/*.log' --service myapp --source java --auto-multiline
+./logpipe-agent check && ./logpipe-agent run
+```
+
+See full guide here: [Install the agent](https://niang931.github.io/Log_parser/getting-started/agent/).
+
+## Benchmark
 
 | What | Benchmark | Result |
 |---|---|---|
@@ -96,8 +155,6 @@ and Kafka; Go 1.23+ to build the agent. The LLM is optional: `offline` rules, a 
 | IoT fleet end to end | firmware rollout + 5 anomaly kinds | F1 0.56 (0.34 without fleet suppression) |
 | Root cause, real testbed | RCAEval RE3-OB, 30 code-level faults | AC@1: rules **0.40** → + Gemini **0.70** → Claude Code over MCP **0.87–0.90** |
 | Hot path | IoT replay | parse p50 **32 µs**, p99 68 µs; ~10k lines/s per server core |
-
-Methods and caveats: [Benchmarks](https://niang931.github.io/Log_parser/benchmarks/).
 
 ## Documentation
 
@@ -109,26 +166,6 @@ Methods and caveats: [Benchmarks](https://niang931.github.io/Log_parser/benchmar
 | [Guides](https://niang931.github.io/Log_parser/guides/code-structure/) | code structure, replacing components, configuration, maintenance, CI |
 | [Security](https://niang931.github.io/Log_parser/security/) | threat model and defences |
 | [Design records](https://niang931.github.io/Log_parser/plan/) | personas, feature plans and technical decisions |
-
-The same pages are in [`docs/`](docs/).
-
-## Repository
-
-```
-logpipe/      the product: parsing, registry, learner, LogBERT, server, Ask/RCA, MCP, evals
-DeepParse/    mask synthesis, Drain engine, chat providers, web-chat driver
-agent/        logpipe-agent (Go collector)
-web/          operator UI (React + Vite)
-tests/        pytest (DeepParse/tests for DeepParse)
-docs/         documentation site (MkDocs Material)
-```
-
-## License
-
-logpipe is released under the [MIT License](LICENSE). The vendored `DeepParse/` directory stays under
-the Apache License 2.0 ([DeepParse/LICENSE](DeepParse/LICENSE)). Third-party code, models and
-datasets, with their licenses and the changes made, are listed in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Acknowledgements
 

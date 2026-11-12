@@ -63,6 +63,7 @@ nav:
       - getting-started/index.md
       - Install: getting-started/install.md
       - Run it: getting-started/run.md
+      - Install the agent: getting-started/agent.md
       - Commands: getting-started/commands.md
   - Architecture:
       - architecture/index.md

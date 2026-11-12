@@ -78,9 +78,9 @@ cd web && npm ci && npm run dev                # UI dev server on :5173, proxies
 cd agent && go build -o logpipe-agent . && ./logpipe-agent -h
 ```
 
-Install an agent on a real host: see `agent/README.md` (Datadog-style `agent.yaml` +
-`conf.d/`, Docker or a static binary, no root needed). Anything that speaks OTLP/HTTP logs can
-send to `POST /v1/logs` too. [Server and learning lifecycle →](../agent-platform.md)
+Install an agent on a real host: [Install the agent](agent.md) (container or Go binary, no root
+needed). Anything that speaks OTLP/HTTP logs can send to `POST /v1/logs` too.
+[Server and learning lifecycle →](../agent-platform.md)
 
 ## 5. Batch: a directory of log files
 
