@@ -5,6 +5,7 @@ repo_url: https://github.com/Niang931/Log_parser
 repo_name: Niang931/Log_parser
 edit_uri: edit/main/docs/
 docs_dir: docs
+copyright: logpipe is released under the MIT License. DeepParse/ is Apache-2.0. See THIRD_PARTY_NOTICES.md.
 strict: true
 
 theme:
