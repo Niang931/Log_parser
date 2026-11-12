@@ -50,15 +50,17 @@ Candidate services: {services}.
 Reply with only a JSON object, most likely first: {{"ranks": ["<service>", ...], "reasoning": "<one sentence>"}}"""
 
 
-def read_logs(path: Path) -> list[tuple[datetime, str, str]]:
-    """``(time, service, message)`` per row of an RCAEval ``logs.csv``, in time order."""
+def read_logs(path: Path) -> list[tuple[datetime, str, str, str]]:
+    """``(time, service, host, message)`` per row of an RCAEval ``logs.csv``, in time order."""
     csv.field_size_limit(sys.maxsize)
     rows = []
     with path.open(newline="", encoding="utf-8") as f:
         for r in csv.DictReader(f):
             ns = r.get("timestamp")
             ts = int(ns) / 1e9 if ns else float(r["time"])
-            rows.append((datetime.fromtimestamp(ts, UTC), r["container_name"], r["message"]))
+            service = r["container_name"]
+            host = r.get("pod_name") or service
+            rows.append((datetime.fromtimestamp(ts, UTC), service, host, r["message"]))
     rows.sort(key=lambda r: r[0])
     return rows
 
@@ -74,12 +76,12 @@ def load_case(case_dir: Path, adapter_factory=None, epochs: int = 4, start_threa
     server, client = make_server(data_dir, adapter_factory, epochs, start_threads)
     rows = read_logs(case_dir / task["files"].get("logs", "logs.csv"))
     split = next((i for i, r in enumerate(rows) if r[0] >= inject), len(rows))
-    for i, (ts, service, message) in enumerate(rows):
+    for i, (ts, service, host, message) in enumerate(rows):
         if i == split:
             _calibrate(server, client)
         server.process(
             LogEvent(
-                device_id=service,
+                device_id=host,
                 source=service,
                 line_no=0,
                 line=message,
