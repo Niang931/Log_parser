@@ -201,6 +201,33 @@ class RcaSettings(BaseSettings):
         )
 
 
+class DatadogSettings(BaseSettings):
+    """Datadog: self-monitoring through the Agent (``--datadog``) and the REST loop with a customer's
+    org (``--datadog-pull``, events, pipelines, webhook). Same ``DD_*`` names the Agent uses."""
+
+    model_config = _env("DD_")
+    service: str = "logpipe"
+    site: str = "datadoghq.com"
+    agent_host: str = "127.0.0.1"
+    dogstatsd_port: int = 8125
+    log_file: Path = Path(".logpipe/dd-logs.jsonl")
+    llmobs_ml_app: str = "logpipe"
+    api_key: str | None = None
+    app_key: str | None = None
+    pull_query: str = ""  # Logs search query, e.g. "service:shop*"; empty means no pulling
+    pull_every_s: float = 15
+    public_url: str = ""  # where Datadog event links point, e.g. the tunnel URL of `logpipe server`
+
+    @property
+    def api_url(self) -> str:
+        return f"https://api.{self.site}"
+
+    @property
+    def app_url(self) -> str:
+        # datadoghq.com is app.datadoghq.com; every other site (us5., datadoghq.eu) is its own host
+        return "https://app.datadoghq.com" if self.site == "datadoghq.com" else f"https://{self.site}"
+
+
 class Settings(BaseModel):
     model_config = ConfigDict(frozen=True)
     app: AppSettings = Field(default_factory=AppSettings)
@@ -211,6 +238,7 @@ class Settings(BaseModel):
     server: ServerSettings = Field(default_factory=ServerSettings)
     ask: AskSettings = Field(default_factory=AskSettings)
     rca: RcaSettings = Field(default_factory=RcaSettings)
+    datadog: DatadogSettings = Field(default_factory=DatadogSettings)
 
 
 @lru_cache(maxsize=1)
