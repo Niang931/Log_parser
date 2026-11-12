@@ -120,7 +120,7 @@ def _traffic(server, gen: ShopGenerator, start: datetime, end: datetime) -> None
         t += ORDER_EVERY
 
 
-def make_server(data_dir: Path, adapter_factory=None, epochs: int = 4, start_threads=False):
+def make_server(data_dir: Path, adapter_factory=None, epochs: int = 4):
     """A memory-store server and a test client on its app, as every eval builds it."""
     from fastapi.testclient import TestClient
 
@@ -136,7 +136,7 @@ def make_server(data_dir: Path, adapter_factory=None, epochs: int = 4, start_thr
         data_dir=data_dir,
         adapter_factory=adapter_factory or (lambda: get_adapter("offline")),
         epochs=epochs,
-        start_threads=start_threads,
+        start_threads=False,
         min_train_steps=0,
     )
     return server, TestClient(create_app(server))

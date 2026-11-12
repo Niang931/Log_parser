@@ -65,7 +65,7 @@ def read_logs(path: Path) -> list[tuple[datetime, str, str, str]]:
     return rows
 
 
-def load_case(case_dir: Path, adapter_factory=None, epochs: int = 4, start_threads=False):
+def load_case(case_dir: Path, adapter_factory=None, epochs: int = 4):
     """The case's task and a server that has read its logs: calibrated on the lines before the
     fault, then given the rest."""
     from ..sources.file_replay import LogEvent
@@ -73,7 +73,7 @@ def load_case(case_dir: Path, adapter_factory=None, epochs: int = 4, start_threa
     task = json.loads((case_dir / "task.json").read_text("utf-8"))
     inject = datetime.fromtimestamp(task["inject_time"], UTC)
     data_dir = Path(tempfile.mkdtemp(prefix=f"rcaeval-{task['case_id']}-"))
-    server, client = make_server(data_dir, adapter_factory, epochs, start_threads)
+    server, client = make_server(data_dir, adapter_factory, epochs)
     rows = read_logs(case_dir / task["files"].get("logs", "logs.csv"))
     split = next((i for i, r in enumerate(rows) if r[0] >= inject), len(rows))
     for i, (ts, service, host, message) in enumerate(rows):
@@ -136,6 +136,7 @@ def answer_mcp(world: World, task: dict, blocked: list[str], agent_cmd: list[str
 
     server = world.server
     _, token = server.create_key("rcaeval-bench", KeyScope.MCP)
+    asked_before = {p["id"] for p in server.ask.recent(100)}
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]
@@ -144,6 +145,9 @@ def answer_mcp(world: World, task: dict, blocked: list[str], agent_cmd: list[str
     )
     thread = threading.Thread(target=http.run, daemon=True)
     thread.start()
+    # the ask tool's rounds run as server jobs
+    jobs = threading.Thread(target=server._job_loop, daemon=True)
+    jobs.start()
     while not http.started:
         time.sleep(0.05)
     inject = datetime.fromtimestamp(task["inject_time"], UTC)
@@ -168,12 +172,15 @@ def answer_mcp(world: World, task: dict, blocked: list[str], agent_cmd: list[str
     if blocked:
         cmd += ["--disallowedTools", ",".join(blocked)]
     try:
+        # on stdin: list flags like --allowedTools would swallow a trailing prompt argument
         done = subprocess.run(
-            [*cmd, prompt], capture_output=True, text=True, timeout=1200, check=False
+            cmd, input=prompt, capture_output=True, text=True, timeout=1200, check=False
         )
     finally:
         http.should_exit = True
+        server._stop.set()
         thread.join()
+        jobs.join()
         config.unlink(missing_ok=True)
     if done.returncode:
         raise RuntimeError(f"agent exited {done.returncode}: {done.stderr[-500:]}")
@@ -187,10 +194,20 @@ def answer_mcp(world: World, task: dict, blocked: list[str], agent_cmd: list[str
         ),
         "reasoning": reply.get("reasoning", ""),
         "usage": {
-            "input_tokens": usage.get("input_tokens"),
+            # cached prompt tokens are input too
+            "input_tokens": sum(
+                usage.get(k) or 0
+                for k in (
+                    "input_tokens",
+                    "cache_creation_input_tokens",
+                    "cache_read_input_tokens",
+                )
+            ),
             "output_tokens": usage.get("output_tokens"),
             "cost_usd": out.get("total_cost_usd"),
             "tool_calls": out.get("num_turns"),
+            # questions the agent put to the RCA through the ask tool
+            "ask_calls": len({p["id"] for p in server.ask.recent(100)} - asked_before),
         },
     }
 
@@ -228,7 +245,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument(
         "--agent-cmd",
         default="claude -p --output-format json",
-        help="mcp: the agent CLI; gets --mcp-config, --allowedTools and the prompt appended",
+        help="mcp: the agent CLI; gets --mcp-config and --allowedTools appended, the prompt on stdin",
     )
     args = ap.parse_args(argv)
 
@@ -265,7 +282,7 @@ def main(argv: list[str] | None = None) -> None:
             started = time.perf_counter()
             task = json.loads((case / "task.json").read_text("utf-8"))
             try:
-                _, world = load_case(case, epochs=args.epochs, start_threads=args.via == "mcp")
+                _, world = load_case(case, epochs=args.epochs)
                 error = None
             # one broken case must not end a long run: it's scored as a miss
             except Exception as e:  # noqa: BLE001
