@@ -166,6 +166,28 @@ def _schemas():
     return KeysOut, AliasOut
 
 
+@lru_cache(maxsize=1)
+def _pii_guards():
+    """LangChain's PII middleware, one per built-in type; redacting keeps the type
+    (``[REDACTED_IP]``) so the model can still name the slot."""
+    from langchain.agents.middleware import PIIMiddleware
+
+    return [
+        PIIMiddleware(kind, strategy="redact")
+        for kind in ("email", "credit_card", "ip", "mac_address", "url")
+    ]
+
+
+def scrub(messages: list) -> list:
+    """Run the PII middleware over ``messages`` before they reach a hosted model."""
+    for guard in _pii_guards():
+        # shortcut: we call the hook outside create_agent; it never reads runtime. Switch to
+        # create_agent(middleware=...) if this module ever becomes an agent.
+        out = guard.before_model({"messages": messages}, None)  # pyright: ignore[reportArgumentType]
+        messages = out["messages"] if out else messages
+    return messages
+
+
 class ChatAdapter(OfflineAdapter):
     """Chat model through ``deepparse.providers``: hosted (``anthropic``, ``openai``, ...) or
     ``web``, a signed-in browser driven by ``deepparse.ai_scraper``."""
@@ -227,7 +249,7 @@ class ChatAdapter(OfflineAdapter):
             )
             self._runnables[schema] = self._provider.structured(chat, schema)
         _step(f"prompt sent to {self.provider_name}, waiting for the answer")
-        result = self._runnables[schema].invoke([HumanMessage(prompt)])
+        result = self._runnables[schema].invoke(scrub([HumanMessage(prompt)]))
         parsed = result.get("parsed")
         reply = parsed.model_dump() if parsed is not None else None
         _step(

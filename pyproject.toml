@@ -19,6 +19,7 @@ dependencies = [
     "mcp>=2.3.0",
     "pydantic-settings>=2.6",
     "sentence-transformers>=3.0",
+    "langchain>=1.0",
 ]
 
 [project.scripts]
