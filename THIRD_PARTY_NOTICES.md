@@ -55,6 +55,7 @@ SOFTWARE.
 - Paper: Amir Shetaia, Sean Kauffman. *DeepParse: Hybrid Log Parsing with LLM-Synthesized Regex
   Masks.* Proceedings of the 30th International Conference on Evaluation and Assessment in
   Software Engineering (EASE 2026), ACM, Glasgow. To appear.
+  [arXiv:2604.20553](https://arxiv.org/abs/2604.20553)
 - License: Apache License 2.0 (see `DeepParse/LICENSE`; DeepParse's own dependency notices are
   in `DeepParse/THIRD_PARTY_NOTICES.md`). The `DeepParse/` directory stays under Apache-2.0.
 - Changes (NOTICE as required by section 4(b) of the Apache License):

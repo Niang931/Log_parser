@@ -132,25 +132,10 @@ datasets, with their licenses and the changes made, are listed in
 
 ## Acknowledgements
 
-logpipe builds on these projects and papers:
-
-- **DeepParse**: log parsing with LLM-synthesised regex masks; vendored and extended in `DeepParse/`
-  (Apache-2.0). Code: [NightBaRron1412/DeepParse](https://github.com/NightBaRron1412/DeepParse).
-  Paper: Amir Shetaia and Sean Kauffman, *DeepParse: Hybrid Log Parsing with LLM-Synthesized Regex
-  Masks*, EASE 2026 (ACM, to appear).
-- **LogBERT**: the anomaly detector, adapted in `logpipe/anomaly/logbert/` (MIT, Copyright (c) 2023
-  Helennnnn). Code: [HelenGuohx/logbert](https://github.com/HelenGuohx/logbert). Paper: Haixuan Guo,
-  Shuhan Yuan and Xintao Wu, *LogBERT: Log Anomaly Detection via BERT*, IJCNN 2021
-  ([arXiv:2103.04475](https://arxiv.org/abs/2103.04475)).
-- **BERT-pytorch**: the transformer code LogBERT's model derives from (Apache-2.0).
-  Code: [codertimo/BERT-pytorch](https://github.com/codertimo/BERT-pytorch).
-- **Drain**: the fixed-depth tree parser behind DeepParse's engine. Pinjia He, Jieming Zhu, Zibin
-  Zheng and Michael R. Lyu, *Drain: An Online Log Parsing Approach with Fixed Depth Tree*, ICWS 2017.
-- **Loghub / Loghub-2.0**: the parsing and anomaly-detection datasets. Jieming Zhu, Shilin He,
-  Pinjia He, Jinyang Liu and Michael R. Lyu, *Loghub: A Large Collection of System Log Datasets for
-  AI-driven Log Analytics*, ISSRE 2023 ([logpai/loghub](https://github.com/logpai/loghub)).
-- **RCAEval**: the root-cause benchmark (MIT). Luan Pham, Hongyu Zhang, Huong Ha, Flora Salim and
-  Xiuzhen Zhang, *RCAEval: A Benchmark for Root Cause Analysis of Microservice Systems with
-  Telemetry Data*, WWW 2025 Companion ([doi:10.1145/3701716.3715290](https://doi.org/10.1145/3701716.3715290),
-  [phamquiluan/RCAEval](https://github.com/phamquiluan/RCAEval)).
-- **all-MiniLM-L6-v2** (sentence-transformers, Apache-2.0): the text model behind Ask's template search.
+- **DeepParse**: Shetaia & Kauffman, *DeepParse: Hybrid Log Parsing with LLM-Synthesized Regex Masks*, EASE 2026 · [arXiv:2604.20553](https://arxiv.org/abs/2604.20553) · [code](https://github.com/NightBaRron1412/DeepParse) (Apache-2.0, vendored in `DeepParse/`)
+- **LogBERT**: Guo, Yuan & Wu, *LogBERT: Log Anomaly Detection via BERT*, IJCNN 2021 · [arXiv:2103.04475](https://arxiv.org/abs/2103.04475) · [code](https://github.com/HelenGuohx/logbert) (MIT, adapted in `logpipe/anomaly/logbert/`)
+- **BERT-pytorch**: the transformer code LogBERT derives from · [code](https://github.com/codertimo/BERT-pytorch) (Apache-2.0)
+- **Drain**: He, Zhu, Zheng & Lyu, *Drain: An Online Log Parsing Approach with Fixed Depth Tree*, ICWS 2017
+- **Loghub**: Zhu, He, He, Liu & Lyu, *Loghub: A Large Collection of System Log Datasets for AI-driven Log Analytics*, ISSRE 2023 · [data](https://github.com/logpai/loghub)
+- **RCAEval**: Pham, Zhang, Ha, Salim & Zhang, *RCAEval: A Benchmark for Root Cause Analysis of Microservice Systems with Telemetry Data*, WWW 2025 Companion · [doi](https://doi.org/10.1145/3701716.3715290) · [code](https://github.com/phamquiluan/RCAEval) (MIT)
+- **all-MiniLM-L6-v2**: sentence-transformers text model behind Ask's template search (Apache-2.0)
