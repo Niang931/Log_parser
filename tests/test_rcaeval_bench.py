@@ -68,10 +68,11 @@ def test_ranks_the_failing_service_first(tmp_path):
     [again] = [json.loads(line) for line in preds.read_text().splitlines()]
     assert again["ranks"][0] == "checkoutservice" and "error" not in again
 
-    # --fresh redoes it even though it's answered
+    # --fresh redoes it even though it's answered (a marked answer, since wall times can tie)
+    preds.write_text(json.dumps(again | {"reasoning": "stale"}))
     run(tasks, "--variants", "full", "--epochs", "1", "--fresh")
     [fresh] = [json.loads(line) for line in preds.read_text().splitlines()]
-    assert fresh["usage"]["wall_time_s"] != again["usage"]["wall_time_s"]
+    assert fresh["reasoning"] != "stale" and fresh["ranks"][0] == "checkoutservice"
 
 
 def test_ranks_keep_rcaeval_names_in_report_order():
