@@ -4,6 +4,7 @@ A rule is literal text with ``%{matcher:field}`` parts. Whitespace in the rule m
 of whitespace; ``%{matcher}`` without a name matches without extracting;
 ``%{regex("[a-f0-9]{8}"):id}`` takes a custom regex. A rule must match the whole line.
 """
+
 from __future__ import annotations
 
 import re
@@ -30,8 +31,16 @@ _PART = re.compile(r'%\{(\w+)(?:\("((?:[^"\\]|\\.)*)"\))?(?::([^}]*))?\}')
 # Nested quantifiers such as (a+)+ backtrack catastrophically on long lines.
 _NESTED = re.compile(r"\([^()]*[+*][^()]*\)[+*{]")
 # A mask label from calibration -> the matcher a default rule uses for it.
-_LABEL_MATCHER = (("TIME", "data"), ("DATE", "data"), ("IP", "ip"), ("UUID", "uuid"),
-                  ("PATH", "path"), ("URL", "notspace"), ("INT", "integer"), ("NUM", "number"))
+_LABEL_MATCHER = (
+    ("TIME", "data"),
+    ("DATE", "data"),
+    ("IP", "ip"),
+    ("UUID", "uuid"),
+    ("PATH", "path"),
+    ("URL", "notspace"),
+    ("INT", "integer"),
+    ("NUM", "number"),
+)
 
 
 @dataclass(frozen=True)
@@ -53,7 +62,7 @@ def compile_rule(text: str) -> Rule:
         raise ValueError("the rule is empty")
     pattern, keys, shape, pos = [], [], [], 0
     for m in _PART.finditer(text):
-        literal = text[pos:m.start()]
+        literal = text[pos : m.start()]
         pattern.append(_literal(literal))
         shape.append(literal)
         matcher, arg, name = m.group(1), m.group(2), m.group(3)
@@ -62,13 +71,17 @@ def compile_rule(text: str) -> Rule:
                 raise ValueError('regex needs a pattern: %{regex("[0-9a-f]+"):name}')
             body = arg.replace('\\"', '"')
             if _NESTED.search(body):
-                raise ValueError(f"regex {body!r} nests quantifiers like (a+)+, which can hang on long lines")
+                raise ValueError(
+                    f"regex {body!r} nests quantifiers like (a+)+, which can hang on long lines"
+                )
             try:
                 re.compile(body)
             except re.error as error:
                 raise ValueError(f"regex {body!r}: {error}") from error
         elif matcher not in MATCHERS:
-            raise ValueError(f"unknown matcher %{{{matcher}}}; use one of {', '.join([*MATCHERS, 'regex'])}")
+            raise ValueError(
+                f"unknown matcher %{{{matcher}}}; use one of {', '.join([*MATCHERS, 'regex'])}"
+            )
         else:
             body = MATCHERS[matcher]
         if name:
@@ -105,9 +118,11 @@ def rule_from_template(tokens: Sequence[str], keys: Sequence[str]) -> str:
     k = iter(keys)
     out = []
     for tok in tokens:
+
         def slot(m: re.Match) -> str:
             label = (m.group(1) or "").upper()
             matcher = next((mt for frag, mt in _LABEL_MATCHER if frag in label), "notspace")
             return f"%{{{matcher}:{next(k, 'field')}}}"
+
         out.append(SLOT_RE.sub(slot, tok))
     return " ".join(out)

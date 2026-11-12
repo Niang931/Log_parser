@@ -9,6 +9,7 @@ See THIRD_PARTY_NOTICES.md at the repository root for the full notices.
 
 What was changed, and why, is listed at the top of each module.
 """
+
 from .model import LogBERT, LogBERTConfig
 from .trainer import TrainConfig, TrainResult, train_logbert
 

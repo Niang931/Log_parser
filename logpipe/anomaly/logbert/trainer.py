@@ -71,7 +71,9 @@ def _sos_embeddings(
     outputs = []
     for start in range(0, len(sequences), batch_size):
         batch = [
-            mask_sequence(sequence=s, vocab_size=0, mask_ratio=0.0, rng=random.Random(0), predict=True)
+            mask_sequence(
+                sequence=s, vocab_size=0, mask_ratio=0.0, rng=random.Random(0), predict=True
+            )
             for s in sequences[start : start + batch_size]
         ]
         x, _ = collate(batch)

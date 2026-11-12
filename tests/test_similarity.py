@@ -38,8 +38,13 @@ def test_tokens_compatible_handles_composite_slots():
 
 def test_similarity_is_slot_aware_and_handles_length_changes():
     assert template_similarity(t("Relay state=<*>"), t("Relay state=on")) == 1.0
-    assert 0.5 < template_similarity(t("Connection to broker was established"),
-                                     t("Connection to broker established")) < 1.0
+    assert (
+        0.5
+        < template_similarity(
+            t("Connection to broker was established"), t("Connection to broker established")
+        )
+        < 1.0
+    )
 
 
 def test_opposite_states_cover_pairs_and_negating_prefixes():

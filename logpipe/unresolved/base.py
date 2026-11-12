@@ -30,9 +30,9 @@ class QueueStats:
     consumed: int = 0
     committed: int = 0
     dead_lettered: int = 0
-    spilled: int = 0            # Rows in local now, the broker couldn't take them (Kafka only).
-    dropped: int = 0            # Rows lost to a full local buffer, still PENDING in the store.
-    lag: int | None = None      # Messages consumer not processed (None = unknown).
+    spilled: int = 0  # Rows in local now, the broker couldn't take them (Kafka only).
+    dropped: int = 0  # Rows lost to a full local buffer, still PENDING in the store.
+    lag: int | None = None  # Messages consumer not processed (None = unknown).
 
     def to_json(self) -> dict:
         return asdict(self)
@@ -51,15 +51,12 @@ class UnresolvedQueue(Protocol):
         """Acknowledge the last consumed batch."""
         ...
 
-    def dead_letter(self, message: Message, reason: str) -> None:
-        ...
+    def dead_letter(self, message: Message, reason: str) -> None: ...
 
     def flush(self, timeout: float = 10.0) -> None:
         """Block until everything published so far is accepted (Parser)"""
         ...
 
-    def stats(self) -> QueueStats:
-        ...
+    def stats(self) -> QueueStats: ...
 
-    def close(self) -> None:
-        ...
+    def close(self) -> None: ...

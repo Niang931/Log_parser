@@ -41,7 +41,9 @@ class FrozenParser:
         for template_id, rule in self._rules:
             payload = rule.extract(line)
             if payload is not None:
-                return ParseResult(self.snapshot.canonical_id(template_id), Status.FINAL, payload, version)
+                return ParseResult(
+                    self.snapshot.canonical_id(template_id), Status.FINAL, payload, version
+                )
         cluster = self._engine.match(line)
 
         # If there is no pre-defined cluster

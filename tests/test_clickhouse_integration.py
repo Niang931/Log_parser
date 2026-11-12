@@ -83,8 +83,7 @@ def test_round_trip_insert_and_read(clickhouse: None) -> None:
             f"ALTER TABLE {table} UPDATE status = 'FINAL', event_id = 9 WHERE event_id = 1",
             database=DATABASE,
         )
-        _query(
-            f"SELECT count() FROM {table}", database=DATABASE
-        )  # mutation is async; the table stays readable
+        # mutation is async; the table stays readable
+        _query(f"SELECT count() FROM {table}", database=DATABASE)
     finally:
         _query(f"DROP TABLE IF EXISTS {table}", database=DATABASE)

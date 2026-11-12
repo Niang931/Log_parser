@@ -17,6 +17,7 @@ Changes from the original:
   runs over the same window could disagree.
 * The time-interval channel is dropped (``is_time=False`` in every config).
 """
+
 from __future__ import annotations
 
 import random
@@ -45,7 +46,6 @@ def mask_sequence(
     """
     inputs, labels = [SOS], [PAD]
     for token in sequence:
-
         # If UNK then we dont even consider masking the token
         if token == UNK:
             inputs.append(UNK)

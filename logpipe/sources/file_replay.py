@@ -1,4 +1,5 @@
 """Replay log files from a directory as a stream of events."""
+
 from __future__ import annotations
 
 import os
@@ -22,8 +23,12 @@ class LogEvent:
 
 
 def replay(root: Path) -> Iterator[LogEvent]:
-    paths = [root] if root.is_file() else sorted(
-        Path(dirpath) / name for dirpath, _dirs, files in os.walk(root) for name in files
+    paths = (
+        [root]
+        if root.is_file()
+        else sorted(
+            Path(dirpath) / name for dirpath, _dirs, files in os.walk(root) for name in files
+        )
     )
     for path in paths:
         with path.open("r", encoding="utf-8", errors="replace") as handle:

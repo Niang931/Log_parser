@@ -1,4 +1,5 @@
 """Collect ``artifacts/eval/*`` results into one markdown report."""
+
 from __future__ import annotations
 
 import json
@@ -101,21 +102,52 @@ def _parsing(root: Path) -> str:
     rows = []
     for r in tuned:
         u = plain.get(r["system"], {})
-        rows.append([r["system"], r.get("baseline_GA"), u.get("GA"), r["GA"],
-                     r.get("baseline_PA"), u.get("PA"), r["PA"], r.get("holdout_coverage")])
-    return "## Parsing: Loghub-2k (DeepParse GA/PA)\n\n" + PARSING_CAPTION + "\n\n" + _table(
-        ["system", "GA DeepParse", "GA logpipe", "GA logpipe+tuned",
-         "PA DeepParse", "PA logpipe", "PA logpipe+tuned", "holdout coverage"], rows)
+        rows.append(
+            [
+                r["system"],
+                r.get("baseline_GA"),
+                u.get("GA"),
+                r["GA"],
+                r.get("baseline_PA"),
+                u.get("PA"),
+                r["PA"],
+                r.get("holdout_coverage"),
+            ]
+        )
+    return (
+        "## Parsing: Loghub-2k (DeepParse GA/PA)\n\n"
+        + PARSING_CAPTION
+        + "\n\n"
+        + _table(
+            [
+                "system",
+                "GA DeepParse",
+                "GA logpipe",
+                "GA logpipe+tuned",
+                "PA DeepParse",
+                "PA logpipe",
+                "PA logpipe+tuned",
+                "holdout coverage",
+            ],
+            rows,
+        )
+    )
 
 
 def _alias(root: Path) -> str:
     data = _load(root / "alias.json")
     if not data:
         return ""
-    rows = [[name, r["precision"], r["recall"], r["FP"], r["FN"]]
-            for name, r in data["deciders"].items()]
-    return (f"## Alias decisions ({data['pairs']} labelled pairs)\n\n" + ALIAS_CAPTION + "\n\n"
-            + _table(["decider", "precision", "recall", "false merges", "missed merges"], rows))
+    rows = [
+        [name, r["precision"], r["recall"], r["FP"], r["FN"]]
+        for name, r in data["deciders"].items()
+    ]
+    return (
+        f"## Alias decisions ({data['pairs']} labelled pairs)\n\n"
+        + ALIAS_CAPTION
+        + "\n\n"
+        + _table(["decider", "precision", "recall", "false merges", "missed merges"], rows)
+    )
 
 
 def _logbert(root: Path, name: str) -> str:
@@ -125,15 +157,19 @@ def _logbert(root: Path, name: str) -> str:
     rows = []
     for r in data["results"]:
         t, o = r["test"], r["oracle_test"]
-        rows.append([r["unknown_mode"], "on" if r["novelty"] else "off",
-                     t["P"], t["R"], t["F1"], o["F1"]])
+        rows.append(
+            [r["unknown_mode"], "on" if r["novelty"] else "off", t["P"], t["R"], t["F1"], o["F1"]]
+        )
     seqs = data["sequences_after_min_len"]
     return (
         f"## LogBERT: {data['dataset']}\n\n{LOGBERT_CAPTION}\n\n"
         f"Sequences after min_len: {seqs}. Unknown-template share: {data['unknown_share']}. "
         f"Vocab {data['vocab_size']}, {data['train']['epochs']} epochs in {data['train']['seconds']} s. "
         f"Parse latency per unique line: {data['parse_latency_us']} µs.\n\n"
-        + _table(["unknowns", "novelty", "P", "R", "F1 (val-tuned)", "F1 (oracle, LogBERT protocol)"], rows)
+        + _table(
+            ["unknowns", "novelty", "P", "R", "F1 (val-tuned)", "F1 (oracle, LogBERT protocol)"],
+            rows,
+        )
     )
 
 
@@ -144,24 +180,59 @@ def _iot(root: Path) -> str:
     rows = []
     for name, v in data["variants"].items():
         t, e = v["test"], v["enrichment"]
-        rows.append([name, t["P"], t["R"], t["F1"], t["false_positive_reasons"],
-                     e["pending_rows_at_end"], e["resolve_lag_s"].get("p50"),
-                     v["pipeline"]["adapter_calls"]])
+        rows.append(
+            [
+                name,
+                t["P"],
+                t["R"],
+                t["F1"],
+                t["false_positive_reasons"],
+                e["pending_rows_at_end"],
+                e["resolve_lag_s"].get("p50"),
+                v["pipeline"]["adapter_calls"],
+            ]
+        )
     full = data["variants"].get("full", {})
     extra = ""
     if full:
-        extra = (f"\n\nRecall by anomaly kind (full): {full['test']['recall_by_kind']}\n\n"
-                 f"Parse latency (full): {full['pipeline']['parse_latency_us']} µs, "
-                 f"{full['pipeline']['lines_per_second']} lines/s end to end.")
-    return ("## IoT fleet, end to end\n\n" + IOT_CAPTION + "\n\n" + f"Events: {data['events']}.\n\n"
-            + _table(["variant", "P", "R", "F1", "FP reasons", "PENDING at end",
-                      "resolve lag p50 (s)", "adapter calls"], rows) + extra)
+        extra = (
+            f"\n\nRecall by anomaly kind (full): {full['test']['recall_by_kind']}\n\n"
+            f"Parse latency (full): {full['pipeline']['parse_latency_us']} µs, "
+            f"{full['pipeline']['lines_per_second']} lines/s end to end."
+        )
+    return (
+        "## IoT fleet, end to end\n\n"
+        + IOT_CAPTION
+        + "\n\n"
+        + f"Events: {data['events']}.\n\n"
+        + _table(
+            [
+                "variant",
+                "P",
+                "R",
+                "F1",
+                "FP reasons",
+                "PENDING at end",
+                "resolve lag p50 (s)",
+                "adapter calls",
+            ],
+            rows,
+        )
+        + extra
+    )
 
 
 def write_report(root: Path = Path("artifacts/eval")) -> Path:
-    sections = [_parsing(root), _alias(root), _iot(root),
-                _logbert(root, "hdfs"), _logbert(root, "bgl")]
+    sections = [
+        _parsing(root),
+        _alias(root),
+        _iot(root),
+        _logbert(root, "hdfs"),
+        _logbert(root, "bgl"),
+    ]
     out = root / "REPORT.md"
-    out.write_text("# Evaluation report\n\n" + INTRO + "\n\n" + "\n\n".join(s for s in sections if s) + "\n",
-                   encoding="utf-8")
+    out.write_text(
+        "# Evaluation report\n\n" + INTRO + "\n\n" + "\n\n".join(s for s in sections if s) + "\n",
+        encoding="utf-8",
+    )
     return out

@@ -42,7 +42,7 @@ cd web && npm ci && npm run dev                   # UI on :5173 (proxies /api) o
 cd agent && go build -o logpipe-agent . && ./logpipe-agent -h
 ```
 
-The agent's config format and CLI are documented in [agent/README.md](../agent/README.md).
+The agent's config format and CLI are documented in [agent/README.md](https://github.com/Niang931/Log_parser/blob/main/agent/README.md).
 
 ## Learning lifecycle
 

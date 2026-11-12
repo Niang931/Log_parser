@@ -137,7 +137,9 @@ class SchemaRegistry:
                     )
                 if new.alias_of is not None and new.alias_of not in templates:
                     raise ValueError(f"alias target {new.alias_of} is not registered")
-                templates[next_id] = TemplateEntry(next_id, new.tokens, new.keys, new.alias_of, new.rule)
+                templates[next_id] = TemplateEntry(
+                    next_id, new.tokens, new.keys, new.alias_of, new.rule
+                )
                 assigned.append(next_id)
                 next_id += 1
             snapshot = RegistrySnapshot(
@@ -160,10 +162,15 @@ class SchemaRegistry:
             if base.canonical_id(target) == template_id:
                 raise ValueError(f"template {target} already resolves to {template_id}")
             templates = dict(base.templates)
-            templates[template_id] = TemplateEntry(entry.template_id, entry.tokens, entry.keys, target, entry.rule)
+            templates[template_id] = TemplateEntry(
+                entry.template_id, entry.tokens, entry.keys, target, entry.rule
+            )
             self._snapshot = RegistrySnapshot(
-                version=base.version + 1, next_id=base.next_id, masks=base.masks,
-                templates=MappingProxyType(templates), key_vocab=base.key_vocab,
+                version=base.version + 1,
+                next_id=base.next_id,
+                masks=base.masks,
+                templates=MappingProxyType(templates),
+                key_vocab=base.key_vocab,
             )
             return self._snapshot
 
@@ -175,15 +182,21 @@ class SchemaRegistry:
             if entry is None or entry.alias_of is None:
                 raise ValueError(f"template {template_id} isn't linked to another template")
             templates = dict(base.templates)
-            templates[template_id] = TemplateEntry(entry.template_id, entry.tokens, entry.keys, None, entry.rule)
+            templates[template_id] = TemplateEntry(
+                entry.template_id, entry.tokens, entry.keys, None, entry.rule
+            )
             self._snapshot = RegistrySnapshot(
-                version=base.version + 1, next_id=base.next_id, masks=base.masks,
-                templates=MappingProxyType(templates), key_vocab=base.key_vocab,
+                version=base.version + 1,
+                next_id=base.next_id,
+                masks=base.masks,
+                templates=MappingProxyType(templates),
+                key_vocab=base.key_vocab,
             )
             return self._snapshot
 
-    def replace(self, template_id: int, tokens: Sequence[str], keys: Sequence[str],
-                rule: str | None = None) -> RegistrySnapshot:
+    def replace(
+        self, template_id: int, tokens: Sequence[str], keys: Sequence[str], rule: str | None = None
+    ) -> RegistrySnapshot:
         """Correct a template's text, field names or rule in place; its id (and stored rows) stay."""
         with self._lock:
             base = self._snapshot
@@ -193,10 +206,15 @@ class SchemaRegistry:
             if rule is None and len(keys) != len(slot_labels(tokens)):
                 raise ValueError(f"{len(slot_labels(tokens))} slots but {len(keys)} keys")
             templates = dict(base.templates)
-            templates[template_id] = TemplateEntry(template_id, tuple(tokens), tuple(keys), entry.alias_of, rule)
+            templates[template_id] = TemplateEntry(
+                template_id, tuple(tokens), tuple(keys), entry.alias_of, rule
+            )
             self._snapshot = RegistrySnapshot(
-                version=base.version + 1, next_id=base.next_id, masks=base.masks,
-                templates=MappingProxyType(templates), key_vocab=base.key_vocab | frozenset(keys),
+                version=base.version + 1,
+                next_id=base.next_id,
+                masks=base.masks,
+                templates=MappingProxyType(templates),
+                key_vocab=base.key_vocab | frozenset(keys),
             )
             return self._snapshot
 

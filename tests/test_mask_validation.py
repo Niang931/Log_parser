@@ -1,11 +1,6 @@
 from deepparse.masks_types import Mask
 
-from logpipe.enrich.validate import (
-    clean_keys,
-    generalize_digits,
-    safe_masks,
-    template_problem,
-)
+from logpipe.enrich.validate import clean_keys, generalize_digits, safe_masks, template_problem
 
 
 def test_template_problem_rejects_over_general_and_misfitting_templates():
@@ -32,6 +27,9 @@ def test_safe_masks_drops_invalid_and_backtracking_patterns():
 
 def test_generalize_digits_only_touches_literal_tokens():
     assert generalize_digits(("fault", "code=E165", "in", "6548ms", "x=<VAR:MEASURE>")) == (
-        "fault", "<*>", "in", "<*>", "x=<VAR:MEASURE>",
+        "fault",
+        "<*>",
+        "in",
+        "<*>",
+        "x=<VAR:MEASURE>",
     )
-

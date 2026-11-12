@@ -1,215 +1,178 @@
-# Log Parser 💅💅💅
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="logpipe logo" width="120">
+</p>
 
-A log ingestion and parsing tool with anomaly detection and template extraction.
+<h1 align="center">logpipe</h1>
 
-IoT log lines are parsed on a sub-millisecond hot path against a frozen Drain tree. Lines
-that match no known template are stored as `PENDING`, and a background enrichment loop
-learns templates for them and backfills the stored rows. Per-device sequences of template
-ids are scored by LogBERT.
+<p align="center">
+  <b>Streaming log parsing that learns new formats on its own, flags unusual sequences with LogBERT,<br>
+  and answers "why did it break?" with an evidence report that cites real log lines.</b>
+</p>
 
-```
-source ──► FrozenParser(vN) ──► hit:  template_id, payload, FINAL ──┬─► store (ClickHouse / memory)
-           (match-only Drain)    miss: UNK, PENDING ───────────────┤
-                                                                   ├─► detector: reorder buffer → windows → LogBERT
-                                                                   └─► enrichment worker:
-                       shadow Drain → validate → name keys → alias check → registry vN+1
-                       → hot-swap parser → re-parse buffer → backfill rows (higher version)
-```
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
+  <a href="https://niang931.github.io/Log_parser/"><img alt="Docs" src="https://img.shields.io/badge/docs-niang931.github.io-1e88e5?logo=materialformkdocs&logoColor=white"></a>
+  <img alt="OpenTelemetry" src="https://img.shields.io/badge/OpenTelemetry-OTLP%2FHTTP-425CC7?logo=opentelemetry&logoColor=white">
+  <img alt="MCP" src="https://img.shields.io/badge/MCP-%2Fmcp-000000?logo=anthropic&logoColor=white">
+</p>
 
-## Requirements
+---
+<p align="center">
+  <img src="docs/assets/log-explorer.png" alt="logpipe Log Explorer: live histogram by level, facets by service, host and source, and parsed log lines">
+</p>
 
-- [uv](https://docs.astral.sh/uv/)
-- Docker (for ClickHouse; the in-memory store works without it)
+---
 
-## Setup
+## Features
 
-```sh
-cp .env.example .env
-# edit .env if needed
-uv sync --group dev
+| Feature | What it does |
+|---|---|
+| **Parse** | Each line goes through a sub-millisecond hot path (frozen Drain, about 30 µs at the median). Lines it doesn't know are stored as `PENDING` instead of waiting. |
+| **Learn** | Templates for those lines are learned in the background: cluster → validate → name fields → link rewordings → registry vN+1 → hot-swap → back-fill. The LLM is optional and never trusted. |
+| **Detect** | LogBERT flags unusual sequences per device or stream, plus a novelty signal and fleet suppression so a rollout doesn't page you. |
+| **Explain** | A deterministic RCA engine finds when it broke and ranks evidence; an LLM writes a cited answer, or says the evidence is insufficient. Every read can require approval. |
+| **Serve** | An operator UI, a SQL / visual query layer, and an MCP endpoint for Claude Code. |
+
+
+## Overview
+
+```mermaid
+flowchart LR
+    subgraph hosts["💻 Your hosts"]
+        direction TB
+        F["Files"]
+        J["journald"]
+        DK["Docker"]
+        SL["syslog"]
+        AG["logpipe-agent<br/><i>Go · tails, batches, retries</i>"]
+        OT["OpenTelemetry<br/><i>Collector / SDK</i>"]
+        F & J & DK & SL --> AG
+    end
+
+    AG -- "OTLP/HTTP<br/>POST /v1/logs" --> P
+    OT -- "OTLP/HTTP<br/>POST /v1/logs" --> P
+
+    subgraph server["logpipe server"]
+        direction LR
+        subgraph hot["Hot path · ~30 µs"]
+            P["Frozen Drain parser<br/><i>registry vN</i>"]
+        end
+        subgraph learn["Online learning · background"]
+            Q[["Unresolved queue<br/><i>memory · Kafka</i>"]]
+            W["Learner<br/>cluster → validate →<br/>name fields → link rewordings"]
+            LLM(["LLM<br/><i>optional, output validated</i>"])
+            Q --> W
+            LLM -.-> W
+        end
+        ST[("Store<br/><i>memory · ClickHouse · MongoDB</i>")]
+        subgraph detect["Detection"]
+            D["LogBERT<br/><i>per device / stream</i>"]
+            N["Novelty +<br/>fleet suppression"]
+            D --> N
+        end
+        subgraph explain["Ask / RCA"]
+            RCA["Deterministic RCA<br/>anchor → ranked evidence"]
+            ANS["Cited answer<br/><i>or ‘insufficient evidence’</i>"]
+            RCA --> ANS
+        end
+
+        P -- "FINAL / PENDING" --> ST
+        P -- "PENDING" --> Q
+        W == "registry vN+1<br/>hot-swap" ==> P
+        W -- "back-fill" --> ST
+        P --> D
+        N -- "alerts" --> ST
+        ST --> RCA
+    end
+
+    ST --> UI["Operator UI<br/><i>explorer · query · alerts</i>"]
+    ANS --> UI
+    ST --> SQL["SQL / visual query<br/><i>/api/query</i>"]
+    ANS --> MCP["/mcp<br/><i>Claude Code</i>"]
+
+    classDef src fill:#1e293b,stroke:#64748b,color:#e2e8f0
+    classDef hotc fill:#1e3a8a,stroke:#60a5fa,color:#fff
+    classDef learnc fill:#3b0764,stroke:#c084fc,color:#fff
+    classDef store fill:#064e3b,stroke:#34d399,color:#fff
+    classDef det fill:#7f1d1d,stroke:#f87171,color:#fff
+    classDef rca fill:#78350f,stroke:#fbbf24,color:#fff
+    classDef out fill:#0f172a,stroke:#94a3b8,color:#e2e8f0
+    class F,J,DK,SL,AG,OT src
+    class P hotc
+    class Q,W,LLM learnc
+    class ST store
+    class D,N det
+    class RCA,ANS rca
+    class UI,SQL,MCP out
+    style hosts fill:#0f172a,stroke:#475569,color:#cbd5e1
+    style server fill:#0b1220,stroke:#475569,color:#cbd5e1
+    style hot fill:#172554,stroke:#3b82f6,color:#bfdbfe
+    style learn fill:#2e1065,stroke:#a855f7,color:#e9d5ff
+    style detect fill:#450a0a,stroke:#ef4444,color:#fecaca
+    style explain fill:#451a03,stroke:#f59e0b,color:#fde68a
+    linkStyle default stroke:#94a3b8,stroke-width:1.5px
 ```
 
 ## Quick start
 
 ```sh
-uv sync --group dev
-uv run logpipe        # or `logpipe start` / `make start`
+git clone git@github.com:Niang931/Log_parser.git && cd Log_parser
+make setup                       # uv sync + .env
+uv run logpipe                   # interactive: asks what to run and starts it
 ```
 
-It asks what to run (the browser demo, the pipeline on your own logs, or the server for
-logpipe-agent hosts with its operator UI), which queue (in-memory,
-or Kafka, which it starts in Docker for you), who names keys and confirms re-associations
-(offline rules, a signed-in web chat, or a hosted API), and the few settings that matter, then
-prints the equivalent commands and runs them. If you pick a web chat it can open the sign-in
-window too. The answers are saved in `.logpipe/start.json` and become the defaults next time;
-every question is still asked, so a repeat run is just pressing Enter.
+## Install the agent
 
-## Running
-
-Set `LOGS_PATH` in `.env` to point to the directory containing your log files (default: `logs/`).
-Each file is treated as one device.
+Ship a host's logs to the server with `logpipe-agent` 
+1. create an **Agent** key under **Settings → API keys** first
+2. Paste the **API key** and **URL** into the command below
 
 ```sh
-make calibrate  # learn templates + key names from history -> registry v1 (+ .report.json)
-make train      # train LogBERT on per-device windows of the history
-make run        # full pipeline: parse, store, enrich PENDING lines, detect anomalies
+docker run -d --name logpipe-agent --restart unless-stopped \
+  -e LOGPIPE_ENDPOINT=http://logpipe.example:8080 -e LOGPIPE_API_KEY=lp_xxx -e LOGPIPE_HOSTNAME=$(hostname) \
+  -v /var/log:/var/log:ro -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -v logpipe-agent:/var/lib/logpipe-agent ghcr.io/niang931/logpipe-agent:latest
 ```
 
-Try it end to end on a synthetic fleet with `make demo`, or step by step:
+or from source (Go 1.23+), no root needed
 
 ```sh
-uv run logpipe gen-iot --out artifacts/fleet
-uv run logpipe calibrate --logs artifacts/fleet/history
-uv run logpipe train-logbert --logs artifacts/fleet/history
-uv run logpipe run --logs artifacts/fleet/test              # STORE=clickhouse after make docker-up
+cd agent && go build -o logpipe-agent .
+./logpipe-agent init --endpoint http://logpipe.example:8080 --api-key lp_xxx
+./logpipe-agent track '/var/log/myapp/*.log' --service myapp --source java --auto-multiline
+./logpipe-agent check && ./logpipe-agent run
 ```
 
-### Browser demo
+See full guide here: [Install the agent](https://niang931.github.io/Log_parser/getting-started/agent/).
 
-```sh
-uv run logpipe demo        # asks: queue, store, LLM, masks, size, port; then open the page
-```
+## Benchmark
 
-Plain `logpipe demo` in a terminal asks its questions (your last answers are the defaults);
-with any flag it runs straight away.
+| What | Benchmark | Result |
+|---|---|---|
+| Parsing | Loghub-2k, 14 systems, tuned | GA **0.81** (DeepParse 0.70) |
+| Template linking | 28 labelled pairs, offline rules | **0** false merges |
+| Anomaly detection | BGL / HDFS, LogBERT + novelty | F1 **0.95** / **0.80** |
+| IoT fleet end to end | firmware rollout + 5 anomaly kinds | F1 0.56 (0.34 without fleet suppression) |
+| Root cause, real testbed | RCAEval RE3-OB, 30 code-level faults | AC@1: rules **0.40** → + Gemini **0.70** → Claude Code over MCP **0.87–0.90** |
+| Hot path | IoT replay | parse p50 **32 µs**, p99 68 µs; ~10k lines/s per server core |
 
-The calibration is saved in `artifacts/demo/` (one file per mask backend, fleet size and
-seed) and reused on later runs, so only LogBERT is retrained at start-up (a few seconds);
-`--recalibrate` redoes it. This matters with a web LLM, where calibrating asks the site to
-name the keys of every template (about a minute each). Gemini answers signed out, so
-`--llm llm:web:gemini` needs no login; `--browser chrome` uses the chromium on your PATH,
-while camoufox needs `uv run camoufox fetch` once (and again after camoufox upgrades).
+## Documentation
 
-Builds a small synthetic fleet, calibrates, trains a tiny LogBERT and tunes its thresholds
-(about 10 seconds), then generates the test stream live and runs it through the whole system.
-The **System** tab draws every stage with live counters: frozen Drain → hit/miss → unresolved
-queue → shadow Drain → LLM (key names, alias check) → validate → alias check → registry vN+1 →
-hot-swap and backfill, plus LogBERT → alerts. Its timeline lists true positives, false positives
-and missed anomalies, firmware-2 template shifts (with whether each was re-associated to an
-existing template and why), requeues and dead-letters. Clicking an event or a line lights up
-the path that line took. The header has pause, step and speed; the panel beside the graph
-triggers the firmware rollout now, injects an anomaly into a device's next episode, and
-restarts the session: the same stream or a new one replayed from the first line with an empty
-store and queue, either from calibration or keeping the templates learned so far (so the
-firmware-2 lines that missed the first time now hit). The restart also picks the queue
-(memory or Kafka), the store (memory or ClickHouse) and the LLM that names keys and confirms
-re-associations (offline rules, a web chat such as `llm:web:gemini`, or a hosted API), so the
-same stream can be compared across setups; Kafka and ClickHouse are started in Docker when
-picked. Calibration and LogBERT are kept across restarts; your rollout and inject clicks are
-not replayed. The other tabs show
-the stream with a per-line trace, the registry, a SQL query per template and charts.
-
-| flag | effect |
+| | |
 |---|---|
-| `--queue kafka` | the Kafka broker (started in Docker if needed, a fresh topic per session) instead of the in-memory queue |
-| `--store clickhouse` | also write every row to ClickHouse (database `logpipe_demo`, emptied per session); the Query tab then runs on it |
-| `--llm llm:web:gemini` | key names and alias confirmation by your signed-in web chat (default: offline rules, which never confirm a wording change) |
-| `--registry demo_registry.json` | skip calibration and load masks made by the fine-tuned model on Colab (section 4 of `notebooks/colab_finetune_eval.ipynb`, i.e. `logpipe demo --llm hf --save-registry ...`) |
-
-`--rate`, `--port`, `--devices`, `--test-hours` and `--epochs` change the setup; the charts load
-Chart.js from a CDN.
-
-The LLM backend is set by `LLM_BACKEND`:
-
-- `offline` (default): deterministic, no network.
-- `hf`: DeepSeek-R1-8B with the fine-tuned LoRA adapter (`HF_ADAPTER`, default
-  `MThien213/deepparse-iot-r1-8b`) in 4-bit, for masks only; needs a GPU (Colab).
-- `llm:<provider>[:<model>]`: a hosted provider through `deepparse.providers`, e.g.
-  `llm:anthropic`. API keys come from the environment.
-- `llm:web:<site>`: drives your own signed-in Claude, ChatGPT or Gemini web app in a browser,
-  no API key. Runs are not reproducible, since the site picks the model.
-
-Any make target takes `LLM=...` to override it for one run. To set up the web backend:
-
-```sh
-make web-setup                 # download Camoufox once
-make web-login SITE=gemini     # sign in in a visible window; claude | chatgpt | gemini
-make web-check SITE=gemini     # confirm the saved login still works headless
-make web-ask SITE=gemini PROMPT="Reply with OK."
-make eval-iot LLM=llm:web:gemini
-```
-
-To drive the Chromium on your `PATH` instead of Camoufox, add `BROWSER=chromium` to each
-command (or set `WEB_BROWSER=chromium` in `.env`). Each browser keeps its own profile, so sign
-in with the same browser you evaluate with, e.g.
-`make web-login BROWSER=chromium && make eval LLM=llm:web:gemini BROWSER=chromium`.
-
-### Showcase: the whole product in one command
-
-```sh
-uv run logpipe showcase          # asks store/LLM like `logpipe start`; --no-ask for memory + offline
-uv run logpipe showcase --auto   # does every act itself (hands-free demo)
-```
-
-It starts the server, a generated web shop's logs (nginx, a Java API with stack traces, Postgres)
-and a real `logpipe-agent` (built from `agent/` with Go, run as you, no sudo), then walks through
-eight acts, each telling you what to do in the UI and waiting until it happened (Enter lets it do
-it instead): connect the agent, draft templates, review them and write a parsing rule, calibrate
-and train, explore (Log Explorer, Templates, Query builder), a payment-gateway outage that LogBERT
-flags, and a new service whose templates are drafted for review by themselves. Files go to
-`artifacts/showcase/`; Ctrl+C stops everything.
-
-### Agents, server and operator UI
-
-Ship live logs from your hosts with the Go collector, and watch them in the React UI:
-
-```sh
-docker compose --profile platform up --build   # ClickHouse + server + demo agent, UI on :8080
-```
-
-See [docs/agent-platform.md](docs/agent-platform.md) for the learning lifecycle (setup guide,
-template review, streams, maintenance, retraining) and [agent/README.md](agent/README.md) for the
-agent's Datadog-style config and CLI.
-
-## Calibration and evaluation
-
-`logpipe calibrate` reports **holdout coverage** for every run: the share of the newest 20%
-of lines that a registry mined from the older 80% resolves without going `PENDING`. With
-`--dataset <DeepParse dataset dir>`, it also reports DeepParse's **GA/PA** together with the
-plain DeepParse configuration as a baseline. `--tune` grid-searches Drain depth and
-similarity threshold.
-
-| command | what it measures |
-|---|---|
-| `make eval-parsing` | GA/PA on the 14 Loghub-2k systems through the calibration path, vs. DeepParse |
-| `make eval-alias` | alias decisions on labelled template pairs (same event vs. opposite states) |
-| `make eval-iot` | end-to-end on the synthetic fleet with a firmware rollout and injected anomalies, plus ablations |
-| `make eval-hdfs` / `make eval-bgl` | LogBERT on CPU-sized HDFS/BGL subsets: `[UNK]` / `[MASK]` / drop, novelty on/off |
-
-`make eval` runs all of them and then `make eval-report`. Results go to `artifacts/eval/`
-(`EVAL_OUT=...` to change); the latest numbers and findings are in
-[docs/evaluation.md](docs/evaluation.md). Training benchmarks take `EPOCHS=` and `THREADS=`.
-
-Datasets go to `artifacts/datasets/`. The eval targets fetch what they need, or download
-up front with `make data` (all), `make data-loghub`, `make data-hdfs` or `make data-bgl`.
-
-## Other commands
-
-```sh
-make help              # every target
-make setup             # uv sync + .env from the example
-make test              # all tests except integration
-make test-fast         # skip slow (model-training) tests
-make test-integration  # ClickHouse tests (starts the container)
-make lint              # ruff
-make typecheck         # pyright
-make check             # lint + typecheck + test
-make docker-up         # start ClickHouse and wait until healthy
-make docker-down
-```
-
----
+| [Getting started](https://niang931.github.io/Log_parser/getting-started/) | install, every way to run it, all commands |
+| [Architecture](https://niang931.github.io/Log_parser/architecture/) | parsing, online learning, LogBERT, server lifecycle, Ask & RCA, MCP, storage, with diagrams |
+| [Benchmarks](https://niang931.github.io/Log_parser/benchmarks/) | results, RCAEval, throughput |
+| [Guides](https://niang931.github.io/Log_parser/guides/code-structure/) | code structure, replacing components, configuration, maintenance, CI |
+| [Security](https://niang931.github.io/Log_parser/security/) | threat model and defences |
+| [Design records](https://niang931.github.io/Log_parser/plan/) | personas, feature plans and technical decisions |
 
 ## Acknowledgements
 
-This project incorporates code from [Deep Parse](https://github.com/NightBaRron1412/DeepParse.git)
-by [NightBaRron1412], licensed under the Apache License.
-Changes have been made to fit this project.
-
-The anomaly detector is adapted from [LogBERT](https://github.com/HelenGuohx/logbert)
-(MIT License, Copyright (c) 2023 Helennnnn), described in
-Guo, Yuan and Wu, *LogBERT: Log Anomaly Detection via BERT*, IJCNN 2021
-([arXiv:2103.04475](https://arxiv.org/abs/2103.04475)). Its model code derives from
-[BERT-pytorch](https://github.com/codertimo/BERT-pytorch) (Apache License 2.0).
-Evaluation data comes from [Loghub](https://github.com/logpai/loghub).
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for licenses and the list of changes.
+- **DeepParse**: Shetaia & Kauffman, *DeepParse: Hybrid Log Parsing with LLM-Synthesized Regex Masks*, EASE 2026 · [arXiv:2604.20553](https://arxiv.org/abs/2604.20553) · [code](https://github.com/NightBaRron1412/DeepParse) (Apache-2.0, vendored in `DeepParse/`)
+- **LogBERT**: Guo, Yuan & Wu, *LogBERT: Log Anomaly Detection via BERT*, IJCNN 2021 · [arXiv:2103.04475](https://arxiv.org/abs/2103.04475) · [code](https://github.com/HelenGuohx/logbert) (MIT, adapted in `logpipe/anomaly/logbert/`)
+- **BERT-pytorch**: the transformer code LogBERT derives from · [code](https://github.com/codertimo/BERT-pytorch) (Apache-2.0)
+- **Drain**: He, Zhu, Zheng & Lyu, *Drain: An Online Log Parsing Approach with Fixed Depth Tree*, ICWS 2017
+- **Loghub**: Zhu, He, He, Liu & Lyu, *Loghub: A Large Collection of System Log Datasets for AI-driven Log Analytics*, ISSRE 2023 · [data](https://github.com/logpai/loghub)
+- **RCAEval**: Pham, Zhang, Ha, Salim & Zhang, *RCAEval: A Benchmark for Root Cause Analysis of Microservice Systems with Telemetry Data*, WWW 2025 Companion · [doi](https://doi.org/10.1145/3701716.3715290) · [code](https://github.com/phamquiluan/RCAEval) (MIT)
+- **all-MiniLM-L6-v2**: sentence-transformers text model behind Ask's template search (Apache-2.0)
