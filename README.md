@@ -212,8 +212,18 @@ case and scores the answers with `rcaeval-agent evaluate`. RCAEval runs through 
 a dependency. Each case gets a fresh server that calibrates on the logs before the fault, then
 reads the rest. `VIA=direct` (the default) asks the RCA pipeline, with and without LogBERT and
 semantic search. `VIA=mcp` serves the case and lets Claude Code investigate it over `/mcp`, with the
-`ask` tool and without it; that path costs LLM tokens, so start with `LIMIT=3`. A stopped run
-resumes where it left off. Logs only: the datasets with logs are `re2-ob`, `re2-ss`, `re2-tt`,
+`ask` tool and without it; that path costs LLM tokens, so start with `LIMIT=3`.
+
+```sh
+make eval-rcaeval DATASET=re3-ob                                          # rules only
+make eval-rcaeval DATASET=re3-ob LLM=llm:web:gemini BROWSER=chromium      # + Gemini (web)
+make eval-rcaeval DATASET=re3-ob VIA=mcp                                  # Claude Code over /mcp
+```
+
+Runs are cached in `artifacts/eval/rcaeval/`: an answered case and a saved LLM reply are reused,
+so a stopped or repeated run only does what's missing, and a failed case is retried.
+`FRESH=1` redoes everything. Every report, LLM prompt and reply, and agent stream (tool calls
+and results) is kept in `artifacts/eval/rcaeval/transcripts/`. Logs only: the datasets with logs are `re2-ob`, `re2-ss`, `re2-tt`,
 `re3-ob` and `re3-tt`, and only the service level is scored (the indicator level needs metrics).
 Resource faults (`re2`: cpu, mem, disk, delay, loss) leave few traces in logs; the code-level
 faults of `re3` are the fair test. The cases hold about 10 minutes of logs before the fault, so
