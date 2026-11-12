@@ -1,0 +1,22 @@
+# examples/datadog_loop.py writes these; the Agent ships them to Datadog and logpipe pulls them back.
+logs:
+  - type: file
+    path: /shop-logs/nginx/access.log
+    service: nginx
+    source: nginx
+  - type: file
+    path: /shop-logs/api/app.log
+    service: shop-api
+    source: java
+    log_processing_rules:
+      - type: multi_line
+        name: java_stack
+        pattern: \d{4}-\d{2}-\d{2}\s
+  - type: file
+    path: /shop-logs/db/postgres.log
+    service: postgres
+    source: postgresql
+    log_processing_rules:
+      - type: multi_line
+        name: pg_entry
+        pattern: \d{4}-\d{2}-\d{2}\s

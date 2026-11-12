@@ -185,6 +185,8 @@ services:
       - ./.logpipe:/logpipe-logs:ro
       - ./docker/datadog/logpipe.d:/etc/datadog-agent/conf.d/logpipe.d:ro
       - ./docker/datadog/mongo.d:/etc/datadog-agent/conf.d/mongo.d:ro
+      - ./artifacts/datadog-loop/logs:/shop-logs:ro
+      - ./docker/datadog/shop.d:/etc/datadog-agent/conf.d/shop.d:ro
     restart: unless-stopped
 
 volumes:

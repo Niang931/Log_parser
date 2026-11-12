@@ -32,7 +32,7 @@ RCA_OUT  := $(EVAL_OUT)/rcaeval
 MKDOCS   := NO_MKDOCS_2_WARNING=1 uvx --from mkdocs-material==9.8.1 mkdocs
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo demo-datadog bench \
+.PHONY: help setup start calibrate train run run-fast worker replay gen-iot demo demo-datadog demo-datadog-loop bench \
         data data-loghub data-hdfs data-bgl \
         retrain-data retrain-eval \
         eval eval-parsing eval-alias eval-iot eval-hdfs eval-bgl eval-report eval-gate eval-baseline \
@@ -83,6 +83,9 @@ demo: gen-iot ## end to end on the synthetic fleet
 
 demo-datadog: ## incident for Datadog: slow then failing store (PHASE=seconds each)
 	$(RUN) python examples/datadog_incident.py --phase $(or $(PHASE),60)
+
+demo-datadog-loop: ## Datadog in and out: shop logs via Datadog -> anomaly + RCA events, grok pipeline
+	$(RUN) python examples/datadog_loop.py --normal $(or $(NORMAL),300)
 
 ## --- datasets (artifacts/datasets) ------------------------------------------
 
