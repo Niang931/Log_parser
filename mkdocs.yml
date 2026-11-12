@@ -84,6 +84,7 @@ nav:
       - Code structure: guides/code-structure.md
       - Replacing components: guides/replace-components.md
       - Configuration: guides/configuration.md
+      - Datadog: guides/datadog.md
       - Maintenance: guides/maintenance.md
       - CI / CD: ci.md
   - Security:
@@ -101,3 +102,6 @@ nav:
       - "AI root cause: persona": plan/ai-rca/persona.md
       - "AI root cause: features": plan/ai-rca/features.md
       - "AI root cause: decisions": plan/ai-rca/tech-decisions.md
+      - "Datadog: persona": plan/datadog/persona.md
+      - "Datadog: features": plan/datadog/features.md
+      - "Datadog: decisions": plan/datadog/tech-decisions.md
