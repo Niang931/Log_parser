@@ -27,6 +27,7 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import yaml
@@ -41,8 +42,8 @@ from ..calibrate import append_drafts, calibrate
 from ..enrich import llm
 from ..enrich.llm import LLMAdapter
 from ..enrich.validate import clean_keys
-from ..observability import Datadog
 from ..enrich.worker import CycleReport
+from ..observability import Datadog
 from ..parsing.frozen_parser import ParserHandle, Status
 from ..parsing.grok import compile_rule, rule_from_template
 from ..parsing.kv import SLOT_RE
@@ -65,6 +66,9 @@ from .metrics import (
     MongoSeries,
 )
 from .stores import reads_for
+
+if TYPE_CHECKING:
+    from ..datadog_api import DatadogSync
 
 LOGGER = logging.getLogger("logpipe.server")
 
@@ -274,6 +278,8 @@ class Busy(RuntimeError):
 
 
 class Server:
+    dd_sync: DatadogSync | None = None  # set by `logpipe server` when DD_API_KEY is set
+
     def __init__(
         self,
         store,
@@ -2069,6 +2075,8 @@ class Server:
                 if now - last_ready >= 60:
                     last_ready = now
                     self.refresh_readiness()
+                if self.dd_sync is not None:
+                    self.dd_sync.tick(self)
             except Exception:
                 LOGGER.exception("housekeeping failed")
 

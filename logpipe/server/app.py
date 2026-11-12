@@ -206,6 +206,37 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
         except Busy as error:
             raise HTTPException(429, str(error)) from error
 
+    def dd_sync():
+        if server.dd_sync is None:
+            raise HTTPException(409, "Datadog is off: set DD_API_KEY and restart the server")
+        return server.dd_sync
+
+    @app.post("/intake/v1/datadog/webhook", status_code=202)
+    def datadog_webhook(
+        key: Annotated[dict, Depends(agent_key)], body: Annotated[dict, Body()]
+    ) -> dict:
+        return dd_sync().alert(server, body)
+
+    @app.post("/api/datadog/pipeline")
+    def datadog_pipeline() -> dict:
+        from ..datadog_api import dd_rules
+
+        snap = server.registry.current
+        rules = dd_rules(
+            [
+                {
+                    "template_id": t.template_id,
+                    "rule": t.rule or rule_from_template(t.tokens, t.keys),
+                }
+                for t in snap.templates.values()
+                if t.alias_of is None
+            ]
+        )
+        if not rules:
+            raise HTTPException(409, "no templates yet")
+        out = dd_sync().api.upsert_pipeline(rules)
+        return {"id": out.get("id"), "rules": len(rules)}
+
     @app.post("/intake/v1/heartbeat")
     def intake_heartbeat(
         status: Annotated[dict, Body()], key: Annotated[dict, Depends(agent_key)]

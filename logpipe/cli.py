@@ -320,6 +320,7 @@ def _server(args: argparse.Namespace) -> None:
         epochs=args.epochs,
         demo=args.demo,
         datadog=_datadog(args),
+        datadog_pull=args.datadog_pull,
     )
 
 
@@ -548,6 +549,12 @@ def main(argv: list[str] | None = None) -> None:
     sv = sub.add_parser("server", help="agent intake + operator UI (React) + learning lifecycle")
     sv.add_argument("--host", default="0.0.0.0")
     sv.add_argument("--port", type=int, default=8080)
+    sv.add_argument(
+        "--datadog-pull",
+        default="",
+        metavar="QUERY",
+        help="ingest your Datadog logs matching this Logs query, e.g. 'service:shop*' (DD_API_KEY + DD_APP_KEY)",
+    )
     sv.add_argument(
         "--store", choices=["memory", "clickhouse", "mongodb"], default=settings.app.store
     )

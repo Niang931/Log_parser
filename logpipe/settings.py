@@ -224,8 +224,8 @@ class DatadogSettings(BaseSettings):
 
     @property
     def app_url(self) -> str:
-        # datadoghq.com is app.datadoghq.com; every other site (us5., datadoghq.eu) is its own host
-        return "https://app.datadoghq.com" if self.site == "datadoghq.com" else f"https://{self.site}"
+        # datadoghq.eu -> app.datadoghq.eu, us5.datadoghq.com -> us5.datadoghq.com
+        return f"https://{'app.' if self.site.count('.') == 1 else ''}{self.site}"
 
 
 class Settings(BaseModel):

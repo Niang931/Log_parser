@@ -76,6 +76,7 @@ def run(
     epochs: int,
     demo: bool = False,
     datadog: Datadog | None = None,
+    datadog_pull: str = "",
 ) -> None:
     import uvicorn
 
@@ -105,6 +106,18 @@ def run(
         bootstrap_key=get_settings().server.bootstrap_key or None,
         datadog=dd,
     )
+    dd_settings = get_settings().datadog
+    if dd_settings.api_key:
+        from ..datadog_api import DatadogSync
+
+        server.dd_sync = DatadogSync(dd_settings, query=datadog_pull)
+        print(
+            f"[server] datadog: events to {dd_settings.site}"
+            + (f", pulling logs for {server.dd_sync.query!r}" if server.dd_sync.query else ""),
+            flush=True,
+        )
+    elif datadog_pull:
+        raise SystemExit("--datadog-pull needs DD_API_KEY and DD_APP_KEY in .env")
     from .auth import Auth
 
     generated = Auth(control).ensure(get_settings().server.admin_password or None)
