@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
   <a href="https://niang931.github.io/Log_parser/"><img alt="Docs" src="https://img.shields.io/badge/docs-niang931.github.io-1e88e5?logo=materialformkdocs&logoColor=white"></a>
   <img alt="Python 3.13" src="https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white">
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-server-009688?logo=fastapi&logoColor=white">
@@ -122,16 +123,34 @@ tests/        pytest (DeepParse/tests for DeepParse)
 docs/         documentation site (MkDocs Material)
 ```
 
+## License
+
+logpipe is released under the [MIT License](LICENSE). The vendored `DeepParse/` directory stays under
+the Apache License 2.0 ([DeepParse/LICENSE](DeepParse/LICENSE)). Third-party code, models and
+datasets, with their licenses and the changes made, are listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## Acknowledgements
 
-This project incorporates code from [Deep Parse](https://github.com/NightBaRron1412/DeepParse.git)
-by [NightBaRron1412], licensed under the Apache License. Changes have been made to fit this project.
+logpipe builds on these projects and papers:
 
-The anomaly detector is adapted from [LogBERT](https://github.com/HelenGuohx/logbert)
-(MIT License, Copyright (c) 2023 Helennnnn), described in
-Guo, Yuan and Wu, *LogBERT: Log Anomaly Detection via BERT*, IJCNN 2021
-([arXiv:2103.04475](https://arxiv.org/abs/2103.04475)). Its model code derives from
-[BERT-pytorch](https://github.com/codertimo/BERT-pytorch) (Apache License 2.0).
-Evaluation data comes from [Loghub](https://github.com/logpai/loghub) and
-[RCAEval](https://github.com/phamquiluan/RCAEval) (MIT).
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for licenses and the list of changes.
+- **DeepParse**: log parsing with LLM-synthesised regex masks; vendored and extended in `DeepParse/`
+  (Apache-2.0). Code: [NightBaRron1412/DeepParse](https://github.com/NightBaRron1412/DeepParse).
+  Paper: Amir Shetaia and Sean Kauffman, *DeepParse: Hybrid Log Parsing with LLM-Synthesized Regex
+  Masks*, EASE 2026 (ACM, to appear).
+- **LogBERT**: the anomaly detector, adapted in `logpipe/anomaly/logbert/` (MIT, Copyright (c) 2023
+  Helennnnn). Code: [HelenGuohx/logbert](https://github.com/HelenGuohx/logbert). Paper: Haixuan Guo,
+  Shuhan Yuan and Xintao Wu, *LogBERT: Log Anomaly Detection via BERT*, IJCNN 2021
+  ([arXiv:2103.04475](https://arxiv.org/abs/2103.04475)).
+- **BERT-pytorch**: the transformer code LogBERT's model derives from (Apache-2.0).
+  Code: [codertimo/BERT-pytorch](https://github.com/codertimo/BERT-pytorch).
+- **Drain**: the fixed-depth tree parser behind DeepParse's engine. Pinjia He, Jieming Zhu, Zibin
+  Zheng and Michael R. Lyu, *Drain: An Online Log Parsing Approach with Fixed Depth Tree*, ICWS 2017.
+- **Loghub / Loghub-2.0**: the parsing and anomaly-detection datasets. Jieming Zhu, Shilin He,
+  Pinjia He, Jinyang Liu and Michael R. Lyu, *Loghub: A Large Collection of System Log Datasets for
+  AI-driven Log Analytics*, ISSRE 2023 ([logpai/loghub](https://github.com/logpai/loghub)).
+- **RCAEval**: the root-cause benchmark (MIT). Luan Pham, Hongyu Zhang, Huong Ha, Flora Salim and
+  Xiuzhen Zhang, *RCAEval: A Benchmark for Root Cause Analysis of Microservice Systems with
+  Telemetry Data*, WWW 2025 Companion ([doi:10.1145/3701716.3715290](https://doi.org/10.1145/3701716.3715290),
+  [phamquiluan/RCAEval](https://github.com/phamquiluan/RCAEval)).
+- **all-MiniLM-L6-v2** (sentence-transformers, Apache-2.0): the text model behind Ask's template search.
