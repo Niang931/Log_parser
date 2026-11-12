@@ -1,4 +1,7 @@
 version: 2
+# Weekly, at most 3 open PRs per ecosystem: minor and patch bumps come as one grouped PR
+# (auto-merged by dependabot-automerge.yml once CI passes), majors one PR each. Security
+# updates (enable "Dependabot security updates" in the repo settings) are grouped the same way.
 updates:
   # Python dependencies resolved by uv (root project and the DeepParse fork).
   - package-ecosystem: uv
@@ -6,21 +9,31 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     groups:
       python-minor-and-patch:
         update-types: [minor, patch]
+      python-security:
+        applies-to: security-updates
+        patterns: ["*"]
   - package-ecosystem: uv
     directory: /DeepParse
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     groups:
       python-minor-and-patch:
         update-types: [minor, patch]
+      python-security:
+        applies-to: security-updates
+        patterns: ["*"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
       day: monday
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns: ["*"]
