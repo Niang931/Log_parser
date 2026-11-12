@@ -336,6 +336,9 @@ class WebChatSession:
 
         def ready() -> bool:
             nonlocal last, blocked_since
+            # a cookie banner covers the prompt box until it is answered: always "reject all"
+            if reject_cookies(self.page, self.site) and not quiet:
+                self.log(f"Rejected {self.site.name}'s optional cookies.")
             state = self.page_state()
 
             if state != last:
@@ -643,6 +646,18 @@ class WebChatSession:
             time.sleep(interval)
 
         raise _Timeout
+
+
+def reject_cookies(page: Page, site: ChatSite) -> bool:
+    """Click the cookie banner's "reject all" if it shows; open the banner's "read more" when
+    the button is hidden behind it (the next call clicks it). True once rejected."""
+    for selectors in (site.reject_cookies, site.more_cookie_options):
+        for selector in selectors:
+            button = page.locator(selector).filter(visible=True).first
+            if button.count():
+                button.click(timeout=5_000)
+                return selectors is site.reject_cookies
+    return False
 
 
 def _free_port() -> int:

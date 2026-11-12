@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { usePoll, useServerEvents, type Overview } from "./api";
 import { logout, usePasswordRequired } from "./login";
+import { LogoMark } from "./logo";
 import { Toasts, useNotifications } from "./notify";
 import AgentDetail from "./pages/AgentDetail";
 import Bench from "./pages/Bench";
@@ -117,7 +118,7 @@ export default function App() {
       </div>
       <nav className={`nav ${open ? "open" : ""}`} aria-label="Main">
         <div className="brand">
-          <span className="brand-mark"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 4h10M3 8h7M3 12h9" stroke="#fff" strokeWidth="2" strokeLinecap="round" /></svg></span>
+          <span className="brand-mark"><LogoMark /></span>
           logpipe
         </div>
         {calibrated === false && <Item to="/setup" icon="setup">Setup guide</Item>}
