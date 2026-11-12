@@ -1,0 +1,21 @@
+# Auto-merge Dependabot's minor and patch bumps once required checks pass; majors wait for review.
+# Needs "Allow auto-merge" and branch protection with required checks on main.
+name: dependabot auto-merge
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@v2
+      - if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --auto --squash "$PR"
+        env:
+          PR: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

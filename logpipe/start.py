@@ -360,11 +360,12 @@ def docker_up(services: list[str], run: Callable = subprocess.run) -> None:
         ) from error
 
 
-def _save(a: dict, signed_in: list[str]) -> None:
+def _save(saved: dict, a: dict, signed_in: list[str]) -> None:
     SAVED.parent.mkdir(exist_ok=True)
     # A one-off recalibration must not become the default.
     masks = {"masks": "calibrate"} if a.get("masks") == "recalibrate" else {}
-    SAVED.write_text(json.dumps(a | masks | {"signed_in": signed_in}, indent=2))
+    # Merge so answers to questions this run skipped (another mode, another LLM) survive.
+    SAVED.write_text(json.dumps(saved | a | masks | {"signed_in": signed_in}, indent=2))
 
 
 def start(
@@ -379,7 +380,7 @@ def start(
         print(f"defaults are your last answers ({SAVED}); press Enter to keep each one")
     a = ask_setup(saved, mode)
     services, commands = plan(a)
-    _save(a, saved.get("signed_in", []))
+    _save(saved, a, saved.get("signed_in", []))
 
     print("\nThis will run:")
     if services:
@@ -426,7 +427,7 @@ def start(
                 check=True,
             )
             signed_in = sorted({*signed_in, a["site"]})
-        _save(a, signed_in)
+        _save(saved, a, signed_in)
     if a["mode"] == "server" and not get_settings().server.admin_password:
         os.environ["LOGPIPE_ADMIN_PASSWORD"] = ask_password()  # this run only; never saved
         get_settings.cache_clear()

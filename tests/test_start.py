@@ -181,3 +181,15 @@ def test_mongodb_store_starts_the_mongo_service(tmp_path):
     }
     services, commands = wizard.plan(a)
     assert services == ["mongo"] and commands[0][commands[0].index("--store") + 1] == "mongodb"
+
+
+def test_answers_from_other_modes_are_kept(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    wizard.SAVED.parent.mkdir()
+    wizard.SAVED.write_text(json.dumps({"mode": "demo", "port": 8123, "site": "gemini"}))
+    monkeypatch.setattr(wizard, "_free_port", lambda _: None)
+    # server: memory, memory, offline, port, data dir, demo?, start? no
+    _answers(monkeypatch, "", "", "offline", "", "", "", "n")
+    wizard.start(launch=lambda cmd: None, mode="server")
+    saved = json.loads(wizard.SAVED.read_text())
+    assert saved["mode"] == "server" and saved["port"] == 8123 and saved["site"] == "gemini"
