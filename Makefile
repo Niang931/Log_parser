@@ -113,10 +113,10 @@ eval-hdfs: data-hdfs ## LogBERT on an HDFS subset
 eval-bgl: data-bgl ## LogBERT on a BGL subset
 	$(EVAL) logbert --dataset BGL $(TRAIN)
 
-eval-rcaeval: ## RCA on RCAEval cases, scored by RCAEval (DATASET=re3-ob VIA=direct|mcp LIMIT=N)
+eval-rcaeval: ## RCA on RCAEval cases, scored by RCAEval (DATASET=re3-ob VIA=direct|mcp LIMIT=N LLM=llm:web:gemini)
 	test -d $(RCA_OUT)/tasks/$(DATASET) || $(RCAEVAL) export --dataset $(DATASET) \
 		--out $(RCA_OUT)/tasks --data-root $(RCA_OUT)/data
-	$(RUN) python -m logpipe.eval.rcaeval_bench $(RCA_OUT)/tasks/$(DATASET) --out $(RCA_OUT) \
+	WEB_BROWSER=$(WEB) $(RUN) python -m logpipe.eval.rcaeval_bench $(RCA_OUT)/tasks/$(DATASET) --out $(RCA_OUT) \
 		--via $(VIA) $(if $(LIMIT),--limit $(LIMIT)) $(if $(filter direct,$(VIA)),$(LLM_ARG))
 	for p in $(RCA_OUT)/preds.$(DATASET).*.jsonl; do echo "$$p"; \
 		$(RCAEVAL) evaluate --tasks $(RCA_OUT)/tasks/$(DATASET) --predictions "$$p" --report-chance; done
