@@ -79,7 +79,8 @@ class FakeServer:
     def explain_incident(self, incident_id, require_approval=None):
         assert require_approval is False
         self.explained.append(incident_id)
-        self.control.put("incident", incident_id, {"id": incident_id, "ask_plan": "p1"})
+        doc = self.control.get("incident", incident_id) or {"id": incident_id}
+        self.control.put("incident", incident_id, doc | {"ask_plan": "p1"})
 
 
 INC = {
@@ -162,6 +163,8 @@ def test_webhook_runs_an_rca_and_posts_it_when_done():
     )
     assert asked[0]["services"] == ["shop"] and asked[0]["anchor_time"].startswith("2025-11-12")
     sync.tick(server)
+    server.plans["p9"] = {"status": "waiting_approval"}
+    sync.tick(server)
     assert posted == []
     server.plans["p9"] = {"status": "done", "result": {"answer": {"summary": "db pool exhausted"}}}
     sync.tick(server)
@@ -197,3 +200,17 @@ def test_server_routes(tmp_path):
     docs = [d for d in server.control.all("datadog") if d.get("plan") == r.json()["id"]]
     assert docs and docs[0]["service"] == "shop"
     assert client.post("/api/datadog/pipeline").status_code == 409
+
+
+def test_a_deleted_plan_does_not_block_incidents():
+    sync, posted = _sync()
+    server = FakeServer()
+    server.control.put(
+        "datadog",
+        "alert-x",
+        {"id": "alert-x", "plan": "gone", "title": "t", "key": "k", "host": "", "service": ""},
+    )
+    sync.tick(server)
+    server.incident_list = [INC]
+    sync.tick(server)
+    assert [p["aggregation_key"] for p in posted] == ["k", "a1"]

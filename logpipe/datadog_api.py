@@ -167,7 +167,7 @@ def rca_event(inc: dict, explanation: dict) -> dict:
         lines += [f"- {s}" for s in ans["next_steps"][:5]]
     return {
         "title": f"logpipe RCA: {inc['key']}",
-        "text": "\n".join(str(x) for x in lines if x),
+        "text": "\n".join(str(x) for x in lines if x) or "No answer; see the incident in logpipe.",
         "tags": tags(inc),
         "key": inc["id"],
         "alert": "info",
@@ -241,8 +241,11 @@ class DatadogSync:
     def push(self, server) -> None:
         for doc in server.control.all("datadog"):
             if doc.get("plan") and not doc.get("posted"):
-                plan = server.ask.get(doc["plan"])
-                if plan["status"] not in ("approved", "running"):
+                try:
+                    plan = server.ask.get(doc["plan"])
+                except KeyError:
+                    plan = {"status": "deleted"}
+                if plan["status"] in ("done", "failed", "rejected", "expired", "deleted"):
                     inc = {"id": doc["key"], "key": doc["title"]} | {
                         k: doc[k] for k in ("host", "service")
                     }
@@ -258,10 +261,9 @@ class DatadogSync:
             state = server.control.get("incident", inc["id"]) or {"id": inc["id"], "status": "open"}
             if not state.get("dd_event") and inc["id"] not in self.seen:
                 self.api.post_event(**incident_event(inc, self.settings))
+                server.control.put("incident", inc["id"], state | {"dd_event": True})
                 if not state.get("ask_plan"):
                     server.explain_incident(inc["id"], require_approval=False)
-                    state = server.control.get("incident", inc["id"]) or state
-                server.control.put("incident", inc["id"], state | {"dd_event": True})
             elif state.get("dd_event") and not state.get("dd_rca") and state.get("explanation"):
                 self.api.post_event(**rca_event(inc, state["explanation"]))
                 server.control.put("incident", inc["id"], state | {"dd_rca": True})
