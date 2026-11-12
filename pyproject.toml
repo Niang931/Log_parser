@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "deepparse-artifact[llm,web]",
-    "clickhouse-connect>=1.11.0",
+    "clickhouse-connect>=1.12.0",
     "confluent-kafka>=2.6",
     "numpy>=2.5.4",
     "torch>=2.15.0",
@@ -28,8 +28,8 @@ logpipe = "logpipe.cli:main"
 dev = [
     "deepparse-artifact[test]",
     "pytest>=9.2.0",
-    "ruff>=0.17.3",
-    "hypothesis>=6.170.14",
+    "ruff>=0.17.4",
+    "hypothesis>=6.170.15",
     "types-tqdm>=4.70.0.20261106",
     "pytest-cov>=7.1.0",
 ]
