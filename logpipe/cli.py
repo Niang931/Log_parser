@@ -548,7 +548,7 @@ def main(argv: list[str] | None = None) -> None:
     sc = sub.add_parser(
         "showcase", help="guided tour: server, a web shop's logs, an agent, every feature"
     )
-    sc.add_argument("--port", type=int, default=8080)
+    sc.add_argument("--port", type=int, help="default: your last answer, else 8080")
     sc.add_argument("--no-ask", action="store_true", help="memory store, offline LLM, no questions")
     sc.add_argument(
         "--auto",

@@ -3,10 +3,13 @@ traffic isn't)."""
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from fastapi.testclient import TestClient
 
+from logpipe import showcase, start
 from logpipe.enrich.llm import get_adapter
 from logpipe.server.app import create_app
 from logpipe.server.control import ControlStore
@@ -76,3 +79,26 @@ def test_the_incident_alerts_and_normal_traffic_does_not(tmp_path):
     alerts = client.get("/api/alerts").json()["alerts"]
     assert alerts and {a["key"] for a in alerts} == {"shop/shop-api"}
     assert all(a["reasons"] == ["sequence"] for a in alerts)
+
+
+def test_showcase_saves_its_answers_as_the_next_defaults(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    start.SAVED.parent.mkdir()
+    start.SAVED.write_text(json.dumps({"store": "clickhouse", "server_port": 9191}))
+    # Keep pytest's own SIGTERM handling.
+    monkeypatch.setattr(showcase.signal, "signal", lambda *_: None)
+    monkeypatch.setattr(showcase.sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(start, "_free_port", lambda _: None)
+
+    def stop(_a):
+        raise SystemExit("stop")  # everything after the questions is out of scope here
+
+    monkeypatch.setattr(start, "plan", stop)
+    # queue, store (Enter = saved clickhouse), llm, port (Enter = saved 9191), data dir, demo?
+    it = iter(["kafka", "", "", "", "", ""])
+    monkeypatch.setattr("builtins.input", lambda _prompt: next(it))
+    with pytest.raises(SystemExit):
+        showcase.run()
+    saved = json.loads(start.SAVED.read_text())
+    assert saved["queue"] == "kafka" and saved["store"] == "clickhouse"
+    assert saved["server_port"] == 9191

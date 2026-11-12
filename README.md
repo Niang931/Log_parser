@@ -38,7 +38,7 @@
 
 ```mermaid
 flowchart LR
-    subgraph hosts["💻 Your hosts"]
+    subgraph hosts["Your hosts"]
         direction TB
         F["Files"]
         J["journald"]
