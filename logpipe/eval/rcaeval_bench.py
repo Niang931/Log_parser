@@ -40,6 +40,7 @@ from .rca_eval import (
     _calibrate,
     investigate,
     make_server,
+    settle,
     utc_clock,
 )
 
@@ -80,21 +81,27 @@ def load_case(case_dir: Path, adapter_factory=None, epochs: int = 4):
     server, client = make_server(data_dir, adapter_factory, epochs)
     rows = read_logs(case_dir / task["files"].get("logs", "logs.csv"))
     split = next((i for i, r in enumerate(rows) if r[0] >= inject), len(rows))
-    for i, (ts, service, host, message) in enumerate(rows):
-        if i == split:
-            _calibrate(server, client)
-        server.process(
-            LogEvent(
-                device_id=host,
-                source=service,
-                line_no=0,
-                line=message,
-                service=service,
-                time=ts,
+    if split == 0:
+        raise ValueError("no log lines before the fault: nothing to calibrate on")
+
+    def send(part):
+        for ts, service, host, message in part:
+            server.process(
+                LogEvent(
+                    device_id=host,
+                    source=service,
+                    line_no=0,
+                    line=message,
+                    service=service,
+                    time=ts,
+                )
             )
-        )
-    for _ in range(3):
-        server.enrich()
+
+    # the lines before the fault are the normal traffic it learns from, as a fresh deployment does
+    send(rows[:split])
+    _calibrate(server, client)
+    send(rows[split:])
+    settle(server)
     return task, World(server, client)
 
 
@@ -408,7 +415,6 @@ def main(argv: list[str] | None = None) -> None:
         for case in cases
     }
     runs = sum(len(v) for v in todo.values())
-    quiet_logs()
     print(
         f"{args.tasks.name}: {len(cases)} cases x {len(variants)} variants, "
         f"{len(cases) * len(variants) - runs} cached, {runs} to run",
@@ -462,4 +468,6 @@ def main(argv: list[str] | None = None) -> None:
 
 
 if __name__ == "__main__":
+    # process-wide, so only for the command line, never when main() runs inside tests
+    quiet_logs()
     main()

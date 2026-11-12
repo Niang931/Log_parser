@@ -142,6 +142,16 @@ def make_server(data_dir: Path, adapter_factory=None, epochs: int = 4):
     return server, TestClient(create_app(server))
 
 
+def settle(server, max_cycles: int = 10) -> None:
+    """Run the online learner (what the server does every 30 s) until a cycle creates no new
+    template: each cycle creates at most ``max_new_per_cycle`` and re-queues the rest. Clusters
+    too small for a template stay queued for good, so "until the queue is empty" never ends."""
+    for _ in range(max_cycles):
+        report = server.enrich()
+        if report is None or not report.published:
+            return
+
+
 def build_world(
     modes: list[str] | None = None,
     data_dir: Path | None = None,
@@ -174,7 +184,7 @@ def build_world(
         while t < fault + ASK_AFTER:
             _send(server, gen, gen.fault(mode, t, step), t)
             t, step = t + ORDER_EVERY, step + 1
-        server.enrich()  # mint templates for the new lines, as the learner does every 30 s
+        settle(server)
         # the next slot starts at fault + ASK_AFTER
         world.slots.append(
             Slot(
@@ -186,8 +196,6 @@ def build_world(
             )
         )
         log(f"  injected {mode} at {fault:%H:%M}")
-    for _ in range(3):
-        server.enrich()
     world.seconds = time.perf_counter() - started
     return world
 
