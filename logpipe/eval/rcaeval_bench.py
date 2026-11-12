@@ -300,16 +300,55 @@ def parse_reply(text: str) -> dict:
     return {}
 
 
-def done_ids(path: Path) -> set[str]:
+def load_preds(path: Path) -> dict[str, dict]:
+    """The predictions already in ``path``, by case (a later line wins)."""
     if not path.exists():
-        return set()
-    return {json.loads(line)["case_id"] for line in path.read_text("utf-8").splitlines() if line}
+        return {}
+    rows = [json.loads(line) for line in path.read_text("utf-8").splitlines() if line.strip()]
+    return {r["case_id"]: r for r in rows}
+
+
+def save_preds(path: Path, preds: dict[str, dict]) -> None:
+    """One line per case, in case order; written whole and swapped in, so a kill never leaves
+    half a file."""
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text("".join(json.dumps(preds[k]) + "\n" for k in sorted(preds)), "utf-8")
+    tmp.replace(path)
+
+
+def failed(pred: dict) -> bool:
+    return bool(pred.get("error")) or str(pred.get("reasoning", "")).startswith("error:")
+
+
+def bar(done: int, total: int, began: float, width: int = 30) -> str:
+    """``[█████░░░░░] 12/60  14m elapsed, eta 56m``: one plain line, nothing redrawn."""
+    filled = width * done // max(total, 1)
+    elapsed = time.monotonic() - began
+    eta = f", eta {elapsed / done * (total - done) / 60:.0f}m" if done else ""
+    return (
+        f"[{'█' * filled}{'░' * (width - filled)}] {done}/{total}  {elapsed / 60:.0f}m elapsed{eta}"
+    )
+
+
+def quiet_logs() -> None:
+    """Keep the terminal to the progress lines: no INFO chatter, no model-loading bars."""
+    import logging
+    import os
+
+    os.environ.setdefault("TQDM_DISABLE", "1")
+    os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+    # every case builds an MCPServer, which resets the root logger to INFO: drop INFO outright
+    logging.disable(logging.INFO)
+    # sentence-transformers draws its "Batches" bars whenever its logger is at INFO
+    logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
 
 
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n\n")[0])
     ap.add_argument("tasks", type=Path, help="a dataset directory from rcaeval-agent export")
-    ap.add_argument("--out", type=Path, help="where preds.<variant>.jsonl go (default: TASKS/..)")
+    ap.add_argument(
+        "--out", type=Path, help="where preds.<dataset>.<variant>.jsonl go (default: TASKS/../..)"
+    )
     ap.add_argument("--limit", type=int, help="answer only the first N cases")
     ap.add_argument("--via", choices=["direct", "mcp"], default="direct")
     ap.add_argument("--variants", nargs="*", help="default: full, no_logbert, no_semantic (direct)")
@@ -323,13 +362,19 @@ def main(argv: list[str] | None = None) -> None:
     )
     ap.add_argument("--replay", type=Path, help="answer from replies saved by --record")
     ap.add_argument(
+        "--fresh",
+        action="store_true",
+        help="redo everything: ignore saved predictions and saved LLM replies",
+    )
+    ap.add_argument(
         "--agent-cmd",
         default="claude -p --output-format stream-json --verbose",
         help="mcp: the agent CLI; gets --mcp-config and --allowedTools appended, the prompt on stdin",
     )
     args = ap.parse_args(argv)
 
-    out_dir = args.out or args.tasks.parent
+    # rcaeval-agent export writes OUT/tasks/<dataset>
+    out_dir = args.out or args.tasks.parent.parent
     # what each run saw and said, to read its reasoning afterwards
     logs = out_dir / "transcripts"
     if args.via == "mcp":
@@ -343,7 +388,7 @@ def main(argv: list[str] | None = None) -> None:
 
             inner = get_adapter(args.llm) if args.llm else None
             record = args.replay or args.record or out_dir / f"llm-replies.{args.tasks.name}.json"
-            llm = Recorded(record, None if args.replay else inner)
+            llm = Recorded(record, None if args.replay else inner, reuse=not args.fresh)
             variants = {
                 f"{k}+llm": v
                 | {"adapter": Transcript(llm, logs / f"{args.tasks.name}.{k}+llm.llm.jsonl")}
@@ -356,22 +401,36 @@ def main(argv: list[str] | None = None) -> None:
     paths = {k: out_dir / f"preds.{args.tasks.name}.{k}{suffix}.jsonl" for k in variants}
 
     cases = sorted(p for p in (args.tasks / "cases").iterdir() if p.is_dir())[: args.limit]
+    # cache: an answered case isn't redone (a failed one is), unless --fresh
+    preds = {k: {} if args.fresh else load_preds(p) for k, p in paths.items()}
+    todo = {
+        case.name: [k for k in variants if case.name not in preds[k] or failed(preds[k][case.name])]
+        for case in cases
+    }
+    runs = sum(len(v) for v in todo.values())
+    quiet_logs()
+    print(
+        f"{args.tasks.name}: {len(cases)} cases x {len(variants)} variants, "
+        f"{len(cases) * len(variants) - runs} cached, {runs} to run",
+        flush=True,
+    )
+    done, began = 0, time.monotonic()
     with utc_clock():
-        for i, case in enumerate(cases, 1):
-            # resume: a case every variant already answered isn't redone
-            todo = {k: v for k, v in variants.items() if case.name not in done_ids(paths[k])}
-            if not todo:
+        for case in cases:
+            if not todo[case.name]:
                 continue
+            print(f"{bar(done, runs, began)}  {case.name}: loading the logs", flush=True)
             started = time.perf_counter()
             task = json.loads((case / "task.json").read_text("utf-8"))
             try:
                 _, world = load_case(case, epochs=args.epochs)
                 error = None
-            # one broken case must not end a long run: it's scored as a miss
+            # one broken case must not end a long run: it's scored as a miss, retried next run
             except Exception as e:  # noqa: BLE001
                 world, error = None, f"can't load the case: {e}"
             loaded = time.perf_counter() - started
-            for name, variant in todo.items():
+            for name in todo[case.name]:
+                variant = variants[name]
                 started = time.perf_counter()
                 try:
                     if world is None:
@@ -385,16 +444,21 @@ def main(argv: list[str] | None = None) -> None:
                         log = logs / f"{args.tasks.name}.{name}{suffix}.reports.jsonl"
                         pred = answer_direct(world, task, variant, not args.no_anchor, log)
                 except Exception as e:  # noqa: BLE001
-                    pred = {"ranks": [], "reasoning": f"error: {e}"}
+                    pred = {"ranks": [], "reasoning": f"error: {e}", "error": True}
                 wall = loaded + time.perf_counter() - started
                 pred["usage"] = (pred.get("usage") or {}) | {"wall_time_s": round(wall, 2)}
-                append(
-                    paths[name],
-                    {"case_id": case.name, "model": f"logpipe-rca/{name}{suffix}"} | pred,
+                model = {"case_id": case.name, "model": f"logpipe-rca/{name}{suffix}"}
+                preds[name][case.name] = model | pred
+                save_preds(paths[name], preds[name])
+                done += 1
+                shown = "FAILED" if failed(pred) else ", ".join(pred["ranks"][:3])
+                print(
+                    f"{bar(done, runs, began)}  {case.name} {name}: {shown} ({wall:.0f} s)",
+                    flush=True,
                 )
-                print(f"[{i}/{len(cases)}] {case.name} {name}: {pred['ranks'][:3]} ({wall:.0f} s)")
-    for p in paths.values():
-        print(p)
+    for name, p in paths.items():
+        bad = sum(failed(v) for v in preds[name].values())
+        print(f"{p}" + (f"  ({bad} failed: rerun to retry them)" if bad else ""))
 
 
 if __name__ == "__main__":

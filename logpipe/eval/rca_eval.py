@@ -366,16 +366,18 @@ VARIANTS: dict[str, dict] = {
 
 class Recorded:
     """An LLM whose replies are kept by prompt: ``record`` asks ``inner`` and saves, ``replay``
-    answers from the file (a prompt it hasn't seen fails: re-record after changing a prompt)."""
+    answers from the file (a prompt it hasn't seen fails: re-record after changing a prompt).
+    With ``reuse``, recording answers a prompt it already has from the file instead of asking."""
 
     can_ask = True
 
-    def __init__(self, path: Path, inner=None):
+    def __init__(self, path: Path, inner=None, reuse: bool = False):
         import hashlib
 
-        self.path, self.inner, self._hash = (
+        self.path, self.inner, self.reuse, self._hash = (
             path,
             inner,
+            reuse,
             lambda p: hashlib.sha256(p.encode()).hexdigest()[:16],
         )
         self.replies: dict[str, dict | None] = (
@@ -389,6 +391,9 @@ class Recorded:
                 raise KeyError(f"no recorded reply for {key}; run the eval with --record")
             reply = self.replies[key]
             return None if reply is None else schema(**reply)
+        # a failed (None) reply is asked again
+        if self.reuse and self.replies.get(key) is not None:
+            return schema(**self.replies[key])
         out = self.inner.ask(schema, prompt)
         self.replies[key] = out.model_dump() if out is not None else None
         self.path.parent.mkdir(parents=True, exist_ok=True)

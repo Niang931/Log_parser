@@ -13,6 +13,8 @@ PYRIGHT  ?= pyright
 DATASET  ?= re3-ob
 VIA      ?= direct
 LIMIT    ?=
+VARIANTS ?=
+FRESH    ?=
 
 # .env is optional: load it only when it exists.
 RUN      := uv run $(if $(wildcard .env),--env-file .env)
@@ -113,11 +115,12 @@ eval-hdfs: data-hdfs ## LogBERT on an HDFS subset
 eval-bgl: data-bgl ## LogBERT on a BGL subset
 	$(EVAL) logbert --dataset BGL $(TRAIN)
 
-eval-rcaeval: ## RCA on RCAEval cases, scored by RCAEval (DATASET=re3-ob VIA=direct|mcp LIMIT=N LLM=llm:web:gemini)
+eval-rcaeval: ## RCA on RCAEval cases, scored by RCAEval (DATASET VIA=direct|mcp LIMIT LLM VARIANTS FRESH=1)
 	test -d $(RCA_OUT)/tasks/$(DATASET) || $(RCAEVAL) export --dataset $(DATASET) \
 		--out $(RCA_OUT)/tasks --data-root $(RCA_OUT)/data
 	WEB_BROWSER=$(WEB) $(RUN) python -m logpipe.eval.rcaeval_bench $(RCA_OUT)/tasks/$(DATASET) --out $(RCA_OUT) \
-		--via $(VIA) $(if $(LIMIT),--limit $(LIMIT)) $(if $(filter direct,$(VIA)),$(LLM_ARG))
+		--via $(VIA) $(if $(LIMIT),--limit $(LIMIT)) $(if $(filter direct,$(VIA)),$(LLM_ARG)) \
+		$(if $(VARIANTS),--variants $(VARIANTS)) $(if $(FRESH),--fresh)
 	for p in $(RCA_OUT)/preds.$(DATASET).*.jsonl; do echo "$$p"; \
 		$(RCAEVAL) evaluate --tasks $(RCA_OUT)/tasks/$(DATASET) --predictions "$$p" --report-chance; done
 

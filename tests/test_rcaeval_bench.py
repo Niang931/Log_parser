@@ -43,9 +43,13 @@ def write_case(root):
     return case.parent.parent
 
 
+def run(tasks, *flags):
+    main([str(tasks), "--out", str(tasks.parent), *flags])
+
+
 def test_ranks_the_failing_service_first(tmp_path):
     tasks = write_case(tmp_path)
-    main([str(tasks), "--variants", "full", "--epochs", "1"])
+    run(tasks, "--variants", "full", "--epochs", "1")
     [pred] = [json.loads(line) for line in (tmp_path / "preds.re3-ob.full.jsonl").open()]
     assert pred["case_id"] == "re3-ob-0001"
     assert pred["ranks"][0] == "checkoutservice", pred
@@ -54,8 +58,20 @@ def test_ranks_the_failing_service_first(tmp_path):
     assert json.loads(kept)["report"]["candidates"]
 
     # a second run resumes: the answered case isn't redone
-    main([str(tasks), "--variants", "full", "--epochs", "1"])
-    assert len((tmp_path / "preds.re3-ob.full.jsonl").read_text().splitlines()) == 1
+    preds = tmp_path / "preds.re3-ob.full.jsonl"
+    run(tasks, "--variants", "full", "--epochs", "1")
+    assert json.loads(preds.read_text()) == pred
+
+    # a failed answer is retried and replaced, not appended
+    preds.write_text(json.dumps(pred | {"ranks": [], "reasoning": "error: x", "error": True}))
+    run(tasks, "--variants", "full", "--epochs", "1")
+    [again] = [json.loads(line) for line in preds.read_text().splitlines()]
+    assert again["ranks"][0] == "checkoutservice" and "error" not in again
+
+    # --fresh redoes it even though it's answered
+    run(tasks, "--variants", "full", "--epochs", "1", "--fresh")
+    [fresh] = [json.loads(line) for line in preds.read_text().splitlines()]
+    assert fresh["usage"]["wall_time_s"] != again["usage"]["wall_time_s"]
 
 
 def test_ranks_keep_rcaeval_names_in_report_order():
@@ -111,3 +127,21 @@ def test_transcript_keeps_every_prompt_reply_and_error(tmp_path):
     ok, failed = [json.loads(line) for line in log.read_text().splitlines()]
     assert ok["case_id"] == "re3-ob-0001" and ok["prompt"] == "hi" and ok["reply"] == {"text": "HI"}
     assert failed["reply"] is None and failed["error"] == "TimeoutError: no reply"
+
+
+def test_recorded_reuses_a_saved_reply_unless_fresh(tmp_path):
+    from logpipe.eval.rca_eval import Recorded
+
+    calls = []
+
+    class Counting:
+        def ask(self, schema, prompt):
+            calls.append(prompt)
+            return schema(text=prompt)
+
+    path = tmp_path / "replies.json"
+    assert Recorded(path, Counting(), reuse=True).ask(Reply, "a").text == "a"
+    assert Recorded(path, Counting(), reuse=True).ask(Reply, "a").text == "a"
+    assert calls == ["a"]
+    Recorded(path, Counting()).ask(Reply, "a")
+    assert calls == ["a", "a"]
