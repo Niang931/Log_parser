@@ -18,6 +18,7 @@ from pathlib import Path
 
 from deepparse.ai_scraper.sites import SITES
 from deepparse.synth.chat_provider import API_KEY_ENV
+from dotenv import load_dotenv
 
 from .settings import get_settings
 
@@ -26,12 +27,7 @@ SAVED = Path(".logpipe/start.json")
 
 def load_env(path: Path = Path(".env")) -> None:
     """Read ``.env`` like ``uv run --env-file`` would, without overriding the real environment."""
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        key, sep, value = line.strip().partition("=")
-        if sep and key and not key.startswith("#"):
-            os.environ.setdefault(key, value.strip().strip('"'))
+    load_dotenv(path, override=False)
     get_settings.cache_clear()  # settings read before now missed these
 
 
