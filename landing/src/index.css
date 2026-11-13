@@ -6,7 +6,7 @@
   --color-surface: #1c1b2e;
   --color-sheet: #18181f;
   --color-ink: #ececf1;
-  --color-muted: #a6a6b4;
+  --color-muted: #b3b3c2;
   --color-accent: #9d8cff;
   --color-accent-ink: #131318;
   --color-line: color-mix(in oklab, #ececf1 11%, transparent);
@@ -42,6 +42,8 @@
   }
   body {
     @apply bg-bg font-sans text-ink antialiased;
+    /* Manrope at 400 reads thin on dark grounds */
+    font-weight: 450;
   }
   ::selection {
     background: color-mix(in oklab, var(--color-accent) 40%, transparent);
@@ -64,4 +66,9 @@
 @keyframes lp-progress {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
+}
+
+/* the page stays put behind an open screenshot */
+html:has(dialog[open]) {
+  overflow: hidden;
 }

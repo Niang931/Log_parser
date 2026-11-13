@@ -20,6 +20,12 @@ const RAW = [
 const MASK = '<VAR:TIMESTAMP> WARN [http-nio-<VAR:NUMBER>-exec-<VAR:NUMBER>] c.s.payment.PaymentClient - payment <*> slow response <VAR:NUMBER> ms, retrying'
 const KEYS: [string, string][] = [['<VAR:TIMESTAMP>', '→ timestamp'], ['<*>', '→ payment_id'], ['<VAR:NUMBER> ms', '→ duration_ms']]
 
+const VALUES: [string, string][] = [['timestamp', '21:56:36.384'], ['port', '8080'], ['thread_id', '2'], ['payment_id', 'pay_3632506'], ['duration_ms', '3358']]
+
+/** One stored row, before (outlined) or after (lit green) the backfill. */
+const Stored = ({ final, children }: { final?: boolean; children: ReactNode }) => (
+  <div className={`grid justify-items-start gap-2.5 rounded-lg border p-4 ${final ? 'border-route-learn/45 bg-route-learn/6' : 'border-line'}`}>{children}</div>
+)
 const Label = ({ children }: { children: string }) => <p className="font-sans text-sm font-medium text-route-learn">{children}</p>
 const Code = ({ children, muted }: { children: ReactNode; muted?: boolean }) => (
   <code className={`block break-all ${muted ? 'text-muted' : 'text-ink'}`}>{children}</code>
@@ -47,13 +53,24 @@ const VIEWS: ReactNode[] = [
     <KeyValues rows={KEYS} valueClass="text-field" />
   </>,
   <>
-    <Label>Template #9 joins registry v4</Label>
-    <Mask>
-      <Field>timestamp</Field> WARN [http-nio-<Field>port</Field>-exec-<Field>thread_id</Field>] c.s.payment.PaymentClient - payment <Field>payment_id</Field> slow response <Field>duration_ms</Field> ms, retrying
-    </Mask>
-    <Label>↓ the stored rows are rewritten</Label>
-    <div className="flex items-start gap-3"><Tag /><Code>template UNK · registry v3 · {'{}'}</Code></div>
-    <div className="flex items-start gap-3"><Tag final /><Code>template 9 · registry v4 · {'{"payment_id": "pay_3632506", "duration_ms": 3358}'}</Code></div>
+    <Label>Rows stored before the template existed</Label>
+    <Stored>
+      <Tag />
+      <Code muted>{RAW[0]}</Code>
+      <p className="font-sans text-sm text-muted">No fields yet</p>
+    </Stored>
+    <Label>↓ backfilled with template #9</Label>
+    <Stored final>
+      <Tag final />
+      <Code>
+        <Field>21:56:36.384</Field> WARN [http-nio-<Field>8080</Field>-exec-<Field>2</Field>] c.s.payment.PaymentClient - payment <Field>pay_3632506</Field> slow response <Field>3358</Field> ms, retrying
+      </Code>
+      <ul className="flex flex-wrap gap-2">
+        {VALUES.map(([k, v]) => (
+          <li key={k} className="rounded-md border border-line bg-white/4 px-2.5 py-1"><span className="text-field">{k}</span> <span className="text-ink">{v}</span></li>
+        ))}
+      </ul>
+    </Stored>
   </>,
 ]
 

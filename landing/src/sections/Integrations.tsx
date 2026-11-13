@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { Heading, Lead, Section } from '../components/Section'
 
 type Tool = { name: string; icon?: string; note?: string; invert?: boolean }
@@ -11,6 +12,9 @@ const PIPELINE: Stop[] = [
   { role: 'Store', tools: [{ name: 'Memory' }, { name: 'ClickHouse', icon: 'clickhouse' }, { name: 'MongoDB', icon: 'mongodb' }] },
   { role: 'Name fields', tools: [{ name: 'Offline rules', note: 'default' }, { name: 'Gemini', icon: 'gemini', note: 'or any web chat or API' }] },
 ]
+// one colour per stretch, borrowed from the page's own rail
+const SEGMENTS = ['var(--color-route-hot)', 'var(--color-route-learn)', 'var(--color-route-detect)']
+
 const AROUND: Stop[] = [
   { role: 'Ask from', tools: [{ name: 'Claude Code', icon: 'claude-code', note: 'over MCP' }] },
   { role: 'Run with', tools: [{ name: 'Docker Compose', icon: 'docker' }] },
@@ -37,13 +41,18 @@ export function Integrations() {
         <div className="lg:col-span-5 lg:col-start-8"><Lead>Kafka or an in-memory queue, ClickHouse or MongoDB, any LLM or none at all.</Lead></div>
       </header>
 
-      <ol className="relative mt-14 grid gap-10 before:absolute before:top-3 before:bottom-3 before:left-[11px] before:w-0.5 before:bg-line-strong md:mt-20 lg:grid-cols-4 lg:gap-8 lg:before:top-[11px] lg:before:right-0 lg:before:bottom-auto lg:before:left-0 lg:before:h-0.5 lg:before:w-auto">
+      {/* drawn like the page's rail: 6px line, ringed stations, one colour per stretch */}
+      <ol className="mt-14 grid gap-10 md:mt-20 lg:grid-cols-4 lg:gap-8">
         {PIPELINE.map(({ role, tools }, i) => (
-          <li key={role} className="relative pl-12 lg:pt-14 lg:pl-0">
-            <span aria-hidden className="absolute top-0 left-0 size-6 rounded-full border-[5px] border-ink bg-bg" />
-            <p className="flex items-baseline gap-3 text-sm text-muted">
-              <span className="font-mono text-xs">{String(i + 1).padStart(2, '0')}</span>{role}
-            </p>
+          <li
+            key={role}
+            style={{ '--seg': SEGMENTS[i] } as CSSProperties}
+            className={`relative pl-12 lg:pt-14 lg:pl-0 ${i < PIPELINE.length - 1
+              ? 'before:absolute before:top-3 before:-bottom-10 before:left-3 before:-ml-[3px] before:w-1.5 before:bg-(--seg) lg:before:top-3 lg:before:-right-8 lg:before:bottom-auto lg:before:left-3 lg:before:-mt-[3px] lg:before:ml-0 lg:before:h-1.5 lg:before:w-auto'
+              : ''}`}
+          >
+            <span aria-hidden className="absolute top-0 left-0 z-10 size-6 rounded-full border-[5px] border-ink bg-bg" />
+            <p className="text-lg font-semibold">{role}</p>
             <ul className="mt-4 grid gap-3">{tools.map(t => <ToolRow key={t.name} {...t} />)}</ul>
           </li>
         ))}
@@ -52,7 +61,7 @@ export function Integrations() {
       <div className="mt-14 grid gap-8 border-t border-line pt-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
         {AROUND.map(({ role, tools }) => (
           <div key={role}>
-            <p className="text-sm text-muted">{role}</p>
+            <p className="text-lg font-semibold">{role}</p>
             <ul className="mt-3 grid gap-3">{tools.map(t => <ToolRow key={t.name} {...t} />)}</ul>
           </div>
         ))}

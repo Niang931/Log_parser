@@ -48,16 +48,18 @@ export const Heading = ({ id, level = 2, children }: { id?: string; level?: 2 | 
 }
 
 export const Lead = ({ children }: { children: ReactNode }) => (
-  <p className="max-w-[52ch] text-lg leading-relaxed text-muted">{children}</p>
+  <p className="max-w-[52ch] text-[19px] leading-[1.6] text-ink/80">{children}</p>
 )
 
-/** Short facts beside a screenshot, each marked in the section's route colour. */
+/** Short facts beside a screenshot, each ticked in the section's route colour. */
 export function Points({ items }: { items: ReactNode[] }) {
   return (
-    <ul className="grid gap-3 text-[15px] leading-snug">
+    <ul className="grid gap-3.5 border-t border-line pt-6 text-[17px] leading-snug font-medium">
       {items.map((item, i) => (
-        <li key={i} className="flex gap-3">
-          <span aria-hidden className="mt-[7px] h-1.5 w-3 flex-none rounded-full bg-(--route)" />
+        <li key={i} className="flex items-start gap-3">
+          <span aria-hidden className="mt-px grid size-5 flex-none place-items-center rounded-full bg-[color-mix(in_oklab,var(--route)_22%,transparent)] text-(--route)">
+            <svg viewBox="0 0 12 12" className="size-3" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m2.5 6.2 2.3 2.3 4.7-4.9" /></svg>
+          </span>
           <span>{item}</span>
         </li>
       ))}
