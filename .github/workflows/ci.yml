@@ -122,16 +122,16 @@ jobs:
           fetch-depth: 0  # gitleaks reads the commits of the push / PR
       - uses: astral-sh/setup-uv@v7
       - name: pip-audit (uv.lock)
-        # torch comes from the CPU index as X+cpu, which PyPI doesn't list; audit it as release X.
+        # torch==X+cpu isn't on PyPI; drop the local label so it's audited as upstream X.
         run: |
           uv export --frozen --no-hashes --no-emit-project --no-emit-workspace --format requirements-txt \
-            | grep -v '^-e ' | sed 's/+cpu//' > "$RUNNER_TEMP/requirements.txt"
+            | grep -v '^-e ' | sed -E 's/^([^=]+==[^+ ;]+)\+[^ ;]+/\1/' > "$RUNNER_TEMP/requirements.txt"
           uvx pip-audit -r "$RUNNER_TEMP/requirements.txt" --disable-pip --no-deps --progress-spinner off
       - name: npm audit (web, production deps)
         working-directory: web
         run: npm audit --omit=dev --audit-level=high
       - name: gitleaks (secrets in commits)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Trivy (vulnerable dependencies, committed secrets)
