@@ -196,21 +196,29 @@ See full guide here: [Install the agent](https://niang931.github.io/Log_parser/g
 <td width="50%" valign="top">
 <p align="center"><img src="https://cdn.simpleicons.org/datadog/632CA6" alt="Datadog" height="56"><br><b>Datadog</b></p>
 
-- **Reads** your Datadog logs: `--datadog-pull 'service:shop*'`
-- **Writes back** each incident and its root cause as an event
-- **Exports** learned templates as a grok log pipeline
+Already on Datadog? logpipe works next to it rather than replacing it. It reads the logs you already
+ship, learns their formats and spots unusual sequences, then puts what it finds back where your
+on-call already looks.
 
-<p align="center"><a href="docs/guides/datadog.md">Datadog guide →</a></p>
+- **Reads** your Datadog logs: `--datadog-pull 'service:shop*'`
+- **Writes back** each incident and its cited root cause as an event
+- **Exports** learned templates as a grok log pipeline, so Datadog parses those lines too
 </td>
 <td width="50%" valign="top">
 <p align="center"><img src="https://cdn.simpleicons.org/mongodb/47A248" alt="MongoDB" height="56"><br><b>MongoDB</b></p>
 
-- **Stores** lines, alerts and settings instead of ClickHouse
-- **Serves** the UI, Query, Ask and MCP through aggregations
-- **Read-only** user for free-form queries
+Prefer a document store? logpipe runs fully on MongoDB instead of ClickHouse, from parsed lines
+to the settings behind the UI. One flag switches it: `--store mongodb`, or the
+`platform-mongo` compose profile.
 
-<p align="center"><a href="docs/guides/mongodb.md">MongoDB guide →</a></p>
+- **Stores** parsed lines, alerts, agents, keys and settings
+- **Serves** the UI, Query page, Ask/RCA and MCP through aggregations
+- **Guards** free-form queries with a separate read-only user
 </td>
+</tr>
+<tr>
+<td align="center"><a href="docs/guides/datadog.md"><b>Datadog guide →</b></a></td>
+<td align="center"><a href="docs/guides/mongodb.md"><b>MongoDB guide →</b></a></td>
 </tr>
 </table>
 
