@@ -26,7 +26,7 @@ export function Nav() {
             ))}
           </ul>
         </nav>
-        <ButtonLink href={REPO} className="ml-auto hidden h-9! px-4! text-sm! md:inline-flex">View on GitHub</ButtonLink>
+        <ButtonLink href={REPO} className="ml-auto h-9! px-4! text-sm! max-md:hidden">View on GitHub</ButtonLink>
         <button
           type="button"
           className="-mr-2 ml-auto grid size-10 cursor-pointer place-items-center rounded-sm text-ink md:hidden"

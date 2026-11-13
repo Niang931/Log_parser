@@ -28,9 +28,9 @@ export function Screenshot({ src, width, height, alt, caption, priority, classNa
           decoding="async"
           className="block h-auto w-full"
         />
-        <span className="absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-sm border border-line-strong bg-bg/90 px-2.5 py-1.5 text-xs font-medium text-ink opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
+        <span className="absolute right-2 bottom-2 inline-flex sm:right-3 sm:bottom-3 items-center gap-1.5 rounded-sm border border-line-strong bg-bg/90 px-2.5 py-1.5 text-xs font-medium text-ink opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
           <ExpandIcon className="size-3.5" />
-          Full size
+          <span className="max-sm:sr-only">Full size</span>
         </span>
       </a>
       {caption && <figcaption className="mt-4 max-w-[70ch] text-sm leading-relaxed text-muted">{caption}</figcaption>}
