@@ -42,7 +42,7 @@ class ShowcaseDatadog:
 
     def env(self, url: str) -> dict[str, str]:
         """For the server process: links in events point at this showcase, and a fast tick."""
-        return {"DD_PUBLIC_URL": url, "DD_PULL_EVERY_S": "5"}
+        return {"DD_PUBLIC_URL": url, "DD_PULL_EVERY_S": "5", "DD_APM": "1", "DD_ENV": "showcase"}
 
     def start(self) -> None:
         """The Agent (recreated: the showcase just replaced the directory it reads), the
@@ -79,6 +79,10 @@ class ShowcaseDatadog:
         )
         self.links["events"] = f"{self.settings.app_url}/event/explorer?query=source%3Alogpipe"
         self.links["pipelines"] = f"{self.settings.app_url}/logs/pipelines"
+        self.links["map"] = f"{self.settings.app_url}/apm/map?env=showcase"
+        self.links["llm"] = (
+            f"{self.settings.app_url}/llm/traces?query=%40ml_app%3A{self.settings.llmobs_ml_app}"
+        )
         self.had_pipeline = self.pipeline()
 
     def event(self, title: str) -> bool:

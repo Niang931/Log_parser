@@ -34,8 +34,8 @@ To expose a server running on a laptop: `cloudflared tunnel --url http://localho
 
 | Act | What you see in Datadog |
 |---|---|
-| 1b | The Datadog Agent (Docker, `docker/datadog/shop.d`) ships the shop's files as host `shop-web-1`. The `logpipe pipeline` dashboard and the monitors from `docs/datadog/` are created if they don't exist yet. |
-| 6 | The outage becomes an anomaly event, followed by its root-cause analysis once its rounds are approved. In `--auto` mode the tour approves them itself. |
+| 1b | The Datadog Agent (Docker, `docker/datadog/shop.d`) ships the shop's files as host `shop-web-1`. The `logpipe pipeline` dashboard and the monitors from `docs/datadog/` are created if they don't exist yet. The server runs with `DD_APM=1` and `DD_ENV=showcase`, so **APM → Service Map** shows logpipe and what it calls. |
+| 6 | The outage becomes an anomaly event, followed by its root-cause analysis once its rounds are approved. In `--auto` mode the tour approves them itself. **LLM Observability → Traces** shows each LLM step of the analysis. |
 | 7b | **Templates → Export to Datadog** creates the `logpipe (auto)` pipeline. |
 | 7c | The tour sends the payload a monitor's webhook would. The answer comes back as an event. |
 
@@ -43,7 +43,7 @@ When you stop it, the showcase deletes the dashboard, monitors and pipeline it c
 
 ## Self-monitoring
 
-With `--datadog`, logpipe's own stage metrics, anomaly logs and LLM spans go to the local Agent. A dashboard and monitors to import are in `docs/datadog/`. `make demo-datadog` shows a store getting slow and then failing.
+With `--datadog`, logpipe's own stage metrics, anomaly logs and LLM spans go to the local Agent. Add `DD_APM=1` for APM spans of every request and of the calls it makes (Mongo, ClickHouse, Datadog, the LLM), which draws logpipe on the Service Map. A dashboard and monitors to import are in `docs/datadog/`: totals, the Service Map, request and error rates, and per-stage timings, with logpipe's incident events marked on the graphs. `make demo-datadog` shows a store getting slow and then failing.
 
 ## Settings
 
@@ -55,3 +55,5 @@ With `--datadog`, logpipe's own stage metrics, anomaly logs and LLM spans go to 
 | `DD_PULL_QUERY` | | same as `--datadog-pull` |
 | `DD_PULL_EVERY_S` | `15` | |
 | `DD_PUBLIC_URL` | | base of the links to logpipe in events |
+| `DD_APM` | off | APM spans for the Service Map (needs `--datadog` and the Agent) |
+| `DD_ENV` | | `env` tag on the spans, e.g. `prod` |

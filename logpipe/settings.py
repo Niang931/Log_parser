@@ -212,6 +212,7 @@ class DatadogSettings(BaseSettings):
     dogstatsd_port: int = 8125
     log_file: Path = Path(".logpipe/dd-logs.jsonl")
     llmobs_ml_app: str = "logpipe"
+    apm: bool = False  # APM spans for requests, Mongo, ClickHouse and HTTP calls (Service Map)
     api_key: str | None = None
     app_key: str | None = None
     pull_query: str = ""  # Logs search query, e.g. "service:shop*"; empty means no pulling

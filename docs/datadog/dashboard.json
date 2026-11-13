@@ -1,8 +1,123 @@
 {
   "title": "logpipe pipeline",
   "layout_type": "ordered",
-  "description": "Time and errors per stage.",
+  "description": "logpipe at a glance: what it parsed and caught, what it calls (Service Map), and time and errors per stage. Vertical markers are logpipe's incident and RCA events.",
   "widgets": [
+    {
+      "definition": {
+        "type": "query_value",
+        "title": "Lines parsed",
+        "autoscale": true,
+        "precision": 0,
+        "requests": [
+          {
+            "response_format": "scalar",
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "q",
+                "query": "sum:logpipe.lines{*}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "q"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "query_value",
+        "title": "Anomalies",
+        "autoscale": true,
+        "precision": 0,
+        "requests": [
+          {
+            "response_format": "scalar",
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "q",
+                "query": "sum:logpipe.anomalies{*}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "q"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "query_value",
+        "title": "Stage errors",
+        "autoscale": true,
+        "precision": 0,
+        "requests": [
+          {
+            "response_format": "scalar",
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "q",
+                "query": "sum:logpipe.stage.errors{*}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "q"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "topology_map",
+        "title": "What logpipe calls (APM, DD_APM=1)",
+        "requests": [
+          {
+            "request_type": "topology",
+            "query": {
+              "data_source": "service_map",
+              "service": "logpipe",
+              "filters": [
+                "env:*"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Requests and errors (APM)",
+        "requests": [
+          {
+            "q": "sum:trace.fastapi.request.hits{service:logpipe}.as_count()",
+            "display_type": "bars"
+          },
+          {
+            "q": "sum:trace.fastapi.request.errors{service:logpipe}.as_count()",
+            "display_type": "bars",
+            "style": {
+              "palette": "warm"
+            }
+          }
+        ]
+      }
+    },
     {
       "definition": {
         "type": "timeseries",
@@ -45,8 +160,42 @@
         "title": "Lines by status",
         "requests": [
           {
-            "q": "sum:logpipe.lines{*} by {status}.as_count()",
-            "display_type": "bars"
+            "display_type": "bars",
+            "response_format": "timeseries",
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "m",
+                "query": "sum:logpipe.lines{*} by {status}.as_count()"
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "m"
+              }
+            ]
+          },
+          {
+            "display_type": "overlay",
+            "response_format": "timeseries",
+            "on_right_yaxis": false,
+            "queries": [
+              {
+                "data_source": "events",
+                "name": "ev",
+                "search": {
+                  "query": "logpipe_incident:*"
+                },
+                "compute": {
+                  "aggregation": "count"
+                }
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "ev"
+              }
+            ]
           }
         ]
       }
@@ -57,8 +206,42 @@
         "title": "Anomalies",
         "requests": [
           {
-            "q": "sum:logpipe.anomalies{*}.as_count()",
-            "display_type": "bars"
+            "display_type": "bars",
+            "response_format": "timeseries",
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "m",
+                "query": "sum:logpipe.anomalies{*}.as_count()"
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "m"
+              }
+            ]
+          },
+          {
+            "display_type": "overlay",
+            "response_format": "timeseries",
+            "on_right_yaxis": false,
+            "queries": [
+              {
+                "data_source": "events",
+                "name": "ev",
+                "search": {
+                  "query": "logpipe_incident:*"
+                },
+                "compute": {
+                  "aggregation": "count"
+                }
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "ev"
+              }
+            ]
           }
         ]
       }
