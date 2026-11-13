@@ -131,7 +131,7 @@ jobs:
         working-directory: web
         run: npm audit --omit=dev --audit-level=high
       - name: gitleaks (secrets in commits)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Trivy (vulnerable dependencies, committed secrets)
