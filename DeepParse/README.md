@@ -7,7 +7,7 @@
 [![CI](https://github.com/NightBaRron1412/DeepParse/actions/workflows/ci.yml/badge.svg)](https://github.com/NightBaRron1412/DeepParse/actions/workflows/ci.yml)
 [![Coverage 81%](https://img.shields.io/badge/coverage-81%25-brightgreen.svg?logo=pytest&logoColor=white)](#verification)
 [![Tests 59 passing](https://img.shields.io/badge/tests-59%20passing-brightgreen.svg)](tests/)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Conference](https://img.shields.io/badge/EASE-2026-orange)](#citation)
