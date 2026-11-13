@@ -14,6 +14,8 @@
   <a href="https://niang931.github.io/Log_parser/"><img alt="Docs" src="https://img.shields.io/badge/docs-niang931.github.io-1e88e5?logo=materialformkdocs&logoColor=white"></a>
   <img alt="OpenTelemetry" src="https://img.shields.io/badge/OpenTelemetry-OTLP%2FHTTP-425CC7?logo=opentelemetry&logoColor=white">
   <img alt="MCP" src="https://img.shields.io/badge/MCP-%2Fmcp-000000?logo=anthropic&logoColor=white">
+  <a href="docs/guides/datadog.md"><img alt="Datadog" src="https://img.shields.io/badge/Datadog-logs-632CA6?logo=datadog&logoColor=white"></a>
+  <a href="docs/guides/mongodb.md"><img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-store-47A248?logo=mongodb&logoColor=white"></a>
 </p>
 
 ---
@@ -187,6 +189,31 @@ See full guide here: [Install the agent](https://niang931.github.io/Log_parser/g
 | Root cause, real testbed | RCAEval RE3-OB, 30 code-level faults | AC@1: rules **0.40** → + Gemini **0.70** → Claude Code over MCP **0.87–0.90** |
 | Hot path | IoT replay | parse p50 **32 µs**, p99 68 µs; ~10k lines/s per server core |
 
+## Datadog and MongoDB
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<p align="center"><img src="https://cdn.simpleicons.org/datadog/632CA6" alt="Datadog" height="56"><br><b>Datadog</b></p>
+
+- **Reads** your Datadog logs: `--datadog-pull 'service:shop*'`
+- **Writes back** each incident and its root cause as an event
+- **Exports** learned templates as a grok log pipeline
+
+<p align="center"><a href="docs/guides/datadog.md">Datadog guide →</a></p>
+</td>
+<td width="50%" valign="top">
+<p align="center"><img src="https://cdn.simpleicons.org/mongodb/47A248" alt="MongoDB" height="56"><br><b>MongoDB</b></p>
+
+- **Stores** lines, alerts and settings instead of ClickHouse
+- **Serves** the UI, Query, Ask and MCP through aggregations
+- **Read-only** user for free-form queries
+
+<p align="center"><a href="docs/guides/mongodb.md">MongoDB guide →</a></p>
+</td>
+</tr>
+</table>
+
 ## Documentation
 
 | | |
@@ -194,7 +221,7 @@ See full guide here: [Install the agent](https://niang931.github.io/Log_parser/g
 | [Getting started](https://niang931.github.io/Log_parser/getting-started/) | install, every way to run it, all commands |
 | [Architecture](https://niang931.github.io/Log_parser/architecture/) | parsing, online learning, LogBERT, server lifecycle, Ask & RCA, MCP, storage, with diagrams |
 | [Benchmarks](https://niang931.github.io/Log_parser/benchmarks/) | results, RCAEval, throughput |
-| [Guides](https://niang931.github.io/Log_parser/guides/code-structure/) | code structure, replacing components, configuration, maintenance, CI |
+| [Guides](https://niang931.github.io/Log_parser/guides/code-structure/) | code structure, replacing components, configuration, Datadog, MongoDB, maintenance, CI |
 | [Security](https://niang931.github.io/Log_parser/security/) | threat model and defences |
 | [Design records](https://niang931.github.io/Log_parser/plan/) | personas, feature plans and technical decisions |
 

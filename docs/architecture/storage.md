@@ -57,7 +57,7 @@ and PCRE share, so every backend agrees.
 
 | | memory | ClickHouse | MongoDB |
 |---|---|---|---|
-| Setup | none | `make docker-up` | `--profile mongo` |
+| Setup | none | `make docker-up` | `--profile mongo` ([guide](../guides/mongodb.md)) |
 | Survives restart | no (only `--data-dir`) | yes | yes |
 | Query p95 / percentiles | SQLite | native | `$percentile` |
 | Read-only guard | SQLite `query_only` on a copy | `readonly=2` + RO user + table-function block | `check()` + RO URI |
