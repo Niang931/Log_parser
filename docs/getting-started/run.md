@@ -66,6 +66,8 @@ docker compose --profile platform up --build
 docker compose logs server | grep -i password
 ```
 
+Only want the server, from the shipped image or from source? See [Set up the server](server.md).
+
 The `platform` profile runs ClickHouse, the server, a log generator and an agent. Follow the
 setup guide in the UI: API key → install agents → track files → sample size → streams → review
 templates → train. `--profile platform-mongo` runs the same on MongoDB.
