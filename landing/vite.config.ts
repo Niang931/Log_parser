@@ -1,0 +1,16 @@
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import babel from '@rolldown/plugin-babel'
+import { defineConfig } from 'vite'
+
+// ngrok tunnels get a new subdomain each run; the leading dot allows all of them
+const allowedHosts = ['.ngrok-free.app', '.ngrok-free.dev']
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    babel({ presets: [reactCompilerPreset()] })
+  ],
+  server: { allowedHosts },
+  preview: { allowedHosts },
+})

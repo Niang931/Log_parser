@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-type="software" data-radius="sharp" data-ground="sky" data-buttons="arrow" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>logpipe: self-learning log parser for SRE teams</title>
+<meta name="description" content="Open-source log pipeline that parses known lines on a frozen Drain tree, learns unknown formats in the background and flags anomalies with LogBERT.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="logpipe: self-learning log parser for SRE teams">
+<meta property="og:description" content="Parses known lines in under a millisecond, learns new formats while it runs and explains incidents with the lines behind them.">
+<meta property="og:image" content="share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#131318">
+<!-- <link rel="canonical" href="https://[the project's domain]/"> -->
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<link rel="stylesheet" href="/assets/system.css">
+<link rel="stylesheet" href="/assets/ui/cards.css">
+<link rel="stylesheet" href="/assets/motion/motion.css">
+<link rel="stylesheet" href="/assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="/assets/layout/layout.css">
+<link rel="stylesheet" href="/assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #131318; --p-surface: #1c1b2e; --p-ink: #ececf1; --p-muted: #a6a6b4;
+  --p-accent: #9d8cff; --p-accent-ink: #131318; --p-action: #9d8cff; --p-action-ink: #131318;
+  --p-inv-bg: #ececf1; --p-inv-surface: #dbdbe0; --p-inv-ink: #131318; --p-inv-muted: #5c5c61;
+  --p-inv-accent: #131318; --p-inv-accent-ink: #ececf1; --p-inv-action: #131318; --p-inv-action-ink: #ececf1;
+  --font-display: "Manrope", system-ui, sans-serif;
+  --font-text: "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.035em;
+  --display-tracking-xl: -0.045em;
+  --ly-scale: 0.97;
+}
+</style>
+<link rel="stylesheet" href="/assets/ui/base.css">
+<link rel="stylesheet" href="/assets/diagrams/diagram.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script src="/assets/backgrounds/backgrounds.js"></script>
+</head>
+<body>
+<!-- type: software
+     deal: hero centred (the dealt one; the user asked for a Vercel-style hero), nav mega, close type, footer dark, rhythm surface band (#detect on the sidebar indigo); palette from logpipe's own UI via start.mjs brand, buttons arrow, mark arc, grounds none (lit ground sand)
+     moments: none (the approved sketch has no statement section; the Root cause stepper replays on Ask again) -->
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
+<script type="module" src="/assets/system.js"></script>
+<script type="module" src="/assets/motion/motion.js"></script>
+<script type="module" src="/assets/layout/layout.js"></script>
+<script type="module" src="/assets/diagrams/mount.js"></script>
+</body>
+</html>
