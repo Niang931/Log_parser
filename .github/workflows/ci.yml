@@ -122,10 +122,10 @@ jobs:
           fetch-depth: 0  # gitleaks reads the commits of the push / PR
       - uses: astral-sh/setup-uv@v7
       - name: pip-audit (uv.lock)
-        # torch's +cpu wheels aren't on PyPI, so pip-audit skips it (and says so).
+        # torch comes from the CPU index as X+cpu, which PyPI doesn't list; audit it as release X.
         run: |
           uv export --frozen --no-hashes --no-emit-project --no-emit-workspace --format requirements-txt \
-            | grep -v '^-e ' > "$RUNNER_TEMP/requirements.txt"
+            | grep -v '^-e ' | sed 's/+cpu//' > "$RUNNER_TEMP/requirements.txt"
           uvx pip-audit -r "$RUNNER_TEMP/requirements.txt" --disable-pip --no-deps --progress-spinner off
       - name: npm audit (web, production deps)
         working-directory: web
