@@ -87,6 +87,10 @@ def run(
     from .control import ClickHouseDocs, ControlStore
     from .core import Server
 
+    dd_settings = get_settings().datadog
+    dd_query = datadog_pull or dd_settings.pull_query
+    if dd_query and not (dd_settings.api_key and dd_settings.app_key):
+        raise SystemExit("pulling Datadog logs needs DD_API_KEY and DD_APP_KEY in .env")
     dd = datadog or Datadog()
     log_file = setup_logging(data_dir)
     log_store = open_store(store)
@@ -106,18 +110,15 @@ def run(
         bootstrap_key=get_settings().server.bootstrap_key or None,
         datadog=dd,
     )
-    dd_settings = get_settings().datadog
     if dd_settings.api_key:
         from ..datadog_api import DatadogSync
 
-        server.dd_sync = DatadogSync(dd_settings, query=datadog_pull)
+        server.dd_sync = DatadogSync(dd_settings, query=dd_query)
         print(
             f"[server] datadog: events to {dd_settings.site}"
-            + (f", pulling logs for {server.dd_sync.query!r}" if server.dd_sync.query else ""),
+            + (f", pulling logs for {dd_query!r}" if dd_query else ""),
             flush=True,
         )
-    elif datadog_pull:
-        raise SystemExit("--datadog-pull needs DD_API_KEY and DD_APP_KEY in .env")
     from .auth import Auth
 
     generated = Auth(control).ensure(get_settings().server.admin_password or None)
