@@ -259,3 +259,22 @@ def test_showcase_creates_what_is_missing_and_deletes_only_that(monkeypatch, tmp
     deleted = [p for m, p in calls if m == "DELETE"]
     assert "/api/v1/logs/config/pipelines/p1" in deleted and "/api/v1/dashboard/d1" in deleted
     assert len(deleted) == 5
+
+
+def test_a_failed_pull_logs_datadogs_reason_and_still_pushes(caplog):
+    posted = []
+
+    def handler(request):
+        if request.url.host.startswith("event-management-intake."):
+            posted.append(request)
+            return httpx.Response(202, json={})
+        return httpx.Response(403, json={"errors": ["Forbidden: app key lacks logs_read_data"]})
+
+    api, settings = _api(handler, pull_every_s=0, pull_query="service:shop")
+    sync = DatadogSync(settings, api=api)
+    server = FakeServer()
+    sync.tick(server)
+    server.incident_list = [INC]
+    sync.tick(server)
+    assert "403" in caplog.text and "logs_read_data" in caplog.text
+    assert len(posted) == 1

@@ -12,6 +12,8 @@ import urllib.request
 import uuid
 from pathlib import Path
 
+import httpx
+
 from ..datadog_api import PIPELINE_NAME, DatadogAPI
 from ..settings import get_settings
 
@@ -129,5 +131,5 @@ class ShowcaseDatadog:
             try:
                 self.api.send("DELETE", path)
                 print(f"  {D}deleted in Datadog: {path}{R}")
-            except Exception as error:  # noqa: BLE001
+            except httpx.HTTPError as error:
                 print(f"  could not delete {path} in Datadog: {error}")

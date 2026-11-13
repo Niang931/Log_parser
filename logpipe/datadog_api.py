@@ -32,7 +32,10 @@ class DatadogAPI:
 
     def send(self, method: str, path: str, **kw) -> Any:
         r = self.http.request(method, path, **kw)
-        r.raise_for_status()
+        if r.is_error:  # Datadog's body says why, e.g. "not enabled for the v1 events API"
+            raise httpx.HTTPStatusError(
+                f"{method} {path}: {r.status_code} {r.text[:300]}", request=r.request, response=r
+            )
         return r.json() if r.content else {}
 
     def search_logs(self, query: str, since: str, limit: int = 1000) -> list[dict]:
@@ -192,11 +195,14 @@ class DatadogSync:
         if time.monotonic() - self.last < self.settings.pull_every_s:
             return
         self.last = time.monotonic()
-        for step in (self.pull, self.push):
-            try:
-                step(server)
-            except Exception:
-                LOGGER.exception("datadog %s failed", step.__name__)
+        try:
+            self.pull(server)
+        except (httpx.HTTPError, ValueError, RuntimeError) as error:
+            LOGGER.error("datadog pull failed: %s", error)
+        try:
+            self.push(server)
+        except (httpx.HTTPError, ValueError, KeyError) as error:
+            LOGGER.error("datadog push failed: %s", error)
 
     def pull(self, server) -> None:
         if not self.query:
