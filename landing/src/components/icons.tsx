@@ -15,17 +15,6 @@ export const ArrowIcon = (p: IconProps) => (
   <svg viewBox="0 0 12 12" {...stroke} {...p}><path d="M1 6h8M4.5 2.5 8 6l-3.5 3.5" /></svg>
 )
 
-export const CopyIcon = (p: IconProps) => (
-  <svg viewBox="0 0 16 16" {...stroke} {...p}>
-    <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
-    <path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2" />
-  </svg>
-)
-
-export const CheckIcon = (p: IconProps) => (
-  <svg viewBox="0 0 16 16" {...stroke} {...p}><path d="m3.5 8.4 2.8 2.8 6.2-6.4" /></svg>
-)
-
 export const ExpandIcon = (p: IconProps) => (
   <svg viewBox="0 0 16 16" {...stroke} {...p}><path d="M9.5 2.5h4v4M13.5 2.5 8.5 7.5M6.5 13.5h-4v-4M2.5 13.5l5-5" /></svg>
 )

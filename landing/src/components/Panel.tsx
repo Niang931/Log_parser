@@ -10,13 +10,13 @@ export const Field = ({ children }: { children: string }) => (
   <span className="rounded-[3px] bg-route-store/20 px-1 text-field">{children}</span>
 )
 
-/** Key/value rows in two columns (field → value, mask → key). */
+/** Key/value rows in two aligned columns (field → value, mask → key). */
 export function KeyValues({ rows, keyClass = 'text-muted', valueClass = 'text-ink' }: { rows: [string, string][]; keyClass?: string; valueClass?: string }) {
   return (
-    <dl className="grid gap-1.5">
+    <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-1.5">
       {rows.map(([k, v]) => (
-        <div key={k} className="grid grid-cols-[minmax(0,11rem)_minmax(0,1fr)] gap-3">
-          <dt className={`break-words ${keyClass}`}>{k}</dt>
+        <div key={k} className="contents">
+          <dt className={keyClass}>{k}</dt>
           <dd className={`break-words ${valueClass}`}>{v}</dd>
         </div>
       ))}

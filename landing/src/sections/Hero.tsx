@@ -1,8 +1,7 @@
 import { ButtonLink } from '../components/Button'
 import { Container } from '../components/Container'
-import { CopyCommand } from '../components/CopyCommand'
 import { Screenshot } from '../components/Screenshot'
-import { DEMO, REPO } from '../links'
+import { DOCS, REPO } from '../links'
 import { SHOTS } from '../shots'
 
 export function Hero() {
@@ -18,7 +17,7 @@ export function Hero() {
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <ButtonLink href={REPO} arrow>View on GitHub</ButtonLink>
-            <CopyCommand command={DEMO} />
+            <ButtonLink href={DOCS} variant="secondary">Read the docs</ButtonLink>
           </div>
         </div>
         <Screenshot {...SHOTS.explorer} priority className="mt-16 md:mt-20" />

@@ -59,3 +59,9 @@
 @keyframes lp-in {
   from { opacity: 0; transform: translateY(6px); }
 }
+
+/* the bar under the playing step, filling as its time runs out */
+@keyframes lp-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
