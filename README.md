@@ -151,10 +151,6 @@ docker compose up -d clickhouse
 uv run logpipe server --store clickhouse     # prints the admin password on first start
 ```
 
-`--store memory` skips ClickHouse but keeps nothing after a restart. If you run `uv run logpipe`
-with no arguments, it asks what to run (demo, showcase, server, batch) and starts it. Full guide:
-[Set up the server](https://niang931.github.io/Log_parser/getting-started/server/).
-
 ## Install the agent
 
 Ship a host's logs to the server with `logpipe-agent` 
