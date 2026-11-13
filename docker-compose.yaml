@@ -90,7 +90,7 @@ services:
   server:
     profiles: [platform]
     build: .
-    image: ghcr.io/minhthien2103/logpipe-server:latest
+    image: ghcr.io/niang931/logpipe-server:latest
     container_name: logpipe_server
     environment:
       CLICKHOUSE_HOST: clickhouse
@@ -117,7 +117,7 @@ services:
   server_mongo:
     profiles: [platform-mongo]
     build: .
-    image: ghcr.io/minhthien2103/logpipe-server:latest
+    image: ghcr.io/niang931/logpipe-server:latest
     container_name: logpipe_server_mongo
     command: ["logpipe", "server", "--host", "0.0.0.0", "--port", "8080", "--store", "mongodb"]
     environment:
@@ -150,7 +150,7 @@ services:
   agent:
     profiles: [platform]
     build: agent
-    image: ghcr.io/minhthien2103/logpipe-agent:latest
+    image: ghcr.io/niang931/logpipe-agent:latest
     container_name: logpipe_agent
     environment:
       LOGPIPE_ENDPOINT: http://server:8080

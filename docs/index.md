@@ -120,12 +120,14 @@ Methods, caveats and full tables: [Benchmarks](benchmarks/index.md).
     uv run logpipe demo          # synthetic IoT fleet, the whole pipeline live in a page
     ```
 
-=== "Run the platform"
+=== "Run the server"
 
     ```sh
     cp .env.example .env
-    docker compose --profile platform up --build    # UI on http://localhost:8080
+    docker compose up -d clickhouse server    # shipped image, UI on http://localhost:8080
     ```
+
+    From source, or on your own ClickHouse: [Set up the server](getting-started/server.md).
 
 === "Guided tour"
 
@@ -133,5 +135,5 @@ Methods, caveats and full tables: [Benchmarks](benchmarks/index.md).
     uv run logpipe showcase --auto   # server + a web shop's logs + a real agent, 8 acts
     ```
 
-Next: [Install](getting-started/install.md) · [Run it](getting-started/run.md) ·
+Next: [Install](getting-started/install.md) · [Set up the server](getting-started/server.md) · [Run it](getting-started/run.md) ·
 [Architecture](architecture/index.md) · [Code structure](guides/code-structure.md)
