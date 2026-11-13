@@ -32,7 +32,7 @@
 | **Detect** | LogBERT flags unusual sequences per device or stream, plus a novelty signal and fleet suppression so a rollout doesn't page you. |
 | **Explain** | A deterministic RCA engine finds when it broke and ranks evidence; an LLM writes a cited answer, or says the evidence is insufficient. Every read can require approval. |
 | **Serve** | An operator UI, a SQL / visual query layer, and an MCP endpoint for Claude Code. |
-| **Datadog** | Pulls your Datadog logs in, and pushes anomalies, root causes and grok pipelines back as events and a log pipeline ([guide](docs/guides/datadog.md), `make demo-datadog-loop`). |
+| **Datadog** | Pulls your Datadog logs in, and pushes anomalies, root causes and grok pipelines back as events and a log pipeline ([guide](docs/guides/datadog.md), `logpipe showcase --datadog`). |
 
 
 ## Overview

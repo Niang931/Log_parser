@@ -1,4 +1,4 @@
-# examples/datadog_loop.py writes these; the Agent ships them to Datadog and logpipe pulls them back.
+# `logpipe showcase --datadog` writes these; the Agent ships them to Datadog.
 logs:
   - type: file
     path: /shop-logs/nginx/access.log
@@ -20,3 +20,7 @@ logs:
       - type: multi_line
         name: pg_entry
         pattern: \d{4}-\d{2}-\d{2}\s
+  - type: file
+    path: /shop-logs/inventory/inventory.log
+    service: inventory
+    source: go

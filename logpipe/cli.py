@@ -286,7 +286,7 @@ def _demo(args: argparse.Namespace) -> None:
 def _showcase(args: argparse.Namespace) -> None:
     from .showcase import run
 
-    run(port=args.port, auto=args.auto, ask=not args.no_ask)
+    run(port=args.port, auto=args.auto, ask=not args.no_ask, datadog=args.datadog)
 
 
 def _bench(args: argparse.Namespace) -> None:
@@ -581,6 +581,11 @@ def main(argv: list[str] | None = None) -> None:
         "--auto",
         action="store_true",
         help="do every act without waiting for you (implies --no-ask)",
+    )
+    sc.add_argument(
+        "--datadog",
+        action="store_true",
+        help="also the Datadog integration: Agent, events, RCA, grok pipeline, webhook (DD_API_KEY + DD_APP_KEY)",
     )
     sc.set_defaults(func=_showcase)
 

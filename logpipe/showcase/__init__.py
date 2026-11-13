@@ -24,6 +24,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from ..settings import get_settings
+from .datadog import ShowcaseDatadog
 from .generator import FILES, ShopGenerator
 
 ROOT = Path("artifacts/showcase")
@@ -82,7 +83,7 @@ class Tour:
         self._live = ""  # the counter line currently drawn under the cursor (terminal only)
         self._live_at = 0.0
 
-    def act(self, n: int, title: str, lines: list[str]) -> None:
+    def act(self, n: int | str, title: str, lines: list[str]) -> None:
         print(f"\n{B}── Act {n}: {title} {'─' * max(0, 60 - len(title))}{R}")
         for line in lines:
             print(f"  {line}")
@@ -211,8 +212,10 @@ def _interrupt(*_) -> None:
     raise KeyboardInterrupt
 
 
-def run(port: int | None = None, auto: bool = False, ask: bool = True) -> None:
-    from ..start import SAVED, _save, ask_setup, docker_up, load_env, plan
+def run(
+    port: int | None = None, auto: bool = False, ask: bool = True, datadog: bool = False
+) -> None:
+    from ..start import SAVED, _save, ask_setup, confirm, docker_up, load_env, plan
 
     load_env()
     # `kill` (SIGTERM) stops the server and agent too, like Ctrl+C.
@@ -226,6 +229,9 @@ def run(port: int | None = None, auto: bool = False, ask: bool = True) -> None:
         )
         a = ask_setup(saved | ({"server_port": port} if port else {}), "server")
         _save(saved, a, saved.get("signed_in", []))
+        dd_keys = get_settings().datadog
+        if not datadog and dd_keys.api_key and dd_keys.app_key:
+            datadog = confirm("Also show the Datadog integration (your DD_API_KEY org)?", False)
     else:
         a = {
             "mode": "server",
@@ -237,12 +243,17 @@ def run(port: int | None = None, auto: bool = False, ask: bool = True) -> None:
     a |= {"data_dir": str(ROOT / "server"), "with_demo": False}
     services, [cmd] = plan(a)
     port = int(a["server_port"])
+    dd = ShowcaseDatadog(HOST) if datadog else None
+    if dd:
+        cmd.append("--datadog")
     if services:
         docker_up(services)
     settings = get_settings()
     password = settings.server.admin_password or secrets.token_urlsafe(9)
     # The server runs as a child process: its settings travel as environment variables.
     env = os.environ | {"CLICKHOUSE_DB": "logpipe_showcase", "LOGPIPE_ADMIN_PASSWORD": password}
+    if dd:
+        env |= dd.env(f"http://localhost:{port}")
     if a["store"] == "clickhouse":  # a fresh database every run
         import clickhouse_connect
 
@@ -251,13 +262,15 @@ def run(port: int | None = None, auto: bool = False, ask: bool = True) -> None:
             host=ch.host, port=ch.port, username=ch.user, password=ch.password
         ).command("DROP DATABASE IF EXISTS logpipe_showcase")
     shutil.rmtree(ROOT, ignore_errors=True)
-    ROOT.mkdir(parents=True)
+    (ROOT / "logs").mkdir(parents=True)
     agent_bin = find_agent(ROOT / "bin" / "logpipe-agent")
     url = f"http://localhost:{port}"
     api = Api(url)
     procs: list[subprocess.Popen] = []
     gen = ShopGenerator(ROOT / "logs")
     try:
+        if dd:
+            dd.start()
         print(f"{D}$ logpipe {' '.join(cmd)}   (output in {ROOT / 'server.out'}){R}")
         procs.append(
             subprocess.Popen(
@@ -278,11 +291,13 @@ def run(port: int | None = None, auto: bool = False, ask: bool = True) -> None:
         api.login(password)
         # Shorter thresholds so the tour's new service is drafted within a minute or two.
         api("/api/settings", {"draft_lines": 200, "draft_after_minutes": 2}, "PUT")
-        _tour(Tour(api, url, auto), gen, agent_bin, procs, password)
+        _tour(Tour(api, url, auto), gen, agent_bin, procs, password, dd)
     except KeyboardInterrupt:
         print("\nstopping")
     finally:
         gen.stop()
+        if dd:
+            dd.cleanup()
         for p in reversed(procs):
             p.terminate()
         for p in procs:
@@ -293,7 +308,12 @@ def run(port: int | None = None, auto: bool = False, ask: bool = True) -> None:
 
 
 def _tour(
-    t: Tour, gen: ShopGenerator, agent_bin: str, procs: list[subprocess.Popen], password: str
+    t: Tour,
+    gen: ShopGenerator,
+    agent_bin: str,
+    procs: list[subprocess.Popen],
+    password: str,
+    dd: ShowcaseDatadog | None = None,
 ) -> None:
     api, url = t.api, t.url
     conf = ROOT / "agent"
@@ -328,6 +348,8 @@ def _tour(
         ],
     )
     t.pause()
+    if dd:
+        _dd_connected(t, dd)
 
     t.act(
         2,
@@ -505,9 +527,14 @@ def _tour(
         ),
         live=lambda: f"outage: {max(0, round(gen.incident_until - time.monotonic()))}s left",
     )
+    if dd:
+        _dd_incident(t, dd)
     t.pause()
 
     _ask_act(t, api)
+    if dd:
+        _dd_export(t, dd)
+        _dd_webhook(t, dd, token)
 
     t.act(
         8,
@@ -670,6 +697,12 @@ def _tour(
             "  write a rule on another template, link two templates, save a query, push a source to the",
             "  agent from its page, or start another incident and ask Ask why it happened.",
             f"Files: {ROOT}. Server output: {ROOT / 'server.out'}. Press {B}Ctrl+C{R} to stop everything.",
+            *(
+                [f"In Datadog: {k:<9} {v}" for k, v in dd.links.items()]
+                + ["What the showcase created in Datadog is deleted when you stop it."]
+                if dd
+                else []
+            ),
         ],
     )
     while True:
@@ -756,4 +789,98 @@ def _ask_act(t: Tour, api: Api) -> None:
             t.say(f"{i}. {h['cause']}  [{', '.join(h['cites'])}]", G, 4, wrap=True)
         if answer.get("insufficient_evidence"):
             t.say(f"not enough evidence: {answer.get('missing', '')}", Y, 2, wrap=True)
+    t.pause()
+
+
+def _approve_until(api: Api, done: Callable[[], bool], seconds: float = 300) -> None:
+    """Approve every Ask round waiting for a person (the default) until ``done()``."""
+    end = time.monotonic() + seconds
+    while time.monotonic() < end and not _ask(done, False):
+        for p in api("/api/ask")["plans"]:
+            if p["status"] == "waiting_approval":
+                api(f"/api/ask/{p['id']}/approve", {})
+        time.sleep(2)
+
+
+def _dd_connected(t: Tour, dd: ShowcaseDatadog) -> None:
+    t.act(
+        "1b",
+        "Datadog is watching too",
+        [
+            f"The Datadog Agent (Docker) tails the same files and ships them to your org as host {B}{HOST}{R}:",
+            f"  {dd.links['logs']}",
+            "The server runs with --datadog: its stage timings, anomaly logs and LLM calls go there too.",
+            f"Dashboard: {dd.links['dashboard']}",
+            f"Monitors:  {dd.links['monitors']}",
+        ],
+    )
+    since = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(dd.started))
+    t.wait(
+        "the shop's logs in Datadog",
+        lambda: bool(dd.api.search_logs(f"host:{HOST} -service:logpipe", since, limit=1)),
+        timeout=300,
+        give_up="none yet; check `docker logs logpipe_datadog`. The tour goes on without them.",
+    )
+    t.pause()
+
+
+def _dd_incident(t: Tour, dd: ShowcaseDatadog) -> None:
+    t.say(
+        "logpipe posts the incident to Datadog as an event, and its root-cause analysis after it. "
+        "The analysis's queries wait for approval (Anomaly alerts → the incident), as every Ask does.",
+        wrap=True,
+    )
+    t.say(dd.links["events"])
+    t.wait(
+        "the anomaly event in Datadog",
+        lambda: dd.event("logpipe: anomaly"),
+        timeout=180,
+        give_up="no event yet; see the server output.",
+    )
+    t.wait(
+        "its root cause posted to Datadog",
+        lambda: dd.event(f"logpipe RCA: {HOST}"),
+        lambda: _approve_until(t.api, lambda: dd.event(f"logpipe RCA: {HOST}")),
+        timeout=300,
+        give_up="not posted yet; approve its rounds on the incident.",
+    )
+
+
+def _dd_export(t: Tour, dd: ShowcaseDatadog) -> None:
+    t.act(
+        "7b",
+        "Templates as a Datadog log pipeline",
+        [
+            f"In the UI: {B}Templates → Export to Datadog{R}.",
+            "Every template's parsing rule (your Postgres rule too) becomes a grok rule in a",
+            f"'logpipe (auto)' pipeline, so the shop's logs in Datadog get fields like {B}@duration_ms{R}.",
+            f"Pipelines: {dd.links['pipelines']}",
+        ],
+    )
+    t.wait(
+        "the 'logpipe (auto)' pipeline in Datadog",
+        dd.pipeline,
+        lambda: t.api("/api/datadog/pipeline", {}),
+    )
+    t.pause()
+
+
+def _dd_webhook(t: Tour, dd: ShowcaseDatadog, token: str) -> None:
+    t.act(
+        "7c",
+        "A Datadog monitor fires",
+        [
+            "A Datadog monitor can call logpipe through a webhook (see docs/guides/datadog.md).",
+            f"I'll send what one would: {B}[Triggered] shop-api error rate is high{R}.",
+            "logpipe analyses the logs around that moment and posts the answer back as an event.",
+        ],
+    )
+    title = "logpipe RCA: [Triggered]"
+
+    def fire() -> None:
+        dd.webhook(t.url, token, "shop-api")
+        _approve_until(t.api, lambda: dd.event(title))
+
+    t.wait("the answer posted to Datadog", lambda: dd.event(title), fire, timeout=300)
+    t.say(dd.links["events"])
     t.pause()

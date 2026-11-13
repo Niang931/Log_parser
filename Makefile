@@ -84,8 +84,8 @@ demo: gen-iot ## end to end on the synthetic fleet
 demo-datadog: ## incident for Datadog: slow then failing store (PHASE=seconds each)
 	$(RUN) python examples/datadog_incident.py --phase $(or $(PHASE),60)
 
-demo-datadog-loop: ## Datadog in and out: shop logs via Datadog -> anomaly + RCA events, grok pipeline
-	$(RUN) python examples/datadog_loop.py --normal $(or $(NORMAL),300)
+demo-datadog-loop: ## the showcase with Datadog: Agent, events, RCA, grok pipeline, webhook (AUTO=1: hands-free)
+	$(RUN) logpipe showcase --datadog $(if $(AUTO),--auto)
 
 ## --- datasets (artifacts/datasets) ------------------------------------------
 

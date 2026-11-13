@@ -6,6 +6,7 @@ import logging
 import re
 import time
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from urllib.parse import quote
 
 import httpx
@@ -29,7 +30,7 @@ class DatadogAPI:
             base_url=settings.api_url, headers=headers, timeout=10, transport=transport
         )
 
-    def _send(self, method: str, path: str, **kw) -> dict:
+    def send(self, method: str, path: str, **kw) -> Any:
         r = self.http.request(method, path, **kw)
         r.raise_for_status()
         return r.json() if r.content else {}
@@ -41,7 +42,7 @@ class DatadogAPI:
             "sort": "timestamp",
             "page": {"limit": limit},
         }
-        data = self._send("POST", "/api/v2/logs/events/search", json=body).get("data") or []
+        data = self.send("POST", "/api/v2/logs/events/search", json=body).get("data") or []
         return [to_event(d.get("attributes") or {}) for d in data]
 
     def post_event(self, title: str, text: str, tags: list[str], key: str, alert: str) -> dict:
@@ -53,7 +54,7 @@ class DatadogAPI:
             "alert_type": alert,
             "source_type_name": "logpipe",
         }
-        return self._send("POST", "/api/v1/events", json=body)
+        return self.send("POST", "/api/v1/events", json=body)
 
     def upsert_pipeline(self, rules: list[str], query: str = "*") -> dict:
         body = {
@@ -74,15 +75,15 @@ class DatadogAPI:
         existing = next(
             (
                 p
-                for p in self._send("GET", "/api/v1/logs/config/pipelines")
+                for p in self.send("GET", "/api/v1/logs/config/pipelines")
                 if p.get("name") == PIPELINE_NAME
             ),
             None,
         )
         if existing:
             # shortcut: overwrites edits made in Datadog.
-            return self._send("PUT", f"/api/v1/logs/config/pipelines/{existing['id']}", json=body)
-        return self._send("POST", "/api/v1/logs/config/pipelines", json=body)
+            return self.send("PUT", f"/api/v1/logs/config/pipelines/{existing['id']}", json=body)
+        return self.send("POST", "/api/v1/logs/config/pipelines", json=body)
 
 
 def to_event(a: dict) -> dict:
@@ -242,7 +243,7 @@ class DatadogSync:
         for doc in server.control.all("datadog"):
             if doc.get("plan") and not doc.get("posted"):
                 try:
-                    plan = server.ask.get(doc["plan"])
+                    plan: dict = server.ask.get(doc["plan"])
                 except KeyError:
                     plan = {"status": "deleted"}
                 if plan["status"] in ("done", "failed", "rejected", "expired", "deleted"):

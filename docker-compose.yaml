@@ -172,7 +172,7 @@ services:
     environment:
       DD_API_KEY: ${DD_API_KEY:-}
       DD_SITE: ${DD_SITE:-datadoghq.com}
-      DD_HOSTNAME: logpipe-dev
+      DD_HOSTNAME: ${DD_HOSTNAME:-logpipe-dev}
       DD_LOGS_ENABLED: "true"
       DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
       DD_APM_ENABLED: "true"           # LLM Observability spans go through the trace port
@@ -185,7 +185,7 @@ services:
       - ./.logpipe:/logpipe-logs:ro
       - ./docker/datadog/logpipe.d:/etc/datadog-agent/conf.d/logpipe.d:ro
       - ./docker/datadog/mongo.d:/etc/datadog-agent/conf.d/mongo.d:ro
-      - ./artifacts/datadog-loop/logs:/shop-logs:ro
+      - ./artifacts/showcase/logs:/shop-logs:ro
       - ./docker/datadog/shop.d:/etc/datadog-agent/conf.d/shop.d:ro
     restart: unless-stopped
 

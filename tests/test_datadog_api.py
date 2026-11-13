@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import httpx
@@ -214,3 +215,46 @@ def test_a_deleted_plan_does_not_block_incidents():
     server.incident_list = [INC]
     sync.tick(server)
     assert [p["aggregation_key"] for p in posted] == ["k", "a1"]
+
+
+def test_showcase_creates_what_is_missing_and_deletes_only_that(monkeypatch, tmp_path):
+    from logpipe.showcase import datadog as sd
+
+    calls = []
+    pipelines = []
+
+    def handler(request):
+        calls.append((request.method, request.url.path))
+        path = request.url.path
+        if request.method == "DELETE":
+            return httpx.Response(200, json={})
+        if path == "/api/v1/dashboard" and request.method == "GET":
+            return httpx.Response(200, json={"dashboards": []})
+        if path == "/api/v1/dashboard":
+            return httpx.Response(200, json={"id": "d1", "url": "/dashboard/d1"})
+        if path == "/api/v1/monitor" and request.method == "GET":
+            exists = request.url.params["name"] == "logpipe: anomaly spike"
+            return httpx.Response(200, json=[{"id": 1}] if exists else [])
+        if path == "/api/v1/monitor":
+            return httpx.Response(200, json={"id": len(calls)})
+        if path == "/api/v1/logs/config/pipelines":
+            return httpx.Response(200, json=pipelines)
+        return httpx.Response(404)
+
+    monkeypatch.setenv("DD_API_KEY", "k")
+    monkeypatch.setenv("DD_APP_KEY", "a")
+    monkeypatch.setattr(sd.subprocess, "run", lambda *a, **kw: None)
+    real = sd.DatadogAPI
+    monkeypatch.setattr(sd, "DatadogAPI", lambda s: real(s, transport=httpx.MockTransport(handler)))
+    dd = sd.ShowcaseDatadog("shop-web-1")
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "docs").symlink_to(Path(__file__).parents[1] / "docs")
+    dd.start()
+    assert dd.links["dashboard"] == "https://app.datadoghq.com/dashboard/d1"
+    assert dd.created[0] == "/api/v1/dashboard/d1" and len(dd.created) == 4  # 3 new monitors
+
+    pipelines.append({"id": "p1", "name": "logpipe (auto)"})  # exported during the tour
+    dd.cleanup()
+    deleted = [p for m, p in calls if m == "DELETE"]
+    assert "/api/v1/logs/config/pipelines/p1" in deleted and "/api/v1/dashboard/d1" in deleted
+    assert len(deleted) == 5
