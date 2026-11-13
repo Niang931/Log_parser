@@ -1,5 +1,6 @@
-// Toasts (and, opted in, desktop notifications) for a new anomaly incident and for jobs that are
-// queued, finish or fail; plus the counts the sidebar shows. Only what changes after the page
+// Toasts (and, opted in, desktop notifications) for a new anomaly incident, a firing metric alert,
+// new maintenance to-dos and jobs that are queued, finish or fail; alerts and maintenance also
+// chime unless muted. Plus the counts the sidebar shows. Only what changes after the page
 // loaded is announced, never the backlog.
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,23 +11,49 @@ import { JOB_NAMES, jobTarget, Switch } from "./ui";
 interface Toast { id: string; title: string; body: string; to: string; tone: "bad" | "good" | "info" }
 
 const DESKTOP = "desktop-notify";
+const SOUND = "alert-sound";
+
+function soundOn() {
+  try { return localStorage.getItem(SOUND) !== "off"; } catch { return true; }
+}
+
+let audio: AudioContext | null = null;
+// shortcut: browsers keep audio blocked until the page has had a click or key press, so a tab
+// nobody has touched since loading stays silent; fine for an operator console.
+function chime() {
+  try {
+    audio ??= new AudioContext();
+    const t = audio.currentTime, osc = audio.createOscillator(), gain = audio.createGain();
+    osc.frequency.setValueAtTime(880, t);
+    osc.frequency.setValueAtTime(660, t + 0.12);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.2, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+    osc.connect(gain).connect(audio.destination);
+    osc.start(t);
+    osc.stop(t + 0.4);
+  } catch { /* no Web Audio */ }
+}
 
 function desktopOn() {
   try { return typeof Notification !== "undefined" && Notification.permission === "granted" && localStorage.getItem(DESKTOP) === "on"; }
   catch { return false; }
 }
 
-export function useNotifications() {
+/** `todo`: the Maintenance count, undefined until the overview has loaded. */
+export function useNotifications(todo?: number) {
   const incidents = usePoll<{ incidents: Incident[] }>("/api/incidents", 5000).data?.incidents;
   const jobs = usePoll<{ jobs: Job[] }>("/api/jobs", 3000).data?.jobs;
   const metricAlerts = usePoll<{ alerts: MetricAlert[] }>("/api/system/alerts", 10000).data?.alerts;
   const seenMetric = useRef<Set<string> | null>(null);
   const seenIncidents = useRef<Set<string> | null>(null);
   const seenJobs = useRef<Map<string, Job["status"]> | null>(null);
+  const lastTodo = useRef<number | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const go = useNavigate();
 
-  const push = (t: Toast, desktop: boolean) => {
+  const push = (t: Toast, desktop: boolean, sound = false) => {
+    if (sound && soundOn()) chime();
     setToasts((all) => [...all.filter((x) => x.id !== t.id), t].slice(-4));
     setTimeout(() => setToasts((all) => all.filter((x) => x.id !== t.id)), t.tone === "bad" ? 15000 : 6000);
     if (desktop && desktopOn() && document.hidden) {
@@ -42,7 +69,7 @@ export function useNotifications() {
       if (seenIncidents.current.has(i.id)) continue;
       seenIncidents.current.add(i.id);
       push({ id: `inc-${i.id}`, title: `Anomaly on ${i.service || i.host}`, tone: "bad", to: `/alerts/${i.id}`,
-        body: `${i.host}: ${Math.round(i.peak_miss * 100)}% of events mispredicted. Open to see the unusual lines.` }, true);
+        body: `${i.host}: ${Math.round(i.peak_miss * 100)}% of events mispredicted. Open to see the unusual lines.` }, true, true);
     }
   }, [incidents]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -55,9 +82,18 @@ export function useNotifications() {
       if (seenMetric.current.has(key)) continue;
       seenMetric.current.add(key);
       push({ id: `metric-${key}`, title: a.label, tone: "bad", to: "/system",
-        body: `${a.metric} is ${a.value.toLocaleString()} (threshold ${a.op} ${a.threshold.toLocaleString()}).` }, true);
+        body: `${a.metric} is ${a.value.toLocaleString()} (threshold ${a.op} ${a.threshold.toLocaleString()}).` }, true, true);
     }
   }, [metricAlerts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (todo === undefined) return;
+    const before = lastTodo.current;
+    lastTodo.current = todo;
+    if (before === null || todo <= before) return;
+    push({ id: "maintenance", title: "Maintenance needs you", tone: "info", to: "/maintenance",
+      body: `${todo} item${todo === 1 ? "" : "s"} to review: new templates or models that need retraining.` }, true, true);
+  }, [todo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!jobs) return;
@@ -117,7 +153,23 @@ export function DesktopToggle() {
     <div className="stack" style={{ gap: 4 }}>
       <Switch checked={on} onChange={toggle} disabled={denied} label="Desktop notifications" />
       <span className="muted small">{denied ? "Blocked in this browser's site settings: allow notifications for this site there, then come back."
-        : "Anomalies, metric alerts and finished or failed jobs, while this tab is in the background."}</span>
+        : "Anomalies, metric alerts, maintenance and finished or failed jobs, while this tab is in the background."}</span>
+    </div>
+  );
+}
+
+/** Mute the chime that plays with anomalies, metric alerts and new maintenance. */
+export function SoundToggle() {
+  const [on, setOn] = useState(soundOn);
+  const toggle = (next: boolean) => {
+    try { localStorage.setItem(SOUND, next ? "on" : "off"); } catch { /* private window */ }
+    setOn(next);
+    if (next) chime();
+  };
+  return (
+    <div className="stack" style={{ gap: 4 }}>
+      <Switch checked={on} onChange={toggle} label="Alert sound" />
+      <span className="muted small">A short chime with anomalies, metric alerts and new maintenance items.</span>
     </div>
   );
 }

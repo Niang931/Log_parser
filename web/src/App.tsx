@@ -102,13 +102,13 @@ function AccountMenu() {
 export default function App() {
   const { data } = usePoll<Overview>("/api/overview", 3000);
   useServerEvents();
-  const note = useNotifications();
+  // What needs a person: templates to review and models with templates they haven't seen.
+  const todo = (data?.review ?? 0) + (data?.warnings.novel_template ?? 0);
+  const note = useNotifications(data ? todo : undefined);
   const [open, setOpen] = useState(false);
   const location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);
   const calibrated = data?.settings.calibrated;
-  // What needs a person: templates to review and models with templates they haven't seen.
-  const todo = (data?.review ?? 0) + (data?.warnings.novel_template ?? 0);
 
   return (
     <div className="shell">
