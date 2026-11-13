@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { api, useAction, usePoll, type Settings as ServerSettings } from "../api";
 import { ChangePassword, logout, usePasswordRequired } from "../login";
-import { DesktopToggle } from "../notify";
+import { DesktopToggle, SoundToggle } from "../notify";
 import { ShortcutList } from "../shortcuts";
 import { getTheme, setTheme, type Theme } from "../theme";
 import { Card, Loading, PageHead, Segmented, Switch, TimeAgo } from "../ui";
@@ -132,6 +132,7 @@ export default function Settings() {
           <Section id="appearance" title="Appearance"><Appearance /></Section>
           <Section id="notifications" title="Notifications" hint="Pop-up toasts in the corner are always on; desktop notifications also reach you in another tab.">
             <DesktopToggle />
+            <SoundToggle />
           </Section>
           <div id="security" className="settings-section stack">
             <ChangePassword />

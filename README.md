@@ -114,12 +114,42 @@ flowchart LR
     linkStyle default stroke:#94a3b8,stroke-width:1.5px
 ```
 
-## Quick start
+## Setting up the server
+
+The server takes in agent logs, runs the operator UI on port 8080 and trains the models. It
+stores data in ClickHouse (or MongoDB). On the first start it prints the UI admin password,
+unless `LOGPIPE_ADMIN_PASSWORD` is set.
+
+### Using the shipped container
 
 ```sh
 git clone git@github.com:Niang931/Log_parser.git && cd Log_parser
-make setup                       # uv sync + .env
-uv run logpipe                   # interactive: asks what to run and starts it
+cp .env.example .env             # set the passwords
+docker compose pull server       # ghcr.io/niang931/logpipe-server:latest
+docker compose up -d clickhouse server
+docker compose logs server | grep -i password
+```
+
+Open http://localhost:8080 and follow the setup guide. To also start a demo log generator and an
+agent, use `--profile platform up -d`. To run on MongoDB, use `--profile platform-mongo`.
+If you already run ClickHouse, run the image on its own:
+
+```sh
+docker run -d --name logpipe-server --restart unless-stopped -p 8080:8080 \
+  --env-file .env -e CLICKHOUSE_HOST=clickhouse.example \
+  -v logpipe-server:/app/artifacts ghcr.io/niang931/logpipe-server:latest
+```
+
+### From source
+
+Needs [uv](https://docs.astral.sh/uv/), Node 20+ and Docker (for ClickHouse).
+
+```sh
+git clone git@github.com:Niang931/Log_parser.git && cd Log_parser
+make setup                                   # uv sync + .env
+cd web && npm ci && npm run build && cd ..   # UI into logpipe/server/static
+docker compose up -d clickhouse
+uv run logpipe server --store clickhouse     # prints the admin password on first start
 ```
 
 ## Install the agent

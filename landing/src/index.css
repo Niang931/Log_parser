@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* logpipe's own UI palette, so the screenshots sit on the page they came from */
+@theme {
+  --color-bg: #131318;
+  --color-surface: #1c1b2e;
+  --color-sheet: #18181f;
+  --color-ink: #ececf1;
+  --color-muted: #b3b3c2;
+  --color-accent: #9d8cff;
+  --color-accent-ink: #131318;
+  --color-line: color-mix(in oklab, #ececf1 11%, transparent);
+  --color-line-strong: color-mix(in oklab, #ececf1 22%, transparent);
+  --color-field: #a9c1ff;
+
+  /* route colours of the section rail, bright like the product's level colours */
+  --color-route-hot: #ff6b5b;
+  --color-route-learn: #3fcf86;
+  --color-route-detect: #f5b938;
+  --color-route-store: #5b8cff;
+
+  --font-sans: "Manrope Variable", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, Menlo, Consolas, monospace;
+
+  --text-display: clamp(2.375rem, 3.2vw + 1.6rem, 4.5rem);
+  --text-display--line-height: 1.04;
+  --text-h2: clamp(1.875rem, 1.7vw + 1.45rem, 3rem);
+  --text-h2--line-height: 1.1;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    scrollbar-color: color-mix(in oklab, var(--color-ink) 30%, transparent) transparent;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  body {
+    @apply bg-bg font-sans text-ink antialiased;
+    /* Manrope at 400 reads thin on dark grounds */
+    font-weight: 450;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 40%, transparent);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-accent;
+  }
+  h1, h2, h3 {
+    @apply font-medium text-balance;
+  }
+}
+
+/* the learning demo's lines arriving on each step */
+@keyframes lp-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+/* the bar under the playing step, filling as its time runs out */
+@keyframes lp-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* the page stays put behind an open screenshot */
+html:has(dialog[open]) {
+  overflow: hidden;
+}

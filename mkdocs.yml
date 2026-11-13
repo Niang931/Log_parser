@@ -8,21 +8,23 @@ docs_dir: docs
 copyright: logpipe is released under the MIT License. DeepParse/ is Apache-2.0. See THIRD_PARTY_NOTICES.md.
 strict: true
 
+extra_css:
+  - stylesheets/extra.css
+
 theme:
   name: material
   logo: assets/logo.svg
   favicon: assets/logo.svg
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: blue grey
-      accent: blue
-      toggle: { icon: material/weather-night, name: Dark mode }
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: blue grey
-      accent: blue
+    # Dark first: it is the default; light stays one click away.
+    - scheme: slate
+      primary: custom
+      accent: custom
       toggle: { icon: material/weather-sunny, name: Light mode }
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle: { icon: material/weather-night, name: Dark mode }
   features:
     - navigation.tabs
     - navigation.sections
@@ -62,6 +64,7 @@ nav:
   - Getting started:
       - getting-started/index.md
       - Install: getting-started/install.md
+      - Set up the server: getting-started/server.md
       - Run it: getting-started/run.md
       - Install the agent: getting-started/agent.md
       - Commands: getting-started/commands.md

@@ -29,7 +29,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       # strict: a broken link or a page missing from the nav fails the PR
       - run: NO_MKDOCS_2_WARNING=1 uvx --from mkdocs-material==9.8.1 mkdocs build --strict
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         if: github.event_name != 'pull_request'
         with:
           path: site
@@ -44,4 +44,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
