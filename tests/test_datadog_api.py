@@ -100,8 +100,9 @@ def _sync(settings_kw=None, logs=()):
     posted = []
 
     def handler(request):
-        if request.url.path == "/api/v1/events":
-            posted.append(json.loads(request.content))
+        if request.url.host.startswith("event-management-intake."):
+            e = json.loads(request.content)["data"]["attributes"]
+            posted.append(e | {"text": e["message"]})
             return httpx.Response(202, json={"status": "ok"})
         data = [{"attributes": {"message": m, "timestamp": ts}} for m, ts in logs]
         return httpx.Response(200, json={"data": data})

@@ -45,16 +45,18 @@ class DatadogAPI:
         data = self.send("POST", "/api/v2/logs/events/search", json=body).get("data") or []
         return [to_event(d.get("attributes") or {}) for d in data]
 
-    def post_event(self, title: str, text: str, tags: list[str], key: str, alert: str) -> dict:
-        body = {
+    def post_event(self, title: str, text: str, tags: list[str], key: str) -> dict:
+        """v2 (the only events API newer orgs have), on its own intake host; the API key is enough."""
+        attrs = {
+            "category": "alert",
             "title": title[:100],
-            "text": f"%%% \n{text}\n %%%"[:4000],
+            "message": f"%%% \n{text}\n %%%"[:4000],
             "tags": tags,
             "aggregation_key": key[:100],
-            "alert_type": alert,
-            "source_type_name": "logpipe",
+            "attributes": {"status": "warn", "priority": "2"},
         }
-        return self.send("POST", "/api/v1/events", json=body)
+        url = f"https://event-management-intake.{self.settings.site}/api/v2/events"
+        return self.send("POST", url, json={"data": {"type": "event", "attributes": attrs}})
 
     def upsert_pipeline(self, rules: list[str], query: str = "*") -> dict:
         body = {
@@ -152,7 +154,6 @@ def incident_event(inc: dict, settings: DatadogSettings) -> dict:
         "text": "\n".join(lines),
         "tags": tags(inc),
         "key": inc["id"],
-        "alert": "warning",
     }
 
 
@@ -171,7 +172,6 @@ def rca_event(inc: dict, explanation: dict) -> dict:
         "text": "\n".join(str(x) for x in lines if x) or "No answer; see the incident in logpipe.",
         "tags": tags(inc),
         "key": inc["id"],
-        "alert": "info",
     }
 
 

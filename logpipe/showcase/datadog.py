@@ -80,12 +80,20 @@ class ShowcaseDatadog:
 
     def event(self, title: str) -> bool:
         """An event of this showcase whose title starts with ``title`` is in Datadog."""
-        events = self.api.send(
+        data = self.api.send(
             "GET",
-            "/api/v1/events",
-            params={"start": self.started, "end": int(time.time()) + 60, "tags": "source:logpipe"},
-        ).get("events", [])
-        return any(e.get("title", "").startswith(title) for e in events)
+            "/api/v2/events",
+            params={
+                "filter[from]": str(self.started * 1000),
+                "sort": "-timestamp",
+                "page[limit]": 100,
+            },
+        ).get("data", [])
+        titles = (
+            d["attributes"].get("title") or d["attributes"].get("attributes", {}).get("title", "")
+            for d in data
+        )
+        return any(t.startswith(title) for t in titles)
 
     def pipeline(self) -> bool:
         return any(
