@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import atexit
 import json
+import os
 import socket
 import time
 from collections.abc import Iterator
@@ -39,6 +40,8 @@ class Datadog:
         except Exception:  # noqa: BLE001  ImportError, gaierror, unwritable path: all mean "off"
             self._statsd = None
             return
+        if settings.apm:
+            _trace(settings.service)
         try:
             from ddtrace.llmobs import LLMObs
 
@@ -114,6 +117,21 @@ class Datadog:
     def traced(self, adapter, backend: str):
         """The adapter as is when LLM tracing is off."""
         return _Traced(adapter, backend) if self.llm_on else adapter
+
+
+def _trace(service: str) -> None:
+    """Spans for incoming requests and the calls they make; Datadog draws the Service Map from them.
+    Must run before the FastAPI app is built."""
+    os.environ.setdefault("DD_SERVICE", service)  # ddtrace reads it; else "unnamed-python-service"
+    # Calls to Mongo, ClickHouse, Datadog and the LLM show as their own nodes on the map.
+    os.environ.setdefault("DD_TRACE_PEER_SERVICE_DEFAULTS_ENABLED", "true")
+    os.environ.setdefault("DD_TRACE_REMOVE_INTEGRATION_SERVICE_NAMES_ENABLED", "true")
+    try:
+        from ddtrace import patch
+
+        patch(fastapi=True, httpx=True, pymongo=True, urllib3=True, raise_errors=False)
+    except Exception:  # noqa: BLE001, S110  telemetry must never break the app
+        pass
 
 
 class _Traced:

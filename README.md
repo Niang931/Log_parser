@@ -14,6 +14,8 @@
   <a href="https://niang931.github.io/Log_parser/"><img alt="Docs" src="https://img.shields.io/badge/docs-niang931.github.io-1e88e5?logo=materialformkdocs&logoColor=white"></a>
   <img alt="OpenTelemetry" src="https://img.shields.io/badge/OpenTelemetry-OTLP%2FHTTP-425CC7?logo=opentelemetry&logoColor=white">
   <img alt="MCP" src="https://img.shields.io/badge/MCP-%2Fmcp-000000?logo=anthropic&logoColor=white">
+  <a href="docs/guides/datadog.md"><img alt="Datadog" src="https://img.shields.io/badge/Datadog-logs-632CA6?logo=datadog&logoColor=white"></a>
+  <a href="docs/guides/mongodb.md"><img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-store-47A248?logo=mongodb&logoColor=white"></a>
 </p>
 
 ---
@@ -187,6 +189,39 @@ See full guide here: [Install the agent](https://niang931.github.io/Log_parser/g
 | Root cause, real testbed | RCAEval RE3-OB, 30 code-level faults | AC@1: rules **0.40** → + Gemini **0.70** → Claude Code over MCP **0.87–0.90** |
 | Hot path | IoT replay | parse p50 **32 µs**, p99 68 µs; ~10k lines/s per server core |
 
+## Integration
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<p align="center"><img src="https://cdn.simpleicons.org/datadog/632CA6" alt="Datadog" height="56"><br><b>Datadog</b></p>
+
+Already on Datadog? logpipe works next to it rather than replacing it. It reads the logs you already
+ship, learns their formats and spots unusual sequences, then puts what it finds back where your
+on-call already looks.
+
+- **Reads** your Datadog logs: `--datadog-pull 'service:shop*'`
+- **Writes back** each incident and its cited root cause as an event
+- **Exports** learned templates as a grok log pipeline, so Datadog parses those lines too
+</td>
+<td width="50%" valign="top">
+<p align="center"><img src="https://cdn.simpleicons.org/mongodb/47A248" alt="MongoDB" height="56"><br><b>MongoDB</b></p>
+
+Prefer a document store? logpipe runs fully on MongoDB instead of ClickHouse, from parsed lines
+to the settings behind the UI. One flag switches it: `--store mongodb`, or the
+`platform-mongo` compose profile.
+
+- **Stores** parsed lines, alerts, agents, keys and settings
+- **Serves** the UI, Query page, Ask/RCA and MCP through aggregations
+- **Guards** free-form queries with a separate read-only user
+</td>
+</tr>
+<tr>
+<td align="center"><a href="docs/guides/datadog.md"><b>Datadog guide →</b></a></td>
+<td align="center"><a href="docs/guides/mongodb.md"><b>MongoDB guide →</b></a></td>
+</tr>
+</table>
+
 ## Documentation
 
 | | |
@@ -194,7 +229,7 @@ See full guide here: [Install the agent](https://niang931.github.io/Log_parser/g
 | [Getting started](https://niang931.github.io/Log_parser/getting-started/) | install, every way to run it, all commands |
 | [Architecture](https://niang931.github.io/Log_parser/architecture/) | parsing, online learning, LogBERT, server lifecycle, Ask & RCA, MCP, storage, with diagrams |
 | [Benchmarks](https://niang931.github.io/Log_parser/benchmarks/) | results, RCAEval, throughput |
-| [Guides](https://niang931.github.io/Log_parser/guides/code-structure/) | code structure, replacing components, configuration, maintenance, CI |
+| [Guides](https://niang931.github.io/Log_parser/guides/code-structure/) | code structure, replacing components, configuration, Datadog, MongoDB, maintenance, CI |
 | [Security](https://niang931.github.io/Log_parser/security/) | threat model and defences |
 | [Design records](https://niang931.github.io/Log_parser/plan/) | personas, feature plans and technical decisions |
 

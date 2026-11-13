@@ -101,3 +101,15 @@ def test_cli_turns_datadog_on_only_with_the_flag(monkeypatch, tmp_path):
     cli.main(["run"])
     cli.main(["run", "--datadog"])
     assert seen == [False, True]
+
+
+def test_apm_patches_only_when_asked(monkeypatch, tmp_path):
+    calls = []
+    for name in ("PEER_SERVICE_DEFAULTS_ENABLED", "REMOVE_INTEGRATION_SERVICE_NAMES_ENABLED"):
+        monkeypatch.setenv(f"DD_TRACE_{name}", "true")  # restored after the test
+    monkeypatch.setenv("DD_SERVICE", "x")
+    monkeypatch.setattr("ddtrace.patch", lambda **kw: calls.append(kw))
+    Datadog(DatadogSettings(log_file=tmp_path / "a.jsonl"))
+    assert calls == []
+    Datadog(DatadogSettings(log_file=tmp_path / "b.jsonl", apm=True))
+    assert calls and calls[0]["fastapi"] and calls[0]["pymongo"]

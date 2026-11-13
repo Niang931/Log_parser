@@ -813,6 +813,7 @@ def _dd_connected(t: Tour, dd: ShowcaseDatadog) -> None:
             "The server runs with --datadog: its stage timings, anomaly logs and LLM calls go there too.",
             f"Dashboard: {dd.links['dashboard']}",
             f"Monitors:  {dd.links['monitors']}",
+            f"Every request it serves is traced: the Service Map draws what it calls, {dd.links['map']}",
         ],
     )
     since = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(dd.started))
@@ -845,6 +846,7 @@ def _dd_incident(t: Tour, dd: ShowcaseDatadog) -> None:
         timeout=300,
         give_up="not posted yet; approve its rounds on the incident.",
     )
+    t.say(f"Each LLM step of that analysis, with prompts and tokens: {dd.links['llm']}")
 
 
 def _dd_export(t: Tour, dd: ShowcaseDatadog) -> None:
