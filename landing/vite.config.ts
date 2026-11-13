@@ -1,5 +1,6 @@
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
+import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 
 // ngrok tunnels get a new subdomain each run; the leading dot allows all of them
@@ -9,7 +10,8 @@ const allowedHosts = ['.ngrok-free.app', '.ngrok-free.dev']
 export default defineConfig({
   plugins: [
     react(),
-    babel({ presets: [reactCompilerPreset()] })
+    babel({ presets: [reactCompilerPreset()] }),
+    tailwindcss(),
   ],
   server: { allowedHosts },
   preview: { allowedHosts },
