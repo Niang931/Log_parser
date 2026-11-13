@@ -211,8 +211,8 @@ def _interrupt(*_) -> None:
     raise KeyboardInterrupt
 
 
-def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
-    from ..start import SAVED, ask_setup, docker_up, load_env, plan
+def run(port: int | None = None, auto: bool = False, ask: bool = True) -> None:
+    from ..start import SAVED, _save, ask_setup, docker_up, load_env, plan
 
     load_env()
     # `kill` (SIGTERM) stops the server and agent too, like Ctrl+C.
@@ -224,14 +224,15 @@ def run(port: int = 8080, auto: bool = False, ask: bool = True) -> None:
         print(
             "The showcase runs `logpipe server`; pick its store, queue and LLM (Enter keeps the default)."
         )
-        a = ask_setup(saved | {"server_port": port}, "server")
+        a = ask_setup(saved | ({"server_port": port} if port else {}), "server")
+        _save(saved, a, saved.get("signed_in", []))
     else:
         a = {
             "mode": "server",
             "queue": "memory",
             "store": "memory",
             "llm_kind": "offline",
-            "server_port": port,
+            "server_port": port or 8080,
         }
     a |= {"data_dir": str(ROOT / "server"), "with_demo": False}
     services, [cmd] = plan(a)

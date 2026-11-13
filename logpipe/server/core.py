@@ -41,6 +41,7 @@ from ..calibrate import append_drafts, calibrate
 from ..enrich import llm
 from ..enrich.llm import LLMAdapter
 from ..enrich.validate import clean_keys
+from ..enrich.worker import CycleReport
 from ..parsing.frozen_parser import ParserHandle, Status
 from ..parsing.grok import compile_rule, rule_from_template
 from ..parsing.kv import SLOT_RE
@@ -1219,11 +1220,12 @@ class Server:
             job = self.enqueue("reextract", template=tid)
         return {"template_id": tid, "reviewed": True, "job": job}
 
-    def enrich(self) -> None:
-        """One online-learner cycle; remembers how each link it made was decided."""
+    def enrich(self) -> CycleReport | None:
+        """One online-learner cycle; remembers how each link it made was decided. The cycle's
+        report, or None when nothing was waiting."""
         report = self.pipeline.enrich()
         if report is None:
-            return
+            return None
         with self.lock:
             for tid in report.aliased:
                 reason = report.alias_decisions.get(tid, (0.0, ""))[1]
@@ -1237,6 +1239,7 @@ class Server:
                     linked_at=now_iso(),
                 )
                 self._dirty.add(("template", str(tid)))
+        return report
 
     def _linked(self, tid: int, by: str | None) -> None:
         meta = self.tmeta.setdefault(tid, {"id": str(tid), "first_seen": now_iso(), "count": 0})

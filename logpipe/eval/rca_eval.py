@@ -23,8 +23,14 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from ..showcase.generator import FAULTS, FILES, ShopGenerator
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+
+    from ..server.core import Server
 
 ORDER_EVERY = timedelta(seconds=5)
 NORMAL_BEFORE = timedelta(minutes=60)  # normal traffic before each fault
@@ -68,8 +74,8 @@ class Slot:
 
 @dataclass
 class World:
-    server: object
-    client: object
+    server: Server
+    client: TestClient
     slots: list[Slot] = field(default_factory=list)
     seconds: float = 0.0
 
@@ -114,6 +120,38 @@ def _traffic(server, gen: ShopGenerator, start: datetime, end: datetime) -> None
         t += ORDER_EVERY
 
 
+def make_server(data_dir: Path, adapter_factory=None, epochs: int = 4):
+    """A memory-store server and a test client on its app, as every eval builds it."""
+    from fastapi.testclient import TestClient
+
+    from ..enrich.llm import get_adapter
+    from ..server.app import create_app
+    from ..server.control import ControlStore
+    from ..server.core import Server
+    from ..storage.memory import MemoryStore
+
+    server = Server(
+        MemoryStore(),
+        ControlStore(),
+        data_dir=data_dir,
+        adapter_factory=adapter_factory or (lambda: get_adapter("offline")),
+        epochs=epochs,
+        start_threads=False,
+        min_train_steps=0,
+    )
+    return server, TestClient(create_app(server))
+
+
+def settle(server, max_cycles: int = 10) -> None:
+    """Run the online learner (what the server does every 30 s) until a cycle creates no new
+    template: each cycle creates at most ``max_new_per_cycle`` and re-queues the rest. Clusters
+    too small for a template stay queued for good, so "until the queue is empty" never ends."""
+    for _ in range(max_cycles):
+        report = server.enrich()
+        if report is None or not report.published:
+            return
+
+
 def build_world(
     modes: list[str] | None = None,
     data_dir: Path | None = None,
@@ -125,27 +163,10 @@ def build_world(
     """Train on normal traffic, then inject each fault in its own slot ending just before now."""
     import tempfile
 
-    from fastapi.testclient import TestClient
-
-    from ..enrich.llm import get_adapter
-    from ..server.app import create_app
-    from ..server.control import ControlStore
-    from ..server.core import Server
-    from ..storage.memory import MemoryStore
-
     started = time.perf_counter()
     modes = modes or list(FAULTS)
     data_dir = data_dir or Path(tempfile.mkdtemp(prefix="rca-eval-"))
-    server = Server(
-        MemoryStore(),
-        ControlStore(),
-        data_dir=data_dir,
-        adapter_factory=adapter_factory or (lambda: get_adapter("offline")),
-        epochs=epochs,
-        start_threads=False,
-        min_train_steps=0,
-    )
-    client = TestClient(create_app(server))
+    server, client = make_server(data_dir, adapter_factory, epochs)
     gen = ShopGenerator(data_dir / "unused", seed=seed)
     slot_len = NORMAL_BEFORE + ASK_AFTER
     end = (datetime.now(UTC) - timedelta(minutes=1)).replace(microsecond=0)
@@ -163,7 +184,7 @@ def build_world(
         while t < fault + ASK_AFTER:
             _send(server, gen, gen.fault(mode, t, step), t)
             t, step = t + ORDER_EVERY, step + 1
-        server.enrich()  # mint templates for the new lines, as the learner does every 30 s
+        settle(server)
         # the next slot starts at fault + ASK_AFTER
         world.slots.append(
             Slot(
@@ -175,8 +196,6 @@ def build_world(
             )
         )
         log(f"  injected {mode} at {fault:%H:%M}")
-    for _ in range(3):
-        server.enrich()
     world.seconds = time.perf_counter() - started
     return world
 
@@ -355,16 +374,18 @@ VARIANTS: dict[str, dict] = {
 
 class Recorded:
     """An LLM whose replies are kept by prompt: ``record`` asks ``inner`` and saves, ``replay``
-    answers from the file (a prompt it hasn't seen fails: re-record after changing a prompt)."""
+    answers from the file (a prompt it hasn't seen fails: re-record after changing a prompt).
+    With ``reuse``, recording answers a prompt it already has from the file instead of asking."""
 
     can_ask = True
 
-    def __init__(self, path: Path, inner=None):
+    def __init__(self, path: Path, inner=None, reuse: bool = False):
         import hashlib
 
-        self.path, self.inner, self._hash = (
+        self.path, self.inner, self.reuse, self._hash = (
             path,
             inner,
+            reuse,
             lambda p: hashlib.sha256(p.encode()).hexdigest()[:16],
         )
         self.replies: dict[str, dict | None] = (
@@ -378,6 +399,9 @@ class Recorded:
                 raise KeyError(f"no recorded reply for {key}; run the eval with --record")
             reply = self.replies[key]
             return None if reply is None else schema(**reply)
+        # a failed (None) reply is asked again
+        if self.reuse and self.replies.get(key) is not None:
+            return schema(**self.replies[key])
         out = self.inner.ask(schema, prompt)
         self.replies[key] = out.model_dump() if out is not None else None
         self.path.parent.mkdir(parents=True, exist_ok=True)

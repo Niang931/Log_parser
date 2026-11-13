@@ -188,3 +188,18 @@ def test_explanations_are_capped(env):  # noqa: F811
     assert len(out["summary"]) <= 1000 and len(out["likely_cause"]) <= 1000
     assert len(out["next_steps"]) == 4 and all(len(s) <= 500 for s in out["next_steps"])
     assert OfflineAdapter  # the offline summary is built from facts, never from the lines' text
+
+
+def test_pii_never_reaches_the_model():
+    from logpipe.enrich.llm import ChatAdapter
+
+    class Spy:
+        def invoke(self, messages):
+            self.seen = messages[0].content
+            return {"parsed": None}
+
+    adapter, spy = ChatAdapter("anthropic"), Spy()
+    adapter._provider, adapter._runnables[dict] = object(), spy  # type: ignore[assignment]
+    adapter._invoke(dict, "bob@corp.com from 10.0.0.7 mac 00:1A:2B:3C:4D:5E card 4111111111111111")
+    assert "@" not in spy.seen and "10.0.0.7" not in spy.seen and "4111" not in spy.seen
+    assert "[REDACTED_EMAIL]" in spy.seen and "[REDACTED_IP]" in spy.seen

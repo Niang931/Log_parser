@@ -178,6 +178,8 @@ def evidence_round(
         min(at + (cfg.wide_after if wide else cfg.after), ctx.now),
     )
     length = max(int((end - start).total_seconds()), 60)
+    # whole window-sized slices ending at the window: the slice just before it is never cut off
+    slices = math.ceil(cfg.baseline.total_seconds() / length)
     f = ctx.scope(spec)
     queries = [
         log_read(
@@ -199,7 +201,7 @@ def evidence_round(
             why=f"counts per template in {length // 60}-minute slices of the previous day: the baseline",
             filters=f,
             step=length,
-            **span(start - cfg.baseline, start),
+            **span(start - timedelta(seconds=slices * length), start),
         ),
     ]
     if anchor.service and anchor.kind != "range":
@@ -475,9 +477,9 @@ def rank(
     cfg = ctx.rca
     counts = rows_of(done, outputs, Around.TEMPLATES, TemplateCount)
     rows = rows_of(done, outputs, Around.ANCHOR_LINES, LogLine)
-    window = next(q for q in done.queries if q.tool == "template_counts").args
-    length = datetime.fromisoformat(window["end"]) - datetime.fromisoformat(window["start"])
-    n_slices = max(1, int(cfg.baseline / max(length, timedelta(minutes=1))))
+    baseline = next(q for q in done.queries if q.tool == "buckets").args
+    span_s = datetime.fromisoformat(baseline["end"]) - datetime.fromisoformat(baseline["start"])
+    n_slices = max(1, int(span_s.total_seconds()) // baseline["step"])
     base: dict[int, list[int]] = defaultdict(lambda: [0] * n_slices)
 
     # slices the store has any line in: before its first line there's no baseline

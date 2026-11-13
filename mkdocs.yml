@@ -1,0 +1,105 @@
+site_name: logpipe
+site_description: Streaming log parsing, template learning, LogBERT anomaly detection and cited root-cause analysis.
+site_url: https://niang931.github.io/Log_parser/
+repo_url: https://github.com/Niang931/Log_parser
+repo_name: Niang931/Log_parser
+edit_uri: edit/main/docs/
+docs_dir: docs
+copyright: logpipe is released under the MIT License. DeepParse/ is Apache-2.0. See THIRD_PARTY_NOTICES.md.
+strict: true
+
+extra_css:
+  - stylesheets/extra.css
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  palette:
+    # Dark first: it is the default; light stays one click away.
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle: { icon: material/weather-sunny, name: Light mode }
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle: { icon: material/weather-night, name: Dark mode }
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc: { permalink: true }
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight: { anchor_linenums: true }
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed: { alternate_style: true }
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - getting-started/index.md
+      - Install: getting-started/install.md
+      - Run it: getting-started/run.md
+      - Install the agent: getting-started/agent.md
+      - Commands: getting-started/commands.md
+  - Architecture:
+      - architecture/index.md
+      - Parsing and the registry: architecture/parsing.md
+      - Online template learning: architecture/enrichment.md
+      - Unresolved queue on Kafka: kafka.md
+      - Anomaly detection (LogBERT): architecture/anomaly.md
+      - Server and learning lifecycle: agent-platform.md
+      - Ask and root-cause analysis: architecture/ask-rca.md
+      - MCP for AI assistants: architecture/mcp.md
+      - Storage: architecture/storage.md
+  - Benchmarks:
+      - benchmarks/index.md
+      - Results: benchmarks/results.md
+      - RCAEval: benchmarks/rcaeval.md
+      - Throughput: benchmark.md
+  - Guides:
+      - Code structure: guides/code-structure.md
+      - Replacing components: guides/replace-components.md
+      - Configuration: guides/configuration.md
+      - Maintenance: guides/maintenance.md
+      - CI / CD: ci.md
+  - Security:
+      - security/index.md
+      - SQL injection: security/attacks/sql.md
+      - Prompt injection: security/attacks/prompt.md
+      - ReDoS: security/attacks/redos.md
+      - Key and field-name injection: security/attacks/keys.md
+      - DOM injection: security/attacks/domi.md
+  - Design records:
+      - plan/index.md
+      - "MCP: persona": plan/persona.md
+      - "MCP: features": plan/features.md
+      - "MCP: decisions": plan/tech-decisions.md
+      - "AI root cause: persona": plan/ai-rca/persona.md
+      - "AI root cause: features": plan/ai-rca/features.md
+      - "AI root cause: decisions": plan/ai-rca/tech-decisions.md

@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { api, ApiError } from "./api";
 import { Card } from "./ui";
+import { LogoMark } from "./logo";
 
 type AuthStatus = { required: boolean; authenticated: boolean };
 
@@ -58,7 +59,7 @@ function Login({ onDone, next }: { onDone: () => void; next: string }) {
   return (
     <main className="login">
       <form className="card login-card stack" onSubmit={submit}>
-        <div className="brand login-brand"><span className="brand-mark"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 4h10M3 8h7M3 12h9" stroke="#fff" strokeWidth="2" strokeLinecap="round" /></svg></span>logpipe</div>
+        <div className="brand login-brand"><span className="brand-mark"><LogoMark /></span>logpipe</div>
         <div>
           <h1>Log in</h1>
           <p className="muted small" style={{ marginTop: 4 }}>{next !== "/" ? <>Log in to continue to <span className="mono">{next.split(/[?#]/)[0]}</span>.</> : "Enter the admin password to open the console."}</p>
