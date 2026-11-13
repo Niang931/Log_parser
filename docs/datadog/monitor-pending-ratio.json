@@ -1,0 +1,16 @@
+{
+  "name": "logpipe: too many lines stay PENDING",
+  "type": "query alert",
+  "query": "sum(last_5m):sum:logpipe.lines{status:pending}.as_count() / sum:logpipe.lines{*}.as_count() > 0.3",
+  "message": "Over 30% of lines match no known template: the registry is stale or the source changed.",
+  "tags": [
+    "service:logpipe"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 0.3
+    },
+    "notify_no_data": false,
+    "require_full_window": false
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "logpipe: a pipeline stage is failing",
+  "type": "query alert",
+  "query": "sum(last_5m):sum:logpipe.stage.errors{*} by {stage}.as_count() > 0",
+  "message": "Stage {{stage.name}} raised errors in the last 5 minutes. Check Logs: service:logpipe.",
+  "tags": [
+    "service:logpipe"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 0
+    },
+    "notify_no_data": false,
+    "require_full_window": false
+  }
+}

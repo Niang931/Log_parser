@@ -83,6 +83,7 @@ export default function Templates() {
   const [only, setOnly] = useState<"all" | "unseen" | "linked" | "rules">("all");
   const openId = params.get("id");
 
+  const exportDD = useAction(() => api<{ rules: number }>("/api/datadog/pipeline", { method: "POST" }));
   if (!data) return <><PageHead title="Templates" /><Loading error={error} /></>;
   const byId = new Map(data.templates.map((t) => [t.template_id, t]));
   const match = (t: Template) => (!q || t.text.toLowerCase().includes(q.toLowerCase()) || String(t.template_id) === q.replace("#", ""))
@@ -114,7 +115,12 @@ export default function Templates() {
   return (
     <>
       <PageHead title="Templates"
-        sub={<>Log shapes the parser knows (registry v{data.version}). Highlighted parts are the fields extracted from each line. Linked templates are listed under the one they count as. {fmt(data.pending)} lines are still pending.</>} />
+        sub={<>Log shapes the parser knows (registry v{data.version}). Highlighted parts are the fields extracted from each line. Linked templates are listed under the one they count as. {fmt(data.pending)} lines are still pending.</>}
+        actions={<div className="stack" style={{ gap: 4, alignItems: "flex-end" }}>
+          <button className="btn small" disabled={exportDD.isPending} onClick={() => exportDD.mutate()}>Export to Datadog</button>
+          {exportDD.data && <span className="small muted">{exportDD.data.rules} rules in the “logpipe (auto)” pipeline</span>}
+          {exportDD.error && <span className="error-text small">{exportDD.error.message}</span>}
+        </div>} />
       <Card>
         <div className="filters">
           <input type="search" placeholder="Search template text or #id" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search templates" />

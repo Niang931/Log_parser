@@ -25,6 +25,7 @@ from deepparse.ai_scraper.session import BROWSERS
 
 from .calibrate import GroundTruth, calibrate
 from .enrich.llm import get_adapter
+from .observability import Datadog
 from .parsing.frozen_parser import FrozenParser, ParserHandle
 from .registry import SchemaRegistry
 from .settings import get_settings
@@ -88,6 +89,20 @@ def _replay(args: argparse.Namespace) -> None:
     )
 
 
+def _datadog(args: argparse.Namespace) -> Datadog:
+    """Off unless the user passed ``--datadog``. One per process (DogStatsD can't cross them)."""
+    if not args.datadog:
+        return Datadog()
+    dd = Datadog(get_settings().datadog)
+    if not dd.enabled:
+        print(
+            "[datadog] could not start (`datadog` extra not installed or DD_AGENT_HOST "
+            "unresolvable); running without it",
+            file=sys.stderr,
+        )
+    return dd
+
+
 def _run(args: argparse.Namespace) -> None:
     from .anomaly.detector import DetectorConfig
     from .anomaly.scorer import LogBERTScorer
@@ -98,15 +113,19 @@ def _run(args: argparse.Namespace) -> None:
     store = open_store(args.store)
     queue = open_queue(args.queue)
     has_model = args.model and (args.model / "config.json").exists()
+    dd = _datadog(args)
     pipeline = Pipeline.assemble(
         SchemaRegistry.load(args.registry),
         store,
-        adapter=None if args.no_enrich else get_adapter(args.llm, browser=args.browser),
+        adapter=None
+        if args.no_enrich
+        else dd.traced(get_adapter(args.llm, browser=args.browser), args.llm),
         scorer=LogBERTScorer.load(args.model) if has_model else None,
         detector_config=DetectorConfig(window=args.window, stride=args.stride),
         registry_path=args.registry,
         enrich_every=args.enrich_every,
         queue=queue,
+        datadog=dd,
     )
     if pipeline.worker is not None and args.rehydrate:
         print(f"rehydrated {pipeline.worker.rehydrate()} pending rows from the store")
@@ -138,7 +157,7 @@ def _worker(args: argparse.Namespace) -> None:
         registry,
         handle,
         store,
-        get_adapter(args.llm, browser=args.browser),
+        _datadog(args).traced(get_adapter(args.llm, browser=args.browser), args.llm),
         registry_path=args.registry,
         queue=queue,
         max_buffer=args.batch,
@@ -267,7 +286,7 @@ def _demo(args: argparse.Namespace) -> None:
 def _showcase(args: argparse.Namespace) -> None:
     from .showcase import run
 
-    run(port=args.port, auto=args.auto, ask=not args.no_ask)
+    run(port=args.port, auto=args.auto, ask=not args.no_ask, datadog=args.datadog)
 
 
 def _bench(args: argparse.Namespace) -> None:
@@ -300,6 +319,8 @@ def _server(args: argparse.Namespace) -> None:
         data_dir=args.data_dir,
         epochs=args.epochs,
         demo=args.demo,
+        datadog=_datadog(args),
+        datadog_pull=args.datadog_pull,
     )
 
 
@@ -529,6 +550,12 @@ def main(argv: list[str] | None = None) -> None:
     sv.add_argument("--host", default="0.0.0.0")
     sv.add_argument("--port", type=int, default=8080)
     sv.add_argument(
+        "--datadog-pull",
+        default="",
+        metavar="QUERY",
+        help="ingest your Datadog logs matching this Logs query, e.g. 'service:shop*' (DD_API_KEY + DD_APP_KEY)",
+    )
+    sv.add_argument(
         "--store", choices=["memory", "clickhouse", "mongodb"], default=settings.app.store
     )
     sv.add_argument("--queue", choices=["memory", "kafka"], default=settings.app.queue)
@@ -554,6 +581,11 @@ def main(argv: list[str] | None = None) -> None:
         "--auto",
         action="store_true",
         help="do every act without waiting for you (implies --no-ask)",
+    )
+    sc.add_argument(
+        "--datadog",
+        action="store_true",
+        help="also the Datadog integration: Agent, events, RCA, grok pipeline, webhook (DD_API_KEY + DD_APP_KEY)",
     )
     sc.set_defaults(func=_showcase)
 
@@ -609,6 +641,13 @@ def main(argv: list[str] | None = None) -> None:
     ev.add_argument("--epochs", type=int, default=30)
     ev.add_argument("--threads", type=int, default=None)
     ev.set_defaults(func=_eval)
+
+    for p in (run, wk, sv):
+        p.add_argument(
+            "--datadog",
+            action="store_true",
+            help="send metrics, logs and LLM spans to a Datadog Agent (needs the `datadog` extra)",
+        )
 
     args = parser.parse_args(argv)
     args.raw = sys.argv[1:] if argv is None else argv

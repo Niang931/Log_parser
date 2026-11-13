@@ -162,6 +162,33 @@ services:
       - agent_data:/var/lib/logpipe-agent
     depends_on: [server, loggen]
 
+  # Datadog Agent (optional): `mkdir -p .logpipe && docker compose --profile datadog up -d datadog-agent`
+  # (mkdir first: if Docker creates .logpipe it is owned by root and the pipeline cannot write the log).
+  # Run the pipeline on the host with `logpipe run|worker|server --datadog`. Needs DD_API_KEY in .env.
+  datadog-agent:
+    profiles: [datadog]
+    image: "gcr.io/datadoghq/agent:7"
+    container_name: logpipe_datadog
+    environment:
+      DD_API_KEY: ${DD_API_KEY:-}
+      DD_SITE: ${DD_SITE:-datadoghq.com}
+      DD_HOSTNAME: ${DD_HOSTNAME:-logpipe-dev}
+      DD_LOGS_ENABLED: "true"
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+      DD_APM_ENABLED: "true"           # LLM Observability spans go through the trace port
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+      DD_MONGO_PASSWORD: ${DD_MONGO_PASSWORD:-}  # optional MongoDB check, see docker/datadog/mongo-user.sh
+    ports:
+      - "127.0.0.1:8125:8125/udp"      # DogStatsD metrics
+      - "127.0.0.1:8126:8126"          # traces (LLM Observability)
+    volumes:
+      - ./.logpipe:/logpipe-logs:ro
+      - ./docker/datadog/logpipe.d:/etc/datadog-agent/conf.d/logpipe.d:ro
+      - ./docker/datadog/mongo.d:/etc/datadog-agent/conf.d/mongo.d:ro
+      - ./artifacts/showcase/logs:/shop-logs:ro
+      - ./docker/datadog/shop.d:/etc/datadog-agent/conf.d/shop.d:ro
+    restart: unless-stopped
+
 volumes:
   clickhouse_data:
   mongo_data:

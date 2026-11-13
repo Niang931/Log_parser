@@ -54,3 +54,44 @@ def test_pipeline_without_enrichment_leaves_rows_pending(snapshot):
     stats = Pipeline(ParserHandle(snapshot), store).run(_events())
     assert stats.summary()["resolved_by_enrichment"] == 0
     assert store.count_by_status() == {"FINAL": 17, "PENDING": len(NEW)}
+
+
+def test_pipeline_reports_stage_timings_and_line_counts(snapshot):
+    from collections import Counter
+
+    from logpipe.observability import Datadog
+
+    class Rec:
+        def __init__(self):
+            self.calls = Counter()
+
+        def distribution(self, name, value, tags):
+            self.calls[(name, tuple(tags))] += 1
+
+        def increment(self, name, n=1, tags=()):
+            self.calls[(name, tuple(tags))] += n
+
+    rec = Rec()
+    dd = Datadog()
+    dd._statsd = rec
+    Pipeline(ParserHandle(snapshot), MemoryStore(), datadog=dd).run(_events())
+    assert rec.calls[("logpipe.stage.duration", ("stage:parse",))] == 17 + len(NEW)
+    assert rec.calls[("logpipe.stage.duration", ("stage:store",))] == 17 + len(NEW)
+    assert rec.calls[("logpipe.lines", ("status:final",))] == 17
+    assert rec.calls[("logpipe.lines", ("status:pending",))] == len(NEW)
+
+
+def test_pipeline_writes_json_lines_for_the_agent(snapshot, tmp_path, monkeypatch):
+    import json
+
+    from logpipe.observability import Datadog
+    from logpipe.settings import DatadogSettings
+
+    monkeypatch.setattr("ddtrace.llmobs.LLMObs.enable", lambda **_: None)
+    dd = Datadog(DatadogSettings(log_file=tmp_path / "dd.jsonl"))
+    assert dd.logging_on()
+    Pipeline(ParserHandle(snapshot), MemoryStore(), datadog=dd).run(_events())
+    rows = [json.loads(x) for x in (tmp_path / "dd.jsonl").read_text().splitlines()]
+    assert len(rows) == 17 + len(NEW)
+    assert all("message" in r and "template_id" in r for r in rows)
+    assert sum(r["template"] is not None for r in rows) >= 17

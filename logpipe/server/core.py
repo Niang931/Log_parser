@@ -27,6 +27,7 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import yaml
@@ -42,6 +43,7 @@ from ..enrich import llm
 from ..enrich.llm import LLMAdapter
 from ..enrich.validate import clean_keys
 from ..enrich.worker import CycleReport
+from ..observability import Datadog
 from ..parsing.frozen_parser import ParserHandle, Status
 from ..parsing.grok import compile_rule, rule_from_template
 from ..parsing.kv import SLOT_RE
@@ -64,6 +66,9 @@ from .metrics import (
     MongoSeries,
 )
 from .stores import reads_for
+
+if TYPE_CHECKING:
+    from ..datadog_api import DatadogSync
 
 LOGGER = logging.getLogger("logpipe.server")
 
@@ -273,6 +278,8 @@ class Busy(RuntimeError):
 
 
 class Server:
+    dd_sync: DatadogSync | None = None  # set by `logpipe server` when DD_API_KEY is set
+
     def __init__(
         self,
         store,
@@ -290,8 +297,10 @@ class Server:
         schedule_every_s: float = 600,
         start_threads: bool = True,
         min_train_steps: int | None = None,
+        datadog: Datadog | None = None,
     ):
         self.config = get_settings()
+        self.datadog = datadog or Datadog()
         self.store, self.control = store, control
         self.reads = reads_for(store)
         if type(store).__name__ == "MongoStore":
@@ -393,9 +402,12 @@ class Server:
                     registry_path=self.registry_path,
                     enrich_every=10**12,
                     publish_lock=self.lock,
+                    datadog=self.datadog,
                 )
             else:
-                self.pipeline = Pipeline(ParserHandle(self.registry.current), self.store)
+                self.pipeline = Pipeline(
+                    ParserHandle(self.registry.current), self.store, datadog=self.datadog
+                )
             self.pipeline.hold = self._held
             self.detectors = {sid: self._detector(s) for sid, s in self.scorers.items()}
 
@@ -543,9 +555,12 @@ class Server:
                 detector = self.detectors.get(stream["id"])
                 if detector is None:
                     continue
-                alerts = detector.observe(device, tid, ts, event.line)
+                with self.datadog.stage("detect"):
+                    alerts = detector.observe(device, tid, ts, event.line)
                 if alerts:
                     n_alerts += len(alerts)
+                    self.datadog.incr("anomalies", len(alerts))
+                    self.datadog.log_alerts(alerts)
                     self.store.insert_alerts(alerts)
                 if detector.scored:  # drained every line, so it never grows
                     self.drift.observe(stream["id"], detector.scored)
@@ -2008,6 +2023,7 @@ class Server:
         gauges: dict[str, float | None] = {"inbox": self.inbox.qsize()}
         try:
             gauges["pending_rows"] = self.store.count_by_status().get("PENDING", 0)
+            self.datadog.gauge("enrich.backlog", gauges["pending_rows"])
             gauges |= self.store_usage()
         except Exception:  # a store hiccup must not stop the process metrics
             LOGGER.warning("store metrics unavailable", exc_info=True)
@@ -2059,6 +2075,8 @@ class Server:
                 if now - last_ready >= 60:
                     last_ready = now
                     self.refresh_readiness()
+                if self.dd_sync is not None:
+                    self.dd_sync.tick(self)
             except Exception:
                 LOGGER.exception("housekeeping failed")
 

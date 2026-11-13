@@ -1,0 +1,16 @@
+{
+  "name": "logpipe: anomaly spike",
+  "type": "query alert",
+  "query": "sum(last_5m):sum:logpipe.anomalies{*}.as_count() > 5",
+  "message": "More than 5 anomaly alerts in 5 minutes. Open Logs: service:logpipe @is_anomaly:true. Threshold 5 is a guess; tune it.",
+  "tags": [
+    "service:logpipe"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 5
+    },
+    "notify_no_data": false,
+    "require_full_window": false
+  }
+}

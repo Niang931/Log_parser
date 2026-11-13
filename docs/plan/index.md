@@ -9,6 +9,7 @@ later changes appended, so the reasoning behind the current code can be traced.
 |---|---|---|---|
 | MCP endpoint for AI assistants | [persona](persona.md) | [features](features.md) | [decisions](tech-decisions.md) |
 | AI log analysis v2 (Ask + root cause) | [persona](ai-rca/persona.md) | [features](ai-rca/features.md) | [decisions](ai-rca/tech-decisions.md) |
+| Datadog in/out loop | [persona](datadog/persona.md) | [features](datadog/features.md) | [decisions](datadog/tech-decisions.md) |
 
 Decisions made since, summarised:
 

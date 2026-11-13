@@ -65,6 +65,10 @@ class ParserHandle:
     def version(self) -> int:
         return self._parser.snapshot.version
 
+    @property
+    def snapshot(self) -> RegistrySnapshot:
+        return self._parser.snapshot
+
     def parse(self, line: str) -> ParseResult:
         return self._parser.parse(line)
 

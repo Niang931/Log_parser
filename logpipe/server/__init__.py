@@ -7,6 +7,7 @@ import logging.handlers
 import threading
 from pathlib import Path
 
+from ..observability import Datadog
 from ..settings import get_settings
 
 
@@ -74,6 +75,8 @@ def run(
     data_dir: Path,
     epochs: int,
     demo: bool = False,
+    datadog: Datadog | None = None,
+    datadog_pull: str = "",
 ) -> None:
     import uvicorn
 
@@ -84,6 +87,11 @@ def run(
     from .control import ClickHouseDocs, ControlStore
     from .core import Server
 
+    dd_settings = get_settings().datadog
+    dd_query = datadog_pull or dd_settings.pull_query
+    if dd_query and not (dd_settings.api_key and dd_settings.app_key):
+        raise SystemExit("pulling Datadog logs needs DD_API_KEY and DD_APP_KEY in .env")
+    dd = datadog or Datadog()
     log_file = setup_logging(data_dir)
     log_store = open_store(store)
     # shortcut: with the memory store the control plane is in memory too; use clickhouse to keep agents, keys and models across restarts.
@@ -97,10 +105,20 @@ def run(
         control,
         data_dir=data_dir,
         epochs=epochs,
-        adapter_factory=lambda: get_adapter(llm, browser=browser),  # type: ignore[arg-type]
+        adapter_factory=lambda: dd.traced(get_adapter(llm, browser=browser), llm),  # type: ignore[arg-type]
         queue_factory=lambda: open_queue(queue),
         bootstrap_key=get_settings().server.bootstrap_key or None,
+        datadog=dd,
     )
+    if dd_settings.api_key:
+        from ..datadog_api import DatadogSync
+
+        server.dd_sync = DatadogSync(dd_settings, query=dd_query)
+        print(
+            f"[server] datadog: events to {dd_settings.site}"
+            + (f", pulling logs for {dd_query!r}" if dd_query else ""),
+            flush=True,
+        )
     from .auth import Auth
 
     generated = Auth(control).ensure(get_settings().server.admin_password or None)

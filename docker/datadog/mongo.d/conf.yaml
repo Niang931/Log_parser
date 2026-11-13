@@ -1,0 +1,10 @@
+# Needs the `datadog` user: docker/datadog/mongo-user.sh. If Mongo is not running the check only shows an error in `agent status`.
+init_config:
+
+instances:
+  - hosts:
+      - mongo:27017  # compose service name; the Agent shares the project network
+    username: datadog
+    password: "%%env_DD_MONGO_PASSWORD%%"
+    options:
+      authSource: admin
