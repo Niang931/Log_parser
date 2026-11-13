@@ -27,4 +27,4 @@ Shortcuts (marked with `shortcut:` comments): the cursor is a timestamp (it can 
 
 ## Verification
 - `make check` (lint + typecheck + tests), with the new mocked tests passing.
-- Live: `docker compose --profile datadog up -d datadog-agent` → `make demo-datadog-loop` → in DD: showcase logs appear in Logs, then a "logpipe: anomaly on shop/payment" Event appears, followed by an RCA event; `logpipe datadog export-pipeline` creates the "logpipe (auto)" pipeline and DD Logs shows parsed attributes; a DD monitor with a webhook to the cloudflared URL produces an incident in the logpipe UI and an RCA event in DD.
+- Live: `docker compose --profile datadog up -d datadog-agent` → `logpipe showcase --datadog` → in DD: showcase logs appear in Logs, then a "logpipe: anomaly on shop/payment" Event appears, followed by an RCA event; `logpipe datadog export-pipeline` creates the "logpipe (auto)" pipeline and DD Logs shows parsed attributes; a DD monitor with a webhook to the cloudflared URL produces an incident in the logpipe UI and an RCA event in DD.

@@ -4,8 +4,7 @@ from types import SimpleNamespace
 
 import httpx
 
-from logpipe.datadog_api import DatadogAPI, DatadogSync, dd_rules, to_dd_rule
-from logpipe.parsing.grok import rule_from_template
+from logpipe.datadog_api import DatadogAPI, DatadogSync
 from logpipe.server.control import ControlStore
 from logpipe.settings import DatadogSettings
 
@@ -13,18 +12,6 @@ from logpipe.settings import DatadogSettings
 def _api(handler, **kw):
     settings = DatadogSettings(api_key="k", app_key="a", **kw)
     return DatadogAPI(settings, transport=httpx.MockTransport(handler)), settings
-
-
-def test_rules_translate_to_datadog_grok():
-    rule = "[%{integer:pid}] GET %{path:url} took %{number:ms}ms from %{notspace:ip} %{quoted:ua}"
-    assert to_dd_rule(rule) == (
-        r"\[%{integer:pid}\] GET %{notSpace:url} took %{number:ms}ms from %{notSpace:ip} "
-        r"%{quotedString:ua}"
-    )
-    assert to_dd_rule('%{regex("[a-z]+"):w} x.y') == r'%{regex("[a-z]+"):w} x\.y'
-    assert "regex(" in to_dd_rule("%{timestamp:ts} up")
-    rules = dd_rules([{"template_id": 7, "rule": rule_from_template(["user", "<*>"], ["name"])}])
-    assert rules == ["t7 user %{notSpace:name}"]
 
 
 def test_search_maps_logs_to_intake_events():

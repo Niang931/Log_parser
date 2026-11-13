@@ -14,7 +14,8 @@ from pathlib import Path
 
 import httpx
 
-from ..datadog_api import PIPELINE_NAME, DatadogAPI
+from ..datadog_api import DatadogAPI
+from ..datadog_grok import PIPELINE_NAME
 from ..settings import get_settings
 
 B, D, R = "\033[1m", "\033[2m", "\033[0m"

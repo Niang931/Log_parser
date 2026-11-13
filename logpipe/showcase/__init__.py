@@ -23,6 +23,7 @@ import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 
+from ..ask.service import PlanStatus
 from ..settings import get_settings
 from .datadog import ShowcaseDatadog
 from .generator import FILES, ShopGenerator
@@ -797,7 +798,7 @@ def _approve_until(api: Api, done: Callable[[], bool], seconds: float = 300) -> 
     end = time.monotonic() + seconds
     while time.monotonic() < end and not _ask(done, False):
         for p in api("/api/ask")["plans"]:
-            if p["status"] == "waiting_approval":
+            if p["status"] == PlanStatus.WAITING:
                 api(f"/api/ask/{p['id']}/approve", {})
         time.sleep(2)
 

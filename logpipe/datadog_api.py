@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -11,11 +10,11 @@ from urllib.parse import quote
 
 import httpx
 
-from .parsing.grok import _PART
+from .ask.service import PlanStatus
 from .settings import DatadogSettings
 
 LOGGER = logging.getLogger(__name__)
-PIPELINE_NAME = "logpipe (auto)"
+_FINISHED = {PlanStatus.DONE, PlanStatus.FAILED, PlanStatus.REJECTED, PlanStatus.EXPIRED}
 
 
 class DatadogAPI:
@@ -61,27 +60,13 @@ class DatadogAPI:
         url = f"https://event-management-intake.{self.settings.site}/api/v2/events"
         return self.send("POST", url, json={"data": {"type": "event", "attributes": attrs}})
 
-    def upsert_pipeline(self, rules: list[str], query: str = "*") -> dict:
-        body = {
-            "name": PIPELINE_NAME,
-            "is_enabled": True,
-            "filter": {"query": query},
-            "processors": [
-                {
-                    "type": "grok-parser",
-                    "name": "logpipe templates",
-                    "is_enabled": True,
-                    "source": "message",
-                    "samples": [],
-                    "grok": {"support_rules": "", "match_rules": "\n".join(rules)},
-                }
-            ],
-        }
+    def upsert_pipeline(self, body: dict) -> dict:
+        """``body`` from ``datadog_grok.pipeline``; replaces the pipeline of the same name."""
         existing = next(
             (
                 p
                 for p in self.send("GET", "/api/v1/logs/config/pipelines")
-                if p.get("name") == PIPELINE_NAME
+                if p.get("name") == body["name"]
             ),
             None,
         )
@@ -103,32 +88,6 @@ def to_event(a: dict) -> dict:
         "tags": tags,
         "ts": a.get("timestamp", ""),
     }
-
-
-_DD_MATCHER = {
-    "notspace": "notSpace",
-    "quoted": "quotedString",
-    "path": "notSpace",
-    "timestamp": 'regex("[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}:[0-9]{2}[^ ]*")',
-}
-_SPECIAL = re.compile(r"([\\^$.|?*+()\[\]{}])")
-
-
-def to_dd_rule(rule: str) -> str:
-    """A logpipe rule in Datadog grok: literals regex-escaped, matchers renamed."""
-    out, at = [], 0
-    for m in _PART.finditer(rule):
-        out.append(_SPECIAL.sub(r"\\\1", rule[at : m.start()]))
-        matcher, arg, name = m.groups()
-        part = f'regex("{arg}")' if arg is not None else _DD_MATCHER.get(matcher, matcher)
-        out.append(f"%{{{part}{':' + name if name else ''}}}")
-        at = m.end()
-    out.append(_SPECIAL.sub(r"\\\1", rule[at:]))
-    return "".join(out)
-
-
-def dd_rules(templates: list[dict]) -> list[str]:
-    return [f"t{t['template_id']} {to_dd_rule(t['rule'])}" for t in templates if t.get("rule")]
 
 
 def _ms(iso: str) -> int:
@@ -249,10 +208,11 @@ class DatadogSync:
         for doc in server.control.all("datadog"):
             if doc.get("plan") and not doc.get("posted"):
                 try:
-                    plan: dict = server.ask.get(doc["plan"])
+                    plan = server.ask.get(doc["plan"])
                 except KeyError:
-                    plan = {"status": "deleted"}
-                if plan["status"] in ("done", "failed", "rejected", "expired", "deleted"):
+                    plan = {"status": PlanStatus.FAILED, "result": {"message": "analysis deleted"}}
+
+                if plan["status"] in _FINISHED:
                     inc = {"id": doc["key"], "key": doc["title"]} | {
                         k: doc[k] for k in ("host", "service")
                     }

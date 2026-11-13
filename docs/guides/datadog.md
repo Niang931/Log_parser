@@ -30,7 +30,7 @@ To expose a server running on a laptop: `cloudflared tunnel --url http://localho
 
 ## Showcase
 
-`logpipe showcase --datadog` (or `make demo-datadog-loop`, `AUTO=1` for hands-free) is the normal guided tour plus the Datadog parts:
+`logpipe showcase --datadog` (add `--auto` for hands-free) is the normal guided tour plus the Datadog parts:
 
 | Act | What you see in Datadog |
 |---|---|

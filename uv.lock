@@ -1611,6 +1611,8 @@ datadog = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "datadog" },
+    { name = "ddtrace" },
     { name = "deepparse-artifact", extra = ["test"] },
     { name = "hypothesis" },
     { name = "pytest" },
@@ -1643,6 +1645,8 @@ provides-extras = ["datadog"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "datadog", specifier = ">=0.56.0" },
+    { name = "ddtrace", specifier = ">=4.16.3" },
     { name = "deepparse-artifact", extras = ["test"], editable = "DeepParse" },
     { name = "hypothesis", specifier = ">=6.170.15" },
     { name = "pytest", specifier = ">=9.2.0" },

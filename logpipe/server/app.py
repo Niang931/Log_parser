@@ -23,7 +23,7 @@ from fastapi.responses import (
 )
 
 from ..enrich.sql_guard import validate_sql
-from ..parsing.grok import rule_from_template
+from ..parsing.grok import compile_rule, rule_from_template
 from ..registry import UNK_TEMPLATE_ID
 from . import otlp
 from .auth import COOKIE, Auth
@@ -219,23 +219,32 @@ def create_app(server: Server, demo: Any = None, info: dict | None = None) -> Fa
 
     @app.post("/api/datadog/pipeline")
     def datadog_pipeline() -> dict:
-        from ..datadog_api import dd_rules
+        from ..datadog_grok import pipeline
 
-        snap = server.registry.current
-        rules = dd_rules(
-            [
+        sync = dd_sync()
+        templates = []
+        for t in server.registry.current.templates.values():
+            # skip if the template is an alias of another template
+            if t.alias_of is not None:
+                continue
+
+            rule = t.rule or rule_from_template(t.tokens, t.keys)
+            keys = [k for k in compile_rule(rule).keys if k not in ("timestamp", "device_id")]
+            rows = server.reads.records(compiler.template_sample(t.template_id, keys), max_rows=1)
+            row = rows[0] if rows else {}
+            templates.append(
                 {
                     "template_id": t.template_id,
-                    "rule": t.rule or rule_from_template(t.tokens, t.keys),
+                    "rule": rule,
+                    "sample": {k: row[k] for k in keys if row.get(k) is not None},
+                    "service": row.get("service"),
                 }
-                for t in snap.templates.values()
-                if t.alias_of is None
-            ]
-        )
-        if not rules:
+            )
+        if not templates:
             raise HTTPException(409, "no templates yet")
-        out = dd_sync().api.upsert_pipeline(rules)
-        return {"id": out.get("id"), "rules": len(rules)}
+        body = pipeline(templates)
+        out = sync.api.upsert_pipeline(body)
+        return {"id": out.get("id"), "rules": len(templates), "query": body["filter"]["query"]}
 
     @app.post("/intake/v1/heartbeat")
     def intake_heartbeat(

@@ -9,5 +9,5 @@
 | F3 | Auto-run RCA (no approval) → follow-up DD Event | faster triage |
 | F4 | Approved templates → DD Logs Pipeline (grok parser) | removes hand-written grok |
 | F5 | DD monitor webhook → logpipe incident + auto RCA → DD Event | closes the loop for DD-originated alerts |
-| F6 | `make demo-datadog-loop` + README section | the judges see it end to end |
+| F6 | `logpipe showcase --datadog` + README section | the judges see it end to end |
 
